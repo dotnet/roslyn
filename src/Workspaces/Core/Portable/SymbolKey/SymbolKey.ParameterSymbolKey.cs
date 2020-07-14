@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                 if (containingSymbolFailureReason != null)
                 {
-                    failureReason = $"({nameof(ParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> ${containingSymbolFailureReason})";
+                    failureReason = $"({nameof(ParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
                     return default;
                 }
 

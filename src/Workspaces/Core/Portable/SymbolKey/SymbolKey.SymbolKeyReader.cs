@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis
                     var syntaxTree = GetSyntaxTree(filePath);
                     if (syntaxTree != null)
                     {
-                        failureReason = $"{nameof(ReadLocation)} {nameof(SyntaxTree)} not found";
+                        failureReason = null;
                         return Location.Create(syntaxTree, new TextSpan(start, length));
                     }
                 }

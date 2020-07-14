@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
                 if (elementLocationsFailureReason != null)
                 {
-                    failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(elementLocations)} failed -> ${elementLocationsFailureReason})";
+                    failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(elementLocations)} failed -> {elementLocationsFailureReason})";
                     return default;
                 }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
                     using var elementTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var elementTypesFailureReason);
                     if (elementTypesFailureReason != null)
                     {
-                        failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(elementTypes)} failed -> ${elementTypesFailureReason})";
+                        failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(elementTypes)} failed -> {elementTypesFailureReason})";
                         return default;
                     }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                     var underlyingTypeResolution = reader.ReadSymbolKey(out var underlyingTypeFailureReason);
                     if (underlyingTypeFailureReason != null)
                     {
-                        failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(underlyingTypeResolution)} failed -> ${underlyingTypeFailureReason})";
+                        failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(underlyingTypeResolution)} failed -> {underlyingTypeFailureReason})";
                         return default;
                     }
 

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                 if (containingSymbolFailureReason != null)
                 {
-                    failureReason = $"({nameof(ModuleSymbolKey)} {nameof(containingSymbolResolution)} failed -> ${containingSymbolFailureReason})";
+                    failureReason = $"({nameof(ModuleSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
                     return default;
                 }
 

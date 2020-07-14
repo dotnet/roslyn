@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
                 var pointedAtTypeResolution = reader.ReadSymbolKey(out var pointedAtTypeFailureReason);
                 if (pointedAtTypeFailureReason != null)
                 {
-                    failureReason = $"({nameof(PointerTypeSymbolKey)} {nameof(pointedAtTypeResolution)} failed -> ${pointedAtTypeFailureReason})";
+                    failureReason = $"({nameof(PointerTypeSymbolKey)} {nameof(pointedAtTypeResolution)} failed -> {pointedAtTypeFailureReason})";
                     return default;
                 }
 

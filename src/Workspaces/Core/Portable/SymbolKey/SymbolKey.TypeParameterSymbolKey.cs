@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
                     var location = reader.ReadLocation(out var locationFailureReason);
                     if (locationFailureReason != null)
                     {
-                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(location)} failed -> ${locationFailureReason})";
+                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(location)} failed -> {locationFailureReason})";
                         return default;
                     }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                     var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                     if (containingSymbolFailureReason != null)
                     {
-                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> ${containingSymbolFailureReason})";
+                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
                         return default;
                     }
 
