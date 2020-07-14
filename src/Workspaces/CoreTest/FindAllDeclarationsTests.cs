@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -680,11 +680,10 @@ Inner i;
 
             using var writerStream = new MemoryStream();
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(writerStream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 info.WriteTo(writer);
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             using var readerStream = new MemoryStream(writerStream.ToArray());
@@ -694,8 +693,7 @@ reader, Checksum.Null);
 
             info.AssertEquivalentTo(readInfo);
 
-            foreach (var obj in keepAliveObjects)
-                GC.KeepAlive(obj);
+            GC.KeepAlive(keepAliveObjects);
         }
 
         [Fact, WorkItem(7941, "https://github.com/dotnet/roslyn/pull/7941")]

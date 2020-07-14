@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -112,12 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, false, new[] { "Hello, World" });
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 bloomFilter.WriteTo(writer);
-
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -126,8 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var rehydratedFilter = BloomFilter.ReadFrom(reader);
             Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
 
-            foreach (var obj in keepAliveObjects)
-                GC.KeepAlive(obj);
+            GC.KeepAlive(keepAliveObjects);
         }
 
         [Fact]
@@ -136,12 +132,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, new[] { "Hello, World" }, new long[] { long.MaxValue, -1, 0, 1, long.MinValue });
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 bloomFilter.WriteTo(writer);
-
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -150,8 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var rehydratedFilter = BloomFilter.ReadFrom(reader);
             Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
 
-            foreach (var obj in keepAliveObjects)
-                GC.KeepAlive(obj);
+            GC.KeepAlive(keepAliveObjects);
         }
 
         [Fact]

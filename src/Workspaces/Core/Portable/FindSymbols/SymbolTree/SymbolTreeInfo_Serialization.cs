@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     using (var stream = SerializableBytes.CreateWritableStream())
                     {
-                        using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken))
+                        using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: null, cancellationToken))
                         {
                             result.WriteTo(writer);
                         }

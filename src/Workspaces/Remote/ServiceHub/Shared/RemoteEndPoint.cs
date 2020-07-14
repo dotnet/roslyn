@@ -221,15 +221,9 @@ namespace Microsoft.CodeAnalysis.Remote
             => WriteDataToNamedPipeAsync(pipeName, data,
                 async (stream, data, cancellationToken) =>
                 {
-                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: storage is object, cancellationToken);
+                    var keepAliveCallback = storage is object ? (Action<object>)storage.KeepAlive : null;
+                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback, cancellationToken);
                     await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
-                    if (storage is object)
-                    {
-                        foreach (var obj in objectWriter.TakeKeepAliveObjects())
-                        {
-                            storage.KeepAlive(obj);
-                        }
-                    }
                 }, cancellationToken);
 
         public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<Stream, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)

@@ -60,7 +60,10 @@ namespace Roslyn.Utilities
         private WriterReferenceMap _objectReferenceMap;
         private WriterReferenceMap _stringReferenceMap;
 
-        private readonly ArrayBuilder<object>? _keepAliveObjects;
+        /// <summary>
+        /// A callback that provides keep-alive support for <see cref="KeepAlive(object)"/>.
+        /// </summary>
+        private readonly Action<object>? _keepAliveCallback;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
@@ -78,11 +81,14 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+        /// <param name="keepAliveCallback">A callback function to keep an object alive at least until the last
+        /// <see cref="ObjectReader"/> operating on <paramref name="stream"/> has completed its final deserialization 
+        /// operation; otherwise, <see langword="null"/> if the code using the writer cannot make this guarantee.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public ObjectWriter(
             Stream stream,
             bool leaveOpen = false,
-            bool canKeepObjectsAlive = false,
+            Action<object>? keepAliveCallback = null,
             CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -92,7 +98,7 @@ namespace Roslyn.Utilities
             _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
-            _keepAliveObjects = canKeepObjectsAlive ? ArrayBuilder<object>.GetInstance() : null;
+            _keepAliveCallback = keepAliveCallback;
             _cancellationToken = cancellationToken;
 
             // Capture a copy of the current static binder state.  That way we don't have to 
@@ -110,12 +116,9 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            Debug.Assert(_keepAliveObjects is null || _keepAliveObjects.Count == 0);
-
             _writer.Dispose();
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
-            _keepAliveObjects?.Free();
             _recursionDepth = 0;
         }
 
@@ -135,18 +138,20 @@ namespace Roslyn.Utilities
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string? value) => WriteStringValue(value);
 
-        public ImmutableArray<object> TakeKeepAliveObjects()
-        {
-            RoslynDebug.AssertNotNull(_keepAliveObjects);
-            return _keepAliveObjects?.MoveToImmutable() ?? ImmutableArray<object>.Empty;
-        }
-
+        /// <summary>
+        /// Requests the writer keep <paramref name="obj"/> alive until the final deserialization operation on the
+        /// underlying stream has completed.
+        /// </summary>
+        /// <param name="obj">The object to keep alive.</param>
+        /// <returns><see langword="true"/> if the writer is capable of keeping the object alive until the final
+        /// deserialization operation on the stream has completed; otherwise, <see langword="false"/> if the writer
+        /// cannot ensure the object is kept alive.</returns>
         public bool KeepAlive(object obj)
         {
-            if (_keepAliveObjects is null)
+            if (_keepAliveCallback is null)
                 return false;
 
-            _keepAliveObjects.Add(obj);
+            _keepAliveCallback(obj);
             return true;
         }
 

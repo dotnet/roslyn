@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -30,12 +30,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 using var stream = SerializableBytes.CreateWritableStream();
 
-                ImmutableArray<object> keepAliveObjects;
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
+                var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+                using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
                 {
                     originalText.WriteTo(writer, CancellationToken.None);
-
-                    keepAliveObjects = writer.TakeKeepAliveObjects();
                 }
 
                 stream.Position = 0;
@@ -45,8 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 Assert.Equal(originalText.ToString(), recovered.ToString());
 
-                foreach (var obj in keepAliveObjects)
-                    GC.KeepAlive(obj);
+                GC.KeepAlive(keepAliveObjects);
             }
         }
 

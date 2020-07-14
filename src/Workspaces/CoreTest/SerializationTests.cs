@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -50,12 +47,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using var writerStream = new MemoryStream();
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(writerStream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 versionStamp.WriteTo(writer);
-
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             using var readerStream = new MemoryStream(writerStream.ToArray());
@@ -64,8 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(versionStamp, deserializedVersionStamp);
 
-            foreach (var obj in keepAliveObjects)
-                GC.KeepAlive(obj);
+            GC.KeepAlive(keepAliveObjects);
         }
 
         private static void TestSymbolSerialization(Document document, string symbolName)

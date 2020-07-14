@@ -3086,24 +3086,18 @@ class C
 
             static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
             {
-                using var stream = new MemoryStream();
-                using var writer = new ObjectWriter(stream, canKeepObjectsAlive: true);
-                optionSet.Serialize(writer, CancellationToken.None);
+                var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
 
-                var keepAliveObjects = writer.TakeKeepAliveObjects();
+                using var stream = new MemoryStream();
+                using var writer = new ObjectWriter(stream, keepAliveCallback: obj => keepAliveObjects.Add(obj));
+                optionSet.Serialize(writer, CancellationToken.None);
 
                 stream.Position = 0;
 
-                try
-                {
-                    using var reader = ObjectReader.TryGetReader(stream);
-                    return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
-                }
-                finally
-                {
-                    foreach (var obj in keepAliveObjects)
-                        GC.KeepAlive(obj);
-                }
+                using var reader = ObjectReader.TryGetReader(stream);
+                var result = SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
+                GC.KeepAlive(keepAliveObjects);
+                return result;
             }
         }
     }

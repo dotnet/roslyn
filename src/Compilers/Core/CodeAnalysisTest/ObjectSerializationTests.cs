@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,20 +39,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var stream = new MemoryStream();
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 writeAction(writer);
-
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
             readAction(reader);
 
-            foreach (var obj in keepAliveObjects)
-                GC.KeepAlive(obj);
+            GC.KeepAlive(keepAliveObjects);
         }
 
         private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
@@ -66,26 +62,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var stream = new MemoryStream();
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 writeAction(writer, value);
-
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
 
-            try
-            {
-                using var reader = ObjectReader.TryGetReader(stream);
-                return readAction(reader);
-            }
-            finally
-            {
-                foreach (var obj in keepAliveObjects)
-                    GC.KeepAlive(obj);
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            var result = readAction(reader);
+            GC.KeepAlive(keepAliveObjects);
+            return result;
         }
 
         private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
@@ -1184,12 +1172,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var stream = new MemoryStream();
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 writer.WriteEncoding(encoding);
-
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -1210,8 +1196,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expectedEncoding.WebName, actualEncoding.WebName);
             Assert.Equal(expectedEncoding, actualEncoding);
 
-            foreach (var obj in keepAliveObjects)
-                GC.KeepAlive(obj);
+            GC.KeepAlive(keepAliveObjects);
         }
 
         [Fact]
@@ -1226,8 +1211,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
             }
 
-            ImmutableArray<object> keepAliveObjects;
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj)))
             {
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
@@ -1237,8 +1222,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         writer.WriteValue(instance);
                     }
                 }
-
-                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -1255,8 +1238,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            foreach (var obj in keepAliveObjects)
-                GC.KeepAlive(obj);
+            GC.KeepAlive(keepAliveObjects);
         }
 
         [Fact]
@@ -1410,6 +1392,41 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 return true;
             }
+        }
+
+        [Fact]
+        public void TestDefaultKeepAlive()
+        {
+            using var stream = new MemoryStream();
+            using var writer = new ObjectWriter(stream, leaveOpen: true);
+
+            // ObjectWriter does not support keep alive by default
+            Assert.False(writer.KeepAlive(stream));
+        }
+
+        [Fact]
+        public void TestKeepAlive()
+        {
+            var keepAliveObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+
+            using var stream = new MemoryStream();
+            using var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: obj => keepAliveObjects.Add(obj));
+
+            Assert.True(writer.KeepAlive(stream));
+            Assert.Same(stream, Assert.Single(keepAliveObjects));
+
+            // A second call to keep alive still returns true, but the collection does not change
+            Assert.True(writer.KeepAlive(stream));
+            Assert.Same(stream, Assert.Single(keepAliveObjects));
+        }
+
+        [Fact]
+        public void TestKeepAliveNotSupported()
+        {
+            using var stream = new MemoryStream();
+            using var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: null);
+
+            Assert.False(writer.KeepAlive(stream));
         }
 
         // keep these around for analyzing perf issues

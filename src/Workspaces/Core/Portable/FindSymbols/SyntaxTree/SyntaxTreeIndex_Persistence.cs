@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
                 using var stream = SerializableBytes.CreateWritableStream();
 
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken))
+                using (var writer = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback: null, cancellationToken))
                 {
                     WriteTo(writer);
                 }
