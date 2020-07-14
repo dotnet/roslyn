@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis
                 var reducedFromResolution = reader.ReadSymbolKey(out var reducedFromFailureReason);
                 if (reducedFromFailureReason != null)
                 {
-                    failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(reducedFromResolution)} failed -> ${reducedFromFailureReason})";
+                    failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(reducedFromResolution)} failed -> {reducedFromFailureReason})";
                     return default;
                 }
 
                 var receiverTypeResolution = reader.ReadSymbolKey(out var receiverTypeFailureReason);
                 if (receiverTypeFailureReason != null)
                 {
-                    failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(receiverTypeResolution)} failed -> ${receiverTypeFailureReason})";
+                    failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(receiverTypeResolution)} failed -> {receiverTypeFailureReason})";
                     return default;
                 }
 
@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis
                 var constructedFrom = reader.ReadSymbolKey(out var constructedFromFailureReason);
                 if (constructedFromFailureReason != null)
                 {
-                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(constructedFrom)} failed -> ${constructedFromFailureReason})";
+                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(constructedFrom)} failed -> {constructedFromFailureReason})";
                     return default;
                 }
 
                 using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
                 if (typeArgumentsFailureReason != null)
                 {
-                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> ${typeArgumentsFailureReason})";
+                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
                     return default;
                 }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                 var containingType = reader.ReadSymbolKey(out var containingTypeFailureReason);
                 if (containingTypeFailureReason != null)
                 {
-                    failureReason = $"({nameof(MethodSymbolKey)} {nameof(containingType)} failed -> ${containingTypeFailureReason})";
+                    failureReason = $"({nameof(MethodSymbolKey)} {nameof(containingType)} failed -> {containingTypeFailureReason})";
                     return default;
                 }
 

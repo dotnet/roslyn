@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 using var propertyTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var propertyTypesFailureReason);
                 if (propertyTypesFailureReason != null)
                 {
-                    failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyTypes)} failed -> ${propertyTypesFailureReason})";
+                    failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyTypes)} failed -> {propertyTypesFailureReason})";
                     return default;
                 }
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 using var propertyLocations = reader.ReadLocationArray(out var propertyLocationsFailureReason);
                 if (propertyLocationsFailureReason != null)
                 {
-                    failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyLocations)} failed -> ${propertyLocationsFailureReason})";
+                    failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyLocations)} failed -> {propertyLocationsFailureReason})";
                     return default;
                 }
 

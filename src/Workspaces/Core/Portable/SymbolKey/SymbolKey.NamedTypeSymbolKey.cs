@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                 if (containingSymbolFailureReason != null)
                 {
-                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(containingSymbolFailureReason)} failed -> ${containingSymbolFailureReason})";
+                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(containingSymbolFailureReason)} failed -> {containingSymbolFailureReason})";
                     return default;
                 }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
                 using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
                 if (typeArgumentsFailureReason != null)
                 {
-                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(typeArguments)} failed -> ${typeArgumentsFailureReason})";
+                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
                     return default;
                 }
 

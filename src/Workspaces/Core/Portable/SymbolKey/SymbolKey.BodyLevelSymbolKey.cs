@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                 var locations = reader.ReadLocationArray(out var locationsFailureReason);
                 if (locationsFailureReason != null)
                 {
-                    failureReason = $"({nameof(BodyLevelSymbolKey)} {nameof(locations)} failed -> ${locationsFailureReason})";
+                    failureReason = $"({nameof(BodyLevelSymbolKey)} {nameof(locations)} failed -> {locationsFailureReason})";
                     return default;
                 }
 
