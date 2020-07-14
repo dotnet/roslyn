@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
 
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken))
             {
                 checksumOpt.WriteTo(writer);
             }

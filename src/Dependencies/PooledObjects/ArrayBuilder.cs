@@ -69,6 +69,24 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return _builder.ToImmutable();
         }
 
+        public ImmutableArray<T> MoveToImmutable()
+        {
+            if (Count == 0)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+            else if (_builder.Capacity == Count)
+            {
+                return _builder.MoveToImmutable();
+            }
+            else
+            {
+                var result = ToImmutable();
+                _builder.Clear();
+                return result;
+            }
+        }
+
         public int Count
         {
             get

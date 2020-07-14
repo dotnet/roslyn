@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken))
             {
                 switch (reference)
                 {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);

@@ -1283,7 +1283,7 @@ recurse:
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+            using var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken);
             writer.WriteValue(Green);
         }
 

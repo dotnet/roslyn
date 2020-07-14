@@ -60,6 +60,8 @@ namespace Roslyn.Utilities
         private WriterReferenceMap _objectReferenceMap;
         private WriterReferenceMap _stringReferenceMap;
 
+        private readonly ArrayBuilder<object>? _keepAliveObjects;
+
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
         /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but 
@@ -80,6 +82,7 @@ namespace Roslyn.Utilities
         public ObjectWriter(
             Stream stream,
             bool leaveOpen = false,
+            bool canKeepObjectsAlive = false,
             CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -89,6 +92,7 @@ namespace Roslyn.Utilities
             _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
+            _keepAliveObjects = canKeepObjectsAlive ? ArrayBuilder<object>.GetInstance() : null;
             _cancellationToken = cancellationToken;
 
             // Capture a copy of the current static binder state.  That way we don't have to 
@@ -106,9 +110,12 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            Debug.Assert(_keepAliveObjects is null || _keepAliveObjects.Count == 0);
+
             _writer.Dispose();
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
+            _keepAliveObjects?.Free();
             _recursionDepth = 0;
         }
 
@@ -127,6 +134,21 @@ namespace Roslyn.Utilities
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string? value) => WriteStringValue(value);
+
+        public ImmutableArray<object> TakeKeepAliveObjects()
+        {
+            RoslynDebug.AssertNotNull(_keepAliveObjects);
+            return _keepAliveObjects?.MoveToImmutable() ?? ImmutableArray<object>.Empty;
+        }
+
+        public bool KeepAlive(object obj)
+        {
+            if (_keepAliveObjects is null)
+                return false;
+
+            _keepAliveObjects.Add(obj);
+            return true;
+        }
 
         /// <summary>
         /// Used so we can easily grab the low/high 64bits of a guid for serialization.

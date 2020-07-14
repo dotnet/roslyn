@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote
             => WriteDataToNamedPipeAsync(pipeName, data,
                 async (stream, data, cancellationToken) =>
                 {
-                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken);
                     await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
 
