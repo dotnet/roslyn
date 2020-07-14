@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNoRegressionOnNew()
         {
             UsingExpression("new", DefaultParseOptions,
-                // (1,4): error CS1526: A new expression requires (), [], or {} after type
+                // (1,4): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 // new
-                Diagnostic(ErrorCode.ERR_BadNewExpr, "").WithLocation(1, 4)
-                );
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "").WithLocation(1, 4));
 
             N(SyntaxKind.ObjectCreationExpression);
             {
