@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     public class BloomFilterTests
     {
-        private IEnumerable<string> GenerateStrings(int count)
+        private static IEnumerable<string> GenerateStrings(int count)
         {
             for (var i = 1; i <= count; i++)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private string GenerateString(int value)
+        private static string GenerateString(int value)
         {
             const string Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             var builder = new StringBuilder();
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             return builder.ToString();
         }
 
-        private void Test(bool isCaseSensitive)
+        private static void Test(bool isCaseSensitive)
         {
             var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
             var strings = GenerateStrings(2000).Skip(500).Take(1000).ToSet(comparer);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private HashSet<long> CreateLongs(List<int> ints)
+        private static HashSet<long> CreateLongs(List<int> ints)
         {
             var result = new HashSet<long>();
 

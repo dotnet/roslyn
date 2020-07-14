@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var projectId = ProjectId.CreateNewId();
             var metadataProject = context.CurrentSolution
                 .AddProject(projectId, "Metadata", "Metadata", LanguageNames.CSharp).GetProject(projectId)
-                .AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+                .AddMetadataReference(TestMetadata.Net451.mscorlib)
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release));
 
             var references = new List<MetadataReference>();
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             project = project.RemoveMetadataReference(references[0]).AddMetadataReference(references[1]);
             var b = await context.GenerateSourceAsync("D", project);
 
-            context.VerifyDocumentNotReused(a, b);
+            TestContext.VerifyDocumentNotReused(a, b);
         }
 
         internal static async Task TestSymbolIdMatchesMetadataAsync(string projectLanguage)
