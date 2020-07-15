@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
         {
             // Cast to a typeof operation & check parent is a property reference and member access
             var typeofOperation = (ITypeOfOperation)operation;
-            if (!(operation.Parent is IPropertyReferenceOperation))
+            if (!(operation.Parent is IPropertyReferenceOperation { Property: { Name: nameof(System.Type.Name) } } propertyReference))
             {
                 return false;
             }
