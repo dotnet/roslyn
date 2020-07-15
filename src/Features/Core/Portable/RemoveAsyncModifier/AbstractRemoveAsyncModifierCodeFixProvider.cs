@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out SyntaxNode expression);
         protected abstract bool ShouldOfferFix(IMethodSymbol methodSymbol, KnownTypes knownTypes);
         protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
-        protected abstract SyntaxNode GetLastChildOfBlock(SyntaxNode node);
         protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
         protected abstract ControlFlowAnalysis AnalyzeControlFlow(SemanticModel semanticModel, SyntaxNode originalNode);
 
@@ -97,10 +96,11 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     // body then we've done all we can
                     if (blockBodiedNode != null)
                     {
+                        blockBodiedNode = AddReturnStatement(editor, blockBodiedNode);
+
                         editor.ReplaceNode(replacementNode, blockBodiedNode);
-                        // We need to get the block inside the block bodied method to know where to add the return
-                        var node = GetLastChildOfBlock(blockBodiedNode);
-                        AppendTaskCompletedTaskReturn(node, editor, knownTypes);
+
+                        ChangeReturnStatements(blockBodiedNode, editor, knownTypes);
                     }
                 }
                 else
@@ -111,9 +111,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             }
             else
             {
-                // Block bodied methods might have return statements so update them to task returning
-                ChangeReturnStatements(replacementNode, editor, knownTypes);
-
                 // An "async Task" method has an implicit return at the end, so removing async means
                 // we need to insert it explicitly if the end of the method is reachable.
                 if (methodSymbol.ReturnType == knownTypes._taskType)
@@ -128,12 +125,28 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                         var hasNonReturnExitPoints = controlFlow.ExitPoints.Any<SyntaxNode>(e => !(e is TReturnStatementSyntax));
                         if (controlFlow.EndPointIsReachable || hasNonReturnExitPoints)
                         {
-                            var node = GetLastChildOfBlock(replacementNode);
-                            AppendTaskCompletedTaskReturn(node, editor, knownTypes);
+                            var newNode = AddReturnStatement(editor, replacementNode);
+                            editor.ReplaceNode(replacementNode, newNode);
+
+                            replacementNode = newNode;
                         }
                     }
                 }
+
+                ChangeReturnStatements(replacementNode, editor, knownTypes);
             }
+        }
+
+        private static SyntaxNode AddReturnStatement(SyntaxEditor editor, SyntaxNode replacementNode)
+        {
+            var generator = editor.Generator;
+            var statements = generator.GetStatements(replacementNode).ToImmutableArray();
+
+            // Only need to add a plain "return;" statement, it will be updatedbelow
+            var newStatements = statements.Add(generator.ReturnStatement());
+
+            var newNode = generator.WithStatements(replacementNode, newStatements);
+            return newNode;
         }
 
         private void ChangeReturnStatements(SyntaxNode node, SyntaxEditor editor, KnownTypes knownTypes)
@@ -163,14 +176,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     WrapExpressionWithTaskFromResult(returnExpression, editor, knownTypes);
                 }
             }
-        }
-
-        private static void AppendTaskCompletedTaskReturn(SyntaxNode lastNode, SyntaxEditor editor, KnownTypes knownTypes)
-        {
-            var generator = editor.Generator;
-            var returnTaskCompletedTask = GetReturnTaskCompletedTaskStatement(knownTypes, generator);
-
-            editor.InsertAfter(lastNode, returnTaskCompletedTask);
         }
 
         private static SyntaxNode GetReturnTaskCompletedTaskStatement(KnownTypes knownTypes, SyntaxGenerator generator)

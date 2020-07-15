@@ -47,9 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return !methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt);
         }
 
-        protected override SyntaxNode GetLastChildOfBlock(SyntaxNode node)
-            => GetBlockBody(node).ChildNodes().Last();
-
         protected override ControlFlowAnalysis AnalyzeControlFlow(SemanticModel semanticModel, SyntaxNode node)
             => semanticModel.AnalyzeControlFlow(GetBlockBody(node));
 

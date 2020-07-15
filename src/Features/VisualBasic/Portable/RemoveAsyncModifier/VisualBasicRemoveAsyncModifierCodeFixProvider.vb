@@ -75,20 +75,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return Nothing
         End Function
 
-        Protected Overrides Function GetLastChildOfBlock(node As SyntaxNode) As SyntaxNode
-            Dim methodBlock = TryCast(node, MethodBlockSyntax)
-            If methodBlock IsNot Nothing Then
-                Return methodBlock.Statements.Last()
-            End If
-
-            Dim multiLineLambda = TryCast(node, MultiLineLambdaExpressionSyntax)
-            If multiLineLambda IsNot Nothing Then
-                Return multiLineLambda.Statements.Last()
-            End If
-
-            Return Nothing
-        End Function
-
         Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As SyntaxNode) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
