@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out SyntaxNode expression);
         protected abstract bool ShouldOfferFix(IMethodSymbol methodSymbol, KnownTypes knownTypes);
         protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
-        protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody, SyntaxEditor editor);
         protected abstract SyntaxNode GetLastChildOfBlock(SyntaxNode node);
+        protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
         protected abstract ControlFlowAnalysis AnalyzeControlFlow(SemanticModel semanticModel, SyntaxNode originalNode);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 if (methodSymbol.ReturnType == knownTypes._taskType)
                 {
                     // We need to add a `return Task.CompletedTask;` so we have to convert to a block body
-                    var blockBodiedNode = ConvertToBlockBody(replacementNode, expressionBody, editor);
+                    var blockBodiedNode = ConvertToBlockBody(replacementNode, expressionBody);
 
                     // Expression bodied members can't have return statements so if we can't convert to a block
                     // body then we've done all we can

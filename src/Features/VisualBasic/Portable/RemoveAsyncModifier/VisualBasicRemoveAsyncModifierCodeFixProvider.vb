@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return Nothing
         End Function
 
-        Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As SyntaxNode, editor As SyntaxEditor) As SyntaxNode
+        Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As SyntaxNode) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
 

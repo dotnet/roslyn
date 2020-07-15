@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return expression != null;
         }
 
-        protected override SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody, SyntaxEditor editor)
+        protected override SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody)
         {
             if (InitializeParameterHelpers.TryConvertExpressionBodyToStatement(expressionBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var statement))
             {
