@@ -1,5 +1,7 @@
-Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
+const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "<Program>$" -> string
+Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
