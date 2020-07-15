@@ -92,6 +92,16 @@
         <target state="translated">Bereich für Hintergrundanalyse:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="new">32-bit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="new">64-bit</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Build + Liveanalyse (NuGet-Paket)</target>
@@ -155,6 +165,11 @@
       <trans-unit id="Current_document">
         <source>Current document</source>
         <target state="translated">Aktuelles Dokument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_parameter">
+        <source>Current parameter</source>
+        <target state="new">Current parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -2235,15 +2250,15 @@ Zusätzliche Informationen: {1}</target>
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
         <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
 (i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
 (ii) obtain permission to decompile the binary code from the owner of the software.
- 
+
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="translated">WICHTIG: Visual Studio umfasst eine Funktionalität für die Dekompilierung ("Decompiler"), der das Reproduzieren von Quellcode aus Binärcode ermöglicht. Indem Sie auf den Decompiler zugreifen und ihn verwenden, stimmen Sie den nachstehend aufgeführten Visual Studio-Lizenzbedingungen und den Bedingungen für den Decompiler zu. Wenn Sie diesen kombinierten Nutzungsbedingungen nicht zustimmen, greifen Sie nicht auf den Decompiler zu, und verwenden Sie ihn nicht.
+        <target state="needs-review-translation">WICHTIG: Visual Studio umfasst eine Funktionalität für die Dekompilierung ("Decompiler"), der das Reproduzieren von Quellcode aus Binärcode ermöglicht. Indem Sie auf den Decompiler zugreifen und ihn verwenden, stimmen Sie den nachstehend aufgeführten Visual Studio-Lizenzbedingungen und den Bedingungen für den Decompiler zu. Wenn Sie diesen kombinierten Nutzungsbedingungen nicht zustimmen, greifen Sie nicht auf den Decompiler zu, und verwenden Sie ihn nicht.
 
 Sie erkennen an, dass der Binärcode und der Quellcode möglicherweise durch Urheberrechts- und Markengesetze geschützt sind. Bevor Sie den Compiler für Binärcode einsetzen, müssen Sie Folgendes sicherstellen: 
 (i) Vergewissern Sie sich, dass die Lizenzbedingungen zur Verwendung des Binärcodes keine Klausel enthalten, die das Dekompilieren der Software verbietet. Oder: 

@@ -459,60 +459,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 #endif
 
-        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, Document targetDocument, TextSpan? span = null)
+        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
         {
-            var project = targetDocument.Project;
-
-            if (project.SupportsCompilation)
+            foreach (var diagnostic in diagnostics)
             {
-                return ConvertToLocalDiagnosticsWithCompilation();
+                if (!IsReportedInDocument(diagnostic, targetTextDocument))
+                {
+                    continue;
+                }
+
+                if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
+                {
+                    continue;
+                }
+
+                yield return DiagnosticData.Create(diagnostic, targetTextDocument);
             }
 
-            return ConvertToLocalDiagnosticsWithoutCompilation();
-
-            IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithoutCompilation()
+            static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetTextDocument)
             {
-                Contract.ThrowIfTrue(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
+                if (diagnostic.Location.SourceTree != null)
                 {
-                    var location = diagnostic.Location;
-                    if (location.Kind != LocationKind.ExternalFile)
-                    {
-                        continue;
-                    }
-
-                    var lineSpan = location.GetLineSpan();
-
-                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    if (documentIds.IsEmpty || documentIds.All(id => id != targetDocument.Id))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(diagnostic, targetDocument);
+                    return targetTextDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetTextDocument;
                 }
-            }
-
-            IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation()
-            {
-                Contract.ThrowIfFalse(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
+                else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
                 {
-                    var document = project.GetDocument(diagnostic.Location.SourceTree);
-                    if (document == null || document != targetDocument)
-                    {
-                        continue;
-                    }
+                    var lineSpan = diagnostic.Location.GetLineSpan();
 
-                    if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(diagnostic, document);
+                    var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
+                    return documentIds.Any(id => id == targetTextDocument.Id);
                 }
+
+                return false;
             }
         }
 

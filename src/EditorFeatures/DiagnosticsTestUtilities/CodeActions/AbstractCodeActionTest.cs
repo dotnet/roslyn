@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await GetCodeRefactoringAsync(provider, workspace));
         }
 
-        private async Task<CodeRefactoring> GetCodeRefactoringAsync(
+        private static async Task<CodeRefactoring> GetCodeRefactoringAsync(
             CodeRefactoringProvider provider,
             TestWorkspace workspace)
         {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        internal void EnableOptions(
+        internal static void EnableOptions(
             ImmutableArray<PickMembersOption> options,
             params string[] ids)
         {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        internal void EnableOption(ImmutableArray<PickMembersOption> options, string id)
+        internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
         {
             var option = options.FirstOrDefault(o => o.Id == id);
             if (option != null)

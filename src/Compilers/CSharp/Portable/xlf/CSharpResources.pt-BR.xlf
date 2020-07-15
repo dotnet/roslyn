@@ -177,6 +177,11 @@
         <target state="translated">__arglist não pode ter um argumento passado por 'in' ou 'out'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CloneDisallowedInRecord">
+        <source>Members named 'Clone' are disallowed in records.</source>
+        <target state="new">Members named 'Clone' are disallowed in records.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
         <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</target>
@@ -230,6 +235,11 @@
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">O padrão de descarte não é permitido como um rótulo de caso em uma instrução switch. Use 'case var _:' para um padrão de descarte ou 'case @_:' para uma constante chamada '_'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEqualityContract">
+        <source>'{0}' does not override expected property from '{1}'.</source>
+        <target state="new">'{0}' does not override expected property from '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideBaseEquals">
@@ -532,14 +542,19 @@
         <target state="new">The receiver type '{0}' is not a valid record type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonProtectedAPIInRecord">
+        <source>Record member '{0}' must be protected.</source>
+        <target state="new">Record member '{0}' must be protected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPublicAPIInRecord">
         <source>Record member '{0}' must be public.</source>
         <target state="new">Record member '{0}' must be public.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
-        <source>'{0}' disallows overriding and containing 'record' is not sealed.</source>
-        <target state="new">'{0}' disallows overriding and containing 'record' is not sealed.</target>
+        <source>'{0}' must allow overriding because the containing record is not sealed.</source>
+        <target state="new">'{0}' must allow overriding because the containing record is not sealed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -678,8 +693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedGetHashCodeInRecord">
-        <source>'{0}' cannot be sealed because containing 'record' is not sealed.</source>
-        <target state="new">'{0}' cannot be sealed because containing 'record' is not sealed.</target>
+        <source>'{0}' cannot be sealed because containing record is not sealed.</source>
+        <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SignatureMismatchInRecord">
@@ -7221,8 +7236,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">Não foi possível encontrar uma implementação do padrão de consulta para o tipo de origem "{0}". "{1}" não encontrado. Está faltando uma referência a "System.Core.dll" ou uma diretiva using para "System.Linq"?</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">Não foi possível encontrar uma implementação do padrão de consulta para o tipo de origem "{0}". "{1}" não encontrado. Está faltando uma referência a "System.Core.dll" ou uma diretiva using para "System.Linq"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">

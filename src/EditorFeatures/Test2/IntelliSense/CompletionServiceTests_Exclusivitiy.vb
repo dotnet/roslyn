@@ -64,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private MustInherit Class TestCompletionProviderWithMockExclusivity
             Inherits CompletionProvider
 
-            Private s_isExclusive As Boolean
-            Private s_itemText As String
-            Private s_index As Integer
+            Private ReadOnly s_isExclusive As Boolean
+            Private ReadOnly s_itemText As String
+            Private ReadOnly s_index As Integer
 
             Protected Sub New(isExclusive As Boolean, text As String, index As Integer)
                 s_isExclusive = isExclusive

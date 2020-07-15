@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
         internal abstract CodeFixProvider CodeFixProvider { get; }
-        internal abstract AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }
+        internal abstract AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer { get; }
         internal abstract ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers { get; }
 
         private void AddAnalyzersToWorkspace(TestWorkspace workspace)

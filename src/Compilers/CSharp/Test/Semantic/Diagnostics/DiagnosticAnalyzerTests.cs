@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -3585,6 +3586,164 @@ class C
                 else
                 {
                     Assert.False(diagnostics.ContainsKey(analyzer));
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestAdditionalFileAnalyzer(bool registerFromInitialize)
+        {
+            var tree = CSharpSyntaxTree.ParseText(string.Empty);
+            var compilation = CreateCompilation(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            AdditionalText additionalFile = new TestAdditionalText("Additional File Text");
+            var options = new AnalyzerOptions(ImmutableArray.Create(additionalFile));
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+
+            var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+            verifyDiagnostics(diagnostics);
+
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics());
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
+
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics());
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
+
+            void verifyDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+            {
+                var diagnostic = Assert.Single(diagnostics);
+                Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
+                Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
+                var location = (ExternalFileLocation)diagnostic.Location;
+                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(diagnosticSpan, location.SourceSpan);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestMultipleAdditionalFileAnalyzers(bool registerFromInitialize, bool additionalFilesHaveSamePaths, bool firstAdditionalFileHasNullPath)
+        {
+            var tree = CSharpSyntaxTree.ParseText(string.Empty);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var path1 = firstAdditionalFileHasNullPath ? null : @"c:\file.txt";
+            var path2 = additionalFilesHaveSamePaths ? path1 : @"file2.txt";
+
+            AdditionalText additionalFile1 = new TestAdditionalText("Additional File1 Text", path: path1);
+            AdditionalText additionalFile2 = new TestAdditionalText("Additional File2 Text", path: path2);
+            var additionalFiles = ImmutableArray.Create(additionalFile1, additionalFile2);
+            var options = new AnalyzerOptions(additionalFiles);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer1 = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001");
+            var analyzer2 = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0002");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+
+            var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+            verifyDiagnostics(diagnostics, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
+
+            var singleAnalyzerArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
+
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+
+            if (!additionalFilesHaveSamePaths)
+            {
+                verifyAnalysisResult(analysisResult, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths, verifyGetAllDiagnostics: false);
+            }
+
+            return;
+
+            static void verifyDiagnostics(
+                ImmutableArray<Diagnostic> diagnostics,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths)
+            {
+                foreach (AdditionalFileAnalyzer analyzer in analyzers)
+                {
+                    var fileIndex = 0;
+                    foreach (var additionalFile in additionalFiles)
+                    {
+                        var applicableDiagnostics = diagnostics.WhereAsArray(
+                            d => d.Id == analyzer.Descriptor.Id && PathUtilities.Comparer.Equals(d.Location.GetLineSpan().Path, additionalFile.Path));
+                        if (additionalFile.Path == null)
+                        {
+                            Assert.Empty(applicableDiagnostics);
+                            continue;
+                        }
+
+                        var expectedCount = additionalFilesHaveSamePaths ? additionalFiles.Length : 1;
+                        Assert.Equal(expectedCount, applicableDiagnostics.Length);
+
+                        foreach (var diagnostic in applicableDiagnostics)
+                        {
+                            Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
+                            var location = (ExternalFileLocation)diagnostic.Location;
+                            Assert.Equal(diagnosticSpan, location.SourceSpan);
+                        }
+
+                        fileIndex++;
+                        if (!additionalFilesHaveSamePaths || fileIndex == additionalFiles.Length)
+                        {
+                            diagnostics = diagnostics.RemoveRange(applicableDiagnostics);
+                        }
+                    }
+                }
+
+                Assert.Empty(diagnostics);
+            }
+
+            static void verifyAnalysisResult(
+                AnalysisResult analysisResult,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths,
+                bool verifyGetAllDiagnostics = true)
+            {
+                if (verifyGetAllDiagnostics)
+                {
+                    verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+                }
+
+                foreach (var analyzer in analyzers)
+                {
+                    var singleAnalyzerArray = ImmutableArray.Create(analyzer);
+                    foreach (var additionalFile in additionalFiles)
+                    {
+                        var reportedDiagnostics = getReportedDiagnostics(analysisResult, analyzer, additionalFile);
+                        verifyDiagnostics(reportedDiagnostics, singleAnalyzerArray, ImmutableArray.Create(additionalFile), diagnosticSpan, additionalFilesHaveSamePaths);
+                    }
+                }
+
+                return;
+
+                static ImmutableArray<Diagnostic> getReportedDiagnostics(AnalysisResult analysisResult, DiagnosticAnalyzer analyzer, AdditionalText additionalFile)
+                {
+                    if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFile, out var diagnosticsMap) &&
+                        diagnosticsMap.TryGetValue(analyzer, out var diagnostics))
+                    {
+                        return diagnostics;
+                    }
+
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
             }
         }
