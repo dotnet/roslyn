@@ -225,6 +225,9 @@ record C(int X, int Y)
 }
 ");
             comp.VerifyDiagnostics(
+                // (4,17): error CS8872: 'C.Equals(C)' must allow overriding because the containing record is not sealed.
+                //     public bool Equals(C c) => throw null;
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
                 // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
                 //     public override bool Equals(object o) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
@@ -258,7 +261,7 @@ record C(int X, int Y)
         object c = new C(0, 0);
         Console.WriteLine(c.Equals(c));
     }
-    public bool Equals(C c) => false;
+    public virtual bool Equals(C c) => false;
 }", expectedOutput: "False");
         }
 
@@ -285,7 +288,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-record C(int X, int Y)
+sealed record C(int X, int Y)
 {
     public static void Main()
     {
@@ -1256,6 +1259,9 @@ enum G : C { }";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (3,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(3, 8),
                 // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
@@ -1306,6 +1312,9 @@ enum H : C { }
             });
 
             comp2.VerifyDiagnostics(
+                // (3,8): error CS0115: 'E.EqualityContract': no suitable method found to override
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.EqualityContract").WithLocation(3, 8),
                 // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),

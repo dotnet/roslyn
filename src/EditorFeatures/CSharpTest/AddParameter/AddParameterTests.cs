@@ -2608,7 +2608,7 @@ void local(int x, int y)
 void local(int x, int y, int v)
 {
 }
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]

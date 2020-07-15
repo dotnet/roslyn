@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var systemDir = Path.GetFullPath(Environment.SystemDirectory);
             var windowsDir = Directory.GetParent(systemDir);
-            var windowsDirPath = windowsDir.FullName;
             var windowsRoot = Directory.GetDirectoryRoot(systemDir);
 
             // we need to get the exact casing from the file system:

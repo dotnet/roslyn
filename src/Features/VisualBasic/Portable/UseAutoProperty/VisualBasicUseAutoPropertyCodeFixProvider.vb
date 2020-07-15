@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
             statement = DirectCast(generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly)), PropertyStatementSyntax)
 
-            Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
+            Dim initializer = Await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then
                 statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
                     .WithInitializer(initializer.equalsValue) _
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return statement
         End Function
 
-        Private Shared Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
+        Private Shared Async Function GetFieldInitializerAsync(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
             Dim initializer = declarator?.Initializer

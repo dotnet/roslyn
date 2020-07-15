@@ -1297,7 +1297,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
         public async Task PositionalPatternSecondPosition()
         {

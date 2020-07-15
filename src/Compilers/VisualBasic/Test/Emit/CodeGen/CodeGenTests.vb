@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -10337,7 +10338,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10354,7 +10355,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10395,7 +10396,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10422,7 +10423,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 

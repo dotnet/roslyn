@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
-            return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, applicableToSpan, isExpanded: false, cancellationToken);
+            return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, isExpanded: false, cancellationToken);
         }
 
         public async Task<AsyncCompletionData.CompletionContext> GetExpandedCompletionContextAsync(
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 if (Helpers.TryGetInitialTriggerLocation(session, out var initialTriggerLocation))
                 {
-                    return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, applicableToSpan, isExpanded: true, cancellationToken).ConfigureAwait(false);
+                    return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, isExpanded: true, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IAsyncCompletionSession session,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,
-            SnapshotSpan applicableToSpan,
             bool isExpanded,
             CancellationToken cancellationToken)
         {
@@ -474,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return item;
         }
 
-        private ImmutableArray<char> GetExcludedCommitCharacters(ImmutableArray<RoslynCompletionItem> roslynItems)
+        private static ImmutableArray<char> GetExcludedCommitCharacters(ImmutableArray<RoslynCompletionItem> roslynItems)
         {
             var hashSet = new HashSet<char>();
             foreach (var roslynItem in roslynItems)

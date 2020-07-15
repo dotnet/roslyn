@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             }
         }
 
-        protected void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint)
+        protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint)
         {
             var documentToNavigate = solution.GetDocument(navigationPoint.Tree);
             var workspace = solution.Workspace;

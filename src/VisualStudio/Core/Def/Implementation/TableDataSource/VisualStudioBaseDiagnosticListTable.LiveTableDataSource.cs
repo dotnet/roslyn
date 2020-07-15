@@ -417,8 +417,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab)
-                    => TryNavigateToItem(index, previewTab);
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate)
+                    => TryNavigateToItem(index, previewTab, activate);
 
                 #region IWpfTableEntriesSnapshot
 

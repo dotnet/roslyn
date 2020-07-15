@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), PartNotDiscoverable]
     internal sealed class TestExperimentationService : IExperimentationService
     {
-        private Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -162,7 +162,7 @@ class C
     }
 }",
                 CodeActionIndex = 1,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -202,7 +202,7 @@ class C
                     },
                 },
                 CodeActionIndex = 1,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(
             initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(
-            value: null, inputType: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
+            value: null, inputType: null, narrowedType: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
             declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
