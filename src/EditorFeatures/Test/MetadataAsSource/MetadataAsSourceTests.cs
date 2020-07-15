@@ -710,7 +710,7 @@ End Class");
             using var context = TestContext.Create(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource));
             var a = await context.GenerateSourceAsync("C");
             var b = await context.GenerateSourceAsync("C.Is");
-            context.VerifyDocumentReused(a, b);
+            TestContext.VerifyDocumentReused(a, b);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -719,7 +719,7 @@ End Class");
             using var context = TestContext.Create();
             var a = await context.GenerateSourceAsync();
             var b = await context.GenerateSourceAsync();
-            context.VerifyDocumentReused(a, b);
+            TestContext.VerifyDocumentReused(a, b);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -745,7 +745,7 @@ End Class");
 
             var a = await context.GenerateSourceAsync(project: context.DefaultProject);
             var b = await context.GenerateSourceAsync(project: project);
-            context.VerifyDocumentReused(a, b);
+            TestContext.VerifyDocumentReused(a, b);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -759,7 +759,7 @@ End Class");
 
             var a = await context.GenerateSourceAsync(project: context.DefaultProject);
             var b = await context.GenerateSourceAsync(project: project);
-            context.VerifyDocumentNotReused(a, b);
+            TestContext.VerifyDocumentNotReused(a, b);
         }
 
         [WorkItem(546311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
@@ -1231,7 +1231,7 @@ public static class ObjectExtensions
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
@@ -1274,7 +1274,7 @@ End Namespace";
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -1487,7 +1487,7 @@ public class [|TestType|]<T> where T : unmanaged
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -1527,7 +1527,7 @@ public class TestType
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -1556,7 +1556,7 @@ public delegate void [|D|]<T>() where T : unmanaged;";
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -2273,7 +2273,7 @@ public class [|TestType|]<T> where T : notnull
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2315,7 +2315,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2346,7 +2346,7 @@ public delegate void [|D|]<T>() where T : notnull;";
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2404,7 +2404,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2459,7 +2459,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2522,7 +2522,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2572,7 +2572,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2623,7 +2623,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2671,7 +2671,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2719,7 +2719,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2765,7 +2765,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2811,7 +2811,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2857,7 +2857,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2901,7 +2901,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -2965,7 +2965,7 @@ namespace N
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -3039,7 +3039,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -3083,7 +3083,7 @@ public class TestType
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-            context.VerifyResult(metadataAsSourceFile, expected);
+            TestContext.VerifyResult(metadataAsSourceFile, expected);
         }
     }
 }

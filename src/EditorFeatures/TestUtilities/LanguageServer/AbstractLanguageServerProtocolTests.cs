@@ -258,13 +258,13 @@ namespace Roslyn.Test.Utilities
             return workspace;
         }
 
-        private void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
+        private static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
         {
             var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
             provider.UpdateSolution(solution);
         }
 
-        private Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        private static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)

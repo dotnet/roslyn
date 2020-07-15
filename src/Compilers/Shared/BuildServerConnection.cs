@@ -186,7 +186,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         // the server and we need to fall back to the command line.
                         //
                         // Example: https://github.com/dotnet/roslyn/issues/24124
+#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
                         return null;
+#pragma warning restore VSTHRD114 // Avoid returning a null Task
                     }
 
                     if (!holdsMutex)
@@ -197,7 +199,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                             if (!holdsMutex)
                             {
+#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
                                 return null;
+#pragma warning restore VSTHRD114 // Avoid returning a null Task
                             }
                         }
                         catch (AbandonedMutexException)
