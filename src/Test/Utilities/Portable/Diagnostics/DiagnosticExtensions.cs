@@ -104,14 +104,6 @@ namespace Microsoft.CodeAnalysis
             return c;
         }
 
-        public static TCompilation VerifyDiagnosticsAndEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
-            where TCompilation : Compilation
-        {
-            VerifyDiagnostics(c, expected);
-            VerifyEmitDiagnostics(c, expected);
-            return c;
-        }
-
         private static void VerifyAssemblyIds<TCompilation>(
             TCompilation c, ImmutableArray<Diagnostic> diagnostics) where TCompilation : Compilation
         {

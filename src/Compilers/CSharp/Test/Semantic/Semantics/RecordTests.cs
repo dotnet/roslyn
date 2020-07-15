@@ -15872,7 +15872,7 @@ record R(ref int P1, out int P2);
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnosticsAndEmitDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (2,9): error CS0177: The out parameter 'P2' must be assigned to before control leaves the current method
                 // record R(ref int P1, out int P2);
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int P1, out int P2)").WithArguments("P2").WithLocation(2, 9),
@@ -15894,7 +15894,7 @@ record R(ref int P1, out int P2) : Base(P2 = 1);
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnosticsAndEmitDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (3,10): error CS0631: ref and out are not valid in this context
                 // record R(ref int P1, out int P2) : Base(P2 = 1);
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(3, 10),
@@ -15943,7 +15943,7 @@ record R(this int i);
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnosticsAndEmitDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (2,10): error CS0027: Keyword 'this' is not available in the current context
                 // record R(this int i);
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(2, 10)
