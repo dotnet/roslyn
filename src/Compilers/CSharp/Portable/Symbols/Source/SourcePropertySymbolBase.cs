@@ -705,8 +705,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
-
         internal SyntaxTree SyntaxTree
         {
             get
@@ -821,7 +819,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
-            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
+            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride &&
+                     ShouldReportProtectedMemberInSealedTypeError)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
@@ -831,6 +830,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(errorCode, location, this);
             }
         }
+
+        protected virtual bool ShouldReportProtectedMemberInSealedTypeError => true;
 
 #nullable enable
         protected abstract SourcePropertyAccessorSymbol? CreateAccessorSymbol(
@@ -977,7 +978,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Attributes
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+        public abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
+
+        public abstract IAttributeTargetSymbol AttributesOwner { get; }
+
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => AttributesOwner;
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
@@ -1386,15 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
                                 this.Type.CheckAllConstraints(DeclaringCompilation, conversions, Location, diagnostics);
 
-                                var type = this.Type;
-                                if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
-                                }
-                                else if (this.IsAutoProperty && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
-                                }
+                                ValidatePropertyType(diagnostics);
 
                                 this.AddDeclarationDiagnostics(diagnostics);
                                 var completedOnThisThread = _state.NotePartComplete(CompletionPart.FinishPropertyType);
@@ -1419,6 +1416,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
+            }
+        }
+
+        protected virtual void ValidatePropertyType(DiagnosticBag diagnostics)
+        {
+            var type = this.Type;
+            if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
+            }
+            else if (this.IsAutoProperty && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
         }
 

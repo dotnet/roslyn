@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
 
             Assert.Equal(0, map.Keys.Count());
             Assert.Equal(0, map.Values.Count());
-            Assert.False(map.TryGetKey(0, out var key));
-            Assert.False(map.TryGetValue("0", out var value));
+            Assert.False(map.TryGetKey(0, out _));
+            Assert.False(map.TryGetValue("0", out _));
 
             Assert.False(map.ContainsKey("0"));
             Assert.False(map.ContainsValue(0));

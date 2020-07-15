@@ -3459,6 +3459,76 @@ class C
             Assert.Equal(localFunctionSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
         }
 
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LocalFunctionReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        local();
+        return null!;
+        string local()
+        {
+            s.ToString();
+            return s;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Body!.OpenBraceToken.SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String!' because we are speculating within the local function.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LambdaReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        System.Func<string> local = () =>
+        {
+            s.ToString();
+            return s;
+        };
+        local();
+        return null!;
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Block!.OpenBraceToken.SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String!' because we are speculating within the local function.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+        }
+
         [Fact]
         public void NestedLambdaReinference_SpeculativeParamReference()
         {

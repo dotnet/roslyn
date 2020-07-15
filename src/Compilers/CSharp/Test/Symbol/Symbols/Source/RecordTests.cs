@@ -225,7 +225,7 @@ record C(int X, int Y)
 }
 ");
             comp.VerifyDiagnostics(
-                // (4,17): error CS8872: 'C.Equals(C)' disallows overriding and containing 'record' is not sealed.
+                // (4,17): error CS8872: 'C.Equals(C)' must allow overriding because the containing record is not sealed.
                 //     public bool Equals(C c) => throw null;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
                 // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
@@ -1056,7 +1056,7 @@ record C
 }");
             var members = comp.GlobalNamespace.GetTypeMember("C").GetMembers();
             AssertEx.Equal(new[] {
-                "C! C.<>Clone()",
+                "C! C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type! C.EqualityContract.get",
                 "System.Type! C.EqualityContract { get; }",
                 "System.Int32 C.<X>k__BackingField",
@@ -1259,6 +1259,9 @@ enum G : C { }";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (3,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(3, 8),
                 // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
@@ -1309,6 +1312,9 @@ enum H : C { }
             });
 
             comp2.VerifyDiagnostics(
+                // (3,8): error CS0115: 'E.EqualityContract': no suitable method found to override
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.EqualityContract").WithLocation(3, 8),
                 // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),
@@ -1423,7 +1429,7 @@ class C
             Assert.True(clone.IsAbstract);
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(0, clone.Arity);
-            Assert.Equal("R R.<>Clone()", clone.ToTestDisplayString());
+            Assert.Equal("R R." + WellKnownMemberNames.CloneMethodName + "()", clone.ToTestDisplayString());
 
             var r2 = comp.GlobalNamespace.GetTypeMember("R2");
             var clone2 = (MethodSymbol)r2.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1433,7 +1439,7 @@ class C
             Assert.Equal(0, clone2.ParameterCount);
             Assert.Equal(0, clone2.Arity);
             Assert.True(clone2.OverriddenMethod.Equals(clone, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R2.<>Clone()", clone2.ToTestDisplayString());
+            Assert.Equal("R R2." + WellKnownMemberNames.CloneMethodName + "()", clone2.ToTestDisplayString());
 
             var r3 = comp.GlobalNamespace.GetTypeMember("R3");
             var clone3 = (MethodSymbol)r3.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1443,7 +1449,7 @@ class C
             Assert.Equal(0, clone3.ParameterCount);
             Assert.Equal(0, clone3.Arity);
             Assert.True(clone3.OverriddenMethod.Equals(clone2, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R3.<>Clone()", clone3.ToTestDisplayString());
+            Assert.Equal("R R3." + WellKnownMemberNames.CloneMethodName + "()", clone3.ToTestDisplayString());
 
             var r4 = comp.GlobalNamespace.GetTypeMember("R4");
             var clone4 = (MethodSymbol)r4.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1453,7 +1459,7 @@ class C
             Assert.Equal(0, clone4.ParameterCount);
             Assert.Equal(0, clone4.Arity);
             Assert.True(clone4.OverriddenMethod.Equals(clone3, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R4.<>Clone()", clone4.ToTestDisplayString());
+            Assert.Equal("R R4." + WellKnownMemberNames.CloneMethodName + "()", clone4.ToTestDisplayString());
 
             var r5 = comp.GlobalNamespace.GetTypeMember("R5");
             var clone5 = (MethodSymbol)r5.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1463,7 +1469,7 @@ class C
             Assert.Equal(0, clone5.ParameterCount);
             Assert.Equal(0, clone5.Arity);
             Assert.True(clone5.OverriddenMethod.Equals(clone4, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R5.<>Clone()", clone5.ToTestDisplayString());
+            Assert.Equal("R R5." + WellKnownMemberNames.CloneMethodName + "()", clone5.ToTestDisplayString());
 
             var verifier = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             verifier.VerifyIL("C.Main", @"
@@ -1471,10 +1477,10 @@ class C
   // Code size       28 (0x1c)
   .maxstack  1
   IL_0000:  newobj     ""R3..ctor()""
-  IL_0005:  callvirt   ""R R.<>Clone()""
+  IL_0005:  callvirt   ""R R." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000a:  pop
   IL_000b:  newobj     ""R5..ctor()""
-  IL_0010:  callvirt   ""R R.<>Clone()""
+  IL_0010:  callvirt   ""R R." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0015:  castclass  ""R4""
   IL_001a:  pop
   IL_001b:  ret

@@ -7,18 +7,17 @@
 extern alias InteractiveHost;
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
+using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
-    using System.Threading.Tasks;
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
-    public sealed class StressTests : AbstractInteractiveHostTests
+    public sealed class StressTests
     {
         [Fact]
         public async Task TestKill()
@@ -32,6 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private async Task TestKillAfterAsync(int milliseconds)
         {
             using var host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1, joinOutputWritingThreadsOnDisposal: true);
+            var options = InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64);
 
             host.InteractiveHostProcessCreated += new Action<Process>(proc =>
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 });
             });
 
-            await host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory())).ConfigureAwait(false);
+            await host.ResetAsync(options).ConfigureAwait(false);
 
             for (int j = 0; j < 10; j++)
             {

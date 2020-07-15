@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// </summary>
     internal static class RemoteHostCrashInfoBar
     {
-        public static void ShowInfoBar(HostWorkspaceServices services, Exception ex = null)
+        public static void ShowInfoBar(HostWorkspaceServices _1, Exception _2 = null)
         {
             // do nothing
         }

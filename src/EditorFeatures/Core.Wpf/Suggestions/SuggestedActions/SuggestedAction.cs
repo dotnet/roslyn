@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 () => CodeAction.GetOperationsAsync(progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        protected static Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);

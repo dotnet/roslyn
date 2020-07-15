@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 
     public class AddUsingNuGetTests : AbstractAddUsingTests
     {
-        const string NugetOrgSource = "nuget.org";
+        private const string NugetOrgSource = "nuget.org";
 
         private static readonly ValueTask<ImmutableArray<PackageSource>?> NugetPackageSources =
             new ValueTask<ImmutableArray<PackageSource>?>(ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/")));
@@ -277,7 +277,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        private Task<IList<PackageWithTypeResult>> CreateSearchResult(
+        private static Task<IList<PackageWithTypeResult>> CreateSearchResult(
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
@@ -285,9 +285,9 @@ class C
                 rank: 0, containingNamespaceNames: containingNamespaceNames));
         }
 
-        private Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
+        private static Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
             => Task.FromResult<IList<PackageWithTypeResult>>(ImmutableArray.Create(results));
 
-        private ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
+        private static ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
     }
 }
