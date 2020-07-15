@@ -508,7 +508,8 @@ Creating BuildRequest
 
         public static RejectedBuildResponse Create(BinaryReader reader)
         {
-            var reason = ReadLengthPrefixedString(reader) ?? "";
+            var reason = ReadLengthPrefixedString(reader);
+            Debug.Assert(reason is object);
             return new RejectedBuildResponse(reason);
         }
     }

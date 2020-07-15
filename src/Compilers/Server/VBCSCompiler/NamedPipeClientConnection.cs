@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.IO.Pipes;
-using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 catch (Exception e)
                 {
-                    LogException(e, "Error reading build request.");
+                    CompilerServerLogger.LogException(e, "Error reading build request.");
                     return new ConnectionData(CompletionReason.CompilationNotStarted);
                 }
 
