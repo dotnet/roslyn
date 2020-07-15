@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return projectionDocument;
         }
 
-        private void GetSpansAndCaretFromSurfaceBufferMarkup(
+        private static void GetSpansAndCaretFromSurfaceBufferMarkup(
             string markup, IList<TestHostDocument> baseDocuments,
             out IList<object> projectionBufferSpans,
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             MapMarkupSpans(markupSpans, out mappedMarkupSpans, projectionBufferSpans, projectionBufferSpanStartingPositions);
         }
 
-        private void MapMarkupSpans(
+        private static void MapMarkupSpans(
             IDictionary<string, ImmutableArray<TextSpan>> markupSpans,
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans,
             IList<object> projectionBufferSpans, IList<int> projectionBufferSpanStartingPositions)

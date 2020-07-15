@@ -270,10 +270,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return await _compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, adjustedSpan, ImmutableArray.Create(analyzer), cancellationToken).ConfigureAwait(false);
             }
 
-            // We specially handle IPragmaSuppressionsAnalyzer by passing in the 'CompilationWithAnalyzers'
-            // context to compute unnecessary pragma suppression diagnostics.
+            // We specially handle IInlineSourceSuppressionsAnalyzer by passing in the 'CompilationWithAnalyzers'
+            // context to compute unnecessary inline source suppression diagnostics.
             // This is required because this analyzer relies on reported compiler + analyzer diagnostics
-            // for unnecessary pragma analysis.
+            // for unnecessary inline source suppression analysis.
             if (analyzer is IPragmaSuppressionsAnalyzer suppressionsAnalyzer &&
                 !AnalysisScope.Span.HasValue)
             {

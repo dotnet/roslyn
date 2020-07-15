@@ -359,6 +359,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public static bool Any<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (predicate(a, arg))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>

@@ -1450,7 +1450,7 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, errSymbol.Name);
+            Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
             Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }

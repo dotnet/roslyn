@@ -1371,6 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckMemberNamesDistinctFromType(diagnostics);
             CheckMemberNameConflicts(diagnostics);
+            CheckRecordMemberNames(diagnostics);
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
@@ -1448,6 +1449,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in GetMembersAndInitializers().NonTypeNonIndexerMembers)
             {
                 CheckMemberNameDistinctFromType(member, diagnostics);
+            }
+        }
+
+        private void CheckRecordMemberNames(DiagnosticBag diagnostics)
+        {
+            if (declaration.Kind != DeclarationKind.Record)
+            {
+                return;
+            }
+
+            foreach (var member in GetMembers("Clone"))
+            {
+                diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
             }
         }
 
@@ -3006,7 +3020,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             memberSignatures.Free();
 
-
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
             members.AddRange(builder.NonTypeNonIndexerMembers);
@@ -3066,16 +3079,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     bool isInherited = false;
                     var syntax = param.GetNonNullSyntaxNode();
-                    var property = new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics);
-                    if (!memberSignatures.TryGetValue(property, out var existingMember))
+
+                    var targetProperty = new SignatureOnlyPropertySymbol(param.Name,
+                                                                         this,
+                                                                         ImmutableArray<ParameterSymbol>.Empty,
+                                                                         RefKind.None,
+                                                                         param.TypeWithAnnotations,
+                                                                         ImmutableArray<CustomModifier>.Empty,
+                                                                         isStatic: false,
+                                                                         ImmutableArray<PropertySymbol>.Empty);
+
+                    if (!memberSignatures.TryGetValue(targetProperty, out var existingMember))
                     {
-                        Debug.Assert(property.OverriddenOrHiddenMembers.OverriddenMembers.Length == 0); // property is not virtual and should not have overrides
-                        existingMember = property.OverriddenOrHiddenMembers.HiddenMembers.FirstOrDefault();
+                        existingMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetProperty, memberIsFromSomeCompilation: true);
                         isInherited = true;
                     }
                     if (existingMember is null)
                     {
-                        addProperty(property);
+                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))

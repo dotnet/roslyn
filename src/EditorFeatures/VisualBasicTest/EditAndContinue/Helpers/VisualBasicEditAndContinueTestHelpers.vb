@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
                 ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync))
         End Function
 
-        Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
+        Public Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
             _fxReferences = fxReferences
         End Sub
 

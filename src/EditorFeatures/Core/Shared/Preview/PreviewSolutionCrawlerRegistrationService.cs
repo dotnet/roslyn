@@ -113,9 +113,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             }
 
             public void Unregister(Workspace workspace, bool blockingShutdown = false)
-                => _ = UnregisterAsync(workspace, blockingShutdown);
+                => _ = UnregisterAsync(workspace);
 
-            private async Task UnregisterAsync(Workspace workspace, bool blockingShutdown)
+            private async Task UnregisterAsync(Workspace workspace)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
                 _source.Cancel();

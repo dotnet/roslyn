@@ -2201,7 +2201,7 @@ class Goo
             Await EnumCompletionNotTriggeredOn(";"c, showCompletionInArgumentLists)
         End Function
 
-        Private Async Function EnumCompletionNotTriggeredOn(c As Char, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function EnumCompletionNotTriggeredOn(c As Char, showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 enum Numeros { Uno, Dos }
@@ -5223,7 +5223,7 @@ class C
 
                 state.SendBackspace()
                 state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
 
             End Using
         End Function

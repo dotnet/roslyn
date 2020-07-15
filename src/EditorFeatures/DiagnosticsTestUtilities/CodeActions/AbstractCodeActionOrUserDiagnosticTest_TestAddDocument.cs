@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 expectedDocumentName: expectedDocumentName);
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestAddDocument(
+        protected static async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expected,
             ImmutableArray<CodeActionOperation> operations,

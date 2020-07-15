@@ -92,6 +92,16 @@
         <target state="translated">Obor analýzy na pozadí:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="new">32-bit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="new">64-bit</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Sestavení + živá analýza (balíček NuGet)</target>

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -335,7 +336,7 @@ record C(int X, int Y)
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -683,8 +684,6 @@ record C(int X)
         var c = new C(0);
         c = c with { };
     }
-
-    public C Clone() => null;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
@@ -721,7 +720,7 @@ Block[B0] - Entry
                   Left:
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                   Right:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -784,8 +783,8 @@ record C : B
 record B
 {
     public int X { get; }
-    public virtual B Clone() => null;
 }
+
 record C : B
 {
     public new int X { get; init; }
@@ -843,6 +842,9 @@ record C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (4,19): error CS8859: Members named 'Clone' are disallowed in records.
+                //     public string Clone() => null;
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(4, 19)
             );
         }
 
@@ -850,9 +852,9 @@ record C(int X)
         public void WithExpr11()
         {
             var src = @"
+
 record C(int X)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0);
@@ -874,7 +876,6 @@ record C(int X)
 using System;
 record C(int X)
 {
-    public C Clone() => new C(this.X);
     public static void Main()
     {
         var c = new C(0);
@@ -894,7 +895,7 @@ record C(int X)
   IL_0006:  dup
   IL_0007:  callvirt   ""int C.X.get""
   IL_000c:  call       ""void System.Console.WriteLine(int)""
-  IL_0011:  callvirt   ""C C.<>Clone()""
+  IL_0011:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0016:  dup
   IL_0017:  ldc.i4.5
   IL_0018:  callvirt   ""void C.X.init""
@@ -909,9 +910,9 @@ record C(int X)
         {
             var src = @"
 using System;
+
 record C(int X, int Y)
 {
-    public C Clone() => new C(X, Y);
     public override string ToString() => X + "" "" + Y;
     public static void Main()
     {
@@ -932,7 +933,7 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.<>Clone()""
+  IL_000d:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
@@ -946,9 +947,9 @@ record C(int X, int Y)
         {
             var src = @"
 using System;
+
 record C(int X, int Y)
 {
-    public C Clone() => new C(this.X, this.Y);
     public override string ToString() => X + "" "" + Y;
     public static void Main()
     {
@@ -972,13 +973,13 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.<>Clone()""
+  IL_000d:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  dup
   IL_001a:  call       ""void System.Console.WriteLine(object)""
-  IL_001f:  callvirt   ""C C.<>Clone()""
+  IL_001f:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0024:  dup
   IL_0025:  ldc.i4.2
   IL_0026:  callvirt   ""void C.Y.init""
@@ -991,9 +992,9 @@ record C(int X, int Y)
         public void WithExpr15()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -1012,9 +1013,9 @@ record C(int X, int Y)
         public void WithExpr16()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -1201,6 +1202,471 @@ record C(int X)
             );
         }
 
+        [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
+        public void Clone_DisallowedInSource()
+        {
+            var src = @"
+record C1(string Clone); // 1
+record C2
+{
+    string Clone; // 2
+}
+record C3
+{
+    string Clone { get; set; } // 3
+}
+record C4
+{
+    data string Clone; // 4 not yet supported
+}
+record C5
+{
+    void Clone() { } // 5
+    void Clone(int i) { } // 6
+}
+record C6
+{
+    class Clone { } // 7
+}
+record C7
+{
+    delegate void Clone(); // 8
+}
+record C8
+{
+    event System.Action Clone;  // 9
+}
+record Clone
+{
+    Clone(int i) => throw null;
+}
+record C9 : System.ICloneable
+{
+    object System.ICloneable.Clone() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,18): error CS8859: Members named 'Clone' are disallowed in records.
+                // record C1(string Clone); // 1
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(2, 18),
+                // (5,12): error CS8859: Members named 'Clone' are disallowed in records.
+                //     string Clone; // 2
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(5, 12),
+                // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
+                //     string Clone { get; set; } // 3
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
+                // (13,10): error CS1519: Invalid token 'string' in class, struct, or interface member declaration
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),
+                // (13,17): error CS8859: Members named 'Clone' are disallowed in records.
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(13, 17),
+                // (17,10): error CS8859: Members named 'Clone' are disallowed in records.
+                //     void Clone() { } // 5
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(17, 10),
+                // (18,10): error CS8859: Members named 'Clone' are disallowed in records.
+                //     void Clone(int i) { } // 6
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(18, 10),
+                // (22,11): error CS8859: Members named 'Clone' are disallowed in records.
+                //     class Clone { } // 7
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(22, 11),
+                // (26,19): error CS8859: Members named 'Clone' are disallowed in records.
+                //     delegate void Clone(); // 8
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(26, 19),
+                // (30,25): error CS8859: Members named 'Clone' are disallowed in records.
+                //     event System.Action Clone;  // 9
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25)
+                );
+        }
+
+        [Fact]
+        public void Clone_LoadedFromMetadata()
+        {
+            // IL for ' public record Base(int i);' with a 'void Clone()' method added
+            var il = @"
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+    implements class [mscorlib]System.IEquatable`1<class Base>
+{
+    .field private initonly int32 '<i>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+
+    .method public hidebysig specialname newslot virtual instance class Base '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void Base::.ctor(class Base)
+        IL_0006: ret
+    }
+
+    .method family hidebysig specialname newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldtoken Base
+        IL_0005: call class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor ( int32 i ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<i>k__BackingField'
+        IL_0007: ldarg.0
+        IL_0008: call instance void [mscorlib]System.Object::.ctor()
+        IL_000d: ret
+    }
+
+    .method public hidebysig specialname instance int32 get_i () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::'<i>k__BackingField'
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_i ( int32 'value' ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<i>k__BackingField'
+        IL_0007: ret
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<class [mscorlib]System.Type>::get_Default()
+        IL_0005: ldarg.0
+        IL_0006: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_000b: callvirt instance int32 class [mscorlib]System.Collections.Generic.EqualityComparer`1<class [mscorlib]System.Type>::GetHashCode(!0)
+        IL_0010: ldc.i4 -1521134295
+        IL_0015: mul
+        IL_0016: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::get_Default()
+        IL_001b: ldarg.0
+        IL_001c: ldfld int32 Base::'<i>k__BackingField'
+        IL_0021: callvirt instance int32 class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::GetHashCode(!0)
+        IL_0026: add
+        IL_0027: ret
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object obj ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: isinst Base
+        IL_0007: callvirt instance bool Base::Equals(class Base)
+        IL_000c: ret
+    }
+
+    .method public newslot virtual instance bool Equals ( class Base '' ) cil managed
+    {
+        IL_0000: ldarg.1
+        IL_0001: brfalse.s IL_002d
+
+        IL_0003: ldarg.0
+        IL_0004: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_0009: ldarg.1
+        IL_000a: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_000f: call bool [mscorlib]System.Type::op_Equality(class [mscorlib]System.Type, class [mscorlib]System.Type)
+        IL_0014: brfalse.s IL_002d
+
+        IL_0016: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::get_Default()
+        IL_001b: ldarg.0
+        IL_001c: ldfld int32 Base::'<i>k__BackingField'
+        IL_0021: ldarg.1
+        IL_0022: ldfld int32 Base::'<i>k__BackingField'
+        IL_0027: callvirt instance bool class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::Equals(!0, !0)
+        IL_002c: ret
+
+        IL_002d: ldc.i4.0
+        IL_002e: ret
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class Base '' ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: ldfld int32 Base::'<i>k__BackingField'
+        IL_000d: stfld int32 Base::'<i>k__BackingField'
+        IL_0012: ret
+    }
+
+    .method public hidebysig instance void Deconstruct ( [out] int32& i ) cil managed
+    {
+        IL_0000: ldarg.1
+        IL_0001: ldarg.0
+        IL_0002: call instance int32 Base::get_i()
+        IL_0007: stind.i4
+        IL_0008: ret
+    }
+
+    .method public hidebysig instance void Clone () cil managed
+    {
+        IL_0000: ldstr ""RAN""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type Base::get_EqualityContract()
+    }
+
+    .property instance int32 i()
+    {
+        .get instance int32 Base::get_i()
+        .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) Base::set_i(int32)
+    }
+}
+
+.class public auto ansi abstract sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends [mscorlib]System.Object
+{
+}
+";
+            var src = @"
+record R(int i) : Base(i);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(1);
+        r.Clone();
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL(src, il, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+            // Note: we do load the Clone method from metadata
+        }
+
+        [Fact]
+        public void WithExpr24()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(ref C other) : this(-1)
+    {
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+
+            var clone = verifier.Compilation.GetMember("C." + WellKnownMemberNames.CloneMethodName);
+            Assert.Equal("<Clone>$", clone.Name);
+        }
+
+        [Fact]
+        public void WithExpr25()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(in C other) : this(-1)
+    {
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr26()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(out C other) : this(-1)
+    {
+        other = null;
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr27()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(ref C other) : this(-1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr28()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(in C other) : this(-1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr29()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(out C other) : this(-1)
+    {
+        other = null;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
         [Fact]
         public void AccessibilityOfBaseCtor_01()
         {
@@ -1358,9 +1824,9 @@ class C
         public void WithExprNoExpressionToPropertyTypeConversion()
         {
             var src = @"
+
 record C(int X)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0);
@@ -1405,9 +1871,9 @@ class D
         {
             var src = @"
 using System;
+
 record C(int X, int Y, int Z)
 {
-    public C Clone() => new C(X, Y, Z);
     public static void Main()
     {
         var c = new C(0, 1, 2);
@@ -1432,7 +1898,7 @@ X");
   IL_0001:  ldc.i4.1
   IL_0002:  ldc.i4.2
   IL_0003:  newobj     ""C..ctor(int, int, int)""
-  IL_0008:  callvirt   ""C C.<>Clone()""
+  IL_0008:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000d:  dup
   IL_000e:  ldstr      ""Y""
   IL_0013:  call       ""int C.W(string)""
@@ -1455,7 +1921,7 @@ X");
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ Y = W(""Y"" ...  = W(""X"") }')
       Initializers(2):
@@ -1489,7 +1955,7 @@ IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
-            var main = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Skip(1).First();
+            var main = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
             Assert.Equal("Main", main.Identifier.ToString());
             VerifyFlowGraph(comp, main, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -1535,7 +2001,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                   Value:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -1591,7 +2057,6 @@ Block[B3] - Exit
 using System;
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1606,7 +2071,7 @@ record C(long X)
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i8
   IL_0002:  newobj     ""C..ctor(long)""
-  IL_0007:  callvirt   ""C C.<>Clone()""
+  IL_0007:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000c:  dup
   IL_000d:  ldc.i4.s   11
   IL_000f:  conv.i8
@@ -1637,7 +2102,6 @@ struct S
 }
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1659,7 +2123,7 @@ conversion
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldc.i4.s   11
   IL_000b:  call       ""S..ctor(int)""
-  IL_0010:  callvirt   ""C C.<>Clone()""
+  IL_0010:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0015:  dup
   IL_0016:  ldloc.0
   IL_0017:  call       ""long S.op_Implicit(S)""
@@ -1690,7 +2154,6 @@ struct S
 }
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1717,9 +2180,9 @@ struct S
     }
     public static explicit operator long(S s) => s._i;
 }
+
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1742,14 +2205,13 @@ record C(long X)
 using System;
 record C(object X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
         Console.WriteLine((c with { X = ""abc"" }).X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: "abc");
+            CompileAndVerify(src, expectedOutput: "abc");
         }
 
         [Fact]
@@ -1794,7 +2256,7 @@ set
   IL_0005:  ldloca.s   V_0
   IL_0007:  ldc.i4.s   11
   IL_0009:  call       ""S..ctor(int)""
-  IL_000e:  callvirt   ""C C.<>Clone()""
+  IL_000e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0013:  dup
   IL_0014:  ldloc.0
   IL_0015:  call       ""int S.op_Implicit(S)""
@@ -1980,7 +2442,7 @@ record C(int X, string Y)
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { X = 2 }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ X = 2 }')
       Initializers(1):
@@ -2034,7 +2496,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { X = 2 }')
                   Value:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -2162,9 +2624,9 @@ Block[B3] - Exit
         public void WithBadExprArg()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -2208,7 +2670,7 @@ record C(int X, int Y)
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ 5 }')
       Initializers(1):
@@ -2221,7 +2683,7 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ')
       Initializers(0)");
@@ -2399,8 +2861,6 @@ record B(string X)
 #nullable enable
 record B(string? X)
 {
-    public B Clone() => new B(X);
-
     static void M1(B b, string s, bool flag)
     {
         if (flag) { b.X.ToString(); } // 1
@@ -2417,15 +2877,15 @@ record B(string? X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,21): warning CS8602: Dereference of a possibly null reference.
+                // (7,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
-                // (11,21): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(7, 21),
+                // (9,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 21),
-                // (16,21): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
+                // (14,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(16, 21));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(14, 21));
         }
 
         [Fact]
@@ -2464,8 +2924,6 @@ record B(int X)
 #nullable enable
 record B(string? X, string? Y)
 {
-    public B Clone() => new B(X, Y);
-
     static void M1(bool flag)
     {
         B b = new B(""hello"", null);
@@ -2485,15 +2943,15 @@ record B(string? X, string? Y)
             // https://github.com/dotnet/roslyn/issues/44763
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.X.ToString(); // shouldn't warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(12, 13),
-                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(10, 13),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.Y.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(13, 13),
-                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(11, 13),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.X.ToString(); // shouldn't warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(17, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(15, 9));
         }
 
         [Fact]
@@ -2538,8 +2996,6 @@ using System.Diagnostics.CodeAnalysis;
 
 record B([AllowNull] string X)
 {
-    public B Clone() => new B(X);
-
     static void M1(B b)
     {
         b.X.ToString();
@@ -2554,12 +3010,12 @@ record B([AllowNull] string X)
             // https://github.com/dotnet/roslyn/issues/44691
             var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (12,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // (10,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         b = b with { X = null }; // ok
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 26),
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 26),
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.X.ToString(); // ok
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 9));
         }
 
         [Fact]
@@ -2569,8 +3025,6 @@ record B([AllowNull] string X)
 #nullable enable
 record B(string? X, string? Y)
 {
-    public B Clone() => new B(X, Y);
-
     static void M1(B b1)
     {
         B b2 = b1 with { X = ""hello"" };
@@ -2589,18 +3043,18 @@ record B(string? X, string? Y)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         b1.X.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.X").WithLocation(13, 9),
-                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.X").WithLocation(11, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         b1.Y.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Y").WithLocation(14, 9),
-                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Y").WithLocation(12, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         b2.Y.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Y").WithLocation(16, 9),
-                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Y").WithLocation(14, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         b3.X.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(17, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(15, 9));
         }
 
         [Fact]
@@ -2878,7 +3332,7 @@ class D
   // Code size       33 (0x21)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  callvirt   ""C C.<>Clone()""
+  IL_0001:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0006:  dup
   IL_0007:  ldc.i4.5
   IL_0008:  callvirt   ""void C.X.set""
@@ -2902,8 +3356,6 @@ record C(int Y)
 {
     private readonly int[] _a = new[] { 0 };
     public ref int X => ref _a[0];
-
-    public C Clone() => new C(0);
 
     public static void Main()
     {
@@ -2930,7 +3382,7 @@ record C(int Y)
   IL_000f:  callvirt   ""ref int C.X.get""
   IL_0014:  ldind.i4
   IL_0015:  call       ""void System.Console.WriteLine(int)""
-  IL_001a:  callvirt   ""C C.<>Clone()""
+  IL_001a:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_001f:  dup
   IL_0020:  callvirt   ""ref int C.X.get""
   IL_0025:  ldc.i4.1
@@ -2956,8 +3408,6 @@ record C(int Y)
         set { }
     }
 
-    public C Clone() => new C(0);
-
     public static void Main()
     {
         var a = new[] { 0 };
@@ -2972,15 +3422,15 @@ record C(int Y)
                 // (9,9): error CS8147: Properties which return by reference cannot have set accessors
                 //         set { }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.X.set").WithLocation(9, 9),
-                // (17,32): error CS1525: Invalid expression term 'ref'
+                // (15,32): error CS1525: Invalid expression term 'ref'
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(17, 32),
-                // (17,32): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(15, 32),
+                // (15,32): error CS1073: Unexpected token 'ref'
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 32),
-                // (19,26): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(15, 32),
+                // (17,26): error CS1073: Unexpected token 'ref'
                 //         c = c with { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(19, 26)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 26)
             );
         }
 
@@ -3257,7 +3707,7 @@ record C(int X, int Y, int Z) : B
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -3768,7 +4218,7 @@ record C(object P)
 
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Object P, System.Object Q)",
@@ -3791,7 +4241,7 @@ record C(object P)
 
             expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Object P)",
@@ -5019,7 +5469,7 @@ class Program
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type A::get_EqualityContract()
@@ -5053,7 +5503,7 @@ class Program
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class B A_1) { ldnull throw }
-  .method public hidebysig specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type B::get_EqualityContract()
@@ -5113,7 +5563,7 @@ record CB(object P) : B;
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type A::GetProperty1()
@@ -5187,7 +5637,7 @@ B");
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type A::'EqualityContract<>get'()
@@ -5281,7 +5731,7 @@ B");
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type modopt(int32) EqualityContract()
   {
     .get instance class [mscorlib]System.Type modopt(int32) A::get_EqualityContract()
@@ -5404,7 +5854,7 @@ record B : A
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname virtual instance class A  '<>Clone'() { ldnull throw }
+  .method public hidebysig newslot specialname virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { ldnull throw }
   .property instance object P()
   {
     .get instance object A::get_P()
@@ -6348,7 +6798,7 @@ public record C(object P1, object P2) : B(3, 4)
             var ilSource = @"
 .class public auto ansi beforefieldinit B extends [mscorlib]System.Object
 {
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -6423,7 +6873,7 @@ public record C : B
             var ilSource = @"
 .class public auto ansi beforefieldinit B extends [mscorlib]System.Object
 {
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -6492,7 +6942,7 @@ public record C : B {
 {
     INJECT
 
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldarg.0
         IL_0001: newobj instance void B::.ctor(class B)
@@ -6679,7 +7129,7 @@ THROW
         IL_000a:  ret
     }
 
-    .method public hidebysig specialname newslot virtual instance class B`1<!T> '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B`1<!T> '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldarg.0
         IL_0001: newobj instance void class B`1<!T>::.ctor(class B`1<!0>)
@@ -8002,7 +8452,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -8053,7 +8503,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -8084,13 +8534,13 @@ record B(int X, int Y) : A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public final hidebysig virtual 
         instance bool Equals (
@@ -8178,13 +8628,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig virtual 
         instance bool Equals (
@@ -8272,13 +8722,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig 
         instance bool Equals (
@@ -8366,13 +8816,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig virtual 
         instance int32 Equals (
@@ -8537,13 +8987,13 @@ public record A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -8709,13 +9159,13 @@ public record C : B {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual
         instance bool Equals (
@@ -8820,13 +9270,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9072,13 +9522,13 @@ sealed record A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9177,13 +9627,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9275,13 +9725,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9606,13 +10056,13 @@ public record A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9700,13 +10150,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9794,13 +10244,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9888,13 +10338,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9978,13 +10428,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -11264,13 +11714,13 @@ sealed record H : A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -11426,13 +11876,13 @@ record C : A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -11553,13 +12003,13 @@ public record F : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -11666,13 +12116,13 @@ public record F : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -11745,13 +12195,13 @@ public record F : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -12046,7 +12496,7 @@ class E
   IL_0007:  callvirt   ""void C.X.init""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
-  IL_000e:  callvirt   ""C C.<>Clone()""
+  IL_000e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0013:  dup
   IL_0014:  ldc.i4.2
   IL_0015:  callvirt   ""void C.X.init""
@@ -12062,7 +12512,7 @@ class E
   IL_0037:  callvirt   ""void C.X.init""
   IL_003c:  stloc.1
   IL_003d:  ldloc.1
-  IL_003e:  callvirt   ""C C.<>Clone()""
+  IL_003e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0043:  castclass  ""D""
   IL_0048:  dup
   IL_0049:  ldc.i4.2
@@ -12102,13 +12552,13 @@ class E
   IL_00b3:  ldloc.2
   IL_00b4:  stloc.s    V_4
   IL_00b6:  ldloc.3
-  IL_00b7:  callvirt   ""C C.<>Clone()""
+  IL_00b7:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_00bc:  dup
   IL_00bd:  ldc.i4.3
   IL_00be:  callvirt   ""void C.X.init""
   IL_00c3:  stloc.3
   IL_00c4:  ldloc.s    V_4
-  IL_00c6:  callvirt   ""C C.<>Clone()""
+  IL_00c6:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_00cb:  dup
   IL_00cc:  ldc.i4.4
   IL_00cd:  callvirt   ""void C.X.init""
@@ -13896,9 +14346,9 @@ True");
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
 
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.<>Clone"), isOverride: false);
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.<>Clone"), isOverride: true);
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.<>Clone"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A." + WellKnownMemberNames.CloneMethodName), isOverride: false);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B." + WellKnownMemberNames.CloneMethodName), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C." + WellKnownMemberNames.CloneMethodName), isOverride: true);
 
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
@@ -14340,7 +14790,7 @@ record C : B;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract { get; }",
                 "System.Type B.EqualityContract.get",
                 "System.Int32 B.GetHashCode()",
@@ -14466,7 +14916,7 @@ False");
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B1").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B1.<>Clone()",
+                "A B1." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B1.EqualityContract.get",
                 "System.Type B1.EqualityContract { get; }",
                 "B1..ctor(System.Int32 P)",
@@ -15412,6 +15862,529 @@ record R(int P1, int* P2, delegate*<int> P3);";
 
             p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
             Assert.True(p.HasPointerType);
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_01()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1)
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_02()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1)
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_03()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public abstract int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_04()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+public record Test(
+    [method: A]
+    int P1)
+{
+    [method: A]
+    void M1() {}
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (8,6): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field, property, param'. All attributes in this block will be ignored.
+                //     [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "field, property, param").WithLocation(8, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_05()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public virtual int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                Assert.Null(@class.GetMember<PropertySymbol>("P1"));
+                Assert.Null(@class.GetMember<FieldSymbol>("<P1>k__BackingField"));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (27,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
+                // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [property: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_06()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                Assert.Null(@class.GetMember<PropertySymbol>("P1"));
+                Assert.Null(@class.GetMember<FieldSymbol>("<P1>k__BackingField"));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (27,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
+                // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [property: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_07()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public int P1 { get; init; }
+}
+
+public record Test(
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_08()
+        {
+            string source = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+record C<T>([property: NotNull] T? P1, T? P2) where T : class
+{
+    protected C(C<T> other)
+    {
+        T x = P1;
+        T y = P2;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y = P2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P2").WithLocation(10, 15)
+                );
         }
     }
 }

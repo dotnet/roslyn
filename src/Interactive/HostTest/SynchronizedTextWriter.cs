@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        public override void Write(string value)
+        public override void Write(string? value)
         {
             lock (SyncRoot)
             {

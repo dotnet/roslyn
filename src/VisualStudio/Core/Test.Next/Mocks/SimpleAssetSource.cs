@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote.Shared
+namespace Microsoft.CodeAnalysis.Remote.Testing
 {
     /// <summary>
     /// provide asset from given map at the creation

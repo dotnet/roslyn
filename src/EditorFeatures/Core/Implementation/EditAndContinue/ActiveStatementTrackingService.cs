@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     lock (_trackingSpans)
                     {
-                        for (int i = 0; i < baseActiveStatementSpans.Length; i++)
+                        for (var i = 0; i < baseActiveStatementSpans.Length; i++)
                         {
                             var document = currentSolution.GetDocument(openDocumentIds[i]);
                             if (document == null)
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     lock (_trackingSpans)
                     {
-                        bool hasExistingSpans = _trackingSpans.TryGetValue(document.Id, out var oldSpans);
+                        var hasExistingSpans = _trackingSpans.TryGetValue(document.Id, out var oldSpans);
 
                         if (activeStatementSpans.IsDefault)
                         {
