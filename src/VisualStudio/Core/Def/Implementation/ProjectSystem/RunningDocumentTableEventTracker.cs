@@ -28,27 +28,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-        private readonly IRunningDocumentTableEventListener? _listener;
+        private readonly IRunningDocumentTableEventListener _listener;
         private uint _runningDocumentTableEventsCookie;
 
         public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable runningDocumentTable,
-            IRunningDocumentTableEventListener? listener)
+            IRunningDocumentTableEventListener listener)
         {
             Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(editorAdaptersFactoryService);
             Contract.ThrowIfNull(runningDocumentTable);
+            Contract.ThrowIfNull(listener);
 
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _listener = listener;
 
-            // Only track events if we have a listener.
-            if (listener != null)
-            {
-                // Advise / Unadvise for the RDT is free threaded past 16.0
-                ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
-            }
+            // Advise / Unadvise for the RDT is free threaded past 16.0
+            ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
         }
 
         public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
@@ -131,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public int OnBeforeSave(uint docCookie)
             => VSConstants.E_NOTIMPL;
 
-        public bool IsFileOpen(string fileName) => _runningDocumentTable.IsMonikerValid(fileName);
+        public bool IsFileOpen(string fileName) => _runningDocumentTable.IsFileOpen(fileName);
 
         /// <summary>
         /// Attempts to get a text buffer from the specified moniker.
@@ -143,19 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _foregroundAffinitization.AssertIsForeground();
 
-            textBuffer = null;
-            if (!IsFileOpen(moniker))
-            {
-                return false;
-            }
-
-            var cookie = _runningDocumentTable.GetDocumentCookie(moniker);
-            if (!_runningDocumentTable.IsDocumentInitialized(cookie))
-            {
-                return false;
-            }
-
-            return TryGetBuffer(cookie, out textBuffer);
+            return _runningDocumentTable.TryGetBufferFromMoniker(_editorAdaptersFactoryService, moniker, out textBuffer);
         }
 
         public IVsHierarchy? GetDocumentHierarchy(string moniker)
@@ -220,19 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private bool TryGetBuffer(uint docCookie, [NotNullWhen(true)] out ITextBuffer? textBuffer)
-        {
-            textBuffer = null;
-
-            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
-            // which saves us JIT time in this method and an assembly load.
-            if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer bufferAdapter)
-            {
-                textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
-                return textBuffer != null;
-            }
-
-            return false;
-        }
+            => _runningDocumentTable.TryGetBuffer(_editorAdaptersFactoryService, docCookie, out textBuffer);
 
         public void Dispose()
         {

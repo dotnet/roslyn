@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+        private readonly IVsRunningDocumentTable4 _runningDocumentTable;
 
         public VisualStudioDocumentNavigationService(
             IThreadingContext threadingContext,
@@ -46,8 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _serviceProvider = serviceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, listener: null);
+            _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
         }
 
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
@@ -267,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Pass the original result's project context so that if the mapped file has the same context available, we navigate
             // to the mapped file with a consistent project context.
             vsWorkspace.OpenDocumentFromPath(mappedSpanResult.FilePath, generatedDocument.Project.Id);
-            if (_runningDocumentTableEventTracker.TryGetBufferFromMoniker(mappedSpanResult.FilePath, out var textBuffer))
+            if (_runningDocumentTable.TryGetBufferFromMoniker(_editorAdaptersFactoryService, mappedSpanResult.FilePath, out var textBuffer))
             {
                 var vsTextSpan = new VsTextSpan
                 {
