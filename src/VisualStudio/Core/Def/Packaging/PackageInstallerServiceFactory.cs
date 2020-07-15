@@ -24,8 +24,10 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using NuGet.VisualStudio;
+using NuGet.VisualStudio.Contracts;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
@@ -420,63 +422,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var cancellationToken = _tokenSource.Token;
                 Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
                     .ContinueWith(
-                        async _ =>
-                        {
-                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-                            ProcessBatchedChangesOnForeground(cancellationToken);
-                        },
+                        _ => ProcessBatchedChangesAsync(cancellationToken),
                         cancellationToken,
-                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskContinuationOptions.OnlyOnRanToCompletion,
                         TaskScheduler.Default).Unwrap();
             }
         }
 
-        private void ProcessBatchedChangesOnForeground(CancellationToken cancellationToken)
+        private async Task ProcessBatchedChangesAsync(CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
-
-            // If we've been asked to stop, then there's no point proceeding.
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
+            ThisCanBeCalledOnAnyThread();
 
             // If we've been disconnected, then there's no point proceeding.
             if (_workspace == null || !IsEnabled)
-            {
                 return;
-            }
 
             // Get a project to process.
             var solution = _workspace.CurrentSolution;
-            var projectId = DequeueNextProject(solution);
-            if (projectId == null)
+
+            while (true)
             {
-                // No project to process, nothing to do.
-                return;
-            }
+                // If we've been asked to stop, then there's no point proceeding.
+                if (cancellationToken.IsCancellationRequested)
+                    return;
 
-            // Process this single project.
-            ProcessProjectChange(solution, projectId);
-
-            // After processing this single project, yield so the foreground thread
-            // can do more work.  Then go and loop again so we can process the 
-            // rest of the projects.
-            Task.Factory.SafeStartNewFromAsync(
-                async () =>
+                var projectId = DequeueNextProject(solution);
+                if (projectId == null)
                 {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    // No project to process, nothing to do.
+                    return;
+                }
 
-                    ProcessBatchedChangesOnForeground(cancellationToken);
-                },
-                cancellationToken,
-                TaskScheduler.Default);
+                // Process this single project.
+                await ProcessProjectChangeAsync(solution, projectId, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private ProjectId DequeueNextProject(Solution solution)
         {
-            this.AssertIsForeground();
+            ThisCanBeCalledOnAnyThread();
 
             lock (_gate)
             {
@@ -498,9 +482,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private void ProcessProjectChange(Solution solution, ProjectId projectId)
+        private async Task ProcessProjectChangeAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
+            ThisCanBeCalledOnAnyThread();
 
             // Remove anything we have associated with this project.
             _projectToInstalledPackageAndVersion.TryRemove(projectId, out var projectState);
@@ -523,8 +507,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // Project was changed in some way.  Let's go find the set of installed packages for it.
-            var dteProject = _workspace.TryGetDTEProject(projectId);
-            if (dteProject == null)
+            var projectGuid = _workspace.GetProjectGuid(projectId);
+            if (projectGuid == Guid.Empty)
             {
                 // Don't have a DTE project for this project ID.  not something we can query NuGet for.
                 return;
@@ -533,29 +517,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var installedPackages = new MultiDictionary<string, string>();
             var isEnabled = false;
 
-            // Calling into NuGet.  Assume they may fail for any reason.
+            var serviceContainer = _serviceProvider.GetService<IBrokeredServiceContainer, SVsBrokeredServiceContainer>();
+            var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
+            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1).ConfigureAwait(false);
+
+            // Requirement of IServiceBroker (even when a service doesn't explicitly state they implement IDisposable.
+            using var _ = nugetService as IDisposable;
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
-                var installedPackageMetadata = _packageInstallerServices.Value.GetInstalledPackages(dteProject);
-                foreach (var metadata in installedPackageMetadata)
+                var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
+                isEnabled = installedPackagesResult?.Status == InstalledPackageResultStatus.Successful;
+                if (isEnabled)
                 {
-                    if (metadata.VersionString != null)
+                    foreach (var installedPackage in installedPackagesResult.Packages)
                     {
-                        installedPackages.Add(metadata.Id, metadata.VersionString);
+                        var version = installedPackage.RequestedRange ?? installedPackage.Version;
+                        installedPackages.Add(installedPackage.Id, version);
                     }
                 }
-
-                isEnabled = true;
             }
-            catch (InvalidOperationException)
-            {
-                // NuGet throws an InvalidOperationException if details
-                // for the project fail to load. We don't need to report
-                // these, and can assume that this will work on a future
-                // project change
-                // This should be removed with https://github.com/dotnet/roslyn/issues/33187
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
             }
 
