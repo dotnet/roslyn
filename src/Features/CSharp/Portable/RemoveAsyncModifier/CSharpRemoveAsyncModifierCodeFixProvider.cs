@@ -35,19 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override bool ShouldOfferFix(IMethodSymbol methodSymbol, KnownTypes knownTypes)
-        {
-            // For async void methods this fixer does the same as Make Method Synchronous so we don't need to offer both
-            if (methodSymbol.ReturnsVoid)
-            {
-                return false;
-            }
-
-            // IAsyncEnumerable iterators cannot be made non-async even if they don't have awaits
-            return !methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt);
-        }
-
-        protected override bool TryGetExpressionBody(SyntaxNode node, out SyntaxNode expression)
         {
             expression = node switch
             {

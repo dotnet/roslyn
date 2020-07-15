@@ -33,11 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function ShouldOfferFix(methodSymbol As IMethodSymbol, knownTypes As KnownTypes) As Boolean
-            ' We only apply to functions because async subs will be offered the Make Method Synchronous fixer which would do the same job
-            Return Not methodSymbol.ReturnsVoid
-        End Function
-
         Protected Overrides Function RemoveAsyncModifier(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, knownTypes As KnownTypes) As SyntaxNode
             Dim methodBlock = TryCast(node, MethodBlockSyntax)
             If methodBlock IsNot Nothing Then

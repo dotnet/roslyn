@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out SyntaxNode expression);
-        protected abstract bool ShouldOfferFix(IMethodSymbol methodSymbol, KnownTypes knownTypes);
         protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
         protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
 
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
             var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
 
-            if (ShouldOfferFix(methodSymbol, knownTypes))
+            if (ShouldOfferFix(methodSymbol.ReturnType, knownTypes))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => FixAsync(document, diagnostic, c)),
@@ -75,6 +74,10 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             => semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol methodSymbol
                 ? methodSymbol
                 : semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
+
+        private static bool ShouldOfferFix(ITypeSymbol returnType, KnownTypes knownTypes)
+            => returnType.OriginalDefinition.Equals(knownTypes._taskType)
+                || returnType.OriginalDefinition.Equals(knownTypes._taskOfTType);
 
         private void RemoveAsyncModifier(SyntaxEditor editor, SemanticModel semanticModel, SyntaxNode originalNode, IMethodSymbol methodSymbol, KnownTypes knownTypes)
         {
