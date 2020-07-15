@@ -15873,12 +15873,34 @@ record R(ref int P1, out int P2);
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnosticsAndEmitDiagnostics(
+                // (2,9): error CS0177: The out parameter 'P2' must be assigned to before control leaves the current method
+                // record R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int P1, out int P2)").WithArguments("P2").WithLocation(2, 9),
                 // (2,10): error CS0631: ref and out are not valid in this context
-                // record R(ref int P1, out int P2, in int P3);
+                // record R(ref int P1, out int P2);
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(2, 10),
                 // (2,22): error CS0631: ref and out are not valid in this context
-                // record R(ref int P1, out int P2, in int P3);
+                // record R(ref int P1, out int P2);
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(2, 22)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_RefOrOut_WithBase()
+        {
+            var src = @"
+record Base(int I);
+record R(ref int P1, out int P2) : Base(P2 = 1);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnosticsAndEmitDiagnostics(
+                // (3,10): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2) : Base(P2 = 1);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(3, 10),
+                // (3,22): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2) : Base(P2 = 1);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(3, 22)
                 );
         }
 
