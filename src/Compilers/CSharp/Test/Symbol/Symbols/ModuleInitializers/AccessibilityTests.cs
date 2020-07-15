@@ -175,6 +175,62 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
+        public void ModuleInitializerOnPrivatePartialMethod_AllowMultiple()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+partial class C
+{
+    [ModuleInitializer] // 1
+    static partial void M1();
+
+    [ModuleInitializer] // 2
+    static partial void M2();
+    static partial void M2() { }
+
+    static partial void M3();
+    [ModuleInitializer] // 3
+    static partial void M3() { }
+
+    [ModuleInitializer] // 4
+    static partial void M4();
+    [ModuleInitializer] // 5
+    static partial void M4() { }
+}
+
+class Program
+{
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+    class ModuleInitializerAttribute : System.Attribute { }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (7,6): error CS8814: Module initializer method 'M1' must be accessible at the module level
+                //     [ModuleInitializer] // 1
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M1").WithLocation(7, 6),
+                // (10,6): error CS8814: Module initializer method 'M2' must be accessible at the module level
+                //     [ModuleInitializer] // 2
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M2").WithLocation(10, 6),
+                // (15,6): error CS8814: Module initializer method 'M3' must be accessible at the module level
+                //     [ModuleInitializer] // 3
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M3").WithLocation(15, 6),
+                // (18,6): error CS8814: Module initializer method 'M4' must be accessible at the module level
+                //     [ModuleInitializer] // 4
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M4").WithLocation(18, 6),
+                // (20,6): error CS8814: Module initializer method 'M4' must be accessible at the module level
+                //     [ModuleInitializer] // 5
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M4").WithLocation(20, 6)
+                );
+        }
+
+        [Fact]
         public void ModuleInitializerOnPublicPartialMethod()
         {
             string source = @"
@@ -228,6 +284,38 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                     //     [ModuleInitializer] // 1
                     Diagnostic(ErrorCode.ERR_DuplicateAttribute, "ModuleInitializer").WithArguments("ModuleInitializer").WithLocation(9, 6)
                 );
+        }
+
+        [Fact]
+        public void DuplicateModuleInitializerOnPublicPartialMethod_AllowMultiple()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+partial class C
+{
+    [ModuleInitializer]
+    public static partial void M1();
+    [ModuleInitializer]
+    public static partial void M1() { Console.Write(1); }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(2);
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+    class ModuleInitializerAttribute : System.Attribute { }
+}
+";
+            CompileAndVerify(source, expectedOutput: "12", parseOptions: s_parseOptions);
         }
 
         [Theory]
