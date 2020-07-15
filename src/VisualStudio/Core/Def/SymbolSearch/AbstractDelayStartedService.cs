@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -34,6 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private bool _enabled = false;
 
+        protected CancellationToken DisposalToken { get; private set; }
+
         protected AbstractDelayStartedService(
             IThreadingContext threadingContext,
             Workspace workspace,
@@ -50,10 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         protected abstract void StartWorking();
 
-        internal void Connect(string languageName)
+        internal void Connect(string languageName, CancellationToken disposalToken)
         {
             this.AssertIsForeground();
 
+            DisposalToken = disposalToken;
             var options = Workspace.Options;
             if (!options.GetOption(_serviceOnOffOption))
             {

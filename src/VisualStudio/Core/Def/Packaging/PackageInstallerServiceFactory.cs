@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.Editor;
@@ -47,7 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
     internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
     {
-        private readonly object _gate = new object();
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
@@ -57,19 +57,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        private JoinableTask<ImmutableArray<PackageSource>?> _packageSourcesAsync;
         private IVsPackage _nugetPackageManager;
-
-        private CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
         // We keep track of what types of changes we've seen so we can then determine what to
         // refresh on the UI thread.  If we hear about project changes, we only refresh that
         // project.  If we hear about a solution level change, we'll refresh all projects.
-        private bool _solutionChanged;
-        private readonly HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
+        private AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId changedProject)> _workQueue;
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
             new ConcurrentDictionary<ProjectId, ProjectState>();
+
+        /// <summary>
+        /// Lock used to protect reads and writes of <see cref="_packageSourcesTask"/>.
+        /// </summary>
+        private readonly object _gate = new object();
+
+        /// <summary>
+        /// Task uses to compute the set of package sources on demand when asked the first time.  The value will be
+        /// computed and cached in the task.  When this value changes, the task will simply be cleared out.
+        /// </summary>
+        private Task<ImmutableArray<PackageSource>> _packageSourcesTask;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -95,58 +102,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageSourceProvider = packageSourceProvider;
         }
 
-        public async ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
+        public ImmutableArray<PackageSource> TryGetPackageSources()
         {
-            // Only read from _packageSourcesAsync once, since OnSourceProviderSourcesChanged could reset it to default
-            // at any time while this method is running.
-            JoinableTask<ImmutableArray<PackageSource>?> packageSourcesAsync;
+            Task<ImmutableArray<PackageSource>> localPackageSourcesTask;
             lock (_gate)
             {
-                if (_packageSourcesAsync is null)
-                {
-                    _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
-                }
+                if (_packageSourcesTask is null)
+                    _packageSourcesTask = Task.Run(() => GetPackageSourcesAsync());
 
-                packageSourcesAsync = _packageSourcesAsync;
+                localPackageSourcesTask = _packageSourcesTask;
             }
 
-            if (packageSourcesAsync.IsCompleted)
+            if (localPackageSourcesTask.Status == TaskStatus.RanToCompletion)
             {
-                // Since the task is already completed, we know this 'await' will complete synchronously.
-                return await packageSourcesAsync;
-            }
-            else if (allowSwitchToMainThread)
-            {
-                return await packageSourcesAsync.JoinAsync(cancellationToken).ConfigureAwait(false);
+                return localPackageSourcesTask.Result;
             }
             else
             {
-                // The result was not available and switching to the main thread is not allowed. Return without caching
-                // a result.
-                return null;
+                // The result was not available yet (or it was canceled/crashes).  Just return an empty result to
+                // signify we couldn't get this right now.
+                return ImmutableArray<PackageSource>.Empty;
             }
         }
 
-        private async Task<ImmutableArray<PackageSource>?> GetPackageSourcesImplAsync()
+        private async Task<ImmutableArray<PackageSource>> GetPackageSourcesAsync()
         {
-            CancellationToken cancellationToken;
-            lock (_gate)
-            {
-                // Read the current cancellation token within the gate to ensure the token source is not disposed at the
-                // time of the read.
-                cancellationToken = _tokenSource.Token;
-            }
-
-            try
-            {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                // The failure may have been caused by a workspace change. The task has already been invalidated at
-                // a higher level, so just return indicating the data is not complete.
-                return null;
-            }
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
 
             try
             {
@@ -156,14 +137,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
-                return ImmutableArray<PackageSource>.Empty;
             }
             catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
             {
                 // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
                 // https://github.com/dotnet/roslyn/issues/40857
-                return ImmutableArray<PackageSource>.Empty;
             }
+
+            return ImmutableArray<PackageSource>.Empty;
         }
 
         public event EventHandler PackageSourcesChanged;
@@ -202,6 +183,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
+            _workQueue = new AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId changedProject)>(
+                TimeSpan.FromSeconds(1),
+                ProcessWorkQueueAsync,
+                this.DisposalToken);
+
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _packageSourceProvider.Value.SourcesChanged += OnSourceProviderSourcesChanged;
@@ -217,15 +203,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-            OnWorkspaceChanged(localSolutionChanged: true, localChangedProject: null);
+
+            // Kick off an initial set of work that will analyze the entire solution.
+            _workQueue.AddWork((solutionChanged: true, changedProject: null));
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
         {
             lock (_gate)
             {
-                // Reset the task for loading package sources.
-                _packageSourcesAsync = null;
+                // Reset the task for loading package sources.  The next time someone asks for it we'll recompute it.
+                _packageSourcesTask = null;
             }
 
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
@@ -375,7 +363,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             ThisCanBeCalledOnAnyThread();
 
             var solutionChanged = false;
-            ProjectId chnagedProject = null;
+            ProjectId changedProject = null;
             switch (e.Kind)
             {
                 default:
@@ -386,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    chnagedProject = e.ProjectId;
+                    changedProject = e.ProjectId;
                     break;
 
                 case WorkspaceChangeKind.SolutionAdded:
@@ -398,38 +386,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     break;
             }
 
-            this.OnWorkspaceChanged(solutionChanged, chnagedProject);
+            _workQueue.AddWork((solutionChanged, changedProject));
         }
 
-        private void OnWorkspaceChanged(bool localSolutionChanged, ProjectId localChangedProject)
-        {
-            lock (_gate)
-            {
-                // Augment the data that the foreground thread will process.
-                _solutionChanged |= localSolutionChanged;
-                if (localChangedProject != null)
-                {
-                    _changedProjects.Add(localChangedProject);
-                }
-
-                // Now cancel any inflight work that is processing the data.
-                _tokenSource.Cancel();
-                _tokenSource = new CancellationTokenSource();
-
-                // And enqueue a new job to process things.  Wait one second before starting.
-                // That way if we get a flurry of events we'll end up processing them after
-                // they've all come in.
-                var cancellationToken = _tokenSource.Token;
-                Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
-                    .ContinueWith(
-                        _ => ProcessBatchedChangesAsync(cancellationToken),
-                        cancellationToken,
-                        TaskContinuationOptions.OnlyOnRanToCompletion,
-                        TaskScheduler.Default).Unwrap();
-            }
-        }
-
-        private async Task ProcessBatchedChangesAsync(CancellationToken cancellationToken)
+        private async Task ProcessWorkQueueAsync(
+            ImmutableArray<(bool solutionChanged, ProjectId changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -437,48 +398,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (_workspace == null || !IsEnabled)
                 return;
 
-            // Get a project to process.
+            // Figure out the entire set of projects to process.
+            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToProcess);
+
             var solution = _workspace.CurrentSolution;
+            AddProjectsToProcess(workQueue, solution, projectsToProcess);
 
-            while (true)
+            // And Process them one at a time.
+            foreach (var projectId in projectsToProcess)
             {
-                // If we've been asked to stop, then there's no point proceeding.
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
-                var projectId = DequeueNextProject(solution);
-                if (projectId == null)
-                {
-                    // No project to process, nothing to do.
-                    return;
-                }
-
-                // Process this single project.
+                cancellationToken.ThrowIfCancellationRequested();
                 await ProcessProjectChangeAsync(solution, projectId, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private ProjectId DequeueNextProject(Solution solution)
+        private void AddProjectsToProcess(
+            ImmutableArray<(bool solutionChanged, ProjectId changedProject)> workQueue, Solution solution,
+            HashSet<ProjectId> projectsToProcess)
         {
             ThisCanBeCalledOnAnyThread();
 
-            lock (_gate)
+            // If we detected a solution change, then we need to process all projects.
+            // This includes all the projects that we already know about, as well as
+            // all the projects in the current workspace solution.
+            if (workQueue.Any(t => t.solutionChanged))
             {
-                // If we detected a solution change, then we need to process all projects.
-                // This includes all the projects that we already know about, as well as
-                // all the projects in the current workspace solution.
-                if (_solutionChanged)
-                {
-                    _changedProjects.AddRange(solution.ProjectIds);
-                    _changedProjects.AddRange(_projectToInstalledPackageAndVersion.Keys);
-                }
-
-                _solutionChanged = false;
-
-                // Remove and return the first project in the list.
-                var projectId = _changedProjects.FirstOrDefault();
-                _changedProjects.Remove(projectId);
-                return projectId;
+                projectsToProcess.AddRange(solution.ProjectIds);
+                projectsToProcess.AddRange(_projectToInstalledPackageAndVersion.Keys);
+            }
+            else
+            {
+                projectsToProcess.AddRange(workQueue.Select(t => t.changedProject));
             }
         }
 
@@ -514,21 +464,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            var installedPackages = new MultiDictionary<string, string>();
-            var isEnabled = false;
-
             var serviceContainer = _serviceProvider.GetService<IBrokeredServiceContainer, SVsBrokeredServiceContainer>();
             var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
             var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1).ConfigureAwait(false);
 
-            // Requirement of IServiceBroker (even when a service doesn't explicitly state they implement IDisposable.
-            using var _ = nugetService as IDisposable;
-            cancellationToken.ThrowIfCancellationRequested();
-
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
-                isEnabled = installedPackagesResult?.Status == InstalledPackageResultStatus.Successful;
+
+                var installedPackages = new MultiDictionary<string, string>();
+                var isEnabled = installedPackagesResult?.Status == InstalledPackageResultStatus.Successful;
                 if (isEnabled)
                 {
                     foreach (var installedPackage in installedPackagesResult.Packages)
@@ -537,13 +483,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         installedPackages.Add(installedPackage.Id, version);
                     }
                 }
+
+                _projectToInstalledPackageAndVersion[projectId] = new ProjectState(isEnabled: true, installedPackages);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
+                _projectToInstalledPackageAndVersion[projectId] = new ProjectState(isEnabled: false, new MultiDictionary<string, string>());
             }
-
-            var state = new ProjectState(isEnabled, installedPackages);
-            _projectToInstalledPackageAndVersion[projectId] = state;
+            finally
+            {
+                (nugetService as IDisposable)?.Dispose();
+            }
         }
 
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
