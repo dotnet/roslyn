@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -77,12 +78,14 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
                 if (node == null)
                 {
+                    Debug.Fail("We should always be able to find the node from the diagnostic.");
                     continue;
                 }
 
                 var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
                 if (methodSymbol == null)
                 {
+                    Debug.Fail("We should always be able to find the method symbol for the diagnostic.");
                     continue;
                 }
 
@@ -229,7 +232,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             {
                 var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
                 var taskFromResult = generator.MemberAccessExpression(taskTypeExpression, nameof(Task.FromResult));
-                invocation = (TExpressionSyntax)generator.InvocationExpression(taskFromResult, expression.NormalizeWhitespace());
+                invocation = (TExpressionSyntax)generator.InvocationExpression(taskFromResult, expression.WithoutTrivia()).WithTriviaFrom(expression);
             }
             else
             {
