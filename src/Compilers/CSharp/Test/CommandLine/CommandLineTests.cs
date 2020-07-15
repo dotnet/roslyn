@@ -12638,6 +12638,30 @@ key3 = value3");
             Assert.Equal("value3", val);
         }
 
+        [Theory, CombinatorialData]
+        public void TestAdditionalFileAnalyzer(bool registerFromInitialize)
+        {
+            var srcDirectory = Temp.CreateDirectory();
+
+            var source = "class C { }";
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            var additionalText = "Additional Text";
+            var additionalFile = srcDirectory.CreateFile("b.txt");
+            additionalFile.WriteAllText(additionalText);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
+
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/additionalfile:" + additionalFile.Path },
+                analyzers: analyzer);
+            Assert.Contains("b.txt(1,3): warning ID0001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcDirectory.Path);
+        }
+
         [Fact, WorkItem(45702, "https://github.com/dotnet/roslyn/issues/45702")]
         public void TestWarningVersion()
         {

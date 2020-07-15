@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class DocumentAnalysisScope
     {
         public DocumentAnalysisScope(
-            Document document,
+            TextDocument document,
             TextSpan? span,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind)
@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(kind == AnalysisKind.Syntax || kind == AnalysisKind.Semantic);
             Debug.Assert(!analyzers.IsDefaultOrEmpty);
 
-            Document = document;
+            TextDocument = document;
             Span = span;
             Analyzers = analyzers;
             Kind = kind;
         }
 
-        public Document Document { get; }
+        public TextDocument TextDocument { get; }
         public TextSpan? Span { get; }
         public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
         public AnalysisKind Kind { get; }
