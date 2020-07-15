@@ -157,6 +157,11 @@
         <target state="translated">Aktuální dokument</target>
         <note />
       </trans-unit>
+      <trans-unit id="Current_parameter">
+        <source>Current parameter</source>
+        <target state="new">Current parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="new">_Edit</target>
