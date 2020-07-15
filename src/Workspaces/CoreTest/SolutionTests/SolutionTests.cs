@@ -667,13 +667,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var originalSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
             Assert.NotNull(originalSyntaxTreeOptionsProvider);
 
-            var options = solution.Projects.Single().LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
-            Assert.Null(options.SyntaxTreeOptionsProvider);
+            var defaultOptions = solution.Projects.Single().LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
+            Assert.Null(defaultOptions.SyntaxTreeOptionsProvider);
 
-            solution = solution.WithProjectCompilationOptions(projectId, options);
+            solution = solution.WithProjectCompilationOptions(projectId, defaultOptions);
 
-            // The CompilationOptions we replaced with didn't have a SyntaxTreeOptionsProvider, but we should
-            // have put it back, and it should behave the same as the original.
+            // The CompilationOptions we replaced with didn't have a SyntaxTreeOptionsProvider, but we would have placed it
+            // back. The SyntaxTreeOptionsProvider should behave the same as the prior one and thus should be equal.
             var newSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
             Assert.NotNull(newSyntaxTreeOptionsProvider);
             Assert.Equal(originalSyntaxTreeOptionsProvider, newSyntaxTreeOptionsProvider);
