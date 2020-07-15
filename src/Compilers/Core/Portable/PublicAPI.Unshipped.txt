@@ -1,5 +1,5 @@
 Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.TryGetAnalyzers(string language, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers) -> bool

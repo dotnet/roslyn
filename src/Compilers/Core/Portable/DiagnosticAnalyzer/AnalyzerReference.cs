@@ -66,7 +66,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Tries to get the cached list of analyzers for this assembly reference for the given <paramref name="language"/>, if
         /// it has already been created and is still cached.
         /// </summary>
-        public abstract bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers);
+        public virtual bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            analyzers = default;
+            return false;
+        }
 
         /// <summary>
         /// Gets all the source generators defined in this assembly reference.
