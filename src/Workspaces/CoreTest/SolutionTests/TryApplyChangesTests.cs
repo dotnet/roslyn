@@ -167,5 +167,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.TryApplyChanges(project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From("")).Project.Solution));
         }
+
+        [Fact]
+        public void TryApplyWorksWhenProjectNameChanges()
+        {
+            using var workspace = new CustomizedCanApplyWorkspace(allowedKinds: ApplyChangesKind.AddAnalyzerConfigDocument);
+
+            var project = workspace.CurrentSolution.Projects.Single();
+
+            var changedSolution = workspace.CurrentSolution.WithProjectName(project.Id, "NewName");
+
+            Assert.True(workspace.TryApplyChanges(changedSolution));
+            Assert.True(workspace.CurrentSolution.Projects.Single().Name == "NewName");
+        }
     }
 }

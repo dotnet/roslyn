@@ -1444,6 +1444,15 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyDefaultNamespaceChanged(projectChanges.ProjectId, projectChanges.NewProject.DefaultNamespace);
             }
 
+            // changed project name
+            // todo: The underlying OnProjectNameChanged method also optionally changes the FilePath.
+            // should that be checked here too?
+            if (projectChanges.OldProject.Name != projectChanges.NewProject.Name)
+            {
+                var newFilePath = projectChanges.NewProject.FilePath ?? projectChanges.OldProject.FilePath;
+                this.ApplyProjectNameChanged(projectChanges.OldProject.Id, projectChanges.NewProject.Name, newFilePath);
+            }
+
             // removed project references
             foreach (var removedProjectReference in projectChanges.GetRemovedProjectReferences())
             {
@@ -1694,6 +1703,17 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeProjectInfo));
             this.OnDefaultNamespaceChanged(projectId, defaultNamespace);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to change the default namespace.
+        ///
+        /// Override this method to implement the capability of changing a project's name.
+        /// </summary>
+        protected virtual void ApplyProjectNameChanged(ProjectId projectId, string name, string? filePath)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeProjectInfo));
+            this.OnProjectNameChanged(projectId, name, filePath);
         }
 
         /// <summary>
