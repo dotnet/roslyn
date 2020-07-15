@@ -24,13 +24,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
             Dim node = FindExpressionSyntaxFromSpan(root, textSpan)
             Dim typeInference = document.GetLanguageService(Of ITypeInferenceService)()
 
-            Dim inferredType As ITypeSymbol
-
-            If testMode = TestMode.Position Then
-                inferredType = typeInference.InferType(Await document.GetSemanticModelForSpanAsync(New TextSpan(node.SpanStart, 0), CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
-            Else
-                inferredType = typeInference.InferType(Await document.GetSemanticModelForSpanAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
-            End If
+            Dim inferredType = If(testMode = TestMode.Position,
+                typeInference.InferType(Await document.ReuseExistingSpeculativeModelAsync(node.SpanStart, CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None),
+                typeInference.InferType(Await document.ReuseExistingSpeculativeModelAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None))
 
             Dim typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace()
             Assert.Equal(expectedType, typeSyntax.ToString())
@@ -52,7 +48,7 @@ End Class</text>.Value.Replace("$", text)
             Await TestAsync(text, expectedType, mode)
         End Function
 
-        Private Function FindExpressionSyntaxFromSpan(root As SyntaxNode, textSpan As TextSpan) As ExpressionSyntax
+        Private Shared Function FindExpressionSyntaxFromSpan(root As SyntaxNode, textSpan As TextSpan) As ExpressionSyntax
             Dim token = root.FindToken(textSpan.Start)
             Dim currentNode = token.Parent
             While currentNode IsNot Nothing

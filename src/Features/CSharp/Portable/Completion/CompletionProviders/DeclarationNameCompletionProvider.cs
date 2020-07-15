@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = completionContext.Position;
                 var document = completionContext.Document;
                 var cancellationToken = completionContext.CancellationToken;
-                var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
                 if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
                 {

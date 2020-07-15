@@ -24,7 +24,7 @@ Class Goo
 End Class
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "FxResources", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "FxResources")
         End Sub
 
         ' This test depends on the version of mscorlib used by the TestWorkspace and may
@@ -37,7 +37,7 @@ Module Goo
 End Module
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "FxResources", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "FxResources")
         End Sub
 
 #End Region
