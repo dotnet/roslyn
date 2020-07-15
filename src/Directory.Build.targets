@@ -3,10 +3,6 @@
     <!-- Workaround https://github.com/dotnet/wpf/issues/1718 -->
     <EmbedUntrackedSources Condition=" '$(UseWPF)' == 'true' ">false</EmbedUntrackedSources>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(IsTestProject)' == 'true' ">
-    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
-    <Exclude>[xunit.*]*</Exclude>
-    <!-- Ensure we preserve each coverlet output file per target framework: https://github.com/tonerdo/coverlet/issues/177 -->
-    <CoverletOutput>$(OutputPath)/</CoverletOutput>
-  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.targets))\Directory.Build.targets" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.targets))' != '' " />
 </Project>

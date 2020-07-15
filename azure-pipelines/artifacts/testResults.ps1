@@ -5,8 +5,8 @@ if ($env:AGENT_TEMPDIRECTORY) {
         $env:AGENT_TEMPDIRECTORY = (Get-ChildItem $env:AGENT_TEMPDIRECTORY -Directory |? { $_.Name -match $guidRegex } |% { Get-ChildItem "$($_.FullName)\testhost*.dmp","$($_.FullName)\Sequence_*.xml" -Recurse });
     }
 } else {
-    $srcRoot = Resolve-Path "$PSScriptRoot\..\..\src"
+    $testRoot = Resolve-Path "$PSScriptRoot\..\..\test"
     @{
-        $srcRoot = (Get-ChildItem "$srcRoot\TestResults" -Recurse -Directory | Get-ChildItem -Recurse -File);
+        $testRoot = (Get-ChildItem "$testRoot\TestResults" -Recurse -Directory | Get-ChildItem -Recurse -File);
     }
 }

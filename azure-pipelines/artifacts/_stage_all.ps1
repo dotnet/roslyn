@@ -33,7 +33,7 @@ function Create-SymbolicLink {
     if ($IsMacOS -or $IsLinux) {
         ln $Target $Link | Out-Null
     } else {
-        cmd /c mklink $Link $Target | Out-Null
+        cmd /c "mklink `"$Link`" `"$Target`"" | Out-Null
     }
 }
 
