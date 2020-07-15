@@ -17,9 +17,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
     Public MustInherit Class VisualBasicSuppressionTests
         Inherits AbstractSuppressionDiagnosticTest
 
-        Private ReadOnly _compilationOptions As CompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
-
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script
         End Function
@@ -622,7 +619,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -695,7 +692,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("#$DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("#$DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -739,7 +736,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("REm", "REm Title", "REm", "REm", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("REm", "REm Title", "REm", "REm", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -803,7 +800,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -920,7 +917,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -1635,7 +1632,7 @@ Imports System.Diagnostics.CodeAnalysis
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get

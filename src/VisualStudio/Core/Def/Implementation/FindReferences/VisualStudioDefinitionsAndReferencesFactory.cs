@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             public override bool CanNavigateTo(Workspace workspace) => true;
 
-            public override bool TryNavigateTo(Workspace workspace, NavigationBehavior _)
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
                 => TryOpenFile() && TryNavigateToPosition();
 
             private bool TryOpenFile()

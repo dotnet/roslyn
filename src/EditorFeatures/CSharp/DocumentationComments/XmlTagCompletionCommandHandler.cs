@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             }
         }
 
-        private bool HasFollowingEndTagTrivia(XmlElementSyntax parentElement, SyntaxToken lessThanSlashToken)
+        private static bool HasFollowingEndTagTrivia(XmlElementSyntax parentElement, SyntaxToken lessThanSlashToken)
         {
             var expectedEndTagText = "</" + parentElement.StartTag.Name.LocalName.ValueText + ">";
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             return false;
         }
 
-        private bool HasMatchingEndTag(XmlElementStartTagSyntax parentStartTag)
+        private static bool HasMatchingEndTag(XmlElementStartTagSyntax parentStartTag)
         {
             if (parentStartTag == null)
             {

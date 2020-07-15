@@ -426,14 +426,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        internal Holder CreateSessionSingleQuote(string code)
+        internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.SingleQuote.OpenCharacter, BraceCompletionSessionProvider.SingleQuote.CloseCharacter);
         }
 
-        internal Holder CreateSessionDoubleQuote(string code)
+        internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

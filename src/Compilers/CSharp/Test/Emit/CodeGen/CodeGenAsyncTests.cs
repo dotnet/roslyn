@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             options = options ?? TestOptions.ReleaseExe;
 
-            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
+            IEnumerable<MetadataReference> asyncRefs = new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
             return CreateCompilationWithMscorlib45(source, options: options, references: references);
@@ -2575,11 +2576,11 @@ class Test
   .maxstack  2
   .locals init (Test.<F>d__1 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldarg.0
-  IL_0003:  stfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
-  IL_000f:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_0002:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
+  IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  stfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
   IL_0014:  ldloca.s   V_0
   IL_0016:  ldc.i4.m1
   IL_0017:  stfld      ""int Test.<F>d__1.<>1__state""
@@ -3100,7 +3101,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3130,7 +3131,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3161,7 +3162,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;

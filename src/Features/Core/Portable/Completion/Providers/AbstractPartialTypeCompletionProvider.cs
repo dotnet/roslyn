@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (node != null)
                 {
-                    var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
+                    var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(false);
                     var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
                     if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)

@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             // We also must set the FailFast handler for the compiler layer as well
             var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalErrorType = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true);
-            var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public);
-            var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public);
+            var compilerFatalErrorType = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true)!;
+            var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
+            var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public)!;
             compilerFatalErrorHandlerProperty.SetValue(null, fatalReporter);
             compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalReporter);
         }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
                 foreach (var frame in new StackTrace(exception).GetFrames())
                 {
-                    var method = frame.GetMethod();
+                    var method = frame?.GetMethod();
                     var methodName = method?.Name;
                     if (methodName == null)
                         continue;

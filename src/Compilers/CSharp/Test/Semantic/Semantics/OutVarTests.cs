@@ -15,6 +15,7 @@ using Xunit;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -33406,7 +33407,7 @@ public static class S
 {
     public static void M2(this A self, out B x) { x = null; }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { Net40.SystemCore });
             comp.VerifyDiagnostics(
                 // (7,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A x);

@@ -2880,7 +2880,7 @@ return;
                 indentStyle: IndentStyle.Smart);
         }
 
-        private void AssertSmartIndentInProjection(
+        private static void AssertSmartIndentInProjection(
             string markup,
             int expectedIndentation,
             CSharpParseOptions options = null,
@@ -2890,7 +2890,7 @@ return;
             AssertSmartIndentInProjection(markup.Replace("    ", "\t"), expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndentInProjection(
+        private static void AssertSmartIndentInProjection(
             string markup,
             int expectedIndentation,
             bool useTabs,
@@ -2928,7 +2928,7 @@ return;
             }
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -2939,7 +2939,7 @@ return;
             AssertSmartIndent(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -2962,7 +2962,7 @@ return;
             }
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             CSharpParseOptions options = null,
@@ -2972,7 +2972,7 @@ return;
             AssertSmartIndent(code.Replace("    ", "\t"), expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             bool useTabs,

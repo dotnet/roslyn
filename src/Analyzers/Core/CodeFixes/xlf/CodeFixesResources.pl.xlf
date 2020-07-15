@@ -27,9 +27,9 @@
         <target state="translated">Usuń nadmiarowe przypisanie</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_suppression">
-        <source>Remove redundant suppression</source>
-        <target state="new">Remove redundant suppression</target>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="new">Suppress or Configure issues</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

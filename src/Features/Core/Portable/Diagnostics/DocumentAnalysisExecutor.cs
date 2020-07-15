@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -209,6 +210,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return await _compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, adjustedSpan, ImmutableArray.Create(analyzer), cancellationToken).ConfigureAwait(false);
             }
 
+            // We specially handle IInlineSourceSuppressionsAnalyzer by passing in the 'CompilationWithAnalyzers'
+            // context to compute unnecessary inline source suppression diagnostics.
+            // This is required because this analyzer relies on reported compiler + analyzer diagnostics
+            // for unnecessary inline source suppression analysis.
+            if (analyzer is IPragmaSuppressionsAnalyzer suppressionsAnalyzer &&
+                !AnalysisScope.Span.HasValue)
+            {
+                using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
+                await suppressionsAnalyzer.AnalyzeAsync(model, span, _compilationWithAnalyzers,
+                    _analyzerInfoCache.GetDiagnosticDescriptors, IsCompilationEndAnalyzer, builder.Add, cancellationToken).ConfigureAwait(false);
+                return builder.ToImmutable();
+            }
+
             if (_lazySemanticDiagnostics == null)
             {
                 // TODO: Move this invocation to OOP
@@ -220,6 +234,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _lazySemanticDiagnostics.TryGetValue(analyzer, out var diagnostics) ?
                 diagnostics :
                 ImmutableArray<Diagnostic>.Empty;
+
+            bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
+            {
+                RoslynDebug.AssertNotNull(_compilationWithAnalyzers);
+                return _analyzerInfoCache.IsCompilationEndAnalyzer(analyzer, AnalysisScope.Document.Project, _compilationWithAnalyzers.Compilation) ?? true;
+            }
 
             async Task<TextSpan?> GetAdjustedSpanForCompilerAnalyzerAsync()
             {

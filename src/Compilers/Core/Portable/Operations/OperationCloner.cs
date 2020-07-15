@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, object argument)
         {
-            return new ConstantPatternOperation(operation.InputType, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
+            return new ConstantPatternOperation(operation.InputType, operation.NarrowedType, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)
@@ -536,6 +536,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 operation.MatchesNull,
                 operation.DeclaredSymbol,
                 operation.InputType,
+                operation.NarrowedType,
                 ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.Type,
@@ -547,6 +548,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new RecursivePatternOperation(
                 operation.InputType,
+                operation.NarrowedType,
                 operation.MatchedType,
                 operation.DeconstructSymbol,
                 VisitArray(operation.DeconstructionSubpatterns),
@@ -560,11 +562,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
         {
             return new PropertySubpatternOperation(
-                semanticModel: ((Operation)operation).OwningSemanticModel,
-                operation.Syntax,
-                operation.IsImplicit,
                 Visit(operation.Member),
-                Visit(operation.Pattern));
+                Visit(operation.Pattern),
+                semanticModel: ((Operation)operation).OwningSemanticModel,
+                syntax: operation.Syntax,
+                isImplicit: operation.IsImplicit);
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
@@ -605,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitDiscardPattern(IDiscardPatternOperation operation, object argument)
         {
-            return new DiscardPatternOperation(operation.InputType, operation.SemanticModel, operation.Syntax, operation.IsImplicit);
+            return new DiscardPatternOperation(operation.InputType, operation.NarrowedType, operation.SemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, object argument)
