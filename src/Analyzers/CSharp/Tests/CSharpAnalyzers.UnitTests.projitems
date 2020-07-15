@@ -14,8 +14,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredPatternParenthesesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredExpressionParenthesesTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertNameOf\ConvertNameOfFixAllTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertNameOf\ConvertNameOfTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\ConvertAnonymousTypeToTupleTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
