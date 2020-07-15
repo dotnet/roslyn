@@ -4780,37 +4780,6 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(45862, "https://github.com/dotnet/roslyn/issues/45862")]
-        public void Issue_45862()
-        {
-            var source =
-@"#nullable enable
-
-class C
-{
-    void M()
-    {
-        _ = 0 switch
-        {
-            0 =
-            _ = null,
-        };
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
-            comp.VerifyEmitDiagnostics(
-                // (9,15): error CS1003: Syntax error, '=>' expected
-                //             0 =
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(9, 15),
-                // (9,15): error CS1525: Invalid expression term '='
-                //             0 =
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(9, 15),
-                // (10,13): error CS8183: Cannot infer the type of implicitly-typed discard.
-                //             _ = null,
-                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(10, 13));
-        }
-
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
             AssertAttributes(attributes);
