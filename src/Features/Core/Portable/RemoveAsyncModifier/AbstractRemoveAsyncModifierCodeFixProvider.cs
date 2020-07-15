@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out TExpressionSyntax expression);
+        protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, [NotNullWhen(returnValue: true)] out TExpressionSyntax? expression);
         protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
-        protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
+        protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,9 +41,18 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             var diagnostic = context.Diagnostics.First();
             var token = diagnostic.Location.FindToken(cancellationToken);
             var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (node == null)
+            {
+                return;
+            }
 
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
+
+            if (methodSymbol == null)
+            {
+                return;
+            }
 
             if (ShouldOfferFix(methodSymbol.ReturnType, knownTypes))
             {
@@ -56,7 +67,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
             var knownTypes = new KnownTypes(compilation);
 
@@ -64,13 +75,22 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             {
                 var token = diagnostic.Location.FindToken(cancellationToken);
                 var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
+                if (node == null)
+                {
+                    continue;
+                }
+
                 var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
+                if (methodSymbol == null)
+                {
+                    continue;
+                }
 
                 RemoveAsyncModifier(editor, semanticModel, node, methodSymbol, knownTypes);
             }
         }
 
-        private static IMethodSymbol GetMethodSymbol(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static IMethodSymbol? GetMethodSymbol(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
             => semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol methodSymbol
                 ? methodSymbol
                 : semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
@@ -138,7 +158,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             }
         }
 
-        private static ControlFlowAnalysis GetControlFlowAnalysis(SyntaxGenerator generator, SemanticModel semanticModel, SyntaxNode originalNode)
+        private static ControlFlowAnalysis? GetControlFlowAnalysis(SyntaxGenerator generator, SemanticModel semanticModel, SyntaxNode originalNode)
         {
             var statements = generator.GetStatements(originalNode);
             if (statements.Count > 0)

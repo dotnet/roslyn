@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.RemoveAsyncModifier;
 using Roslyn.Utilities;
 using KnownTypes = Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider.KnownTypes;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override bool TryGetExpressionBody(SyntaxNode node, out ExpressionSyntax expression)
+        protected override bool TryGetExpressionBody(SyntaxNode node, [NotNullWhen(returnValue: true)] out ExpressionSyntax? expression)
         {
             expression = node switch
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return expression != null;
         }
 
-        protected override SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody)
+        protected override SyntaxNode? ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody)
         {
             if (InitializeParameterHelpers.TryConvertExpressionBodyToStatement(expressionBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var statement))
             {
