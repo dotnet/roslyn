@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         private async Task TestFixOneAsync(string initial, string expected)
             => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
 
-        private string GetTreeText(string initial)
+        private static string GetTreeText(string initial)
         {
             return @"class C
 {
@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 }";
         }
 
-        private SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
+        private static SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
             => initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
 
-        private SyntaxNode GetFixedNode(dynamic fixedRoot)
+        private static SyntaxNode GetFixedNode(dynamic fixedRoot)
             => fixedRoot.Members[0].Members[0].BodyOpt;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -5273,7 +5273,7 @@ using System;
             // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
             // tested because global statements in script code are field declarations, which are not considered
             // temporary.
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
@@ -5296,7 +5296,7 @@ global::System.Console.WriteLine(val + 1);
             // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
             // tested because global statements in script code are field declarations, which are not considered
             // temporary.
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
@@ -5318,7 +5318,7 @@ global::System.Console.WriteLine(val + 1);
     global::System.Console.WriteLine(val + 1);
 }
 ",
-                TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

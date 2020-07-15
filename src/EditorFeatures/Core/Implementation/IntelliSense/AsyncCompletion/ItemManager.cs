@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
-        private FilteredCompletionModel HandleDeletionTrigger(
+        private static FilteredCompletionModel HandleDeletionTrigger(
             CompletionTriggerReason filterTriggerKind,
             ImmutableArray<MatchResult> matchResults,
             string filterText,
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             => matchResults.SelectAsArray(matchResult =>
             new CompletionItemWithHighlight(matchResult.VSCompletionItem, matchResult.HighlightedSpans));
 
-        private FilteredCompletionModel HandleAllItemsFilteredOut(
+        private static FilteredCompletionModel HandleAllItemsFilteredOut(
             CompletionTriggerReason triggerReason,
             ImmutableArray<CompletionFilterWithState> filters,
             CompletionRules completionRules)

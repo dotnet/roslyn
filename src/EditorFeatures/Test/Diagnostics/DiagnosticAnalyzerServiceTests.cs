@@ -538,7 +538,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             return workspace;
         }
 
-        private async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
+        private static async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
         {
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
@@ -642,16 +642,19 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         }
 
         [Theory, CombinatorialData]
-        internal async Task TestPragmaSuppressionsAnalyzer(BackgroundAnalysisScope analysisScope)
+        internal async Task TestRemoveUnnecessaryInlineSuppressionsAnalyzer(BackgroundAnalysisScope analysisScope, bool testPragma)
         {
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(
                 new CSharpCompilerDiagnosticAnalyzer(),
                 new NamedTypeAnalyzer(),
-                new CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer());
+                new CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer());
 
             var analyzerReference = new AnalyzerImageReference(analyzers);
 
-            var code = $@"
+            string code;
+            if (testPragma)
+            {
+                code = $@"
 #pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary
 #pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
 
@@ -665,6 +668,23 @@ class A
     }}
 }}
 ";
+            }
+            else
+            {
+                code = $@"
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category1"", ""{NamedTypeAnalyzer.DiagnosticId}"")] // Necessary
+class A
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")] // Unnecessary
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")] // Unnecessary
+    void M()
+    {{
+#pragma warning disable CS0168 // Variable is declared but never used - Necessary
+        int x;
+    }}
+}}
+";
+            }
 
             using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: EditorServicesUtil.ExportProvider);
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
@@ -710,10 +730,20 @@ class A
 
             Assert.Equal(2, diagnostics.Count);
             var root = await document.GetSyntaxRootAsync();
-            var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
-            Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
-            var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
-            Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
+            if (testPragma)
+            {
+                var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
+                Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
+                var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
+                Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
+            }
+            else
+            {
+                var attribute1 = root.FindNode(diagnostics[0].GetTextSpan()).ToString();
+                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
+                var attribute2 = root.FindNode(diagnostics[1].GetTextSpan()).ToString();
+                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
+            }
         }
 
         private static Document GetDocumentFromIncompleteProject(AdhocWorkspace workspace)
