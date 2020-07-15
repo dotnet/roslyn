@@ -58,6 +58,28 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
+        public void MustNotBeGenericAndContainedInGenericType()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+class C<T>
+{
+    [ModuleInitializer]
+    internal static void M<U>() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (6,6): error CS8816: Module initializer method 'M' must not be generic and must not be contained in a generic type
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
         public void MustNotBeContainedInGenericTypeWithParametersDeclaredByContainingGenericType()
         {
             string source = @"

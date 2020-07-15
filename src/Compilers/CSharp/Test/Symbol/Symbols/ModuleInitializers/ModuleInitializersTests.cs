@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -779,6 +780,31 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 });
         }
 
+        [Fact]
+        public void ModuleInitializerMethodIsObsolete()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [Obsolete, ModuleInitializer]
+    internal static void Init() => Console.WriteLine(""C.Init"");
+}
+
+class Program
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"
+C.Init
+Program.Main");
+        }
+
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
         public void MultipleNetmodules()
         {
@@ -943,6 +969,158 @@ public class Program
                 var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
                 Assert.Null(moduleType.GetMember<MethodSymbol>(".cctor"));
             }
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NetModulesNeedDesktop)]
+        public void NetmoduleFromIL_InitializerNotCalled()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit A
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig static void  M1() cil managed
+  {
+    .custom instance void System.Runtime.CompilerServices.ModuleInitializerAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldc.i4.0
+    IL_0002:  call       void [mscorlib]System.Console::Write(int32)
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method A::M1
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method A::.ctor
+
+} // end of class A
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.ModuleInitializerAttribute
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method ModuleInitializerAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.ModuleInitializerAttribute";
+
+            var source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class A
+{
+    [ModuleInitializer]
+    public static void M1()
+    {
+        Console.Write(1);
+    }
+
+    public static void Main()
+    {
+        Console.Write(2);
+    }
+}
+
+namespace System.Runtime.CompilerServices { public class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            var source2 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class A
+{
+    public static void M1()
+    {
+        Console.Write(0);
+    }
+
+    public static void Main()
+    {
+        Console.Write(1);
+    }
+}
+
+namespace System.Runtime.CompilerServices { public class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var exeOptions = TestOptions.ReleaseExe
+                .WithMetadataImportOptions(MetadataImportOptions.All)
+                .WithModuleName("C");
+
+            var comp = CreateCompilationWithIL(source1, il, parseOptions: s_parseOptions, options: exeOptions);
+            CompileAndVerify(comp, symbolValidator: validateModuleInitializer, verify: Verification.Skipped, expectedOutput: "12");
+
+            comp = CreateCompilationWithIL(source2, il, parseOptions: s_parseOptions, options: exeOptions);
+            CompileAndVerify(comp, symbolValidator: validateNoModuleInitializer, verify: Verification.Skipped, expectedOutput: "1");
+
+            void validateModuleInitializer(ModuleSymbol module)
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+
+            void validateNoModuleInitializer(ModuleSymbol module)
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
+                Assert.Null(moduleType.GetMember<MethodSymbol>(".cctor"));
+            }
+        }
+
+        [Fact]
+        public void MultipleAttributesViaExternAlias()
+        {
+            var source1 = @"
+namespace System.Runtime.CompilerServices { public class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            var ref1 = CreateCompilation(source1).ToMetadataReference(aliases: ImmutableArray.Create("Alias1"));
+            var ref2 = CreateCompilation(source1).ToMetadataReference(aliases: ImmutableArray.Create("Alias2"));
+
+            var source = @"
+extern alias Alias1;
+extern alias Alias2;
+
+using System;
+
+class Program
+{
+    [Alias1::System.Runtime.CompilerServices.ModuleInitializer]
+    internal static void Init1()
+    {
+        Console.Write(1);
+    }
+    
+    [Alias2::System.Runtime.CompilerServices.ModuleInitializer]
+    internal static void Init2()
+    {
+        Console.Write(2);
+    }
+    
+    static void Main()
+    {
+        Console.Write(3);
+    }
+}
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, references: new[] { ref1, ref2 }, expectedOutput: "123");
         }
     }
 }
