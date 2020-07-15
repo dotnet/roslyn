@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            INamedTypeSymbol? codeBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsCodeBlockStartAnalysisContext);
+            INamedTypeSymbol? codeBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsCodeBlockStartAnalysisContext1);
             if (codeBlockStartAnalysisContext == null)
             {
                 return null;
