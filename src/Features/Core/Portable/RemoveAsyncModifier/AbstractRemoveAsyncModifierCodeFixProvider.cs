@@ -153,16 +153,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         {
             var generator = editor.Generator;
 
-            var returns = node.DescendantNodesAndSelf().Where(n => n is TReturnStatementSyntax);
+            var returns = node.DescendantNodes(n => n == node || !IsAsyncSupportingFunctionSyntax(n)).Where(n => n is TReturnStatementSyntax);
             foreach (TReturnStatementSyntax returnSyntax in returns)
             {
-                // Make sure we're not changing returns in nested local functions or lambdas
-                var containingMethod = returnSyntax.FirstAncestorOrSelf<SyntaxNode>(IsAsyncSupportingFunctionSyntax);
-                if (containingMethod != node)
-                {
-                    continue;
-                }
-
                 var returnExpression = generator.SyntaxFacts.GetExpressionOfReturnStatement(returnSyntax);
                 if (returnExpression is null)
                 {
