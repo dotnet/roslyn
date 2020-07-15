@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         protected abstract bool ShouldOfferFix(IMethodSymbol methodSymbol, KnownTypes knownTypes);
         protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
         protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
-        protected abstract ControlFlowAnalysis AnalyzeControlFlow(SemanticModel semanticModel, SyntaxNode originalNode);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -111,30 +110,35 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             }
             else
             {
-                // An "async Task" method has an implicit return at the end, so removing async means
-                // we need to insert it explicitly if the end of the method is reachable.
                 if (methodSymbol.ReturnType == knownTypes._taskType)
                 {
-                    // We have to use the original node to do control flow analysis, but the reachability of it is the same
-                    var controlFlow = AnalyzeControlFlow(semanticModel, originalNode);
+                    // Note that we have to use the original node to do control flow analysis, but the reachability of it is the same
+                    var controlFlow = GetControlFlowAnalysis(editor.Generator, semanticModel, originalNode);
 
-                    if (controlFlow != null)
+                    // If the end of the method isn't reachable, or there were no statements to analyze, then we
+                    // need to add an explicit return
+                    if (controlFlow == null || controlFlow.EndPointIsReachable)
                     {
-                        // For local functions and block bodied lambdas the EndPointIsReachable is false but we still might need to
-                        // insert a return. We can tell by checking for the presence of exit points that aren't return statements
-                        var hasNonReturnExitPoints = controlFlow.ExitPoints.Any<SyntaxNode>(e => !(e is TReturnStatementSyntax));
-                        if (controlFlow.EndPointIsReachable || hasNonReturnExitPoints)
-                        {
-                            var newNode = AddReturnStatement(editor, replacementNode);
-                            editor.ReplaceNode(replacementNode, newNode);
+                        var newNode = AddReturnStatement(editor, replacementNode);
+                        editor.ReplaceNode(replacementNode, newNode);
 
-                            replacementNode = newNode;
-                        }
+                        replacementNode = newNode;
                     }
                 }
 
                 ChangeReturnStatements(replacementNode, editor, knownTypes);
             }
+        }
+
+        private static ControlFlowAnalysis GetControlFlowAnalysis(SyntaxGenerator generator, SemanticModel semanticModel, SyntaxNode originalNode)
+        {
+            var statements = generator.GetStatements(originalNode);
+            if (statements.Count > 0)
+            {
+                return semanticModel.AnalyzeControlFlow(statements[0], statements[statements.Count - 1]);
+            }
+
+            return null;
         }
 
         private static SyntaxNode AddReturnStatement(SyntaxEditor editor, SyntaxNode replacementNode)

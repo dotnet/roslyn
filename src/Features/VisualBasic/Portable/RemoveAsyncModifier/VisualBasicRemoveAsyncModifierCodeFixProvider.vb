@@ -59,22 +59,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return Nothing
         End Function
 
-        Protected Overrides Function AnalyzeControlFlow(semanticModel As SemanticModel, node As SyntaxNode) As ControlFlowAnalysis
-            Dim methodBlock = TryCast(node, MethodBlockSyntax)
-            If methodBlock IsNot Nothing Then
-                Dim statements = methodBlock.Statements
-                Return semanticModel.AnalyzeControlFlow(statements.First(), statements.Last())
-            End If
-
-            Dim multiLineLambda = TryCast(node, MultiLineLambdaExpressionSyntax)
-            If multiLineLambda IsNot Nothing Then
-                Dim statements = multiLineLambda.Statements
-                Return semanticModel.AnalyzeControlFlow(statements.First(), statements.Last())
-            End If
-
-            Return Nothing
-        End Function
-
         Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As SyntaxNode) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function

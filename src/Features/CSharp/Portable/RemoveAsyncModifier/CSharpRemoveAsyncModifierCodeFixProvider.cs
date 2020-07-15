@@ -47,18 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return !methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt);
         }
 
-        protected override ControlFlowAnalysis AnalyzeControlFlow(SemanticModel semanticModel, SyntaxNode node)
-            => semanticModel.AnalyzeControlFlow(GetBlockBody(node));
-
-        private static SyntaxNode GetBlockBody(SyntaxNode node)
-            => node switch
-            {
-                MethodDeclarationSyntax method => method.Body,
-                LocalFunctionStatementSyntax localFunction => localFunction.Body,
-                AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Block,
-                _ => throw ExceptionUtilities.Unreachable
-            };
-
         protected override bool TryGetExpressionBody(SyntaxNode node, out SyntaxNode expression)
         {
             expression = node switch
@@ -86,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
                     _ => throw ExceptionUtilities.Unreachable
                 };
             }
-            
+
             return null;
         }
 
