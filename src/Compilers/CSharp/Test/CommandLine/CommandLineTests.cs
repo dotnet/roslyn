@@ -33,6 +33,7 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -4130,7 +4131,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 </configuration>");
 
             var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             // Test linking two appconfig dlls with simple src
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6100,7 +6101,7 @@ public class CS1698_a {}
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
         public void BinaryFileErrorTest()
         {
-            var binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path;
+            var binaryPath = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib).Path;
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", binaryPath });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
@@ -12592,6 +12593,30 @@ key3 = value3");
             Assert.False(options.TryGetValue("key2", out _));
             Assert.True(options.TryGetValue("key3", out val));
             Assert.Equal("value3", val);
+        }
+
+        [Theory, CombinatorialData]
+        public void TestAdditionalFileAnalyzer(bool registerFromInitialize)
+        {
+            var srcDirectory = Temp.CreateDirectory();
+
+            var source = "class C { }";
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            var additionalText = "Additional Text";
+            var additionalFile = srcDirectory.CreateFile("b.txt");
+            additionalFile.WriteAllText(additionalText);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
+
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/additionalfile:" + additionalFile.Path },
+                analyzers: analyzer);
+            Assert.Contains("b.txt(1,3): warning ID0001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcDirectory.Path);
         }
     }
 

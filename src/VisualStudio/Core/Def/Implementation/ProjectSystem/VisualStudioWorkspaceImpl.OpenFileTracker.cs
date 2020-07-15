@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
             {
-                _foregroundAffinitization.ThisCanBeCalledOnAnyThread();
+                ForegroundThreadAffinitizedObject.ThisCanBeCalledOnAnyThread();
 
                 var shouldStartTask = false;
 

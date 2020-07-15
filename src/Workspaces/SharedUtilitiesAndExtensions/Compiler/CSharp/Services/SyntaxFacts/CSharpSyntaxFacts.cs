@@ -894,10 +894,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
+        public List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode root)
+        {
+            var list = new List<SyntaxNode>();
+            AppendMembers(root, list, topLevel: true, methodLevel: true);
+            return list;
+        }
+
         public List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root)
         {
             var list = new List<SyntaxNode>();
-            AppendMethodLevelMembers(root, list);
+            AppendMembers(root, list, topLevel: false, methodLevel: true);
             return list;
         }
 
@@ -916,17 +923,24 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
             => ((CompilationUnitSyntax)compilationUnit).Members;
 
-        private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
+        private void AppendMembers(SyntaxNode node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
         {
+            Debug.Assert(topLevel || methodLevel);
+
             foreach (var member in node.GetMembers())
             {
                 if (IsTopLevelNodeWithMembers(member))
                 {
-                    AppendMethodLevelMembers(member, list);
+                    if (topLevel)
+                    {
+                        list.Add(member);
+                    }
+
+                    AppendMembers(member, list, topLevel, methodLevel);
                     continue;
                 }
 
-                if (IsMethodLevelMember(member))
+                if (methodLevel && IsMethodLevelMember(member))
                 {
                     list.Add(member);
                 }

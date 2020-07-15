@@ -392,18 +392,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private IDisposable OpenNewDocumentStateScope(OptionSet options)
         {
-            if (!options.GetOption(NavigationOptions.PreferProvisionalTab))
-            {
-                return null;
-            }
+            var state = options.GetOption(NavigationOptions.PreferProvisionalTab)
+                ? __VSNEWDOCUMENTSTATE.NDS_Provisional
+                : __VSNEWDOCUMENTSTATE.NDS_Permanent;
 
-            var state = __VSNEWDOCUMENTSTATE.NDS_Provisional;
-
-            // If we're just opening the provisional tab, then do not "activate" the document
-            // (i.e. don't give it focus) unless specifically requested.  
-            // This way if a user is just arrowing through a set 
-            // of FindAllReferences results, they don't have their cursor placed into the document.
-            if (!options.GetOption(NavigationOptions.ActivateProvisionalTab))
+            if (!options.GetOption(NavigationOptions.ActivateTab))
             {
                 state |= __VSNEWDOCUMENTSTATE.NDS_NoActivate;
             }

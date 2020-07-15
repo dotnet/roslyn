@@ -727,8 +727,8 @@ public interface CL3_I1 : CL2_I1
             var references = new[]
             {
                 MscorlibRef,
-                TestReferences.NetFx.v4_0_30319.System_Data,
-                TestReferences.NetFx.v4_0_30319.System,
+                TestMetadata.Net451.SystemData,
+                TestMetadata.Net451.System,
                 cl2,
                 cl3
             };

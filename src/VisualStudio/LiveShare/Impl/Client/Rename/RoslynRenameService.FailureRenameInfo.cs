@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Rename
             public string GetFinalSymbolName(string replacementText) => null;
             public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken) => default;
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken) => null;
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) => null;
+            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) => Task.FromResult<IInlineRenameLocationSet>(null);
             public bool TryOnAfterGlobalSymbolRenamed(CodeAnalysis.Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
             public bool TryOnBeforeGlobalSymbolRenamed(CodeAnalysis.Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
         }

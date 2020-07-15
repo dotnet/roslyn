@@ -338,7 +338,7 @@ class Test
         [Fact]
         public void RetargetedSynthesizedStructConstructor()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var oldMsCorLib = TestMetadata.Net40.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },

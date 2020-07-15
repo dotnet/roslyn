@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        private CompletionProvider GetCompletionProvider(CompletionService completionService, CompletionItem item)
+        private static CompletionProvider GetCompletionProvider(CompletionService completionService, CompletionItem item)
         {
             if (completionService is CompletionServiceWithProviders completionServiceWithProviders)
             {
