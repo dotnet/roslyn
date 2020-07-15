@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
+        protected override bool TryGetExpressionBody(SyntaxNode node, out ExpressionSyntax expression)
         {
             expression = node switch
             {

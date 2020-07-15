@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out SyntaxNode expression);
+        protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out TExpressionSyntax expression);
         protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
         protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
 

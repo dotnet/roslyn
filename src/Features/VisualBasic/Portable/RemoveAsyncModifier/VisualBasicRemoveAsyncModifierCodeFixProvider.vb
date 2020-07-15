@@ -58,10 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function TryGetExpressionBody(methodSymbolOpt As SyntaxNode, ByRef expression As SyntaxNode) As Boolean
+        Protected Overrides Function TryGetExpressionBody(methodSymbolOpt As SyntaxNode, ByRef expression As ExpressionSyntax) As Boolean
             Dim singleLineLambda = TryCast(methodSymbolOpt, SingleLineLambdaExpressionSyntax)
             If singleLineLambda IsNot Nothing Then
-                expression = singleLineLambda.Body
+                ' Since this fixer doesn't apply to subs we know Body will be an expression
+                expression = DirectCast(singleLineLambda.Body, ExpressionSyntax)
                 Return True
             End If
 
