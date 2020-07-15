@@ -503,7 +503,7 @@ class D
     public int P2 { get; set; }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact]
