@@ -73,6 +73,147 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task Method_ValueTask_BlockBody()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask {|CS1998:Goo|}()
+    {
+        if (System.DateTime.Now.Ticks > 0)
+        {
+            return;
+        }
+    }
+}";
+
+            var expected = @"
+using System.Threading.Tasks;
+
+class C
+{
+    ValueTask Goo()
+    {
+        if (System.DateTime.Now.Ticks > 0)
+        {
+            return new ValueTask();
+        }
+
+        return new ValueTask();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                FixedCode = expected,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task Method_ValueTaskOfT_BlockBody()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask<int> {|CS1998:Goo|}()
+    {
+        if (System.DateTime.Now.Ticks > 0)
+        {
+            return 2;
+        }
+
+        return 3;
+    }
+}";
+            var expected = @"
+using System.Threading.Tasks;
+
+class C
+{
+    ValueTask<int> Goo()
+    {
+        if (System.DateTime.Now.Ticks > 0)
+        {
+            return new ValueTask<int>(2);
+        }
+
+        return new ValueTask<int>(3);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                FixedCode = expected,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task Method_ValueTask_ExpressionBody()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask {|CS1998:Goo|}() => System.Console.WriteLine(1);
+}";
+
+            var expected = @"
+using System.Threading.Tasks;
+
+class C
+{
+    ValueTask Goo()
+    {
+        System.Console.WriteLine(1);
+        return new ValueTask();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                FixedCode = expected,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task Method_ValueTaskOfT_ExpressionBody()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask<int> {|CS1998:Goo|}() => 3;
+}";
+
+            var expected = @"
+using System.Threading.Tasks;
+
+class C
+{
+    ValueTask<int> Goo() => new ValueTask<int>(3);
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                FixedCode = expected,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
         public async Task Method_Task_BlockBody_Throws()
         {
             await VerifyCS.VerifyCodeFixAsync(

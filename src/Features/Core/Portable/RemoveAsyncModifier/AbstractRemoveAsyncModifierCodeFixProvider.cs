@@ -76,8 +76,13 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 : semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
         private static bool ShouldOfferFix(ITypeSymbol returnType, KnownTypes knownTypes)
+            => IsTaskType(returnType, knownTypes)
+                || returnType.OriginalDefinition.Equals(knownTypes._taskOfTType)
+                || returnType.OriginalDefinition.Equals(knownTypes._valueTaskOfTTypeOpt);
+
+        private static bool IsTaskType(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes._taskType)
-                || returnType.OriginalDefinition.Equals(knownTypes._taskOfTType);
+                || returnType.OriginalDefinition.Equals(knownTypes._valueTaskType);
 
         private void RemoveAsyncModifier(SyntaxEditor editor, SemanticModel semanticModel, SyntaxNode originalNode, IMethodSymbol methodSymbol, KnownTypes knownTypes)
         {
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             // Now that we've replaced the original node we have to work on the replacement for future work
             if (TryGetExpressionBody(replacementNode, out var expressionBody))
             {
-                if (methodSymbol.ReturnType == knownTypes._taskType)
+                if (IsTaskType(methodSymbol.ReturnType, knownTypes))
                 {
                     // We need to add a `return Task.CompletedTask;` so we have to convert to a block body
                     var blockBodiedNode = ConvertToBlockBody(replacementNode, expressionBody);
@@ -102,18 +107,18 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
                         editor.ReplaceNode(replacementNode, blockBodiedNode);
 
-                        ChangeReturnStatements(blockBodiedNode, editor, knownTypes);
+                        ChangeReturnStatements(blockBodiedNode, editor, methodSymbol.ReturnType, knownTypes);
                     }
                 }
                 else
                 {
                     // For Task<T> returning expression bodied methods we can just wrap the whole expression
-                    WrapExpressionWithTaskFromResult(expressionBody, editor, knownTypes);
+                    WrapExpressionWithTaskFromResult(expressionBody, editor, methodSymbol.ReturnType, knownTypes);
                 }
             }
             else
             {
-                if (methodSymbol.ReturnType == knownTypes._taskType)
+                if (IsTaskType(methodSymbol.ReturnType, knownTypes))
                 {
                     // Note that we have to use the original node to do control flow analysis, but the reachability of it is the same
                     var controlFlow = GetControlFlowAnalysis(editor.Generator, semanticModel, originalNode);
@@ -129,7 +134,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     }
                 }
 
-                ChangeReturnStatements(replacementNode, editor, knownTypes);
+                ChangeReturnStatements(replacementNode, editor, methodSymbol.ReturnType, knownTypes);
             }
         }
 
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             return newNode;
         }
 
-        private void ChangeReturnStatements(SyntaxNode node, SyntaxEditor editor, KnownTypes knownTypes)
+        private void ChangeReturnStatements(SyntaxNode node, SyntaxEditor editor, ITypeSymbol returnType, KnownTypes knownTypes)
         {
             var generator = editor.Generator;
 
@@ -167,37 +172,49 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 if (returnExpression is null)
                 {
                     // Convert return; into return Task.CompletedTask;
-                    var returnTaskCompletedTask = GetReturnTaskCompletedTaskStatement(knownTypes, generator);
+                    var returnTaskCompletedTask = GetReturnTaskCompletedTaskStatement(returnType, knownTypes, generator);
                     editor.ReplaceNode(returnSyntax, returnTaskCompletedTask);
                 }
                 else
                 {
                     // Convert return <expr>; into return Task.FromResult(<expr>);
-                    WrapExpressionWithTaskFromResult(returnExpression, editor, knownTypes);
+                    WrapExpressionWithTaskFromResult(returnExpression, editor, returnType, knownTypes);
                 }
             }
         }
 
-        private static SyntaxNode GetReturnTaskCompletedTaskStatement(KnownTypes knownTypes, SyntaxGenerator generator)
+        private static SyntaxNode GetReturnTaskCompletedTaskStatement(ITypeSymbol returnType, KnownTypes knownTypes, SyntaxGenerator generator)
         {
-            var taskCompletedTaskInvocation = GetTaskCompletedTaskInvocation(knownTypes, generator);
-            var statement = generator.ReturnStatement(taskCompletedTaskInvocation);
+            TExpressionSyntax invocation;
+            if (returnType.OriginalDefinition.Equals(knownTypes._taskType))
+            {
+                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
+                invocation = (TExpressionSyntax)generator.MemberAccessExpression(taskTypeExpression, nameof(Task.CompletedTask));
+            }
+            else
+            {
+                invocation = (TExpressionSyntax)generator.ObjectCreationExpression(knownTypes._valueTaskType);
+            }
+
+            var statement = generator.ReturnStatement(invocation);
             return statement;
         }
 
-        private static TExpressionSyntax GetTaskCompletedTaskInvocation(KnownTypes knownTypes, SyntaxGenerator generator)
-        {
-            var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
-            return (TExpressionSyntax)generator.MemberAccessExpression(taskTypeExpression, nameof(Task.CompletedTask));
-        }
-
-        private static void WrapExpressionWithTaskFromResult(SyntaxNode expression, SyntaxEditor editor, KnownTypes knownTypes)
+        private static void WrapExpressionWithTaskFromResult(SyntaxNode expression, SyntaxEditor editor, ITypeSymbol returnType, KnownTypes knownTypes)
         {
             var generator = editor.Generator;
 
-            var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
-            var taskFromResult = generator.MemberAccessExpression(taskTypeExpression, nameof(Task.FromResult));
-            var invocation = generator.InvocationExpression(taskFromResult, expression.NormalizeWhitespace());
+            TExpressionSyntax invocation;
+            if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
+            {
+                var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
+                var taskFromResult = generator.MemberAccessExpression(taskTypeExpression, nameof(Task.FromResult));
+                invocation = (TExpressionSyntax)generator.InvocationExpression(taskFromResult, expression.NormalizeWhitespace());
+            }
+            else
+            {
+                invocation = (TExpressionSyntax)generator.ObjectCreationExpression(returnType, expression);
+            }
             editor.ReplaceNode(expression, invocation);
         }
 
