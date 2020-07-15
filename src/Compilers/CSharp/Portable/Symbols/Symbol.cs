@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -908,10 +909,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.ContainingType.GetUseSiteDiagnostic() ?? info;
         }
 
+#nullable enable
+
         /// <summary>
         /// Merges given diagnostic to the existing result diagnostic.
         /// </summary>
-        internal bool MergeUseSiteDiagnostics(ref DiagnosticInfo result, DiagnosticInfo info)
+        internal bool MergeUseSiteDiagnostics([NotNullWhen(true)] ref DiagnosticInfo? result, DiagnosticInfo? info)
         {
             if (info == null)
             {
@@ -964,21 +967,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Derive error info from a type symbol.
         /// </summary>
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbol type)
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo? result, TypeSymbol? type)
         {
-            DiagnosticInfo info = type.GetUseSiteDiagnostic();
+            DiagnosticInfo? info = type?.GetUseSiteDiagnostic();
             if (info != null)
             {
                 if (info.Code == (int)ErrorCode.ERR_BogusType)
                 {
-                    info = GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? info;
+                    info = GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo() ?? info;
                 }
             }
 
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        private DiagnosticInfo GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo()
+        private DiagnosticInfo? GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo()
         {
             switch (this.Kind)
             {
@@ -991,6 +994,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+#nullable restore
 
         internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
@@ -1068,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (current == AllowedRequiredModifierType.None ||
                         (current != requiredModifiersFound && requiredModifiersFound != AllowedRequiredModifierType.None)) // At the moment we don't support applying different allowed modreqs to the same target.
                     {
-                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
+                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
                         {
                             return true;
                         }
