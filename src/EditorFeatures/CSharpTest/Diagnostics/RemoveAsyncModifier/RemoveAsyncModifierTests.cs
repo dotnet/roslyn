@@ -16,6 +16,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveAsync
     public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task Method_Task_EmptyBlockBody()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    async Task {|CS1998:Goo|}(){}
+}",
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    Task Goo()
+    {
+        return Task.CompletedTask;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
         public async Task Method_Task_BlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(
