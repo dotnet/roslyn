@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Assert.Equal(text2.Encoding, Encoding.ASCII);
         }
 
-        private EditorTextFactoryService CreateMockTextFactoryService()
+        private static EditorTextFactoryService CreateMockTextFactoryService()
         {
             var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>(MockBehavior.Strict);
             mockTextBufferFactoryService
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, mockContentTypeRegistryService.Object);
         }
 
-        private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
+        private static void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
         {
             var factory = CreateMockTextFactoryService();
             using var stream = new MemoryStream(bytes);

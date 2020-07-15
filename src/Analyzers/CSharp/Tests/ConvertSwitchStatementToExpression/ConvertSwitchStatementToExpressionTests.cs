@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 
     public class ConvertSwitchStatementToExpressionTests
     {
-        private static readonly LanguageVersion CSharp9 = LanguageVersionExtensions.CSharp9;
+        private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public void TestStandardProperties()

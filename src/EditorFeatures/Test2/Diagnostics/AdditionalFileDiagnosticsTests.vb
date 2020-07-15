@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 
-        Private Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
+        Private Shared Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
             Dim serializationAllowed = False
             For Each item In options.AdditionalFiles
                 If item.Path.EndsWith("app.config", StringComparison.OrdinalIgnoreCase) Then
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             Return serializationAllowed
         End Function
 
-        Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+        Public Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
             Dim namedType = DirectCast(context.Symbol, INamedTypeSymbol)
 
             If namedType.AllInterfaces.Contains(context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable")) Then

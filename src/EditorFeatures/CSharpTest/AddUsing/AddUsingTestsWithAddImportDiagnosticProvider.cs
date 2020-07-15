@@ -21,18 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
 
-        private Task TestAsync(
-             string initialMarkup,
-             string expected,
-             bool systemSpecialCase,
-             int index = 0)
-        {
-            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new OptionsCollection(LanguageNames.CSharp)
-                {
-                    { GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase }
-                });
-        }
-
         [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestIncompleteLambda1()

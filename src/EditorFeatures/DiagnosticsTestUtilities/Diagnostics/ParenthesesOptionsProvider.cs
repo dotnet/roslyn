@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal OptionsCollection RequireOtherBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.OtherBinaryParentheses);
 
-        private IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
+        private static IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
             => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions2.OtherParentheses);
 
         internal OptionsCollection IgnoreAllParentheses
