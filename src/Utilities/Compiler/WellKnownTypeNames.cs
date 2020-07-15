@@ -93,6 +93,9 @@ namespace Analyzer.Utilities
         public const string SystemChar = "System.Char";
         public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
         public const string SystemCodeDomCompilerGeneratedCodeAttribute = "System.CodeDom.Compiler.GeneratedCodeAttribute";
+        public const string SystemCollectionsConcurrentConcurrentDictionary2 = "System.Collections.Concurrent.ConcurrentDictionary`2";
+        public const string SystemCollectionsGenericDictionary2 = "System.Collections.Generic.Dictionary`2";
+        public const string SystemCollectionsGenericHashSet1 = "System.Collections.Generic.HashSet`1";
         public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
         public const string SystemCollectionsGenericIEnumerable1 = "System.Collections.Generic.IEnumerable`1";
         public const string SystemCollectionsGenericIEnumerator1 = "System.Collections.Generic.IEnumerator`1";

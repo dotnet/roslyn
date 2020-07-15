@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
@@ -536,6 +538,184 @@ class TestClass {{
             {
                 TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
                 FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
+        public async Task GetHashCode_Diagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using Microsoft.CodeAnalysis;
+public class C
+{
+    public int M(ISymbol symbol, INamedTypeSymbol namedType)
+    {
+        return [|symbol.GetHashCode()|] + [|namedType.GetHashCode()|];
+    }
+}");
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Function M(ByVal symbol As ISymbol, ByVal namedType As INamedTypeSymbol) As Integer
+        Return [|symbol.GetHashCode()|] + [|namedType.GetHashCode()|]
+    End Function
+End Class");
+        }
+
+        [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
+        public async Task CollectionTypesKnownToRequireComparer_Diagnostic()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+public class C
+{
+    public void MethodWithDiagnostics()
+    {
+        [|new Dictionary<ISymbol, int>()|];
+        [|new HashSet<ISymbol>()|];
+        [|new ConcurrentDictionary<ISymbol, int>()|];
+    }
+
+    public void MethodWithoutDiagnostics()
+    {
+        new Dictionary<int, ISymbol>();
+        new HashSet<string>();
+        new ConcurrentDictionary<int, ISymbol>();
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+Imports System.Collections.Concurrent
+Imports System.Collections.Generic
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Sub MethodWithDiagnostics()
+        Dim x1 = [|New Dictionary(Of ISymbol, Integer)()|]
+        Dim x2 = [|New HashSet(Of ISymbol)()|]
+        Dim x3 = [|New ConcurrentDictionary(Of ISymbol, Integer)()|]
+    End Sub
+
+    Public Sub MethodWithoutDiagnostics()
+        Dim x1 = New Dictionary(Of Integer, ISymbol)()
+        Dim x2 = New HashSet(Of String)()
+        Dim x3 = New ConcurrentDictionary(Of Integer, ISymbol)()
+    End Sub
+End Class",
+                        SymbolEqualityComparerStubVisualBasic,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
+        public async Task CollectionBuilderTypesKnownToRequireComparer_Diagnostic()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Immutable;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+public class C
+{
+    public void MethodWithDiagnostics(IEnumerable<KeyValuePair<ISymbol, int>> kvps)
+    {
+        [|ImmutableHashSet.Create<ISymbol>()|];
+        [|ImmutableHashSet.CreateBuilder<ISymbol>()|];
+        [|ImmutableHashSet.CreateRange(Array.Empty<ISymbol>())|];
+        [|Array.Empty<ISymbol>().ToImmutableHashSet()|];
+
+        [|ImmutableDictionary.Create<ISymbol, int>()|];
+        [|ImmutableDictionary.CreateBuilder<ISymbol, int>()|];
+        [|ImmutableDictionary.CreateRange(kvps)|];
+        [|kvps.ToImmutableDictionary()|];
+    }
+
+    public void MethodWithoutDiagnostics(IEnumerable<KeyValuePair<int, ISymbol>> kvps)
+    {
+        [|ImmutableHashSet.Create<int>()|];
+        [|ImmutableHashSet.CreateBuilder<int>()|];
+        [|ImmutableHashSet.CreateRange(Array.Empty<int>())|];
+        [|Array.Empty<int>().ToImmutableHashSet()|];
+
+        [|ImmutableDictionary.Create<int, ISymbol>()|];
+        [|ImmutableDictionary.CreateBuilder<int, ISymbol>()|];
+        [|ImmutableDictionary.CreateRange(kvps)|];
+        [|kvps.ToImmutableDictionary()|];
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+Imports System
+Imports System.Collections.Immutable
+Imports System.Collections.Generic
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Sub MethodWithDiagnostics(ByVal kvps As IEnumerable(Of KeyValuePair(Of ISymbol, Integer)))
+        Dim x1 = [|ImmutableHashSet.Create(Of ISymbol)()|]
+        Dim x2 = [|ImmutableHashSet.CreateBuilder(Of ISymbol)()|]
+        Dim x3 = [|ImmutableHashSet.CreateRange(Array.Empty(Of ISymbol)())|]
+        Dim x4 = [|Array.Empty(Of ISymbol)().ToImmutableHashSet()|]
+
+        Dim x5 = [|ImmutableDictionary.Create(Of ISymbol, Integer)()|]
+        Dim x6 = [|ImmutableDictionary.CreateBuilder(Of ISymbol, Integer)()|]
+        Dim x7 = [|ImmutableDictionary.CreateRange(kvps)|]
+        Dim x8 = [|kvps.ToImmutableDictionary()|]
+    End Sub
+
+    Public Sub MethodWithoutDiagnostics(ByVal kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)))
+        Dim x1 = ImmutableHashSet.Create(Of Integer)()
+        Dim x2 = ImmutableHashSet.CreateBuilder(Of Integer)()
+        Dim x3 = ImmutableHashSet.CreateRange(Array.Empty(Of Integer)())
+        Dim x4 = Array.Empty(Of Integer)().ToImmutableHashSet()
+
+        Dim x5 = ImmutableDictionary.Create(Of Integer, ISymbol)()
+        Dim x6 = ImmutableDictionary.CreateBuilder(Of Integer, ISymbol)()
+        Dim x7 = ImmutableDictionary.CreateRange(kvps)
+        Dim x8 = kvps.ToImmutableDictionary()
+    End Sub
+End Class
+",
+                        SymbolEqualityComparerStubVisualBasic,
+                    },
+                },
             }.RunAsync();
         }
     }

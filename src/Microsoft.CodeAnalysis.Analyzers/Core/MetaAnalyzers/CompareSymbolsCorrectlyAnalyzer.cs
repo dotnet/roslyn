@@ -31,6 +31,26 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        public static readonly DiagnosticDescriptor GetHashCodeRule = new DiagnosticDescriptor(
+            DiagnosticIds.CompareSymbolsCorrectlyRuleId,
+            s_localizableTitle,
+            s_localizableMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        public static readonly DiagnosticDescriptor CollectionRule = new DiagnosticDescriptor(
+            DiagnosticIds.CompareSymbolsCorrectlyRuleId,
+            s_localizableTitle,
+            s_localizableMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_localizableDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
@@ -49,24 +69,32 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 // Check that the EqualityComparer exists and can be used, otherwise the Roslyn version
                 // being used it too low to need the change for method references
-                var operatorsToHandle = UseSymbolEqualityComparer(context.Compilation) ?
-                    new[] { OperationKind.BinaryOperator, OperationKind.Invocation } :
-                    new[] { OperationKind.BinaryOperator };
+                var hasSymbolEqualityComparerSymbol = UseSymbolEqualityComparer(context.Compilation);
 
-                context.RegisterOperationAction(context => HandleOperation(in context, symbolType), operatorsToHandle);
+                context.RegisterOperationAction(
+                    context => HandleBinaryOperator(in context, symbolType),
+                    OperationKind.BinaryOperator);
+
+                context.RegisterOperationAction(
+                    context => HandleInvocationOperation(in context, symbolType, hasSymbolEqualityComparerSymbol),
+                    OperationKind.Invocation);
+
+                if (hasSymbolEqualityComparerSymbol)
+                {
+                    var symbolEqualityComparerType = compilation.GetOrCreateTypeByMetadataName(SymbolEqualityComparerName);
+
+                    var collectionTypes = ImmutableHashSet.Create(
+                        compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericDictionary2),
+                        compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericHashSet1),
+                        compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsConcurrentConcurrentDictionary2));
+
+                    RoslynDebug.Assert(symbolEqualityComparerType != null, "SymbolEqualityComparer should not be null here.");
+
+                    context.RegisterOperationAction(
+                        context => HandleObjectCreation(in context, symbolType, symbolEqualityComparerType, collectionTypes),
+                        OperationKind.ObjectCreation);
+                }
             });
-        }
-
-        private static void HandleOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
-        {
-            if (context.Operation is IBinaryOperation)
-            {
-                HandleBinaryOperator(in context, symbolType);
-            }
-            else if (context.Operation is IInvocationOperation)
-            {
-                HandleInvocationOperation(in context, symbolType);
-            }
         }
 
         private static void HandleBinaryOperator(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
@@ -112,24 +140,55 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             context.ReportDiagnostic(binary.Syntax.GetLocation().CreateDiagnostic(Rule));
         }
 
-        private static void HandleInvocationOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        private static void HandleInvocationOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType, bool hasSymbolEqualityComparerSymbol)
         {
             var invocationOperation = (IInvocationOperation)context.Operation;
             var method = invocationOperation.TargetMethod;
-            if (method.Name != s_symbolEqualsName)
-            {
-                return;
-            }
 
             if (invocationOperation.Instance != null && !IsSymbolType(invocationOperation.Instance, symbolType))
             {
                 return;
             }
 
-            var parameters = invocationOperation.Arguments;
-            if (parameters.All(p => IsSymbolType(p.Value, symbolType)))
+            switch (method.Name)
             {
-                context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
+                case nameof(object.GetHashCode):
+                    context.ReportDiagnostic(invocationOperation.Syntax.CreateDiagnostic(GetHashCodeRule));
+                    break;
+
+                case s_symbolEqualsName when hasSymbolEqualityComparerSymbol:
+                    var parameters = invocationOperation.Arguments;
+                    if (parameters.All(p => IsSymbolType(p.Value, symbolType)))
+                    {
+                        context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
+                    }
+                    break;
+
+                case nameof(ImmutableHashSet.Create):
+                case nameof(ImmutableHashSet.CreateBuilder):
+                case nameof(ImmutableHashSet.CreateRange):
+                case nameof(ImmutableHashSet.ToImmutableHashSet):
+                case nameof(ImmutableDictionary.ToImmutableDictionary):
+
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private static void HandleObjectCreation(in OperationAnalysisContext context, INamedTypeSymbol symbolType,
+             INamedTypeSymbol symbolEqualityComparerType, ImmutableHashSet<INamedTypeSymbol?> collectionTypes)
+        {
+            var objectCreation = (IObjectCreationOperation)context.Operation;
+
+            if (objectCreation.Type is INamedTypeSymbol createdType &&
+                collectionTypes.Contains(createdType.OriginalDefinition) &&
+                !createdType.TypeArguments.IsEmpty &&
+                IsSymbolType(createdType.TypeArguments[0], symbolType) &&
+                !objectCreation.Arguments.Any(arg => arg.Type.Equals(symbolEqualityComparerType)))
+            {
+                context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule));
             }
         }
 
