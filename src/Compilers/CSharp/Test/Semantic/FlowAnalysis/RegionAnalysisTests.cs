@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -5117,6 +5118,130 @@ class c1
             Assert.Equal(2, flowAnalysis.ReadInside.Count());
             Assert.Equal(2, flowAnalysis.WrittenInside.Count());
             Assert.Equal(1, flowAnalysis.VariablesDeclared.Count());
+        }
+
+        [Fact]
+        public void StaticLambda_01()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Action fn = static () => Console.Write(x);
+        fn();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,48): error CS8820: A static anonymous function cannot contain a reference to 'x'.
+                //         Action fn = static () => Console.Write(x);
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(9, 48)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var node = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(node);
+
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(flowAnalysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void StaticLambda_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Action fn = static () =>
+        {
+            int y = x;
+            x = 43;
+            Console.Write(y);
+        };
+        fn();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS8820: A static anonymous function cannot contain a reference to 'x'.
+                //             int y = x;
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(11, 21),
+                // (12,13): error CS8820: A static anonymous function cannot contain a reference to 'x'.
+                //             x = 43;
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(12, 13)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var node = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(node);
+
+            Assert.Equal("x, y", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+            Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void StaticLambda_03()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public static int x = 42;
+    static void Main()
+    {
+        Action fn = static () =>
+        {
+            int y = x;
+            x = 43;
+            Console.Write(y);
+        };
+        fn();
+    }
+}
+";
+            verify(source);
+            verify(source.Replace("static (", "("));
+
+            void verify(string source)
+            {
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "42");
+                verifier.VerifyDiagnostics();
+
+                var comp = verifier.Compilation;
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+
+                var root = tree.GetRoot();
+                var node = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+                var flowAnalysis = model.AnalyzeDataFlow(node);
+
+                Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+                Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+                Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.VariablesDeclared));
+            }
         }
 
         #endregion

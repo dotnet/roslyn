@@ -6,14 +6,9 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.EncapsulateField
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
-    Public Enum TestHost
-        InProcess
-        OutOfProcess
-    End Enum
-
     Public Class EncapsulateFieldTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -23,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
 
         Private Function GetHostOptions(host As TestHost) As OptionsCollection
             Return New OptionsCollection(GetLanguage()) From {
-                {RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess}
+                {RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess}
                 }
         End Function
 
@@ -354,7 +349,7 @@ End Class</File>.ConvertTestSourceTag()
                 text, expected,
                 options:=New OptionsCollection(GetLanguage()) From {
                     {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error},
-                    {RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess}
+                    {RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess}
                 })
         End Function
 
@@ -650,7 +645,7 @@ End Class
 ",
 options:=New OptionsCollection(GetLanguage()) From {
     {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error},
-    {RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess}
+    {RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess}
 })
         End Function
     End Class

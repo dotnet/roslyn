@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, bool outOfProcess)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
-            using var workspace = CreateWorkspace(code, span, options, outOfProcess);
+            using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
             return GetSyntacticClassificationsAsync(document, span);
@@ -351,7 +351,7 @@ on a new line """),
         [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
-        public async Task VerbatimStringLiteral6(bool script, bool outOfProcess)
+        public async Task VerbatimStringLiteral6(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*"";";
 
@@ -361,7 +361,7 @@ on a new line """),
                 code,
                 code,
                 parseOptions,
-                outOfProcess,
+                testHost,
                 Keyword("string"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
@@ -471,7 +471,7 @@ on a new line """),
         [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
-        public async Task VarContextualKeywordAtNamespaceLevel(bool script, bool outOfProcess)
+        public async Task VarContextualKeywordAtNamespaceLevel(bool script, TestHost testHost)
         {
             var code = @"var goo = 2;";
 
@@ -480,7 +480,7 @@ on a new line """),
             await TestAsync(code,
                 code,
                 parseOptions,
-                outOfProcess,
+                testHost,
                 script ? Identifier("var") : Keyword("var"),
                 script ? Field("goo") : Local("goo"),
                 Operators.Equals,
@@ -491,7 +491,7 @@ on a new line """),
         [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
-        public async Task LinqKeywordsAtNamespaceLevel(bool script, bool outOfProcess)
+        public async Task LinqKeywordsAtNamespaceLevel(bool script, TestHost testHost)
         {
             // the contextual keywords are actual keywords since we parse top level field declaration and only give a semantic error
             var code = @"object goo = from goo in goo
@@ -508,7 +508,7 @@ on a new line """),
                 code,
                 code,
                 parseOptions,
-                outOfProcess,
+                testHost,
                 Keyword("object"),
                 script ? Field("goo") : Local("goo"),
                 Operators.Equals,
