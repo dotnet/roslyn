@@ -1021,6 +1021,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        /// <summary>
+        /// Opens a file and retrieves the window frame.
+        /// </summary>
+        /// <param name="filePath">the file path of the file to open.</param>
+        /// <param name="projectId">used to retrieve the IVsHierarchy to ensure the file is opened in a matching context.</param>
+        /// <param name="frame">the window frame.</param>
+        /// <returns></returns>
         private bool TryGetFrame(string? filePath, ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsWindowFrame? frame)
         {
             frame = null;

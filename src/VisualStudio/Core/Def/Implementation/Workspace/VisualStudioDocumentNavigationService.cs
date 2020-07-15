@@ -233,8 +233,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var spanMappingService = document?.Services.GetService<ISpanMappingService>();
                 if (spanMappingService != null)
                 {
-                    var textSpan = getTextSpanForMapping(document);
-                    return TryNavigateToMappedFile(workspace, spanMappingService, document, textSpan);
+                    var mappedSpan = GetMappedSpan(spanMappingService, document, getTextSpanForMapping(document));
+                    if (mappedSpan.HasValue)
+                    {
+                        return TryNavigateToMappedFile(workspace, document, mappedSpan.Value);
+                    }
                 }
 
                 document = OpenDocument(workspace, documentId);
@@ -257,35 +260,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private bool TryNavigateToMappedFile(Workspace workspace, ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan)
+        private bool TryNavigateToMappedFile(Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult)
         {
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            Contract.ThrowIfNull(vsWorkspace);
-            var results = ThreadingContext.JoinableTaskFactory.Run(async () =>
+            var vsWorkspace = (VisualStudioWorkspaceImpl)workspace;
+            // TODO - Move to IOpenDocumentService - https://github.com/dotnet/roslyn/issues/45954
+            // Pass the original result's project context so that if the mapped file has the same context available, we navigate
+            // to the mapped file with a consistent project context.
+            vsWorkspace.OpenDocumentFromPath(mappedSpanResult.FilePath, generatedDocument.Project.Id);
+            if (_runningDocumentTableEventTracker.TryGetBufferFromMoniker(mappedSpanResult.FilePath, out var textBuffer))
             {
-                return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(true);
-            });
-
-            if (!results.IsDefaultOrEmpty)
-            {
-                var mappedSpanResult = results.Single();
-                // TODO - Move to IOpenDocumentService - https://github.com/dotnet/roslyn/issues/45954
-                vsWorkspace.OpenDocumentFromPath(mappedSpanResult.FilePath, generatedDocument.Project.Id);
-                if (_runningDocumentTableEventTracker.TryGetBufferFromMoniker(mappedSpanResult.FilePath, out var textBuffer))
+                var vsTextSpan = new VsTextSpan
                 {
-                    var vsTextSpan = new VsTextSpan
-                    {
-                        iStartIndex = mappedSpanResult.LinePositionSpan.Start.Character,
-                        iStartLine = mappedSpanResult.LinePositionSpan.Start.Line,
-                        iEndIndex = mappedSpanResult.LinePositionSpan.End.Character,
-                        iEndLine = mappedSpanResult.LinePositionSpan.End.Line
-                    };
+                    iStartIndex = mappedSpanResult.LinePositionSpan.Start.Character,
+                    iStartLine = mappedSpanResult.LinePositionSpan.Start.Line,
+                    iEndIndex = mappedSpanResult.LinePositionSpan.End.Character,
+                    iEndLine = mappedSpanResult.LinePositionSpan.End.Line
+                };
 
-                    return NavigateTo(textBuffer, vsTextSpan);
-                }
+                return NavigateTo(textBuffer, vsTextSpan);
             }
 
             return false;
+        }
+
+        private static MappedSpanResult? GetMappedSpan(ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan)
+        {
+            var results = System.Threading.Tasks.Task.Run(async () =>
+            {
+                return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(true);
+            }).WaitAndGetResult(CancellationToken.None);
+
+            if (!results.IsDefaultOrEmpty)
+            {
+                return results.First();
+            }
+
+            return null;
         }
 
         /// <summary>
