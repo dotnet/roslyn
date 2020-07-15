@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         where TReturnStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        public static readonly string EquivalenceKey = FeaturesResources.Remove_async_modifier;
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
@@ -268,7 +267,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_async_modifier, createChangedDocument, AbstractRemoveAsyncModifierCodeFixProvider<TReturnStatementSyntax, TExpressionSyntax>.EquivalenceKey)
+                : base(FeaturesResources.Remove_async_modifier, createChangedDocument, FeaturesResources.Remove_async_modifier)
             {
             }
         }
