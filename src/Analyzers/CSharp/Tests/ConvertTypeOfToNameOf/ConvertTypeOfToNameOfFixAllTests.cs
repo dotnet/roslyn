@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
 {
-    public partial class ConvertNameOfTests
+    public partial class ConvertTypeOfToNameOfTests
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
