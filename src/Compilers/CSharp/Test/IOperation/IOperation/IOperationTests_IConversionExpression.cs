@@ -947,7 +947,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1526: A new expression requires (), [], or {} after type
+                // file.cs(8,41): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //         C1 /*<bind>*/c1 = new/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(8, 41)
             };
