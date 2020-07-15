@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization.AssertIsForeground();
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie))
                 {
-                    _listener?.OnCloseDocument(_runningDocumentTable.GetDocumentMoniker(docCookie));
+                    _listener.OnCloseDocument(_runningDocumentTable.GetDocumentMoniker(docCookie));
                 }
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization.AssertIsForeground();
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetBuffer(docCookie, out var buffer))
                 {
-                    _listener?.OnRenameDocument(newMoniker: pszMkDocumentNew, oldMoniker: pszMkDocumentOld, textBuffer: buffer);
+                    _listener.OnRenameDocument(newMoniker: pszMkDocumentNew, oldMoniker: pszMkDocumentOld, textBuffer: buffer);
                 }
             }
 
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
                 {
                     _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                    _listener?.OnOpenDocument(moniker, buffer, hierarchy);
+                    _listener.OnOpenDocument(moniker, buffer, hierarchy);
                 }
             }
 
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
                 {
                     _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                    _listener?.OnRefreshDocumentContext(moniker, hierarchy);
+                    _listener.OnRefreshDocumentContext(moniker, hierarchy);
                 }
             }
 
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fFirstShow != 0 && _runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
             {
                 _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                _listener?.OnOpenDocument(moniker, buffer, hierarchy);
+                _listener.OnOpenDocument(moniker, buffer, hierarchy);
             }
 
             return VSConstants.S_OK;
