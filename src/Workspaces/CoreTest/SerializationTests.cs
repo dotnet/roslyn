@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(versionStamp, deserializedVersionStamp);
 
+            Assert.True(keepAliveObjects.Count == 0, "If this check fails, make sure to add tests validating that serialization also works when keep alive is not available.");
             GC.KeepAlive(keepAliveObjects);
         }
 

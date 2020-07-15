@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var rehydratedFilter = BloomFilter.ReadFrom(reader);
             Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
 
+            Assert.True(keepAliveObjects.Count == 0, "If this check fails, make sure to add tests validating that serialization also works when keep alive is not available.");
             GC.KeepAlive(keepAliveObjects);
         }
 
@@ -144,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var rehydratedFilter = BloomFilter.ReadFrom(reader);
             Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
 
+            Assert.True(keepAliveObjects.Count == 0, "If this check fails, make sure to add tests validating that serialization also works when keep alive is not available.");
             GC.KeepAlive(keepAliveObjects);
         }
 
