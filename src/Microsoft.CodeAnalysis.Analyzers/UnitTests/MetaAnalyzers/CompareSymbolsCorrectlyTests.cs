@@ -659,15 +659,15 @@ public class C
 
     public void MethodWithoutDiagnostics(IEnumerable<KeyValuePair<int, ISymbol>> kvps)
     {
-        [|ImmutableHashSet.Create<int>()|];
-        [|ImmutableHashSet.CreateBuilder<int>()|];
-        [|ImmutableHashSet.CreateRange(Array.Empty<int>())|];
-        [|Array.Empty<int>().ToImmutableHashSet()|];
+        ImmutableHashSet.Create<int>();
+        ImmutableHashSet.CreateBuilder<int>();
+        ImmutableHashSet.CreateRange(Array.Empty<int>());
+        Array.Empty<int>().ToImmutableHashSet();
 
-        [|ImmutableDictionary.Create<int, ISymbol>()|];
-        [|ImmutableDictionary.CreateBuilder<int, ISymbol>()|];
-        [|ImmutableDictionary.CreateRange(kvps)|];
-        [|kvps.ToImmutableDictionary()|];
+        ImmutableDictionary.Create<int, ISymbol>();
+        ImmutableDictionary.CreateBuilder<int, ISymbol>();
+        ImmutableDictionary.CreateRange(kvps);
+        kvps.ToImmutableDictionary();
     }
 }",
                         SymbolEqualityComparerStubCSharp,
@@ -692,12 +692,12 @@ Public Class C
         Dim x1 = [|ImmutableHashSet.Create(Of ISymbol)()|]
         Dim x2 = [|ImmutableHashSet.CreateBuilder(Of ISymbol)()|]
         Dim x3 = [|ImmutableHashSet.CreateRange(Array.Empty(Of ISymbol)())|]
-        Dim x4 = [|Array.Empty(Of ISymbol)().ToImmutableHashSet()|]
+        Dim x4 = Array.Empty(Of ISymbol)().ToImmutableHashSet()
 
         Dim x5 = [|ImmutableDictionary.Create(Of ISymbol, Integer)()|]
         Dim x6 = [|ImmutableDictionary.CreateBuilder(Of ISymbol, Integer)()|]
         Dim x7 = [|ImmutableDictionary.CreateRange(kvps)|]
-        Dim x8 = [|kvps.ToImmutableDictionary()|]
+        Dim x8 = kvps.ToImmutableDictionary()
     End Sub
 
     Public Sub MethodWithoutDiagnostics(ByVal kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)))

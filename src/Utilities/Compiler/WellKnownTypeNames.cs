@@ -115,6 +115,8 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsImmutableIImmutableSet = "System.Collections.Immutable.IImmutableSet`1";
         public const string SystemCollectionsImmutableIImmutableStack = "System.Collections.Immutable.IImmutableStack`1";
         public const string SystemCollectionsImmutableImmutableArray = "System.Collections.Immutable.ImmutableArray`1";
+        public const string SystemCollectionsImmutableImmutableDictionary = "System.Collections.Immutable.ImmutableDictionary";
+        public const string SystemCollectionsImmutableImmutableHashSet = "System.Collections.Immutable.ImmutableHashSet";
         public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
         public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
         public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
