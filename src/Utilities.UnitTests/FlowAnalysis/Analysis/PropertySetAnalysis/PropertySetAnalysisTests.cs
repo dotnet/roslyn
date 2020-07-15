@@ -74,9 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Debug.Assert(success);
             Debug.Assert(cfg != null);
 
-#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
             using (var cancellationSource = new CancellationTokenSource())
-#pragma warning restore CA1508 // Avoid dead conditional code
             {
                 DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
                 PropertySetAnalysisResult result =
@@ -92,6 +90,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         InterproceduralAnalysisConfiguration.Create(
                             new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                             dummy,
+                            symbol,
+                            compilation,
                             InterproceduralAnalysisKind.ContextSensitive,
                             cancellationSource.Token));
                 ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
@@ -1268,7 +1268,6 @@ class TestClass
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 
-        #region Infrastructure
         private ITestOutputHelper TestOutput { get; }
 
         public PropertySetAnalysisTests(ITestOutputHelper output)
@@ -1302,12 +1301,16 @@ class TestClass
                 .AddMetadataReferences(projectId, references)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.CodeAnalysisReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
+#endif
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
+#endif
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, null)
                 .GetProject(projectId);
@@ -1391,7 +1394,7 @@ class TestClass
 
                 if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(EndString))
+                    if (exprFullText.Contains(EndString, StringComparison.Ordinal))
                     {
                         if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                         {
@@ -1410,7 +1413,7 @@ class TestClass
 
                 if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(StartString))
+                    if (exprFullText.Contains(StartString, StringComparison.Ordinal))
                     {
                         if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                         {
@@ -1430,7 +1433,5 @@ class TestClass
 
             return null;
         }
-
-        #endregion Infrastructure
     }
 }

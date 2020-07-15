@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAnalysisData MergeAnalysisData(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => _pointsToAnalysisDomain.Merge(value1, value2);
-            protected override PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData value1, PointsToAnalysisData value2)
+            protected override PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData value1, PointsToAnalysisData value2, BasicBlock forBlock)
                 => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities, ResetAbstractValueIfTracked);
             protected override void UpdateValuesForAnalysisData(PointsToAnalysisData targetAnalysisData)
                 => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
@@ -763,6 +763,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object? argument)
             {
                 return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitAnonymousObjectCreation);
+            }
+
+            public override PointsToAbstractValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+            {
+                if (operation.Operand.Type == null)
+                {
+                    return base.VisitReDimClause(operation, argument);
+                }
+
+                AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Operand.Type, DataFlowAnalysisContext);
+                var pointsToAbstractValue = PointsToAbstractValue.Create(location, mayBeNull: false);
+                CacheAbstractValue(operation, pointsToAbstractValue);
+
+                _ = base.VisitReDimClause(operation, argument);
+
+                return pointsToAbstractValue;
             }
 
             public override PointsToAbstractValue VisitTuple(ITupleOperation operation, object? argument)

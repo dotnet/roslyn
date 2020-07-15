@@ -28,7 +28,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.TestExportsShouldNotBeDiscoverableRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
@@ -85,7 +85,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 && Equals(ad.AttributeClass.ContainingNamespace, exportAttributeOpt.ContainingNamespace)))
             {
                 // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
-                context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), namedType.Name));
             }
         }
     }

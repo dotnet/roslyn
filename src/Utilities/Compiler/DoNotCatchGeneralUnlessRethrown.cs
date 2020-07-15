@@ -28,7 +28,7 @@ namespace Analyzer.Utilities
         }
 
         protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxToken catchKeyword);
-        protected virtual bool IsConfiguredDisallowedExceptionType(INamedTypeSymbol namedTypeSymbol, Compilation compilation, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+        protected virtual bool IsConfiguredDisallowedExceptionType(INamedTypeSymbol namedTypeSymbol, IMethodSymbol containingMethod, Compilation compilation, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             return false;
         }
@@ -47,10 +47,6 @@ namespace Analyzer.Utilities
                 }
 
                 var disallowedCatchTypes = GetDisallowedCatchTypes(compilationStartAnalysisContext.Compilation);
-                bool IsDisallowedCatchType(INamedTypeSymbol type) =>
-                    disallowedCatchTypes.Contains(type) ||
-                    IsConfiguredDisallowedExceptionType(type, compilationStartAnalysisContext.Compilation,
-                        compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
 
                 compilationStartAnalysisContext.RegisterOperationBlockAction(operationBlockAnalysisContext =>
                 {
@@ -76,6 +72,12 @@ namespace Analyzer.Utilities
                             operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
                         }
                     }
+
+                    bool IsDisallowedCatchType(INamedTypeSymbol type) =>
+                        disallowedCatchTypes.Contains(type) ||
+                        IsConfiguredDisallowedExceptionType(type, method, compilationStartAnalysisContext.Compilation,
+                            compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
+
                 });
             });
         }
