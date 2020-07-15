@@ -7,20 +7,20 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ConvertTypeofToNameof;
+using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
+namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
 {
     /// <summary>
     /// Finds code like typeof(someType).Name and determines whether it can be changed to nameof(someType), if yes then it offers a diagnostic
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpConvertTypeofToNameofDiagnosticAnalyzer : AbstractConvertTypeofToNameofDiagnosticAnalyzer
+    internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
     {
-        public CSharpConvertTypeofToNameofDiagnosticAnalyzer()
+        public CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
         {
         }
 

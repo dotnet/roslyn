@@ -13,11 +13,11 @@ using Roslyn.Utilities;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
 
-namespace Microsoft.CodeAnalysis.ConvertTypeofToNameof
+namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
-    internal abstract class AbstractConvertTypeofToNameofDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractConvertTypeofToNameofDiagnosticAnalyzer()
+        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
                    option: null,
                    new LocalizableResourceString(
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.ConvertTypeofToNameof
                 return;
             }
             var location = parent.GetLocation();
-            context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, location, ReportDiagnostic.Hidden, additionalLocations: null,
-                properties: null, messageArgs: null));
+            var diagnostic = DiagnosticHelper.Create(Descriptor, location, ReportDiagnostic.Hidden, additionalLocations: null, properties: null, messageArgs: null);
+            context.ReportDiagnostic(diagnostic);
 
         }
         private static bool IsValidOperation(IOperation operation)

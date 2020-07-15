@@ -3,13 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.ConvertTypeofToNameof
+Imports Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeofToNameof
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend NotInheritable Class VisualBasicConvertTypeofToNameofDiagnosticAnalyzer
-        Inherits AbstractConvertTypeofToNameofDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer
+        Inherits AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
 
         Protected Overrides Function IsValidTypeofAction(context As OperationAnalysisContext) As Boolean
             Dim node As SyntaxNode
