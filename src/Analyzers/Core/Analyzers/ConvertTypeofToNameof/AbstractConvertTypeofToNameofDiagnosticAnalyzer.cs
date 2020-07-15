@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -15,67 +15,65 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis.ConvertTypeofToNameof
 {
-    internal abstract class AbstractConvertTypeofToNameofDiagnosticAnalyzer<
-        TLanguageKindEnum,
-        TExpressionSyntax,
-        TSimpleNameSyntax>
-        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
-        where TLanguageKindEnum : struct
-        where TExpressionSyntax : SyntaxNode
-        where TSimpleNameSyntax : TExpressionSyntax
+    internal abstract class AbstractConvertTypeofToNameofDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractConvertTypeofToNameofDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
-                   new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(nameof(AnalyzersResources.Add_this_or_Me_qualification), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
+                   option: null,
+                   new LocalizableResourceString(
+                       nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
-
-        public override bool OpenFileOnly(OptionSet options)
-        {
-            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions2.QualifyEventAccess, GetLanguageName()).Notification;
-
-            return !(qualifyFieldAccessOption == NotificationOption2.Warning || qualifyFieldAccessOption == NotificationOption2.Error ||
-                     qualifyPropertyAccessOption == NotificationOption2.Warning || qualifyPropertyAccessOption == NotificationOption2.Error ||
-                     qualifyMethodAccessOption == NotificationOption2.Warning || qualifyMethodAccessOption == NotificationOption2.Error ||
-                     qualifyEventAccessOption == NotificationOption2.Warning || qualifyEventAccessOption == NotificationOption2.Error);
-        }
-
-        protected abstract string GetLanguageName();
-
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference, OperationKind.Invocation);
-
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            if (context.ContainingSymbol.IsStatic)
+            context.RegisterOperationAction(AnalyzeAction, OperationKind.TypeOf);
+        }
+        protected void AnalyzeAction(OperationAnalysisContext context)
+        {
+            if (!IsValidTypeofAction(context) || !IsValidOperation(context.Operation))
             {
                 return;
             }
 
-            switch (context.Operation)
+            var node = context.Operation.Syntax;
+            var parent = node.Parent;
+            // If the parent node is null then it cannot be a member access, so do not report a diagnostic
+            if (parent is null)
             {
-                case IMemberReferenceOperation memberReferenceOperation:
-                    AnalyzeOperation(context, memberReferenceOperation, memberReferenceOperation.Instance);
-                    break;
-                case IInvocationOperation invocationOperation:
-                    AnalyzeOperation(context, invocationOperation, invocationOperation.Instance);
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(context.Operation);
+                return;
             }
-        }
+            var location = parent.GetLocation();
+            context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, location, ReportDiagnostic.Hidden, additionalLocations: null,
+                properties: null, messageArgs: null));
 
-        private void AnalyzeOperation(OperationAnalysisContext context, IOperation operation, IOperation instanceOperation)
+        }
+        private static bool IsValidOperation(IOperation operation)
         {
+            // Cast to a typeof operation & check parent is a property reference and member access
+            var typeofOperation = (ITypeOfOperation)operation;
+            if (!(operation.Parent is IPropertyReferenceOperation))
+            {
+                return false;
+            }
 
+            // Check Parent is a .Name access
+            var operationParent = (IPropertyReferenceOperation)operation.Parent;
+            if (operationParent.Property.Name != nameof(System.Type.Name))
+            {
+                return false;
+            }
+
+            // If it's a generic type, do not offer the fix because nameof(T) and typeof(T).name are not 
+            // semantically equivalent, typeof().Name includes information about the actual type used 
+            // by the generic while nameof loses this information during the standard identifier transformation
+            if (!(typeofOperation.TypeOperand is INamedTypeSymbol namedType) || namedType.IsGenericType)
+            {
+                return false;
+            }
+            return true;
         }
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
     }
 }
