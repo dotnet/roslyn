@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45892
         protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             using (var workspace = CreateWorkspace(code))
             {
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        private void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
+        private static void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
         {
             MarkupTestFile.GetPosition(expectedWithAnnotations, out var expected, out int expectedPosition);
 
@@ -59,10 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Equal(expectedPosition, virtualPosition.Position.Position + virtualPosition.VirtualSpaces);
         }
 
-        public T GetService<T>(TestWorkspace workspace)
+        public static T GetService<T>(TestWorkspace workspace)
             => workspace.GetService<T>();
 
-        public T GetExportedValue<T>(TestWorkspace workspace)
+        public static T GetExportedValue<T>(TestWorkspace workspace)
             => workspace.ExportProvider.GetExportedValue<T>();
     }
 }

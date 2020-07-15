@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" Partner="UnitTesting" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
 </Project>

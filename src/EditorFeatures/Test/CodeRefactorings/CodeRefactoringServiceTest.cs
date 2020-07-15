@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             Assert.True(stubRefactoringAction is object);
         }
 
-        private async Task VerifyRefactoringDisabledAsync<T>()
+        private static async Task VerifyRefactoringDisabledAsync<T>()
             where T : CodeRefactoringProvider
         {
             var exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(T))).CreateExportProvider();
