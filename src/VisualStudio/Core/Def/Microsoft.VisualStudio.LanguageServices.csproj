@@ -34,6 +34,7 @@
                                Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage"
                                AllowsBackgroundLoad="true"/>
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
