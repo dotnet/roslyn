@@ -705,8 +705,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
-
         internal SyntaxTree SyntaxTree
         {
             get
@@ -980,7 +978,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Attributes
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+        public abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
+
+        public abstract IAttributeTargetSymbol AttributesOwner { get; }
+
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => AttributesOwner;
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 

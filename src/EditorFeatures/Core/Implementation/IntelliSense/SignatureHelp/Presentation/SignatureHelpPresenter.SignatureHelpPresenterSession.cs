@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             private readonly ISignatureHelpBroker _sigHelpBroker;
             private readonly ITextView _textView;
-            private readonly ITextBuffer _subjectBuffer;
 
             public event EventHandler<EventArgs> Dismissed;
             public event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
@@ -40,13 +39,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             public SignatureHelpPresenterSession(
                 IThreadingContext threadingContext,
                 ISignatureHelpBroker sigHelpBroker,
-                ITextView textView,
-                ITextBuffer subjectBuffer)
+                ITextView textView)
                 : base(threadingContext)
             {
                 _sigHelpBroker = sigHelpBroker;
                 _textView = textView;
-                _subjectBuffer = subjectBuffer;
             }
 
             public void PresentItems(

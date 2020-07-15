@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
     Public Class AddImportNuGetTests
         Inherits AbstractAddImportTests
 
-        Const NugetOrgSource = "nuget.org"
+        Private Const NugetOrgSource = "nuget.org"
 
         Private Shared ReadOnly NugetPackageSources As ValueTask(Of ImmutableArray(Of PackageSource)?) =
             New ValueTask(Of ImmutableArray(Of PackageSource)?)(ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org")))
@@ -258,7 +258,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Verify()
         End Function
 
-        Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As ImmutableArray(Of String)) As Task(Of IList(Of PackageWithTypeResult))
+        Private Shared Function CreateSearchResult(packageName As String, typeName As String, nameParts As ImmutableArray(Of String)) As Task(Of IList(Of PackageWithTypeResult))
             Return CreateSearchResult(New PackageWithTypeResult(
                 packageName:=packageName,
                 typeName:=typeName,
@@ -267,11 +267,11 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 containingNamespaceNames:=nameParts))
         End Function
 
-        Private Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As Task(Of IList(Of PackageWithTypeResult))
+        Private Shared Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As Task(Of IList(Of PackageWithTypeResult))
             Return Task.FromResult(Of IList(Of PackageWithTypeResult))(ImmutableArray.Create(results))
         End Function
 
-        Private Function CreateNameParts(ParamArray parts As String()) As ImmutableArray(Of String)
+        Private Shared Function CreateNameParts(ParamArray parts As String()) As ImmutableArray(Of String)
             Return parts.ToImmutableArray()
         End Function
     End Class
