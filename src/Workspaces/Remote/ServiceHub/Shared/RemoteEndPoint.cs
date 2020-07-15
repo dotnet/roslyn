@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                // TODO: use cancellationToken // (https://github.com/dotnet/roslyn/issues/45980)
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, cancellationToken))
             {
@@ -119,7 +120,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public async Task TryInvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+#pragma warning restore
         {
             Contract.ThrowIfFalse(_startedListening);
 
@@ -130,7 +133,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                // TODO: use cancellationToken // (https://github.com/dotnet/roslyn/issues/45980)
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments, CancellationToken.None).ConfigureAwait(false);
             }
             catch
             {
@@ -147,7 +151,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                // TODO: use cancellationToken // (https://github.com/dotnet/roslyn/issues/45980)
+                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, cancellationToken))
             {
@@ -188,7 +193,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var stream = new BufferedStream(pipe, BufferSize);
 
                 // send request to asset source
-                var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(pipeName).ToArray(), cancellationToken);
+                // TODO: use cancellationToken // (https://github.com/dotnet/roslyn/issues/45980)
+                var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(pipeName).ToArray(), CancellationToken.None);
 
                 // if invoke throws an exception, make sure we raise cancellation.
                 RaiseCancellationIfInvokeFailed(task, linkedCancellationSource, cancellationToken);
