@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task SingleDocumentBasic()
+        public async Task FixAllDocumentBasic()
         {
             var input = @"class Test
 {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task SingleDocumentVaried()
+        public async Task FixAllDocumentVaried()
         {
             var input = @"class Test
 {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task SingleDocumentVariedWithUsing()
+        public async Task FixAllDocumentVariedWithUsing()
         {
             var input = @"using System;
 
