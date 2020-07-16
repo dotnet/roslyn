@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Test.Utilities;
@@ -565,7 +568,7 @@ End Class");
         }
 
         [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
-        public async Task CollectionTypesKnownToRequireComparer_Diagnostic()
+        public async Task CollectionConstructorsKnownToRequireComparer_Diagnostic()
         {
             await new VerifyCS.Test
             {
@@ -629,7 +632,7 @@ End Class",
         }
 
         [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
-        public async Task CollectionBuilderTypesKnownToRequireComparer_Diagnostic()
+        public async Task CollectionMethodsKnownToRequireComparer_Diagnostic()
         {
             await new VerifyCS.Test
             {
@@ -641,33 +644,56 @@ End Class",
 using System;
 using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 public class C
 {
-    public void MethodWithDiagnostics(IEnumerable<KeyValuePair<ISymbol, int>> kvps)
+    public void MethodWithDiagnostics(IEnumerable<KeyValuePair<ISymbol, int>> kvps, IEnumerable<ISymbol> symbols, ISymbol symbol)
     {
         [|ImmutableHashSet.Create<ISymbol>()|];
         [|ImmutableHashSet.CreateBuilder<ISymbol>()|];
-        [|ImmutableHashSet.CreateRange(Array.Empty<ISymbol>())|];
-        [|Array.Empty<ISymbol>().ToImmutableHashSet()|];
+        [|ImmutableHashSet.CreateRange(symbols)|];
+        [|symbols.ToImmutableHashSet()|];
 
         [|ImmutableDictionary.Create<ISymbol, int>()|];
         [|ImmutableDictionary.CreateBuilder<ISymbol, int>()|];
         [|ImmutableDictionary.CreateRange(kvps)|];
         [|kvps.ToImmutableDictionary()|];
+
+        [|symbols.Contains(symbol)|];
+        [|symbols.Distinct()|];
+        [|symbols.GroupBy(x => x)|];
+        [|symbols.GroupJoin(symbols, x => x, x => x, (x, y) => x)|];
+        [|symbols.Intersect(symbols)|];
+        [|symbols.Join(symbols, x => x, x => x, (x, y) => x)|];
+        [|symbols.SequenceEqual(symbols)|];
+        [|symbols.ToDictionary(x => x)|];
+        [|symbols.ToLookup(x => x)|];
+        [|symbols.Union(symbols)|];
     }
 
-    public void MethodWithoutDiagnostics(IEnumerable<KeyValuePair<int, ISymbol>> kvps)
+    public void MethodWithoutDiagnostics(IEnumerable<KeyValuePair<int, ISymbol>> kvps, IEnumerable<int> integers, int integer)
     {
         ImmutableHashSet.Create<int>();
         ImmutableHashSet.CreateBuilder<int>();
-        ImmutableHashSet.CreateRange(Array.Empty<int>());
-        Array.Empty<int>().ToImmutableHashSet();
+        ImmutableHashSet.CreateRange(integers);
+        integers.ToImmutableHashSet();
 
         ImmutableDictionary.Create<int, ISymbol>();
         ImmutableDictionary.CreateBuilder<int, ISymbol>();
         ImmutableDictionary.CreateRange(kvps);
         kvps.ToImmutableDictionary();
+
+        integers.Contains(integer);
+        integers.Distinct();
+        integers.GroupBy(x => x);
+        integers.GroupJoin(integers, x => x, x => x, (x, y) => x);
+        integers.Intersect(integers);
+        integers.Join(integers, x => x, x => x, (x, y) => x);
+        integers.SequenceEqual(integers);
+        integers.ToDictionary(x => x);
+        integers.ToLookup(x => x);
+        integers.Union(integers);
     }
 }",
                         SymbolEqualityComparerStubCSharp,
@@ -685,34 +711,56 @@ public class C
 Imports System
 Imports System.Collections.Immutable
 Imports System.Collections.Generic
+Imports System.Linq
 Imports Microsoft.CodeAnalysis
 
 Public Class C
-    Public Sub MethodWithDiagnostics(ByVal kvps As IEnumerable(Of KeyValuePair(Of ISymbol, Integer)))
+    Public Sub MethodWithDiagnostics(kvps As IEnumerable(Of KeyValuePair(Of ISymbol, Integer)), symbols As IEnumerable(Of ISymbol), symbol As ISymbol)
         Dim x1 = [|ImmutableHashSet.Create(Of ISymbol)()|]
         Dim x2 = [|ImmutableHashSet.CreateBuilder(Of ISymbol)()|]
-        Dim x3 = [|ImmutableHashSet.CreateRange(Array.Empty(Of ISymbol)())|]
-        Dim x4 = Array.Empty(Of ISymbol)().ToImmutableHashSet()
+        Dim x3 = [|ImmutableHashSet.CreateRange(symbols)|]
+        Dim x4 = symbols.ToImmutableHashSet()
 
         Dim x5 = [|ImmutableDictionary.Create(Of ISymbol, Integer)()|]
         Dim x6 = [|ImmutableDictionary.CreateBuilder(Of ISymbol, Integer)()|]
         Dim x7 = [|ImmutableDictionary.CreateRange(kvps)|]
         Dim x8 = kvps.ToImmutableDictionary()
+
+        Dim x9 = symbols.Contains(symbol)
+        Dim x10 = symbols.Distinct()
+        Dim x11 = [|symbols.GroupBy(Function(x) x)|]
+        Dim x12 = [|symbols.GroupJoin(symbols, Function(x) x, Function(x) x, Function(x, y) x)|]
+        Dim x13 = symbols.Intersect(symbols)
+        Dim x14 = [|symbols.Join(symbols, Function(x) x, Function(x) x, Function(x, y) x)|]
+        Dim x15 = symbols.SequenceEqual(symbols)
+        Dim x16 = [|symbols.ToDictionary(Function(x) x)|]
+        Dim x17 = [|symbols.ToLookup(Function(x) x)|]
+        Dim x18 = symbols.Union(symbols)
     End Sub
 
-    Public Sub MethodWithoutDiagnostics(ByVal kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)))
+    Public Sub MethodWithoutDiagnostics(kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)), integers As IEnumerable(Of Integer), i As Integer)
         Dim x1 = ImmutableHashSet.Create(Of Integer)()
         Dim x2 = ImmutableHashSet.CreateBuilder(Of Integer)()
-        Dim x3 = ImmutableHashSet.CreateRange(Array.Empty(Of Integer)())
-        Dim x4 = Array.Empty(Of Integer)().ToImmutableHashSet()
+        Dim x3 = ImmutableHashSet.CreateRange(integers)
+        Dim x4 = integers.ToImmutableHashSet()
 
         Dim x5 = ImmutableDictionary.Create(Of Integer, ISymbol)()
         Dim x6 = ImmutableDictionary.CreateBuilder(Of Integer, ISymbol)()
         Dim x7 = ImmutableDictionary.CreateRange(kvps)
         Dim x8 = kvps.ToImmutableDictionary()
+
+        Dim x9 = integers.Contains(i)
+        Dim x10 = integers.Distinct()
+        Dim x11 = integers.GroupBy(Function(x) x)
+        Dim x12 = integers.GroupJoin(integers, Function(x) x, Function(x) x, Function(x, y) x)
+        Dim x13 = integers.Intersect(integers)
+        Dim x14 = integers.Join(integers, Function(x) x, Function(x) x, Function(x, y) x)
+        Dim x15 = integers.SequenceEqual(integers)
+        Dim x16 = integers.ToDictionary(Function(x) x)
+        Dim x17 = integers.ToLookup(Function(x) x)
+        Dim x18 = integers.Union(integers)
     End Sub
-End Class
-",
+End Class",
                         SymbolEqualityComparerStubVisualBasic,
                     },
                 },
