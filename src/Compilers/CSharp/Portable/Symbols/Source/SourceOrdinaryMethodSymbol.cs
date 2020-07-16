@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // When a generic method overrides a generic method declared in a base class, or is an 
                 // explicit interface member implementation of a method in a base interface, the method
-                // shall not specify any type-parameter-constraints-clauses, except for a struct constraint, or a class constraint.
+                // shall not specify any type-parameter-constraints-clauses, except for a struct, class, or default constraint.
                 // In these cases, the type parameters of the method inherit constraints from the method being overridden or 
-                // implemented
+                // implemented.
                 if (syntax.ConstraintClauses.Count > 0)
                 {
                     Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,

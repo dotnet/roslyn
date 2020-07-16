@@ -225,9 +225,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this is a lazy nullable type pending resolution, forces this to be resolved.
         /// </summary>
-        public void TryForceResolve(bool asValueTypeNotReferenceType)
+        public void TryForceResolve(bool asValueType)
         {
-            _extensions.TryForceResolve(asValueTypeNotReferenceType);
+            _extensions.TryForceResolve(asValueType);
         }
 
         private TypeWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
             internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
-            internal abstract void TryForceResolve(bool asValueTypeNotReferenceType);
+            internal abstract void TryForceResolve(bool asValueType);
         }
 
         private sealed class NonLazyType : Extensions
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.ReportDiagnosticsIfObsoleteCore(binder, syntax, diagnostics);
             }
 
-            internal override void TryForceResolve(bool asValueTypeNotReferenceType)
+            internal override void TryForceResolve(bool asValueType)
             {
             }
         }
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Debug.Assert(_underlying.IsSafeToResolve());
 
-                    TryForceResolve(asValueTypeNotReferenceType: _underlying.Type.IsValueType);
+                    TryForceResolve(asValueType: _underlying.Type.IsValueType);
                 }
 
                 return _resolved;
@@ -1051,9 +1051,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type.TypeSymbolEqualsCore(other, comparison, isValueTypeOverrideOpt);
             }
 
-            internal override void TryForceResolve(bool asValueTypeNotReferenceType)
+            internal override void TryForceResolve(bool asValueType)
             {
-                var resolved = asValueTypeNotReferenceType ?
+                var resolved = asValueType ?
                     _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)) :
                     _underlying.Type;
                 Interlocked.CompareExchange(ref _resolved, resolved, null);
