@@ -410,7 +410,7 @@ abstract record D
         }
 
         [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
-        public void RecordParsing_ConstraintsAndSemiColon()
+        public void RecordParsing_ConstraintAndSemiColon()
         {
             UsingTree("record R<T> where T : class;");
 
@@ -450,18 +450,117 @@ abstract record D
         }
 
         [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
-        public void RecordParsing_ConstraintsAndSemiColon_Class()
+        public void RecordParsing_ConstraintAndSemiColon_MissingColon()
+        {
+            UsingTree("record R<T> where T   class;",
+                // (1,23): error CS1003: Syntax error, ':' expected
+                // record R<T> where T   class;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments(":", "class").WithLocation(1, 23)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        public void RecordParsing_TwoConstraintsAndSemiColon()
+        {
+            UsingTree("record R<T1, T2> where T1 : class where T2 : class;");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T2");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T2");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        public void RecordParsing_ConstraintAndSemiColon_Class()
         {
             UsingTree("abstract class C<T> where T : class;",
-                // (1,36): error CS1003: Syntax error, ',' expected
+                // (1,36): error CS1514: { expected
                 // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 36),
-                // (1,37): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 36),
+                // (1,36): error CS1513: } expected
                 // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 37),
-                // (1,37): error CS1513: } expected
-                // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 37)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 36)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -495,6 +594,75 @@ abstract record D
                     }
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        public void RecordParsing_TwoConstraintsAndSemiColon_Class()
+        {
+            UsingTree("abstract class C<T1, T2> where T1 : class where T2 : class;",
+                // (1,59): error CS1514: { expected
+                // abstract class C<T1, T2> where T1 : class where T2 : class;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 59),
+                // (1,59): error CS1513: } expected
+                // abstract class C<T1, T2> where T1 : class where T2 : class;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 59)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.AbstractKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T2");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T1");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T2");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
