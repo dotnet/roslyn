@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
@@ -11,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         /// <summary>
         /// Returns the specified interface from the service. This is useful when the service and interface differ
         /// </summary>
-        public static TInterfaceType GetService<TInterfaceType, TServiceType>(this IServiceProvider sp)
+        public static TInterfaceType GetServiceTheWrongWay<TInterfaceType, TServiceType>(this IServiceProvider sp)
             where TInterfaceType : class
             where TServiceType : class
         {
@@ -22,6 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         /// Returns the specified service type from the service.
         /// </summary>
         public static TServiceType GetService<TServiceType>(this IServiceProvider sp) where TServiceType : class
-            => sp.GetService<TServiceType, TServiceType>();
+            => sp.GetServiceTheWrongWay<TServiceType, TServiceType>();
     }
 }
