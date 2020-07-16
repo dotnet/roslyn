@@ -1765,7 +1765,7 @@ tryAgain:
                 int lastTokenPosition = -1;
                 while (IsMakingProgress(ref lastTokenPosition))
                 {
-                    if (abort(this))
+                    if (AbortForEndOfBaseList())
                     {
                         break;
                     }
@@ -1791,16 +1791,22 @@ tryAgain:
             PostSkipAction skipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
             {
                 return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
-                    isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                    abortFunction: p => abort(p), // TODO2 delegate caching?
+                    s_notExpectedForEndOfBaseList,
+                    s_abortForEndOfBaseList,
                     expected);
             }
+        }
 
-            static bool abort(LanguageParser parser)
-            {
-                return parser.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword
-                    || parser.IsTerminator();
-            }
+        private static readonly Func<LanguageParser, bool> s_notExpectedForEndOfBaseList = p => p.NotExpectedForEndOfBaseList();
+        private bool NotExpectedForEndOfBaseList()
+        {
+            return this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleAttribute();
+        }
+
+        private static readonly Func<LanguageParser, bool> s_abortForEndOfBaseList = p => p.AbortForEndOfBaseList();
+        private bool AbortForEndOfBaseList()
+        {
+            return this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword || this.IsTerminator();
         }
 
         private bool IsCurrentTokenWhereOfConstraintClause()
@@ -1844,7 +1850,7 @@ tryAgain:
                     int lastTokenPosition = -1;
                     while (IsMakingProgress(ref lastTokenPosition))
                     {
-                        if (abort(this))
+                        if (AbortForEndOfTypeConstraintClause())
                         {
                             break;
                         }
@@ -1880,17 +1886,24 @@ tryAgain:
                 CSharpSyntaxNode tmp = null;
                 Debug.Assert(list.Count > 0);
                 return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                    isNotExpectedFunction: p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleTypeParameterConstraint(),
-                    abortFunction: p => abort(p), // TODO2 delegate caching?
+                    s_notExpectedForEndOfTypeConstraintClause,
+                    s_abortForEndOfTypeConstraintClause,
                     expected);
             }
+        }
 
-            static bool abort(LanguageParser parser)
-            {
-                return parser.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword
-                    || parser.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken // ex: 'void localFunction<T>() where T : class => ...'
-                    || parser.IsTerminator();
-            }
+        private static readonly Func<LanguageParser, bool> s_notExpectedForEndOfTypeConstraintClause = p => p.NotExpectedForEndOfTypeConstraintClause();
+        private bool NotExpectedForEndOfTypeConstraintClause()
+        {
+            return this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeParameterConstraint();
+        }
+
+        private static readonly Func<LanguageParser, bool> s_abortForEndOfTypeConstraintClause = p => p.AbortForEndOfTypeConstraintClause();
+        private bool AbortForEndOfTypeConstraintClause()
+        {
+            return this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword
+                   || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken // ex: 'void localFunction<T>() where T : class => ...'
+                   || this.IsTerminator();
         }
 
         private bool IsPossibleTypeParameterConstraint()
