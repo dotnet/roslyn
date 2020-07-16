@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -86,7 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var result = _lazyUncommonProperties;
             if (result != null)
             {
+#if DEBUG
                 Debug.Assert(result != s_noUncommonProperties || result.IsDefaultValue(), "default value was modified");
+#endif
                 return result;
             }
 
@@ -136,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
 
+#if DEBUG
             internal bool IsDefaultValue()
             {
                 return lazyInstanceEnumFields.IsDefault &&
@@ -149,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue();
             }
+#endif
         }
 
         #endregion  // Uncommon properties
@@ -445,6 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     var moduleSymbol = ContainingPEModule;
                     TypeSymbol decodedType = DynamicTypeDecoder.TransformType(baseType, 0, _handle, moduleSymbol);
+                    decodedType = NativeIntegerTypeDecoder.TransformType(decodedType, _handle, moduleSymbol);
                     decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
                     baseType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType), _handle, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
                 }
@@ -504,6 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         EntityHandle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
+                        typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, interfaceImpl, moduleSymbol);
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
                         typeSymbol = NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
 
@@ -870,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 // If there are any non-event fields, they are at the very beginning.
-                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0);
+                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0).Select(f => f.TupleUnderlyingField ?? f);
 
                 // Event backing fields are not part of the set returned by GetMembers. Let's add them manually.
                 ArrayBuilder<FieldSymbol> eventFields = null;
@@ -881,6 +889,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if ((object)associatedField != null)
                     {
                         Debug.Assert((object)associatedField.AssociatedSymbol != null);
+
+                        associatedField = associatedField.TupleUnderlyingField ?? associatedField;
+
                         Debug.Assert(!nonEventFields.Contains(associatedField));
 
                         if (eventFields == null)
@@ -1104,11 +1115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if ((fieldFlags & FieldAttributes.Static) == 0)
                         {
                             // Instance field used to determine underlying type.
-                            bool isVolatile;
                             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                            TypeSymbol type = decoder.DecodeFieldSignature(fieldDef, out isVolatile, out customModifiers);
+                            TypeSymbol type = decoder.DecodeFieldSignature(fieldDef, out customModifiers);
 
-                            if (type.SpecialType.IsValidEnumUnderlyingType())
+                            if (type.SpecialType.IsValidEnumUnderlyingType() && !customModifiers.AnyRequired())
                             {
                                 if ((object)underlyingType == null)
                                 {
@@ -1279,12 +1289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Sort the types based on row id.
                 members.Sort(membersCount, DeclarationOrderTypeSymbolComparer.Instance);
 
-                var membersInDeclarationOrder = members.ToImmutable();
-
 #if DEBUG
-                ISymbol previous = null;
+                Symbol previous = null;
 
-                foreach (var s in membersInDeclarationOrder)
+                foreach (var s in members)
                 {
                     if (previous == null)
                     {
@@ -1292,12 +1300,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        ISymbol current = s;
+                        Symbol current = s;
                         Debug.Assert(previous.Kind.ToSortOrder() <= current.Kind.ToSortOrder());
                         previous = current;
                     }
                 }
 #endif
+
+                if (IsTupleType)
+                {
+                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
+                    Debug.Assert(members is object);
+                }
+
+                var membersInDeclarationOrder = members.ToImmutable();
 
                 if (!ImmutableInterlocked.InterlockedInitialize(ref _lazyMembersInDeclarationOrder, membersInDeclarationOrder))
                 {
@@ -1466,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            return GetTypeMembers(name).WhereAsArray(type => type.Arity == arity);
+            return GetTypeMembers(name).WhereAsArray((type, arity) => type.Arity == arity, arity);
         }
 
         public override ImmutableArray<Location> Locations
@@ -1569,6 +1585,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _flags;
             }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         public override bool MightContainExtensionMethods
@@ -1692,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            if (BaseTypeAnalysis.ClassDependsOn(declaredBase, this))
+            if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
                 return CyclicInheritanceError(this, declaredBase);
             }
@@ -1711,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return declaredInterfaces
-                .SelectAsArray(t => BaseTypeAnalysis.InterfaceDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
+                .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
@@ -2278,6 +2299,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             public override int Arity
             {
                 get
@@ -2301,6 +2325,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var containingType = _container as PENamedTypeSymbol;
                     return (object)containingType == null ? 0 : containingType.MetadataArity;
                 }
+            }
+
+            internal override NamedTypeSymbol AsNativeInteger()
+            {
+                Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+
+                return ContainingAssembly.GetNativeIntegerType(this);
+            }
+
+            internal override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            {
+                return t2 is NativeIntegerTypeSymbol nativeInteger ?
+                    nativeInteger.Equals(this, comparison, isValueTypeOverrideOpt) :
+                    base.Equals(t2, comparison, isValueTypeOverrideOpt);
             }
         }
 
@@ -2336,6 +2376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _genericParameterHandles = genericParameterHandles;
                 _mangleName = mangleName;
             }
+
+            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
 
             public override int Arity
             {
@@ -2378,6 +2421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return _lazyTypeParameters;
                 }
             }
+
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+            internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
             private void EnsureTypeParametersAreLoaded()
             {

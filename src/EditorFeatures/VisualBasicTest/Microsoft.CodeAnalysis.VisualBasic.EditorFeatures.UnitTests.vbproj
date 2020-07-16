@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
     <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -36,17 +37,10 @@
     <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
+    <ProjectReference Include="..\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj" />
     <ProjectReference Include="..\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
@@ -57,8 +51,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
@@ -75,6 +71,15 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Debugging\Resources\*.*" />
+    <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />
+  <ItemGroup>
+    <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.Omit.vb" />
+    <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.SymbolKinds.vb" />
   </ItemGroup>
 </Project>

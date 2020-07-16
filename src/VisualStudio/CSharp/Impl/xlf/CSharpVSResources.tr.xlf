@@ -7,6 +7,11 @@
         <target state="translated">Tüm C# biçimlendirme kurallarını (girinti, kaydırma, boşluklar) uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_show_completion_list_in_argument_lists">
+        <source>Automatically show completion list in argument lists (experimental)</source>
+        <target state="translated">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster (deneysel)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -44,17 +49,17 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">İlişkisel işleçleri içinde: &lt;&gt; = &lt; &gt; = == gibi! =</target>
-        <note />
+        <target state="needs-review-translation">İlişkisel işleçleri içinde: &lt;&gt; = &lt; &gt; = == gibi! =</target>
+        <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
-        <target state="new">Inside namespace</target>
+        <target state="translated">namespace içinde</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
-        <target state="new">Outside namespace</target>
+        <target state="translated">namespace dışında</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -67,14 +72,19 @@
         <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
+        <target state="translated">Switch ifadesini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">
         <source>Preferred 'using' directive placement</source>
-        <target state="new">Preferred 'using' directive placement</target>
+        <target state="translated">Tercih edilen 'using' yönergesi yerleştirmesi</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
@@ -84,7 +94,12 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster (deneysel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Hızlı Bilgi notlarını göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -94,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
-        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
+        <target state="translated">.NET Framework bütünleştirilmiş kodlarında türler için using öner</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -422,11 +437,6 @@
         <target state="translated">Yerelleri üretirken 'var' kullan</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">Başka bir yerde kullanılmıyorsa, yerel bildirimi ayıklanan metoda _taşı</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">Yordam satır ayıraçlarını _göster</target>
@@ -624,7 +634,7 @@
       </trans-unit>
       <trans-unit id="using_preferences_colon">
         <source>'using' preferences:</source>
-        <target state="new">'using' preferences:</target>
+        <target state="translated">'using' tercihleri:</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
@@ -793,9 +803,9 @@
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">Diğer ikili işleçler içinde: &amp; &amp; ||   ??</target>
-        <note />
+        <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
+        <target state="needs-review-translation">Diğer ikili işleçler içinde: &amp; &amp; ||   ??</target>
+        <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
   </file>

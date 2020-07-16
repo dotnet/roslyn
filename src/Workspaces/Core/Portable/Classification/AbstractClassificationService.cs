@@ -1,13 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -39,16 +44,48 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var remoteSuccess = await TryAddSemanticClassificationsInRemoteProcessAsync(
+                document, textSpan, result, cancellationToken).ConfigureAwait(false);
+            if (remoteSuccess)
+                return;
+
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
+            await AddSemanticClassificationsInCurrentProcessAsync(
+                document, textSpan, temp, cancellationToken).ConfigureAwait(false);
+            AddRange(temp, result);
+        }
+
+        /// <returns><see langword="true"/> if the remote call was made successfully and we should
+        /// use the results of it. Otherwise, fall back to processing locally</returns>
+        private static async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+                return false;
+
+            var classifiedSpans = await client.RunRemoteAsync<SerializableClassifiedSpans>(
+                WellKnownServiceHubService.CodeAnalysis,
+                nameof(IRemoteSemanticClassificationService.GetSemanticClassificationsAsync),
+                document.Project.Solution,
+                new object[] { document.Id, textSpan },
+                callbackTarget: null,
+                cancellationToken).ConfigureAwait(false);
+
+            classifiedSpans.Rehydrate(result);
+            return true;
+        }
+
+        public static async Task AddSemanticClassificationsInCurrentProcessAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
 
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
-            await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, temp, cancellationToken).ConfigureAwait(false);
-            AddRange(temp, result);
-            temp.Free();
+            await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
@@ -75,14 +112,18 @@ namespace Microsoft.CodeAnalysis.Classification
             }
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(syntaxTree);
 
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
             classificationService.AddSyntacticClassifications(syntaxTree, textSpan, temp, cancellationToken);
             AddRange(temp, result);
-            temp.Free();
         }
 
-        protected void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
+        /// <summary>
+        /// Helper to add all the values of <paramref name="temp"/> into <paramref name="result"/>
+        /// without causing any allocations or boxing of enumerators.
+        /// </summary>
+        protected static void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
         {
             foreach (var span in temp)
             {

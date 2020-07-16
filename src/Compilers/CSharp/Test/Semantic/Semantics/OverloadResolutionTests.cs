@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -675,8 +678,11 @@ namespace System.Runtime.CompilerServices
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            compilation.VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
+            compilation.VerifyDiagnostics(
+                // (10,12): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>' from assembly comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 12));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -699,8 +705,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("(MyTask, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, MyTask<T>)", type.ToTestDisplayString());
             Assert.Equal("(System.Threading.Tasks.Task, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.Threading.Tasks.Task<T>)", normalized.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, MyTask<T>>", GetUnderlyingTupleTypeRest(type).ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, System.Threading.Tasks.Task<T>>", GetUnderlyingTupleTypeRest(normalized).ToTestDisplayString());
+            Assert.Equal("(System.UInt32, System.Int64, MyTask<T>)", GetUnderlyingTupleTypeRest(type).ToTestDisplayString());
+            Assert.Equal("(System.UInt32, System.Int64, System.Threading.Tasks.Task<T>)", GetUnderlyingTupleTypeRest(normalized).ToTestDisplayString());
         }
 
         // Return the underlying type of the most-nested part of the TupleTypeSymbol.
@@ -708,11 +714,10 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             while (type.IsTupleType)
             {
-                var underlyingType = type.TupleUnderlyingType;
-                var typeArgs = underlyingType.TypeArguments();
+                var typeArgs = ((NamedTypeSymbol)type).TypeArguments();
                 if (typeArgs.Length < 8)
                 {
-                    return underlyingType;
+                    return (NamedTypeSymbol)type;
                 }
                 type = typeArgs[7];
             }
@@ -791,9 +796,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
-                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -837,6 +842,93 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask modopt(MyTask) *[]", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task modopt(MyTask) *[]", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_FunctionPointers()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+unsafe class C<T>
+{
+#pragma warning disable CS0169
+    static delegate*<int, int, C<MyTask<int>>> F0;
+    static delegate*<C<MyTask<int>>, int, int> F1;
+    static delegate*<int, C<MyTask<int>>, int> F2;
+    static delegate*<int, int, int> F3;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+
+            assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
+            assert("F1", "delegate*<C<MyTask<System.Int32>>, System.Int32, System.Int32>", "delegate*<C<System.Threading.Tasks.Task<System.Int32>>, System.Int32, System.Int32>");
+            assert("F2", "delegate*<System.Int32, C<MyTask<System.Int32>>, System.Int32>", "delegate*<System.Int32, C<System.Threading.Tasks.Task<System.Int32>>, System.Int32>");
+            assert("F3", "delegate*<System.Int32, System.Int32, System.Int32>", normalized: null);
+
+            void assert(string fieldName, string original, string normalized)
+            {
+                var type = compilation.GetMember<FieldSymbol>($"C.{fieldName}").Type;
+                FunctionPointerUtilities.CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)type);
+                var normalizedType = type.NormalizeTaskTypes(compilation);
+                Assert.Equal(original, type.ToTestDisplayString());
+                if (normalized is object)
+                {
+                    Assert.Equal(normalized, normalizedType.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Same(type, normalizedType);
+                }
+            }
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_FunctionPointersCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static method class MyTask modopt(class MyTask) *(class MyTask modopt(class MyTask)) F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("delegate*<MyTask modopt(MyTask), MyTask modopt(MyTask)>", type.ToTestDisplayString());
+            Assert.Equal("delegate*<System.Threading.Tasks.Task modopt(MyTask), System.Threading.Tasks.Task modopt(MyTask)>", normalized.ToTestDisplayString());
         }
 
         [Fact]
@@ -7161,9 +7253,9 @@ public class Derived : Base
             var model = comp.GetSemanticModel(tree);
 
             var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
-            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
         }
 
         [Fact]
@@ -8100,7 +8192,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8136,7 +8228,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -10948,7 +11040,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
 
 
             var code = @"

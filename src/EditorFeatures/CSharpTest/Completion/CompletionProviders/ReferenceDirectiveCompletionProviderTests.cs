@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -16,74 +19,59 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
     [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class ReferenceDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSharpCompletionProviderTests
     {
-        public ReferenceDirectiveCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public ReferenceDirectiveCompletionProviderTests(InteractiveCSharpTestWorkspaceFixture workspaceFixture)
+            : base(workspaceFixture)
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new ReferenceDirectiveCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(ReferenceDirectiveCompletionProvider);
 
-        protected override bool CompareItems(string actualItem, string expectedItem)
-        {
-            return actualItem.Equals(expectedItem, StringComparison.OrdinalIgnoreCase);
-        }
+        protected override IEqualityComparer<string> GetStringComparer()
+            => StringComparer.OrdinalIgnoreCase;
 
         private protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null)
+            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             return BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters);
+                inlineDescription, matchingFilters, flags);
         }
 
         [Fact]
         public async Task IsCommitCharacterTest()
         {
             var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : new[] { '"', '\\', '/', ',' };
-            await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters);
+            await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        public void IsTextualTriggerCharacterTest()
-        {
-            var validMarkupList = new[]
-            {
-                "#r \"$$/",
-                "#r \"$$\\",
-                "#r \"$$,",
-                "#r \"$$A",
-                "#r \"$$!",
-                "#r \"$$(",
-            };
+        [Theory]
+        [InlineData("#r \"$$/")]
+        [InlineData("#r \"$$\\")]
+        [InlineData("#r \"$$,")]
+        [InlineData("#r \"$$A")]
+        [InlineData("#r \"$$!")]
+        [InlineData("#r \"$$(")]
+        public void IsTextualTriggerCharacterTest(string markup)
+            => VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
 
-            foreach (var markup in validMarkupList)
-            {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
-            }
-        }
-
-        [ConditionalFact(typeof(WindowsOnly))]
-        public async Task SendEnterThroughToEditorTest()
-        {
-            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
-            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: false);
-            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.Always, expected: false); // note: GAC completion helper uses its own EnterKeyRule
-        }
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(EnterKeyRule.Never)]
+        [InlineData(EnterKeyRule.AfterFullyTypedWord)]
+        [InlineData(EnterKeyRule.Always)] // note: GAC completion helper uses its own EnterKeyRule
+        public async Task SendEnterThroughToEditorTest(EnterKeyRule enterKeyRule)
+            => await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false);
 
         [ConditionalFact(typeof(WindowsOnly))]
         public async Task GacReference()
-        {
-            await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        }
+            => await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
         [ConditionalFact(typeof(WindowsOnly))]
         public async Task GacReferenceFullyQualified()
@@ -98,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var systemDir = Path.GetFullPath(Environment.SystemDirectory);
             var windowsDir = Directory.GetParent(systemDir);
-            var windowsDirPath = windowsDir.FullName;
             var windowsRoot = Directory.GetDirectoryRoot(systemDir);
 
             // we need to get the exact casing from the file system:

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 Imports System.Xml.Linq
@@ -142,8 +144,7 @@ class C
         End Sub
 #End If
 
-        ' https://github.com/dotnet/roslyn/issues/33564: Was <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
         Public Sub TestLocalConstantsTypes()
@@ -182,8 +183,8 @@ End Class
                 <currentnamespace name=""/>
                 <constant name="o" value="null" type="Object"/>
                 <constant name="s" value="hello" type="String"/>
-                <constant name="f" value="-3.402823E+38" type="Single"/>
-                <constant name="d" value="1.79769313486232E+308" type="Double"/>
+                <constant name="f" value="0xFF7FFFFF" type="Single"/>
+                <constant name="d" value="0x7FEFFFFFFFFFFFFF" type="Double"/>
                 <constant name="dec" value="1.5" type="Decimal"/>
                 <constant name="dt" value="02/29/2012 00:00:00" type="DateTime"/>
             </scope>

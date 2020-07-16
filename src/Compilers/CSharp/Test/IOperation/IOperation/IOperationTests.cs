@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -127,14 +129,14 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
               Value:
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'x')
         Next (Regular) Block[B4]
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
               Value:
-                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'y')
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
@@ -477,7 +479,7 @@ public class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45687")]
         public void TestClone()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
@@ -511,7 +513,7 @@ System.Console.WriteLine();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
+        [Fact]
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;

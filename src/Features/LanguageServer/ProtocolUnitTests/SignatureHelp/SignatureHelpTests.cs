@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     }
 
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = new LSP.SignatureHelp()
             {
                 ActiveParameter = 0,
@@ -38,12 +40,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
                 Signatures = new LSP.SignatureInformation[] { CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "") }
             };
 
-            var results = await RunGetSignatureHelpAsync(solution, locations["caret"].Single());
+            var results = await RunGetSignatureHelpAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertJsonEquals(expected, results);
         }
 
         private static async Task<LSP.SignatureHelp> RunGetSignatureHelpAsync(Solution solution, LSP.Location caret)
-            => await GetLanguageServer(solution).GetSignatureHelpAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(LSP.Methods.TextDocumentSignatureHelpName,
+                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.SignatureInformation CreateSignatureInformation(string methodLabal, string methodDocumentation, string parameterLabel, string parameterDocumentation)
             => new LSP.SignatureInformation()

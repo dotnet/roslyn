@@ -2,19 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="translated">Chyba syntaxe příkazového řádku: {0} není platná hodnota možnosti {1}. Hodnota musí mít tvar {2}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Použijte prosím verzi jazyka {0} nebo vyšší, abyste mohli používat komentáře za znakem pro pokračování řádku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Typ {0} nemůže být vložený, protože má neabstraktní člen. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">Ve stejném adresáři nemůže být více konfiguračních souborů analyzátoru ({0}).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Typ {0} nemůže být vložený, protože má reabstrakci člena ze základního rozhraní. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="translated">Cílový modul runtime nepodporuje implementaci výchozího rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="translated">Cílový modul runtime nepodporuje přístupnost Protected, Protected Friend nebo Private Protected pro člena rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">komentáře po pokračování řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -95,8 +120,11 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
 
@@ -255,8 +283,11 @@
 -warnaserror[+|-]:&lt;seznam_čísel&gt;  Zpracuje zadaná upozornění jako chyby.
 -ruleset:&lt;soubor&gt;                 Určuje soubor sady pravidel, která zakazuje
                                   specifickou diagnostiku.
--errorlog:&lt;soubor&gt;                Určuje soubor pro protokolování veškeré diagnostiky
-                                  kompilátoru a analyzátoru.
+-errorlog:&lt;soubor&gt;[,version=&lt;verze_sarif&gt;]         
+                                  Určuje soubor pro protokolování veškeré diagnostiky
+                                  kompilátoru a analyzátoru ve formátu SARIF.
+                                  verze_sarif:{1|2|2.1} Výchozí jsou 1. 2 a 2.1.
+                                  Obě hodnoty znamenají SARIF verze 2.1.0.
 -reportanalyzer                   Oznamuje další informace analyzátoru, jako třeba
                                   dobu zpracování.
 
@@ -343,6 +374,16 @@
 -vbruntime:&lt;soubor&gt;               Kompiluje s alternativním modulem runtime
                                   Visual Basicu určeným parametrem &lt;soubor&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="new">There are no function pointer types in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="new">There are no native integer types in VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -745,6 +786,11 @@
         <target state="translated">Znak není platný.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">Zadal se argument stdin -, ale vstup se nepřesměroval na stream standardního vstupu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Direktiva Option Strict On zakazuje operandy typu Object pro operátor {0}.</target>
@@ -767,7 +813,7 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordNotInInstanceMethod1">
         <source>'{0}' is valid only within an instance method.</source>
-        <target state="translated">'Prvek {0} je platný jenom v rámci metody instance.</target>
+        <target state="translated">'Prvek {0} je platný jenom v rámci instanční metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromStructure1">
@@ -1505,8 +1551,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">Nepovedlo se vygenerovat modul {0}.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="translated">Nepovedlo se vygenerovat modul {0}: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -2085,7 +2131,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoNonNarrowingOverloadCandidates2">
         <source>Overload resolution failed because no accessible '{0}' can be called without a narrowing conversion:{1}</source>
-        <target state="translated">Rozlišení přetěžování se nezdařilo, protože žádnou dostupnou metodu {0} nejde volat bez omezujícího převodu: {1}.</target>
+        <target state="translated">Rozlišení přetěžování se nezdařilo, protože žádnou dostupnou metodu {0} nejde volat bez zužujícího převodu: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
@@ -3235,7 +3281,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">Před znakem pokračování řádku _ musí předcházet aspoň jeden mezerový znak a musí se jednat o poslední znak na řádku.</target>
+        <target state="translated">Před znakem pro pokračování řádku _ musí předcházet alespoň jeden prázdný znak a po něm musí následovat komentář nebo posledním znakem na řádku musí být _.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -3965,7 +4011,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnableToReadUacManifest2">
         <source>Unable to open Win32 manifest file '{0}' : {1}</source>
-        <target state="translated">Nejde otevřít soubor manifestu {0} : {1}.</target>
+        <target state="translated">Nejde otevřít soubor manifestu Win32 {0} : {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseValueForXmlExpression3">
@@ -4035,7 +4081,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedType1">
         <source>'{0}' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.</source>
-        <target state="translated">'Typ {0} nejde změnit na typ připouštějící hodnotu Null a nejde ho použít jako datový typ prvku pole, typ pole, typ anonymního členu typu, typ argumentu, typ parametru ByRef ani typ návratového příkazu.</target>
+        <target state="translated">'Typ {0} nejde změnit na typ připouštějící hodnotu Null a nejde ho použít jako datový typ prvku pole, typ pole, typ anonymního členu typu, typ argumentu, typ parametru ByRef ani typ příkazu return.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoTypecharInAlias">
@@ -4320,7 +4366,7 @@
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInstanceMethod">
         <source>'System.Runtime.InteropServices.DllImportAttribute' cannot be applied to instance method.</source>
-        <target state="translated">'Atribut System.Runtime.InteropServices.DllImportAttribute nejde použít pro metodu instance.</target>
+        <target state="translated">'Atribut System.Runtime.InteropServices.DllImportAttribute nejde použít pro instanční metodu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInterfaceMethod">
@@ -4345,7 +4391,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyNameInvalid">
         <source>Friend declaration '{0}' is invalid and cannot be resolved.</source>
-        <target state="translated">Deklarace {0} typu Friend je neplatná a nejde ji vyhodnotit.</target>
+        <target state="translated">Deklarace {0} typu friend je neplatná a nejde ji vyhodnotit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyBadAccessOverride2">
@@ -4725,7 +4771,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForEachAmbiguousIEnumerable1">
         <source>'For Each' on type '{0}' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.</source>
-        <target state="translated">'Možnost For Each pro typ {0} je nejednoznačná, protože tento typ implementuje víc instancí možnosti System.Collections.Generic.IEnumerable(Of T).</target>
+        <target state="translated">'Možnost For Each pro typ {0} je nejednoznačná, protože tento typ implementuje vytváření víc instancí možnosti System.Collections.Generic.IEnumerable(Of T).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNotOperatorGenericParam1">
@@ -4822,7 +4868,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDisallowedForStructConstr1">
         <source>'System.Nullable' does not satisfy the 'Structure' constraint for type parameter '{0}'. Only non-nullable 'Structure' types are allowed.</source>
-        <target state="translated">'System.Nullable nevyhovuje podmínkám omezení Structure pro parametr typu {0}. Povolené jsou jenom typy Structure, které nemůžou mít hodnotu Null.</target>
+        <target state="translated">'System.Nullable nevyhovuje podmínkám omezení Structure pro parametr typu {0}. Povolené jsou jenom typy Structure, které nemůžou mít hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingDirectConstraints3">
@@ -5192,7 +5238,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion">
         <source>Cannot infer a common type for the second and third operands of the 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Nejde odvodit společný typ pro druhý a třetí operand operátoru If. Typ jednoho z nich musí umožňovat rozšiřitelný převod na druhý.</target>
+        <target state="translated">Nejde odvodit společný typ pro druhý a třetí operand operátoru If. Typ jednoho z nich musí umožňovat rozšiřující konverzi na druhý.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
@@ -5212,7 +5258,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion2">
         <source>Cannot infer a common type for the first and second operands of the binary 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Nejde odvodit společný typ pro první a druhý operand binárního operátoru If. Typ jednoho z nich musí umožňovat rozšiřitelný převod na druhý.</target>
+        <target state="translated">Nejde odvodit společný typ pro první a druhý operand binárního operátoru If. Typ jednoho z nich musí umožňovat rozšiřující konverzi na druhý.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullTypeInCCExpression">
@@ -6658,12 +6704,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime.</source>
-        <target state="translated">Proměnná {0} se předá odkazem dřív, než se jí přiřadí hodnota. Při spuštění by mohlo dojít k výjimce z důvodu odkazu s hodnotou Null.</target>
+        <target state="translated">Proměnná {0} se předá pomocí odkazu dřív, než se jí přiřadí hodnota. Při spuštění by mohlo dojít k výjimce z důvodu odkazu s hodnotou Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">Proměnná se předává odkazem dřív, než se k ní přiřadí hodnota.</target>
+        <target state="translated">Proměnná se předává pomocí odkazu dřív, než se k ní přiřadí hodnota.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateCatch">
@@ -6818,12 +6864,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use</source>
-        <target state="translated">Proměnná {0} se předá odkazem dřív, než se jí přiřadí hodnota. Při spuštění by mohlo dojít k výjimce vyvolané odkazem s hodnotou Null. Přesvědčte se, jestli je před použitím inicializovaná struktura nebo všechny členy odkazu.</target>
+        <target state="translated">Proměnná {0} se předá pomocí odkazu dřív, než se jí přiřadí hodnota. Při spuštění by mohlo dojít k výjimce vyvolané pomocí odkazu s hodnotou Null. Přesvědčte se, jestli je před použitím inicializovaná struktura nebo všechny členy odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">Proměnná se předává odkazem dřív, než se k ní přiřadí hodnota.</target>
+        <target state="translated">Proměnná se předává pomocí odkazu dřív, než se k ní přiřadí hodnota.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefStr">
@@ -8000,7 +8046,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncMethod">
         <source>'Await' can only be used within an Async method. Consider marking this method with the 'Async' modifier and changing its return type to 'Task(Of {0})'.</source>
-        <target state="translated">'Klíčové slovo Await se dá použít jenom v asynchronních metodách. Zvažte označení této metody jako Async a změnu jejího návratového typu na Task(Of {0}).</target>
+        <target state="translated">'Klíčové slovo Await se dá použít jenom v asynchronních metodách. Zvažte označení této metody modifikátorem Async a změnu jejího návratového typu na Task(Of {0}).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncVoidMethod">
@@ -8759,8 +8805,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Délka řetězcové konstanty přesahuje aktuální limit paměti. Zkuste řetězec rozdělit do několika konstant.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="translated">Délka konstanty String, která je výsledkem zřetězení, překračuje hodnotu System.Int32.MaxValue. Zkuste rozdělit řetězec na více konstant.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -8985,7 +9031,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallInExpressionTree">
         <source>An expression tree may not contain a call to a method or property that returns by reference.</source>
-        <target state="translated">Strom výrazů nesmí obsahovat volání metody nebo vlastnosti, kterou vrací reference.</target>
+        <target state="translated">Strom výrazů nesmí obsahovat volání metody nebo vlastnosti vrácených pomocí odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotEmbedWithoutPdb">
@@ -9106,6 +9152,16 @@
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
         <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="translated">Atribut {0} není v jazyce VB podporovaný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="translated">Atribut není v jazyce Visual Basic podporovaný</target>
         <note />
       </trans-unit>
     </body>

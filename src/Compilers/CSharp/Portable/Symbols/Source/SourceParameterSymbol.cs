@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Base class for parameters can be referred to from source code.
     /// </summary>
     /// <remarks>
-    /// These parameters can potentially be targetted by an attribute specified in source code. 
+    /// These parameters can potentially be targeted by an attribute specified in source code. 
     /// As an optimization we distinguish simple parameters (no attributes, no modifiers, etc.) and complex parameters.
     /// </remarks>
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
@@ -35,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier,
             DiagnosticBag declarationDiagnostics)
         {
+            Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
+
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
 
@@ -47,16 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            if (addRefReadOnlyModifier && refKind == RefKind.In)
-            {
-                var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
+            ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
 
+            if (!inModifiers.IsDefaultOrEmpty)
+            {
                 return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                     owner,
                     ordinal,
                     parameterType,
                     refKind,
-                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
+                    inModifiers,
                     name,
                     locations,
                     syntax.GetReference(),
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !owner.IsPartialMethod() &&
                 syntax.ExclamationToken.Kind() == SyntaxKind.None)
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard: false, locations);
             }
 
             return new SourceComplexParameterSymbol(

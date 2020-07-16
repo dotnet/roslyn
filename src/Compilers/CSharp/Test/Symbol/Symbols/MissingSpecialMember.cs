@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -116,7 +119,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var comp = CreateEmptyCompilation(source, new[] { Net40.mscorlib }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -597,6 +600,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
                     case WellKnownType.System_Threading_CancellationToken:
                     case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
+                    case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -612,6 +617,7 @@ namespace System
 
                 switch (wkt)
                 {
+                    case WellKnownType.System_ValueTuple:
                     case WellKnownType.System_ValueTuple_T1:
                     case WellKnownType.System_ValueTuple_T2:
                     case WellKnownType.System_ValueTuple_T3:
@@ -947,6 +953,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -1277,9 +1285,6 @@ class MyClass
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
-                // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         MyClass b = (int?)1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21),
                 // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         MyClass b = (int?)1;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21)
@@ -1730,9 +1735,6 @@ class C
             compilation.VerifyEmitDiagnostics(
                 // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //     c++;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5),
-                // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //     c++;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5)
                 );
         }
@@ -1961,10 +1963,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bt").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 21),
                 // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14),
-                // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true & bnt").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
                 );
         }
 
@@ -2151,12 +2150,12 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
-                // (13,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (13,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //             case "hmm":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""hmm"":").WithArguments("System.String", "op_Equality").WithLocation(13, 13),
-                // (33,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""hmm""").WithArguments("System.String", "op_Equality").WithLocation(13, 18),
+                // (33,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //             case "baz":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""baz"":").WithArguments("System.String", "op_Equality").WithLocation(33, 13)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""baz""").WithArguments("System.String", "op_Equality").WithLocation(33, 18)
                 );
         }
 
@@ -2250,9 +2249,9 @@ struct X
                 // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //     switch (x)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13),
-                // (14,7): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                // (14,12): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //       case 1:
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "case 1:").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 7)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 12)
                 );
         }
 

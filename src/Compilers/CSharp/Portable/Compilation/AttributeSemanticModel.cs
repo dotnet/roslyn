@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,8 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder rootBinder,
             SyntaxTreeSemanticModel containingSemanticModelOpt = null,
             SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+            ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt = null,
             int speculatedPosition = 0)
-            : base(syntax, attributeType, new ExecutableCodeBinder(syntax, rootBinder.ContainingMember(), rootBinder), containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, speculatedPosition)
+            : base(syntax, attributeType, new ExecutableCodeBinder(syntax, rootBinder.ContainingMember(), rootBinder), containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition)
         {
             Debug.Assert(syntax != null);
             _aliasOpt = aliasOpt;
@@ -32,21 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         /// </summary>
-        public static AttributeSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder)
+        public static AttributeSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
-            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, containingSemanticModel);
+            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
         }
 
         /// <summary>
         /// Creates a speculative AttributeSemanticModel that allows asking semantic questions about an attribute node that did not appear in the original source code.
         /// </summary>
-        public static AttributeSemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, int position)
+        public static AttributeSemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
+            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
         }
 
         private NamedTypeSymbol AttributeType
@@ -98,12 +101,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(
+            BoundNode boundRoot,
+            Binder binder,
+            DiagnosticBag diagnostics,
+            bool createSnapshots,
+            out NullableWalker.SnapshotManager snapshotManager,
+            ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
+#if DEBUG
+        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+        {
+            NullableWalker.AnalyzeWithoutRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots);
+        }
+#endif
+
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+        {
+            speculativeModel = null;
+            return false;
+        }
+
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;

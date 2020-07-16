@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
@@ -45,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            StreamErrorLogger errorLogger = null;
-            if (_compiler.Arguments.ErrorLogPath != null)
+            SarifErrorLogger errorLogger = null;
+            if (_compiler.Arguments.ErrorLogOptions?.Path != null)
             {
                 errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
                 if (errorLogger == null)
@@ -73,6 +75,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             if (_compiler.Arguments.DisplayVersion)
             {
                 _compiler.PrintVersion(_console.Out);
+                return 0;
+            }
+
+            if (_compiler.Arguments.DisplayLangVersions)
+            {
+                _compiler.PrintLangVersions(_console.Out);
                 return 0;
             }
 
@@ -107,7 +115,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     code = _compiler.TryReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
-
 
             // only emit symbols for non-interactive mode,
             var emitDebugInformation = !_compiler.Arguments.InteractiveMode;
@@ -160,16 +167,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 allowUnsafe: true,
                 checkOverflow: false,
                 warningLevel: 4,
-                parseOptions: null);
+                parseOptions: arguments.ParseOptions);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
-            return new RuntimeMetadataReferenceResolver(
-                pathResolver: new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
-                packageResolver: null,
-                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                useCoreResolver: !GacFileResolver.IsAvailable,
+            return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
+                arguments.ReferencePaths,
+                arguments.BaseDirectory,
                 fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);

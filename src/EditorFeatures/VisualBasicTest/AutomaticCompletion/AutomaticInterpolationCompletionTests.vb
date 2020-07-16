@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
@@ -92,12 +94,12 @@ End Class</code>
             End Using
         End Sub
 
-        Friend Overloads Function CreateSession(code As XElement) As Holder
+        Friend Overloads Shared Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Function CreateSession(code As String) As Holder
-            Return CreateSession(
+        Friend Overloads Shared Function CreateSession(code As String) As Holder
+            Return AbstractAutomaticBraceCompletionTests.CreateSession(
 TestWorkspace.CreateVisualBasic(code),
 BraceCompletionSessionProvider.CurlyBrace.OpenCharacter, BraceCompletionSessionProvider.CurlyBrace.CloseCharacter)
         End Function

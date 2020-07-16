@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -14,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Completion
     [DebuggerDisplay("{DisplayText}")]
     public sealed class CompletionItem : IComparable<CompletionItem>
     {
+        private readonly string _filterText;
+
         /// <summary>
         /// The text that is displayed to the user.
         /// </summary>
@@ -37,7 +41,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The text used to determine if the item matches the filter and is show in the list.
         /// This is often the same as <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
-        public string FilterText { get; }
+        public string FilterText => _filterText ?? DisplayText;
+
+        internal bool HasDifferentFilterText => _filterText != null;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -50,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// be short as it will show up in the UI.  Display will present this in a way to distinguish
         /// this from the normal text (for example, by fading out and right-aligning).
         /// </summary>
-        internal string InlineDescription { get; }
+        public string InlineDescription { get; }
 
         /// <summary>
         /// The span of the syntax element associated with this item.
@@ -85,14 +91,12 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string ProviderName { get; set; }
 
         /// <summary>
-        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
-        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
-        /// other data correspodning to this item.
-        ///
-        /// TODO: Revisit the approach we used for caching VS items.
-        ///       https://github.com/dotnet/roslyn/issues/35160
+        /// The automation text to use when narrating the completion item. If set to
+        /// null, narration will use the <see cref="DisplayText"/> instead.
         /// </summary>
-        internal bool IsCached { get; set; }
+        internal string AutomationText { get; set; }
+
+        internal CompletionItemFlags Flags { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -109,13 +113,17 @@ namespace Microsoft.CodeAnalysis.Completion
             DisplayText = displayText ?? "";
             DisplayTextPrefix = displayTextPrefix ?? "";
             DisplayTextSuffix = displayTextSuffix ?? "";
-            FilterText = filterText ?? DisplayText;
             SortText = sortText ?? DisplayText;
             InlineDescription = inlineDescription ?? "";
             Span = span;
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
+
+            if (!DisplayText.Equals(filterText, StringComparison.Ordinal))
+            {
+                _filterText = filterText;
+            }
         }
 
         // binary back compat overload
@@ -252,7 +260,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: newDisplayTextSuffix,
                 inlineDescription: newInlineDescription)
             {
-                ProviderName = ProviderName
+                AutomationText = AutomationText,
+                ProviderName = ProviderName,
+                Flags = Flags,
             };
         }
 
@@ -262,17 +272,13 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CompletionItem WithSpan(TextSpan span)
-        {
-            return this;
-        }
+            => this;
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayText"/> property changed.
         /// </summary>
         public CompletionItem WithDisplayText(string text)
-        {
-            return With(displayText: text);
-        }
+            => With(displayText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayTextPrefix"/> property changed.
@@ -290,41 +296,31 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="FilterText"/> property changed.
         /// </summary>
         public CompletionItem WithFilterText(string text)
-        {
-            return With(filterText: text);
-        }
+            => With(filterText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="SortText"/> property changed.
         /// </summary>
         public CompletionItem WithSortText(string text)
-        {
-            return With(sortText: text);
-        }
+            => With(sortText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Properties"/> property changed.
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
-        {
-            return With(properties: properties);
-        }
+            => With(properties: properties);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with a property added to the <see cref="Properties"/> collection.
         /// </summary>
         public CompletionItem AddProperty(string name, string value)
-        {
-            return With(properties: Properties.Add(name, value));
-        }
+            => With(properties: Properties.Add(name, value));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
         /// </summary>
         public CompletionItem WithTags(ImmutableArray<string> tags)
-        {
-            return With(tags: tags);
-        }
+            => With(tags: tags);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with a tag added to the <see cref="Tags"/> collection.
@@ -350,21 +346,34 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Rules"/> property changed.
         /// </summary>
         public CompletionItem WithRules(CompletionItemRules rules)
-        {
-            return With(rules: rules);
-        }
+            => With(rules: rules);
 
         private string _entireDisplayText;
 
         int IComparable<CompletionItem>.CompareTo(CompletionItem other)
         {
-            var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
-            if (result == 0)
-            {
-                result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
-            }
+            // Make sure expanded items are listed after non-expanded ones
+            var thisIsExpandItem = Flags.IsExpanded();
+            var otherIsExpandItem = other.Flags.IsExpanded();
 
-            return result;
+            if (thisIsExpandItem == otherIsExpandItem)
+            {
+                var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
+                if (result == 0)
+                {
+                    result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
+                }
+
+                return result;
+            }
+            else if (thisIsExpandItem)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         internal string GetEntireDisplayText()

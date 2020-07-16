@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 
@@ -12,20 +16,18 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public Workspace Workspace { get; private set; }
+        public Workspace? Workspace { get; private set; }
 
-        public event EventHandler WorkspaceChanged;
+        public event EventHandler? WorkspaceChanged;
 
-        internal void SetWorkspaceAndRaiseEvents(Workspace workspace)
+        internal void SetWorkspaceAndRaiseEvents(Workspace? workspace)
         {
             SetWorkspace(workspace);
             RaiseEvents();
         }
 
-        internal void SetWorkspace(Workspace workspace)
-        {
-            Workspace = workspace;
-        }
+        internal void SetWorkspace(Workspace? workspace)
+            => Workspace = workspace;
 
         internal void RaiseEvents()
         {

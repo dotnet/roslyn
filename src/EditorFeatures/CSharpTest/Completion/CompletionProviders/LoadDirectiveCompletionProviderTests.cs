@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -18,53 +21,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new LoadDirectiveCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(LoadDirectiveCompletionProvider);
 
-        protected override bool CompareItems(string actualItem, string expectedItem)
-        {
-            return actualItem.Equals(expectedItem, StringComparison.OrdinalIgnoreCase);
-        }
+        protected override IEqualityComparer<string> GetStringComparer()
+            => StringComparer.OrdinalIgnoreCase;
 
         private protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null)
+            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             return BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters);
+                inlineDescription, matchingFilters, flags);
         }
 
         [Fact]
         public async Task IsCommitCharacterTest()
         {
             var commitCharacters = new[] { '"', '\\' };
-            await VerifyCommitCharactersAsync("#load \"$$", textTypedSoFar: "", validChars: commitCharacters);
+            await VerifyCommitCharactersAsync("#load \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        public void IsTextualTriggerCharacterTest()
-        {
-            var validMarkupList = new[]
-            {
-                "#load \"$$/",
-                "#load \"$$\\",
-                "#load \"$$,",
-                "#load \"$$A",
-                "#load \"$$!",
-                "#load \"$$(",
-            };
-
-            foreach (var markup in validMarkupList)
-            {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
-            }
-        }
+        [Theory]
+        [InlineData("#load \"$$/")]
+        [InlineData("#load \"$$\\")]
+        [InlineData("#load \"$$,")]
+        [InlineData("#load \"$$A")]
+        [InlineData("#load \"$$!")]
+        [InlineData("#load \"$$(")]
+        public void IsTextualTriggerCharacterTest(string markup)
+            => VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
     }
 }

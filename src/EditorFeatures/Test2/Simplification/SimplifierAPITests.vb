@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Simplification
@@ -146,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 Sub(exception) Assert.Equal(exception.ParamName, "spans"))
         End Sub
 
-        Private Function GetDocument() As Document
+        Private Shared Function GetDocument() As Document
             Dim workspace = New AdhocWorkspace()
 
             Dim solution = workspace.CreateSolution(SolutionId.CreateNewId())
@@ -155,11 +157,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Return workspace.AddDocument(project.Id, "CSharpFile.cs", SourceText.From("class C { }"))
         End Function
 
-        Private Function GetSemanticModel() As SemanticModel
+        Private Shared Function GetSemanticModel() As SemanticModel
             Return GetDocument().GetSemanticModelAsync().Result
         End Function
 
-        Private Function GetSyntaxNode() As SyntaxNode
+        Private Shared Function GetSyntaxNode() As SyntaxNode
             Return SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Test"))
         End Function
     End Class

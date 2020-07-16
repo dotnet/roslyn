@@ -19,18 +19,13 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="translated">欠落しているインポートの追加</target>
+        <target state="translated">欠落している Import の追加</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
         <target state="translated">'Shadows' の追加</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">'if' ステートメントは簡素化できます</target>
-        <note />
       </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
@@ -90,16 +85,6 @@
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
         <target state="translated">&lt;複数の種類&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">不要なインポートの削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -234,7 +219,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">返されないコードのパスがあります</target>
+        <target state="translated">返されないコード パスがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -284,7 +269,7 @@
       </trans-unit>
       <trans-unit id="next_statement_control_variable_doesn_t_have_matching_declaration_statement">
         <source>next statement control variable doesn't have matching declaration statement</source>
-        <target state="translated">次のステートメントのコントロール変数に一致する宣言ステートメントがありません</target>
+        <target state="translated">次のステートメントの制御変数に一致する宣言ステートメントがありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
@@ -340,11 +325,6 @@
       <trans-unit id="new_variable">
         <source>&lt;new variable&gt;</source>
         <target state="translated">&lt;新しい変数&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">インポートの削除と並べ替え(&amp;E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -504,7 +484,7 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</targ
       </trans-unit>
       <trans-unit id="Used_to_release_array_variables_and_deallocate_the_memory_used_for_their_elements">
         <source>Used to release array variables and deallocate the memory used for their elements.</source>
-        <target state="translated">アレイ変数を解放し、それらの要素に使用されるメモリの割り当てを解除します。</target>
+        <target state="translated">配列変数を解放し、それらの要素に使用されるメモリの割り当てを解除します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Declares_a_user_defined_event">
@@ -805,7 +785,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type">
         <source>Specifies that a procedure parameter takes an optional array of elements of the specified type.</source>
-        <target state="translated">プロシージャのパラメーターが、指定された型の、省略可能な要素のアレイを受け取ることを示します。</target>
+        <target state="translated">プロシージャのパラメーターが、指定された型の、省略可能な要素の配列を受け取ることを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_a_method_class_or_structure_declaration_is_a_partial_definition_of_the_method_class_or_structure">
@@ -820,7 +800,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_array_are_changed">
         <source>Prevents the contents of an array from being cleared when the dimensions of the array are changed.</source>
-        <target state="translated">アレイの次元が変更されるときにアレイの内容が消去されないようにします。</target>
+        <target state="translated">配列の次元が変更されるときに配列の内容が消去されないようにします。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_module_class_or_structure">
@@ -855,7 +835,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Reallocates_storage_space_for_an_array_variable">
         <source>Reallocates storage space for an array variable.</source>
-        <target state="translated">アレイ変数の記憶域を再割り当てします。</target>
+        <target state="translated">配列変数の記憶域を再割り当てします。</target>
         <note />
       </trans-unit>
       <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
@@ -895,7 +875,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range">
         <source>Separates the beginning and ending values of a loop counter or array bounds or that of a value match range.</source>
-        <target state="translated">ループ カウンター、アレイの範囲、または値が一致する範囲の開始値と終了値を分割します。</target>
+        <target state="translated">ループ カウンター、配列の範囲、または値が一致する範囲の開始値と終了値を分割します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatible_result_TypeOf_objectExpression_Is_typeName">
@@ -928,7 +908,8 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       <trans-unit id="Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2">
         <source>Performs a logical exclusion on two Boolean expressions, or a bitwise exclusion on two numeric expressions. For Boolean expressions, returns True if exactly one of the expressions evaluates to True. Both expressions are always evaluated.
 &lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</source>
-        <target state="translated">2 つのブール式の場合は排他的論理演算、2 つの数値式の場合はビットごとの排他を求めます。ブール式の場合、2 つの式のうち 1 つのみが True と評価されたときは True を返します。常に両方の式が評価されます。r\n&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</target>
+        <target state="translated">2 つのブール式の場合は排他的論理演算、2 つの数値式の場合はビットごとの排他を求めます。ブール式の場合、2 つの式のうち 1 つのみが True と評価されたときは True を返します。常に両方の式が評価されます。
+&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence">
@@ -1356,7 +1337,7 @@ Return -or- Return &lt;expression&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">On に設定されている場合は、 暗黙的なデータ型の変換を上位変換のみに制限します。
+        <target state="translated">On に設定されている場合は、 暗黙的なデータ型の変換を拡大変換のみに制限します。
 Option Strict {On | Off}</target>
         <note />
       </trans-unit>
@@ -1486,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">{0} を Async Function にします。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">不足しているキャストを挿入</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">{0} を反復子に変換</target>
@@ -1519,36 +1495,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
         <target state="translated">{0}' で拡大変換を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">このコードを変更しないでください。クリーンアップ コードを上の Dispose(disposing As Boolean) に記述します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: アンマネージ リソース (アンマネージ オブジェクト) を解放し、下の Finalize() をオーバーライドします。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 上の Dispose(disposing As Boolean) にアンマネージド リソースを解放するコードが含まれる場合にのみ Finalize() をオーバーライドします。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">このコードは、破棄可能なパターンを正しく実装できるように Visual Basic によって追加されました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: 上の Finalize() がオーバーライドされている場合は、次の行のコメントを解除してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports ステートメントは不要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1693,7 +1639,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">結行条件</target>
+        <target state="translated">Join 条件</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1829,21 +1775,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Async Sub にする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Me' を追加します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Is Nothing' チェックを使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">IsNot Nothing' チェックを使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 () => CodeAction.GetOperationsAsync(progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        protected static Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
         {
             return Task.Run(
                 () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);
@@ -102,13 +104,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // later in this call chain, do not await them.
                 SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
                 {
-                    using (var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken))
+                    using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
+                    InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
+                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
                     {
-                        InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
-                        foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                        {
-                            actionCallback.Value.OnSuggestedActionExecuted(this);
-                        }
+                        actionCallback.Value.OnSuggestedActionExecuted(this);
                     }
                 });
             }
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public virtual bool HasPreview => false;
 
         public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-            => SpecializedTasks.Default<object>();
+            => SpecializedTasks.Null<object>();
 
         public virtual bool HasActionSets => false;
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -30,57 +32,38 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public int CompareTo(Document document, Reference other)
             {
-                // If references have different weights, order by the ones with lower weight (i.e.
-                // they are better matches).
-                if (SearchResult.Weight < other.SearchResult.Weight)
+                var diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
+                if (diff != 0)
                 {
-                    return -1;
+                    return diff;
                 }
 
-                if (SearchResult.Weight > other.SearchResult.Weight)
+                // Both our names need to change.  Sort by the name we're 
+                // changing to.
+                diff = StringComparer.OrdinalIgnoreCase.Compare(
+                    SearchResult.DesiredName, other.SearchResult.DesiredName);
+                if (diff != 0)
                 {
-                    return 1;
-                }
-
-                if (SearchResult.DesiredNameMatchesSourceName(document))
-                {
-                    if (!other.SearchResult.DesiredNameMatchesSourceName(document))
-                    {
-                        // Prefer us as our name doesn't need to change.
-                        return -1;
-                    }
-                }
-                else
-                {
-                    if (other.SearchResult.DesiredNameMatchesSourceName(document))
-                    {
-                        // Prefer them as their name doesn't need to change.
-                        return 1;
-                    }
-                    else
-                    {
-                        // Both our names need to change.  Sort by the name we're 
-                        // changing to.
-                        var diff = StringComparer.OrdinalIgnoreCase.Compare(
-                            SearchResult.DesiredName, other.SearchResult.DesiredName);
-                        if (diff != 0)
-                        {
-                            return diff;
-                        }
-                    }
+                    return diff;
                 }
 
                 // If the weights are the same and no names changed, just order 
                 // them based on the namespace we're adding an import for.
                 return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                    SearchResult.NameParts, other.SearchResult.NameParts,
-                    placeSystemNamespaceFirst: true);
+                        SearchResult.NameParts, other.SearchResult.NameParts,
+                        placeSystemNamespaceFirst: true);
             }
 
+            private static readonly ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
+                = ImmutableArray.Create<Func<Reference, Document, IComparable>>(
+                    // If references have different weights, order by the ones with lower weight (i.e.
+                    // they are better matches).
+                    (r, d) => r.SearchResult.Weight,
+                    // Prefer the name doesn't need to change.
+                    (r, d) => !r.SearchResult.DesiredNameMatchesSourceName(d));
+
             public override bool Equals(object obj)
-            {
-                return Equals(obj as Reference);
-            }
+                => Equals(obj as Reference);
 
             public bool Equals(Reference other)
             {
@@ -90,9 +73,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.CombineValues(SearchResult.NameParts);
-            }
+                => Hash.CombineValues(SearchResult.NameParts);
 
             protected async Task<(SyntaxNode, Document)> ReplaceNameNodeAsync(
                 SyntaxNode contextNode, Document document, CancellationToken cancellationToken)

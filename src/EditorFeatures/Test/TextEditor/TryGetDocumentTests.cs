@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
 
             var buffer = hostDocument.GetTextBuffer();
-            var startPosition = buffer.CurrentSnapshot.GetLineFromLineNumber(0).Start.Position;
+            var startingSnapshotVersion = buffer.CurrentSnapshot.Version;
             var text = buffer.CurrentSnapshot.AsText();
             var container = buffer.AsTextContainer();
             Assert.Same(text.Container, container);
@@ -64,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 edit.Apply();
             }
 
-            Assert.True(buffer.CurrentSnapshot.Version.VersionNumber == 2);
-            Assert.True(buffer.CurrentSnapshot.Version.ReiteratedVersionNumber == 1);
+            Assert.Equal(startingSnapshotVersion.VersionNumber + 1, buffer.CurrentSnapshot.Version.VersionNumber);
+            Assert.Equal(startingSnapshotVersion.VersionNumber, buffer.CurrentSnapshot.Version.ReiteratedVersionNumber);
 
             var newText = buffer.CurrentSnapshot.AsText();
 

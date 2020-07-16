@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -167,8 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
-                nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
+                nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
@@ -398,28 +402,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets a new local symbol with the given TypeWithAnnotations as the new type. This
-        /// type should be identical to the original except for nullability.
-        /// </summary>
-        internal LocalSymbol WithAnalyzedType(TypeWithAnnotations analyzedType)
-        {
-            Debug.Assert(analyzedType.Equals(TypeWithAnnotations, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames));
-            if (analyzedType.Equals(TypeWithAnnotations, TypeCompareKind.ConsiderEverything))
-            {
-                return this;
-            }
-
-            var cloned = CloneWithoutType();
-            cloned.SetTypeWithAnnotations(analyzedType);
-            return cloned;
-        }
-
-        protected virtual SourceLocalSymbol CloneWithoutType()
-        {
-            return new SourceLocalSymbol(_containingSymbol, _scopeBinder, allowRefKind: false, _typeSyntax, _identifierToken, _declarationKind);
-        }
-
-        /// <summary>
         /// Gets the locations where the local symbol was originally defined in source.
         /// There should not be local symbols from metadata, and there should be only one local variable declared.
         /// TODO: check if there are multiple same name local variables - error symbol or local symbol?
@@ -505,8 +487,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var symbol = obj as SourceLocalSymbol;
-            return (object)symbol != null
+            // If we're comparing against a symbol that was wrapped and updated for nullable,
+            // delegate to its handling of equality, rather than our own.
+            if (obj is UpdatedContainingSymbolAndNullableAnnotationLocal updated)
+            {
+                return updated.Equals(this, compareKind);
+            }
+
+            return obj is SourceLocalSymbol symbol
                 && symbol._identifierToken.Equals(_identifierToken)
                 && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
@@ -620,11 +608,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(value <= _valEscapeScope);
                 _valEscapeScope = value;
             }
-
-            protected override SourceLocalSymbol CloneWithoutType()
-            {
-                return new LocalWithInitializer(_containingSymbol, _scopeBinder, _typeSyntax, _identifierToken, _initializer, _initializerBinder, _declarationKind);
-            }
         }
 
         /// <summary>
@@ -664,11 +647,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// variable is not in scope in the collection expression.
             /// </summary>
             internal override SyntaxNode ForbiddenZone => null;
-
-            protected override SourceLocalSymbol CloneWithoutType()
-            {
-                return new ForEachLocalSymbol(_containingSymbol, (ForEachLoopBinder)_scopeBinder, _typeSyntax, _identifierToken, _collection, _declarationKind);
-            }
         }
 
         /// <summary>
@@ -740,11 +718,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-
-            protected override SourceLocalSymbol CloneWithoutType()
-            {
-                return new DeconstructionLocalSymbol(_containingSymbol, _scopeBinder, _nodeBinder, _typeSyntax, _identifierToken, _declarationKind, _deconstruction);
-            }
         }
 
         private class LocalSymbolWithEnclosingContext : SourceLocalSymbol
@@ -768,9 +741,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                     nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                    nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                    nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
+                    nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
+                    nodeToBind.Kind() == SyntaxKind.GotoCaseStatement ||
                     nodeToBind is ExpressionSyntax);
                 Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
                 this._nodeBinder = nodeBinder;
@@ -794,9 +769,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var initializer = (ConstructorInitializerSyntax)_nodeToBind;
                         _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
                         break;
+                    case SyntaxKind.PrimaryConstructorBaseType:
+                        _nodeBinder.BindConstructorInitializer((PrimaryConstructorBaseTypeSyntax)_nodeToBind, diagnostics);
+                        break;
                     case SyntaxKind.ArgumentList:
-                        var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
-                        _nodeBinder.BindConstructorInitializer(invocation, diagnostics);
+                        switch (_nodeToBind.Parent)
+                        {
+                            case ConstructorInitializerSyntax ctorInitializer:
+                                _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);
+                                break;
+                            case PrimaryConstructorBaseTypeSyntax ctorInitializer:
+                                _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(_nodeToBind.Parent);
+                        }
                         break;
                     case SyntaxKind.CasePatternSwitchLabel:
                         _nodeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);
@@ -812,6 +799,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var armBinder = (SwitchExpressionArmBinder)_nodeBinder;
                         armBinder.BindSwitchExpressionArm(arm, diagnostics);
                         break;
+                    case SyntaxKind.GotoCaseStatement:
+                        _nodeBinder.BindStatement((GotoStatementSyntax)_nodeToBind, diagnostics);
+                        break;
                     default:
                         _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);
                         break;
@@ -824,11 +814,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return _type.Value;
-            }
-
-            protected override SourceLocalSymbol CloneWithoutType()
-            {
-                return new LocalSymbolWithEnclosingContext(_containingSymbol, _scopeBinder, _nodeBinder, _typeSyntax, _identifierToken, _declarationKind, _nodeToBind, _forbiddenZone);
             }
         }
     }

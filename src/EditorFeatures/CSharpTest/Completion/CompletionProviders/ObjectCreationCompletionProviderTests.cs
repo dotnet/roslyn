@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -16,10 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new ObjectCreationCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(ObjectCreationCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InObjectCreation()
@@ -615,6 +616,69 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "A");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation()
+        {
+            var markup =
+@"#nullable enable
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            object? o;
+            o = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation_AssignedNull()
+        {
+            var markup =
+@"#nullable enable
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            object? o = null;
+            o = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation_NestedNull()
+        {
+            var markup =
+@"#nullable enable
+
+using System.Collections.Generic;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            List<object?> l;
+            l = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "List<object?>");
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     </Project>
                 </Workspace>";
 
-        protected override string GetLanguage()
+        protected internal override string GetLanguage()
             => LanguageNames.CSharp;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             await TestActionOnLinkedFiles(
                 workspace,
                 expectedText: expectedCode,
-                action: codeIssueOrRefactoring.Actions[0],
+                action: codeIssueOrRefactoring.CodeActions[0].action,
                 expectedPreviewContents: expectedCode);
         }
 
@@ -69,14 +70,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         }
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         protected override ParseOptions GetScriptOptions()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         private class TestCodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
         {
@@ -90,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     .WithDocumentText(linkedDocument.Id, (await linkedDocument.GetTextAsync()).Replace(0, 6, "private"));
 
 #pragma warning disable RS0005
-                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)));
+                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)), context.Span);
 #pragma warning restore RS0005
             }
         }

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -59,6 +62,16 @@ $$");
             await VerifyKeywordAsync(
 @"class C {
     [$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttributeInsideRecord()
+        {
+            // The recommender doesn't work in record in script
+            // Tracked by https://github.com/dotnet/roslyn/issues/44865
+            await VerifyWorkerAsync(
+@"record C {
+    [$$", absent: false, TestOptions.RegularPreview);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

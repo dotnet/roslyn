@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -230,9 +230,6 @@
   </data>
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
-  </data>
-  <data name="ErrorReadingFile" xml:space="preserve">
-    <value>Error while reading file '{0}': {1}</value>
   </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
@@ -470,21 +467,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well" xml:space="preserve">
     <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
-  </data>
-  <data name="Suppression_State" xml:space="preserve">
-    <value>Suppression State</value>
-  </data>
-  <data name="Active" xml:space="preserve">
-    <value>Active</value>
-  </data>
-  <data name="Suppressed" xml:space="preserve">
-    <value>Suppressed</value>
-  </data>
-  <data name="NotApplicable" xml:space="preserve">
-    <value>N/A</value>
-  </data>
-  <data name="SuppressionNotSupportedToolTip" xml:space="preserve">
-    <value>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</value>
   </data>
   <data name="Suppress_diagnostics" xml:space="preserve">
     <value>Suppress diagnostics</value>
@@ -951,28 +933,11 @@ Additional information: {1}</value>
   <data name="Analysis" xml:space="preserve">
     <value>Analysis</value>
   </data>
-  <data name="Enable_full_solution_analysis" xml:space="preserve">
-    <value>Enable full solution _analysis</value>
-  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
   </data>
   <data name="Fading" xml:space="preserve">
     <value>Fading</value>
-  </data>
-  <data name="ChangesNotAllowedIFAssemblyHasNotBeenLoaded" xml:space="preserve">
-    <value>Changes are not allowed if the assembly has not been loaded.</value>
-  </data>
-  <data name="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted" xml:space="preserve">
-    <value>Changes are not allowed if the project wasn't built when debugging started.</value>
-  </data>
-  <data name="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging" xml:space="preserve">
-    <value>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</value>
-  </data>
-  <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
-    <value>Changes are not allowed while code is running.</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
@@ -994,12 +959,6 @@ Additional information: {1}</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
-  </data>
-  <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
-    <value>Can't apply changes -- module '{0}' has been unloaded.</value>
-  </data>
-  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
-    <value>Can't apply changes -- unexpected error: '{0}'</value>
   </data>
   <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
     <value>Prefer deconstructed variable declaration</value>
@@ -1024,11 +983,11 @@ Additional information: {1}</value>
   </data>
   <data name="Decompiler_Legal_Notice_Message" xml:space="preserve">
     <value>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
 (i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
 (ii) obtain permission to decompile the binary code from the owner of the software.
- 
+
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</value>
@@ -1059,9 +1018,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>
-  </data>
-  <data name="Live_analysis" xml:space="preserve">
-    <value>Live analysis</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with assignments</value>
@@ -1108,8 +1064,14 @@ I agree to all of the foregoing:</value>
   <data name="Avoid_unused_value_assignments" xml:space="preserve">
     <value>Avoid unused value assignments</value>
   </data>
+  <data name="Parameter_name_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter name contains invalid character(s).</value>
+  </data>
   <data name="Parameter_preferences_colon" xml:space="preserve">
     <value>Parameter preferences:</value>
+  </data>
+  <data name="Parameter_type_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter type contains invalid character(s).</value>
   </data>
   <data name="Non_public_methods" xml:space="preserve">
     <value>Non-public methods</value>
@@ -1192,9 +1154,6 @@ I agree to all of the foregoing:</value>
   <data name="Select_member" xml:space="preserve">
     <value>Select member</value>
   </data>
-  <data name="Classifications" xml:space="preserve">
-    <value>Classifications</value>
-  </data>
   <data name="Prefer_static_local_functions" xml:space="preserve">
     <value>Prefer static local functions</value>
   </data>
@@ -1203,12 +1162,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Show_completion_list" xml:space="preserve">
     <value>Show completion list</value>
-  </data>
-  <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
-    <value>Use enhanced colors for C# and Basic</value>
-  </data>
-  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
-    <value>Enable nullable reference analysis IDE features</value>
   </data>
   <data name="Move_to_namespace" xml:space="preserve">
     <value>Move to Namespace</value>
@@ -1224,6 +1177,9 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="A_new_namespace_will_be_created" xml:space="preserve">
     <value>A new namespace will be created</value>
+  </data>
+  <data name="A_type_and_name_must_be_provided" xml:space="preserve">
+    <value>A type and name must be provided.</value>
   </data>
   <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename {0} to {1}</value>
@@ -1339,5 +1295,247 @@ I agree to all of the foregoing:</value>
   <data name="NamingSpecification_VisualBasic_TypeParameter" xml:space="preserve">
     <value>Type Parameter</value>
     <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</comment>
+  </data>
+  <data name="Containing_member" xml:space="preserve">
+    <value>Containing Member</value>
+  </data>
+  <data name="Containing_type" xml:space="preserve">
+    <value>Containing Type</value>
+  </data>
+  <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
+    <value>Use .editorconfig compatibility mode (requires restart)</value>
+  </data>
+  <data name="Running_low_priority_background_processes" xml:space="preserve">
+    <value>Running low priority background processes</value>
+  </data>
+  <data name="Evaluating_0_tasks_in_queue" xml:space="preserve">
+    <value>Evaluating ({0} tasks in queue)</value>
+  </data>
+  <data name="Paused_0_tasks_in_queue" xml:space="preserve">
+    <value>Paused ({0} tasks in queue)</value>
+  </data>
+  <data name="Naming_rules" xml:space="preserve">
+    <value>Naming rules</value>
+  </data>
+  <data name="Updating_severity" xml:space="preserve">
+    <value>Updating severity</value>
+  </data>
+  <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
+    <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
+  </data>
+  <data name="Requires_System_HashCode_be_present_in_project" xml:space="preserve">
+    <value>Requires 'System.HashCode' be present in project</value>
+  </data>
+  <data name="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item" xml:space="preserve">
+    <value>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</value>
+  </data>
+  <data name="Run_Code_Analysis_on_0" xml:space="preserve">
+    <value>Run Code Analysis on {0}</value>
+  </data>
+  <data name="Running_code_analysis_for_0" xml:space="preserve">
+    <value>Running code analysis for '{0}'...</value>
+  </data>
+  <data name="Running_code_analysis_for_Solution" xml:space="preserve">
+    <value>Running code analysis for Solution...</value>
+  </data>
+  <data name="Code_analysis_completed_for_0" xml:space="preserve">
+    <value>Code analysis completed for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
+    <value>Code analysis completed for Solution.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
+    <value>Code analysis terminated before completion for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
+    <value>Code analysis terminated before completion for Solution.</value>
+  </data>
+  <data name="Background_analysis_scope_colon" xml:space="preserve">
+    <value>Background analysis scope:</value>
+  </data>
+  <data name="Current_document" xml:space="preserve">
+    <value>Current document</value>
+  </data>
+  <data name="Open_documents" xml:space="preserve">
+    <value>Open documents</value>
+  </data>
+  <data name="Entire_solution" xml:space="preserve">
+    <value>Entire solution</value>
+  </data>
+  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>C#/Visual Basic Language Server Client</value>
+  </data>
+  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>Live Share C#/Visual Basic Language Server Client</value>
+    <comment>'Live Share' is a product name and does not need to be localized.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>_Edit</value>
+  </data>
+  <data name="Edit_0" xml:space="preserve">
+    <value>Edit {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
+  <data name="Parameter_Details" xml:space="preserve">
+    <value>Parameter Details</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>_Add</value>
+    <comment>Adding an element to a list</comment>
+  </data>
+  <data name="Callsite" xml:space="preserve">
+    <value>Call site</value>
+  </data>
+  <data name="Add_Parameter" xml:space="preserve">
+    <value>Add Parameter</value>
+  </data>
+  <data name="Call_site_value" xml:space="preserve">
+    <value>Call site value:</value>
+  </data>
+  <data name="Parameter_Name" xml:space="preserve">
+    <value>Parameter name:</value>
+  </data>
+  <data name="Type_Name" xml:space="preserve">
+    <value>Type name:</value>
+  </data>
+  <data name="You_must_change_the_signature" xml:space="preserve">
+    <value>You must change the signature</value>
+    <comment>"signature" here means the definition of a method</comment>
+  </data>
+  <data name="Added_Parameter" xml:space="preserve">
+    <value>Added parameter.</value>
+  </data>
+  <data name="Inserting_call_site_value_0" xml:space="preserve">
+    <value>Inserting call site value '{0}'</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+    <comment>Index of parameter in original signature</comment>
+  </data>
+  <data name="IntroduceUndefinedTodoVariables" xml:space="preserve">
+    <value>Introduce undefined TODO variables</value>
+    <comment>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</comment>
+  </data>
+  <data name="Omit_only_for_optional_parameters" xml:space="preserve">
+    <value>Omit (only for optional parameters)</value>
+  </data>
+  <data name="Optional_with_default_value_colon" xml:space="preserve">
+    <value>Optional with default value:</value>
+  </data>
+  <data name="Parameter_kind" xml:space="preserve">
+    <value>Parameter kind</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="Use_named_argument" xml:space="preserve">
+    <value>Use named argument</value>
+    <comment>"argument" is a programming term for a value passed to a function</comment>
+  </data>
+  <data name="Value_to_inject_at_call_sites" xml:space="preserve">
+    <value>Value to inject at call sites</value>
+  </data>
+  <data name="Value_colon" xml:space="preserve">
+    <value>Value:</value>
+  </data>
+  <data name="Editor_Color_Scheme" xml:space="preserve">
+    <value>Editor Color Scheme</value>
+  </data>
+  <data name="Visual_Studio_2019" xml:space="preserve">
+    <value>Visual Studio 2019</value>
+  </data>
+  <data name="Visual_Studio_2017" xml:space="preserve">
+    <value>Visual Studio 2017</value>
+  </data>
+  <data name="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page" xml:space="preserve">
+    <value>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</value>
+  </data>
+  <data name="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations" xml:space="preserve">
+    <value>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</value>
+  </data>
+  <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
+    <value>Prefer simplified boolean expressions</value>
+  </data>
+  <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
+    <value>Razor C# Language Server Client</value>
+  </data>
+  <data name="All_sources" xml:space="preserve">
+    <value>All sources</value>
+  </data>
+  <data name="Entire_repository" xml:space="preserve">
+    <value>Entire repository</value>
+  </data>
+  <data name="Indexed_in_organization" xml:space="preserve">
+    <value>Indexed in organization</value>
+  </data>
+  <data name="Indexed_in_repo" xml:space="preserve">
+    <value>Indexed in repo</value>
+  </data>
+  <data name="Item_origin" xml:space="preserve">
+    <value>Item origin</value>
+  </data>
+  <data name="Loaded_items" xml:space="preserve">
+    <value>Loaded items</value>
+  </data>
+  <data name="Loaded_solution" xml:space="preserve">
+    <value>Loaded solution</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="Local_metadata" xml:space="preserve">
+    <value>Local metadata</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Others</value>
+  </data>
+  <data name="Repository" xml:space="preserve">
+    <value>Repository</value>
+  </data>
+  <data name="Type_name_has_a_syntax_error" xml:space="preserve">
+    <value>Type name has a syntax error</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_not_recognized" xml:space="preserve">
+    <value>Type name is not recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_recognized" xml:space="preserve">
+    <value>Type name is recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Please_enter_a_type_name" xml:space="preserve">
+    <value>Please enter a type name</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Enter_a_call_site_value_or_choose_a_different_value_injection_kind" xml:space="preserve">
+    <value>Enter a call site value or choose a different value injection kind</value>
+  </data>
+  <data name="Optional_parameters_must_provide_a_default_value" xml:space="preserve">
+    <value>Optional parameters must provide a default value</value>
+  </data>
+  <data name="Parameter_information" xml:space="preserve">
+    <value>Parameter information</value>
+  </data>
+  <data name="Infer_from_context" xml:space="preserve">
+    <value>Infer from context</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Warning_colon_duplicate_parameter_name" xml:space="preserve">
+    <value>Warning: duplicate parameter name</value>
+  </data>
+  <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
+    <value>Warning: type does not bind</value>
+  </data>
+  <data name="Current_parameter" xml:space="preserve">
+    <value>Current parameter</value>
+  </data>
+  <data name="Bitness32" xml:space="preserve">
+    <value>32-bit</value>
+  </data>
+  <data name="Bitness64" xml:space="preserve">
+    <value>64-bit</value>
   </data>
 </root>

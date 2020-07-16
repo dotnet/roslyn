@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             // application of these operations.  This way we should be able to undo 
             // them all with one user action.
             //
-            // The reason we don't always create a gobal undo is that a global undo
+            // The reason we don't always create a global undo is that a global undo
             // forces all files to save.  And that's rather a heavyweight and 
             // unexpected experience for users (for the common case where a single 
             // file got edited).
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return applied;
         }
 
-        private TextDocument TryGetSingleChangedText(
+        private static TextDocument TryGetSingleChangedText(
             Solution oldSolution, ImmutableArray<CodeActionOperation> operationsList)
         {
             Debug.Assert(operationsList.Length > 0);
@@ -186,8 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return null;
             }
 
-            var applyOperation = operationsList.Single() as ApplyChangesOperation;
-            if (applyOperation == null)
+            if (!(operationsList.Single() is ApplyChangesOperation applyOperation))
             {
                 return null;
             }
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
 
             var changedAdditionalDocuments = projectChange.GetChangedAdditionalDocuments().ToImmutableArray();
-            var changedDocuments = projectChange.GetChangedDocuments().ToImmutableArray();
+            var changedDocuments = projectChange.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).ToImmutableArray();
             var changedAnalyzerConfigDocuments = projectChange.GetChangedAnalyzerConfigDocuments().ToImmutableArray();
 
             if (changedAdditionalDocuments.Length + changedDocuments.Length + changedAnalyzerConfigDocuments.Length != 1)
@@ -295,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
                 var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind)
-                                             .FirstOrNullable();
+                                             .FirstOrNull();
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
 
                 var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind)
-                                         .FirstOrNullable();
+                                         .FirstOrNull();
 
                 if (renameTokenOpt.HasValue)
                 {

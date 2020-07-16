@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -273,7 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             var startOfFirstString = TestString.IndexOf('"');
             var endOfFirstString = TestString.IndexOf('"', startOfFirstString + 1);
             var startOfString = TestString.IndexOf("$\"", endOfFirstString + 1, StringComparison.Ordinal);
-            var lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
 
             // Selects interpolated string start token
             AssertExtent(
@@ -354,23 +353,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 
         private static void AssertExtent(string code, int pos, bool isSignificant, int start, int length, CSharpParseOptions options)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, options))
-            {
-                var buffer = workspace.Documents.First().GetTextBuffer();
+            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var provider = new TextStructureNavigatorProvider(
-                    workspace.GetService<ITextStructureNavigatorSelectorService>(),
-                    workspace.GetService<IContentTypeRegistryService>(),
-                    workspace.GetService<IWaitIndicator>());
+            var provider = Assert.IsType<TextStructureNavigatorProvider>(
+                workspace.GetService<ITextStructureNavigatorProvider>(ContentTypeNames.CSharpContentType));
 
-                var navigator = provider.CreateTextStructureNavigator(buffer);
+            var navigator = provider.CreateTextStructureNavigator(buffer);
 
-                var extent = navigator.GetExtentOfWord(new SnapshotPoint(buffer.CurrentSnapshot, pos));
-                Assert.Equal(isSignificant, extent.IsSignificant);
+            var extent = navigator.GetExtentOfWord(new SnapshotPoint(buffer.CurrentSnapshot, pos));
+            Assert.Equal(isSignificant, extent.IsSignificant);
 
-                var expectedSpan = new SnapshotSpan(buffer.CurrentSnapshot, start, length);
-                Assert.Equal(expectedSpan, extent.Span);
-            }
+            var expectedSpan = new SnapshotSpan(buffer.CurrentSnapshot, start, length);
+            Assert.Equal(expectedSpan, extent.Span);
         }
 
         private static void TestNavigator(
@@ -394,21 +389,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             int endLength,
             CSharpParseOptions options)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, options))
-            {
-                var buffer = workspace.Documents.First().GetTextBuffer();
+            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var provider = new TextStructureNavigatorProvider(
-                    workspace.GetService<ITextStructureNavigatorSelectorService>(),
-                    workspace.GetService<IContentTypeRegistryService>(),
-                    workspace.GetService<IWaitIndicator>());
+            var provider = Assert.IsType<TextStructureNavigatorProvider>(
+                workspace.GetService<ITextStructureNavigatorProvider>(ContentTypeNames.CSharpContentType));
 
-                var navigator = provider.CreateTextStructureNavigator(buffer);
+            var navigator = provider.CreateTextStructureNavigator(buffer);
 
-                var actualSpan = func(navigator, new SnapshotSpan(buffer.CurrentSnapshot, startPosition, startLength));
-                var expectedSpan = new SnapshotSpan(buffer.CurrentSnapshot, endPosition, endLength);
-                Assert.Equal(expectedSpan, actualSpan.Span);
-            }
+            var actualSpan = func(navigator, new SnapshotSpan(buffer.CurrentSnapshot, startPosition, startLength));
+            var expectedSpan = new SnapshotSpan(buffer.CurrentSnapshot, endPosition, endLength);
+            Assert.Equal(expectedSpan, actualSpan.Span);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,22 +31,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
             string initialMarkup,
             TestParameters parameters = default)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            if (actions.Length == 1)
             {
-                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                if (actions.Length == 1)
-                {
-                    // The dialog shows up, not quick action
-                    Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
-                }
-                else if (actions.Length > 1)
-                {
-                    Assert.True(false, "Pull Members Up is provided via quick action");
-                }
-                else
-                {
-                    Assert.True(true);
-                }
+                // The dialog shows up, not quick action
+                Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
+            }
+            else if (actions.Length > 1)
+            {
+                Assert.True(false, "Pull Members Up is provided via quick action");
+            }
+            else
+            {
+                Assert.True(true);
             }
         }
 
@@ -127,7 +127,6 @@ namespace PushUpTest
 }";
             await TestQuickActionNotProvidedAsync(eventTest);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestNoRefactoringProvidedInNestedTypesViaQuickAction()
@@ -221,7 +220,6 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullGenericsUpToInterfaceViaQuickAction()
@@ -1433,14 +1431,13 @@ public class TestClass : VBInterface
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            CodeActionPriority? priority = null,
             TestParameters parameters = default)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,
-                index, priority,
+                index,
                 parameters.WithFixProviderData(service));
         }
 
@@ -2887,7 +2884,6 @@ namespace PushUpTest
 
             await TestInRegularAndScriptAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]

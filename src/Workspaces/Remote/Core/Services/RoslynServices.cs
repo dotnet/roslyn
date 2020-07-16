@@ -1,13 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.CodingConventions;
+using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,25 +21,23 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RoslynServices
     {
+        private static TelemetrySession? s_telemetrySession;
+
         private static readonly object s_hostServicesGuard = new object();
 
         /// <summary>
         /// This delegate allows test code to override the behavior of <see cref="HostServices"/>.
         /// </summary>
         /// <seealso cref="TestAccessor.HookHostServices"/>
-        private static Func<HostServices> s_hostServicesHook;
-        private static HostServices s_hostServices;
+        private static Func<HostServices>? s_hostServicesHook;
+        private static HostServices? s_hostServices;
 
         // TODO: probably need to split this to private and public services
         public static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
-                // This adds the exported MEF services from Workspaces.Desktop
-                .Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly)
                 // This adds the exported MEF services from the RemoteWorkspaces assembly.
                 .Add(typeof(RoslynServices).Assembly)
-                .Add(typeof(ICodingConventionsManager).Assembly)
-                .Add(typeof(CSharp.CodeLens.CSharpCodeLensDisplayInfoService).Assembly)
-                .Add(typeof(VisualBasic.CodeLens.VisualBasicDisplayInfoService).Assembly);
+                .Add(typeof(ICodingConventionsManager).Assembly);
 
         public static HostServices HostServices
         {
@@ -59,32 +60,33 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private readonly int _scopeId;
+        /// <summary>
+        /// Set default telemetry session
+        /// </summary>
+        public static void SetTelemetrySession(TelemetrySession session)
+            => s_telemetrySession = session;
 
-        public RoslynServices(int scopeId, AssetStorage storage, HostServices hostServices)
-        {
-            _scopeId = scopeId;
+        /// <summary>
+        /// Default telemetry session
+        /// </summary>
+        public static TelemetrySession? TelemetrySession => s_telemetrySession;
 
-            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>());
-            SolutionService = new SolutionService(AssetService);
-            CompilationService = new CompilationService(SolutionService);
-        }
-
-        public AssetService AssetService { get; }
-        public SolutionService SolutionService { get; }
-        public CompilationService CompilationService { get; }
+        /// <summary>
+        /// Check whether current user is microsoft internal or not
+        /// </summary>
+        public static bool IsUserMicrosoftInternal => TelemetrySession?.IsUserMicrosoftInternal ?? false;
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
         internal readonly struct TestAccessor
         {
+#pragma warning disable IDE0052 // Remove unread private members - hold onto the Roslyn services.
             private readonly RoslynServices _roslynServices;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public TestAccessor(RoslynServices roslynServices)
-            {
-                _roslynServices = roslynServices;
-            }
+                => _roslynServices = roslynServices;
 
             /// <summary>
             /// Injects replacement behavior for the <see cref="HostServices"/> property.

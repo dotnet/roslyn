@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
@@ -15,13 +18,11 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.EndConstruct)>
-    <Order(After:=PredefinedCommandHandlerNames.Completion)>
     <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     <Order(After:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     Friend Class EndConstructCommandHandler
@@ -39,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Property
 
         <ImportingConstructor()>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
                        undoHistoryRegistry As ITextUndoHistoryRegistry)
 
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Me._undoHistoryRegistry = undoHistoryRegistry
         End Sub
 
-        Public Function GetCommandState_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+        Public Function GetCommandState_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             ExecuteEndConstructOnReturn(args.TextView, args.SubjectBuffer, nextHandler)
         End Sub
 
-        Public Function GetCommandState_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of TypeCharCommandArgs).GetCommandState
+        Public Function GetCommandState_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of TypeCharCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
@@ -76,8 +78,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             endConstructService.TryDo(args.TextView, args.SubjectBuffer, args.TypedChar, CancellationToken.None)
         End Sub
 
-        Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
-            Return VSCommanding.CommandState.Available
+        Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
+            Return CommandState.Available
         End Function
 
         Public Sub ExecuteCommand_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).ExecuteCommand
@@ -143,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End Using
         End Sub
 
-        Private Function GetSpanToCleanup(statement As StatementSyntax) As TextSpan
+        Private Shared Function GetSpanToCleanup(statement As StatementSyntax) As TextSpan
             Dim firstToken = statement.GetFirstToken()
             Dim lastToken = statement.GetLastToken()
 

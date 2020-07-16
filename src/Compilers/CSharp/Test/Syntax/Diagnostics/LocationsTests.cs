@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -454,7 +456,7 @@ class MainClass
             Assert.Equal(5, diagnostics[0].Location.SourceSpan.Start);
             Assert.Equal(0, diagnostics[0].Location.SourceSpan.Length);
 
-            Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
+            Assert.True(treeSpan.Contains(diagnostics[0].Location.SourceSpan));
 
             var lineSpan = diagnostics[0].Location.GetLineSpan();
             Assert.Equal(0, lineSpan.StartLinePosition.Line);
@@ -482,7 +484,7 @@ class MainClass
             Assert.Equal(0, diagnostics[0].Location.SourceSpan.Start);
             Assert.Equal(0, diagnostics[0].Location.SourceSpan.Length);
 
-            Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
+            Assert.True(treeSpan.Contains(diagnostics[0].Location.SourceSpan));
 
             var lineSpan = diagnostics[0].Location.GetLineSpan();
             Assert.Equal(0, lineSpan.StartLinePosition.Line);

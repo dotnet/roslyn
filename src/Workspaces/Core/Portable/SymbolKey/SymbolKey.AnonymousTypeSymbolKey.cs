@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -26,12 +28,24 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteLocationArray(propertyLocations);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
-                using var propertyTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                using var propertyTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var propertyTypesFailureReason);
                 using var propertyNames = reader.ReadStringArray();
                 using var propertyIsReadOnly = reader.ReadBooleanArray();
-                using var propertyLocations = reader.ReadLocationArray();
+                using var propertyLocations = reader.ReadLocationArray(out var propertyLocationsFailureReason);
+
+                if (propertyTypesFailureReason != null)
+                {
+                    failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyTypes)} failed -> {propertyTypesFailureReason})";
+                    return default;
+                }
+
+                if (propertyLocationsFailureReason != null)
+                {
+                    failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyLocations)} failed -> {propertyLocationsFailureReason})";
+                    return default;
+                }
 
                 if (!propertyTypes.IsDefault)
                 {
@@ -40,6 +54,7 @@ namespace Microsoft.CodeAnalysis
                         var anonymousType = reader.Compilation.CreateAnonymousTypeSymbol(
                             propertyTypes.ToImmutable(), propertyNames.ToImmutable(),
                             propertyIsReadOnly.ToImmutable(), propertyLocations.ToImmutable());
+                        failureReason = null;
                         return new SymbolKeyResolution(anonymousType);
                     }
                     catch (ArgumentException)
@@ -47,6 +62,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
+                failureReason = null;
                 return new SymbolKeyResolution(reader.Compilation.ObjectType);
             }
         }

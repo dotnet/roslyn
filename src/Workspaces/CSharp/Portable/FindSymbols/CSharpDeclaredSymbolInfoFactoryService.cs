@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,11 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
     internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpDeclaredSymbolInfoFactoryService()
         {
         }
 
-        private ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax baseList)
+        private static ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax baseList)
         {
             if (baseList == null)
             {
@@ -71,22 +76,22 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private void AddAliasMaps(SyntaxNode node, List<Dictionary<string, string>> aliasMaps)
+        private static void AddAliasMaps(SyntaxNode node, List<Dictionary<string, string>> aliasMaps)
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                if (current.IsKind(SyntaxKind.NamespaceDeclaration))
+                if (current.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax nsDecl))
                 {
-                    ProcessUsings(aliasMaps, ((NamespaceDeclarationSyntax)current).Usings);
+                    ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
-                else if (current.IsKind(SyntaxKind.CompilationUnit))
+                else if (current.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
                 {
-                    ProcessUsings(aliasMaps, ((CompilationUnitSyntax)current).Usings);
+                    ProcessUsings(aliasMaps, compilationUnit.Usings);
                 }
             }
         }
 
-        private void ProcessUsings(List<Dictionary<string, string>> aliasMaps, SyntaxList<UsingDirectiveSyntax> usings)
+        private static void ProcessUsings(List<Dictionary<string, string>> aliasMaps, SyntaxList<UsingDirectiveSyntax> usings)
         {
             Dictionary<string, string> aliasMap = null;
 
@@ -113,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private void AddInheritanceName(
+        private static void AddInheritanceName(
             ArrayBuilder<string> builder, TypeSyntax type,
             List<Dictionary<string, string>> aliasMaps)
         {
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
+        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo)
         {
             switch (node.Kind())
             {
@@ -290,8 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     // could either be part of a field declaration or an event field declaration
                     var variableDeclarator = (VariableDeclaratorSyntax)node;
                     var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
-                    var fieldDeclaration = variableDeclaration?.Parent as BaseFieldDeclarationSyntax;
-                    if (fieldDeclaration != null)
+                    if (variableDeclaration?.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
                     {
                         var kind = fieldDeclaration is EventFieldDeclarationSyntax
                             ? DeclaredSymbolInfoKind.Event
@@ -318,22 +322,22 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        private bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
+        private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;
 
-        private string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
+        private static string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
             => constructor.Modifiers.Any(SyntaxKind.StaticKeyword)
                 ? ".static " + constructor.Identifier + "()"
                 : GetSuffix('(', ')', constructor.ParameterList.Parameters);
 
-        private string GetMethodSuffix(MethodDeclarationSyntax method)
+        private static string GetMethodSuffix(MethodDeclarationSyntax method)
             => GetTypeParameterSuffix(method.TypeParameterList) +
                GetSuffix('(', ')', method.ParameterList.Parameters);
 
-        private string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
+        private static string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
             => GetSuffix('[', ']', indexer.ParameterList.Parameters);
 
-        private string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
+        private static string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
         {
             if (typeParameterList == null)
             {
@@ -375,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         /// symbols/compilations, this is well worth it, even if it does mean we have to
         /// create our own 'symbol display' logic here.
         /// </summary>
-        private string GetSuffix(
+        private static string GetSuffix(
             char openBrace, char closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -388,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return pooledBuilder.ToStringAndFree();
         }
 
-        private void AppendParameters(SeparatedSyntaxList<ParameterSyntax> parameters, StringBuilder builder)
+        private static void AppendParameters(SeparatedSyntaxList<ParameterSyntax> parameters, StringBuilder builder)
         {
             var first = true;
             foreach (var parameter in parameters)
@@ -417,13 +421,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private string GetContainerDisplayName(SyntaxNode node)
-            => CSharpSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
+        private static string GetContainerDisplayName(SyntaxNode node)
+            => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
 
-        private string GetFullyQualifiedContainerName(SyntaxNode node)
-            => CSharpSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
+        private static string GetFullyQualifiedContainerName(SyntaxNode node)
+            => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
 
-        private Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)
+        private static Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)
         {
             var sawInternal = false;
             foreach (var modifier in modifiers)
@@ -469,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private string GetTypeName(TypeSyntax type)
+        private static string GetTypeName(TypeSyntax type)
         {
             if (type is SimpleNameSyntax simpleName)
             {
@@ -490,8 +494,113 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         private static string GetSimpleTypeName(SimpleNameSyntax name)
             => name.Identifier.ValueText;
 
-        private bool IsExtensionMethod(MethodDeclarationSyntax method)
+        private static bool IsExtensionMethod(MethodDeclarationSyntax method)
             => method.ParameterList.Parameters.Count > 0 &&
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
+
+        // Root namespace is a VB only concept, which basically means root namespace is always global in C#.
+        public override string GetRootNamespace(CompilationOptions compilationOptions)
+            => string.Empty;
+
+        public override bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases)
+        {
+            if (node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null)
+            {
+                if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName, out _) &&
+                    TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name, out _))
+                {
+                    aliases = ImmutableArray.Create<(string, string)>((aliasName, name));
+                    return true;
+                }
+            }
+
+            aliases = default;
+            return false;
+        }
+
+        public override string GetReceiverTypeName(SyntaxNode node)
+        {
+            var methodDeclaration = (MethodDeclarationSyntax)node;
+            Debug.Assert(IsExtensionMethod(methodDeclaration));
+
+            var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
+            TryGetSimpleTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames, out var targetTypeName, out var isArray);
+            return CreateReceiverTypeString(targetTypeName, isArray);
+        }
+
+        private static bool TryGetSimpleTypeName(SyntaxNode node, ImmutableArray<string>? typeParameterNames, out string simpleTypeName, out bool isArray)
+        {
+            isArray = false;
+
+            if (node is TypeSyntax typeNode)
+            {
+                switch (typeNode)
+                {
+                    case IdentifierNameSyntax identifierNameNode:
+                        // We consider it a complex method if the receiver type is a type parameter.
+                        var text = identifierNameNode.Identifier.Text;
+                        simpleTypeName = typeParameterNames?.Contains(text) == true ? null : text;
+                        return simpleTypeName != null;
+
+                    case ArrayTypeSyntax arrayTypeNode:
+                        isArray = true;
+                        return TryGetSimpleTypeName(arrayTypeNode.ElementType, typeParameterNames, out simpleTypeName, out _);
+
+                    case GenericNameSyntax genericNameNode:
+                        var name = genericNameNode.Identifier.Text;
+                        var arity = genericNameNode.Arity;
+                        simpleTypeName = arity == 0 ? name : name + GetMetadataAritySuffix(arity);
+                        return true;
+
+                    case PredefinedTypeSyntax predefinedTypeNode:
+                        simpleTypeName = GetSpecialTypeName(predefinedTypeNode);
+                        return simpleTypeName != null;
+
+                    case AliasQualifiedNameSyntax aliasQualifiedNameNode:
+                        return TryGetSimpleTypeName(aliasQualifiedNameNode.Name, typeParameterNames, out simpleTypeName, out _);
+
+                    case QualifiedNameSyntax qualifiedNameNode:
+                        // For an identifier to the right of a '.', it can't be a type parameter,
+                        // so we don't need to check for it further.
+                        return TryGetSimpleTypeName(qualifiedNameNode.Right, typeParameterNames: null, out simpleTypeName, out _);
+
+                    case NullableTypeSyntax nullableNode:
+                        // Ignore nullability, becase nullable reference type might not be enabled universally.
+                        // In the worst case we just include more methods to check in out filter.
+                        return TryGetSimpleTypeName(nullableNode.ElementType, typeParameterNames, out simpleTypeName, out isArray);
+
+                    case TupleTypeSyntax tupleType:
+                        simpleTypeName = CreateValueTupleTypeString(tupleType.Elements.Count);
+                        return true;
+                }
+            }
+
+            simpleTypeName = null;
+            return false;
+        }
+
+        private static string GetSpecialTypeName(PredefinedTypeSyntax predefinedTypeNode)
+        {
+            var kind = predefinedTypeNode.Keyword.Kind();
+            return kind switch
+            {
+                SyntaxKind.BoolKeyword => "Boolean",
+                SyntaxKind.ByteKeyword => "Byte",
+                SyntaxKind.SByteKeyword => "SByte",
+                SyntaxKind.ShortKeyword => "Int16",
+                SyntaxKind.UShortKeyword => "UInt16",
+                SyntaxKind.IntKeyword => "Int32",
+                SyntaxKind.UIntKeyword => "UInt32",
+                SyntaxKind.LongKeyword => "Int64",
+                SyntaxKind.ULongKeyword => "UInt64",
+                SyntaxKind.DoubleKeyword => "Double",
+                SyntaxKind.FloatKeyword => "Single",
+                SyntaxKind.DecimalKeyword => "Decimal",
+                SyntaxKind.StringKeyword => "String",
+                SyntaxKind.CharKeyword => "Char",
+                SyntaxKind.ObjectKeyword => "Object",
+                _ => null,
+            };
+        }
     }
 }

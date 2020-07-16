@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -659,7 +661,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            ' Reference binding doesn't depend on previous submission so we can reuse it.
+            ' Metadata references are inherited from the previous submission,
+            ' so we can only reuse the manager if we can guarantee that these references are the same.
+            ' Check if the previous script compilation doesn't change. 
+
+            ' TODO Consider comparing the metadata references if they have been bound already.
+            ' https://github.com/dotnet/roslyn/issues/43397
+            Dim reuseReferenceManager = ScriptCompilationInfo?.PreviousScriptCompilation Is info?.PreviousScriptCompilation
 
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
@@ -675,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
-                reuseReferenceManager:=True)
+                reuseReferenceManager)
         End Function
 
         ''' <summary>
@@ -700,6 +708,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 eventQueue:=eventQueue)
         End Function
 
+        Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
+            ' LanguageVersion should already be mapped to an effective version at this point
+            Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
+            WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+
+            If Options.CheckOverflow Then
+                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            End If
+
+            If Options.OptionStrict <> OptionStrict.Off Then
+                WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            End If
+
+            If Options.ParseOptions IsNot Nothing Then
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                              If (p.Value Is Nothing) Then
+                                                                                                  Return p.Key
+                                                                                              End If
+
+                                                                                              Return p.Key + "=" + p.Value.ToString()
+                                                                                          End Function)
+                WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
+            End If
+        End Sub
+
+        Private Sub WriteValue(builder As BlobBuilder, key As String, value As String)
+            builder.WriteUTF8(key)
+            builder.WriteByte(0)
+            builder.WriteUTF8(value)
+            builder.WriteByte(0)
+        End Sub
 #End Region
 
 #Region "Submission"
@@ -768,6 +807,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ScriptClass.GetScriptInitializer(),
                 Nothing)
         End Function
+
+        Protected Overrides ReadOnly Property CommonScriptGlobalsType As ITypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 
@@ -1229,6 +1274,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function GetMetadataReference(assemblySymbol As AssemblySymbol) As MetadataReference
             Return Me.GetBoundReferenceManager().GetMetadataReference(assemblySymbol)
+        End Function
+
+        Private Protected Overrides Function CommonGetMetadataReference(assemblySymbol As IAssemblySymbol) As MetadataReference
+            Dim symbol = TryCast(assemblySymbol, AssemblySymbol)
+            If symbol IsNot Nothing Then
+                Return GetMetadataReference(symbol)
+            End If
+
+            Return Nothing
         End Function
 
         Public Overrides ReadOnly Property ReferencedAssemblyNames As IEnumerable(Of AssemblyIdentity)
@@ -1753,7 +1807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ClassifyConversion(source, destination).ToCommonConversion()
         End Function
 
-        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As [Optional](Of Object)) As IConvertibleConversion
+        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As ConstantValue) As IConvertibleConversion
             constantValue = Nothing
 
             If destination Is Nothing Then
@@ -1762,9 +1816,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceType As ITypeSymbol = source.Type
 
+            Dim sourceConstantValue as ConstantValue = source.GetConstantValue()
             If sourceType Is Nothing Then
-                If source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing AndAlso destination.IsReferenceType Then
-                    constantValue = source.ConstantValue
+                If sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing AndAlso destination.IsReferenceType Then
+                    constantValue = sourceConstantValue
                     Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.WideningNothingLiteral, Nothing))
                 End If
 
@@ -1773,8 +1828,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As Conversion = ClassifyConversion(sourceType, destination)
 
-            If result.IsReference AndAlso source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing Then
-                constantValue = source.ConstantValue
+            If result.IsReference AndAlso sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing Then
+                constantValue = sourceConstantValue
             End If
 
             Return result
@@ -1823,7 +1878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Assembly.GetSpecialTypeMember(memberId)
         End Function
 
-        Friend Overrides Function CommonGetSpecialTypeMember(specialMember As SpecialMember) As ISymbol
+        Friend Overrides Function CommonGetSpecialTypeMember(specialMember As SpecialMember) As ISymbolInternal
             Return GetSpecialTypeMember(specialMember)
         End Function
 
@@ -1987,8 +2042,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Otherwise IDE performance might be affect.
                 If Options.ConcurrentBuild Then
                     Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
-                    Parallel.For(0, SyntaxTrees.Length, options,
-                            UICultureUtilities.WithCurrentUICulture(Sub(i As Integer) builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))))
+                    Parallel.For(0, SyntaxTrees.Length, options, UICultureUtilities.WithCurrentUICulture(
+                        Sub(i As Integer)
+                            Try
+                                builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))
+                            Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                Throw ExceptionUtilities.Unreachable
+                            End Try
+                        End Sub))
                 Else
                     For Each tree In SyntaxTrees
                         cancellationToken.ThrowIfCancellationRequested()
@@ -2142,10 +2203,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
+        Friend Overrides Function CreateAnalyzerDriver(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager, severityFilter As SeverityFilter) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
             Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, isComment)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, severityFilter, isComment)
         End Function
 
 #End Region
@@ -2279,7 +2340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             emitMetadataOnly As Boolean,
             emitTestCoverageData As Boolean,
             diagnostics As DiagnosticBag,
-            filterOpt As Predicate(Of ISymbol),
+            filterOpt As Predicate(Of ISymbolInternal),
             cancellationToken As CancellationToken) As Boolean
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
@@ -2304,7 +2365,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If moduleBeingBuilt.SourceModule.HasBadAttributes Then
                     ' If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
-                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name)
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name,
+                        New LocalizableResourceString(NameOf(CodeAnalysisResources.ModuleHasInvalidAttributes), CodeAnalysisResources.ResourceManager, GetType(CodeAnalysisResources)))
                     Return False
                 End If
 
@@ -2624,7 +2686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetSpecialType(specialType As SpecialType) As INamedTypeSymbol
+        Private Protected Overrides Function CommonGetSpecialType(specialType As SpecialType) As INamedTypeSymbolInternal
             Return Me.GetSpecialType(specialType)
         End Function
 
@@ -2701,6 +2763,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
+                returnType As ITypeSymbol,
+                refKind as RefKind,
+                parameterTypes as ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds as ImmutableArray(Of RefKind)) As IFunctionPointerTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateNativeIntegerTypeSymbol(signed As Boolean) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoNativeIntegerTypesInVB)
         End Function
 
         Protected Overrides Function CommonCreateAnonymousTypeSymbol(

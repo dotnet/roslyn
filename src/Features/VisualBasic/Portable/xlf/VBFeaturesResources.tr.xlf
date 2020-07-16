@@ -19,18 +19,13 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="translated">Eksik İçeri Aktarımları ekle</target>
+        <target state="translated">Eksik Import'ları ekle</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
         <target state="translated">'Shadows' ekle</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">'If' deyimi basitleştirilebilir</target>
-        <note />
       </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
@@ -74,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">'{0}' öğesini devralınabilir yap</target>
+        <target state="translated">'{0}' öğesini devralınabilir hale getir</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -90,16 +85,6 @@
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
         <target state="translated">&lt;Multiple Types&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Gereksiz İçeri Aktarmaları Kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -340,11 +325,6 @@
       <trans-unit id="new_variable">
         <source>&lt;new variable&gt;</source>
         <target state="translated">&lt;new variable&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Import'ları Kaldır &amp;ve Sırala</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -1487,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">{0} öğesini bir Zaman Uyumsuz İşlev yap.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Eksik İşlem Ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">{0} öğesini Yineleyici'ye dönüştür</target>
@@ -1514,42 +1489,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">{0}' öğesinde daraltma dönüşümü oluştur</target>
+        <target state="translated">'{0}' öğesinde daraltma dönüştürmesi oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
         <target state="translated">{0}' öğesinde genişletme dönüşümü oluştur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">Bu kodu değiştirmeyin. Temizleme kodunu yukarıdaki Dispose(disposing As Boolean) ifadesine yerleştirin.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: yönetilmeyen kaynakları (yönetilmeyen nesneleri) serbest bırakın ve aşağıda Finalize() ifadesini geçersiz kılın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: Finalize() ifadesini yalnızca yukarıdaki Dispose(disposing As Boolean) yönetilmeyen kaynakları serbest bırakacak koda sahipse geçersiz kılın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Tek kullanımlık deseni doğru uygulamak için bu kod Visual Basic tarafından eklendi.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: Finalize() yukarıda geçersiz kılınırsa aşağıdaki satırın açıklamasını kaldırın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports deyimi gerekli değildir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1694,7 +1639,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">Birleştirme koşulu</target>
+        <target state="translated">Join koşulu</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1830,21 +1775,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Zaman Uyumsuz Alt Yap</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Me' ekleyin.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Is Nothing' denetimi kullan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">IsNot Nothing' denetimi kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

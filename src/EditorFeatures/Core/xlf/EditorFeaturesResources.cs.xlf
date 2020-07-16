@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="new">An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</target>
+        <target state="translated">Relace přejmenování na řádku je pro identifikátor {0} aktivní. Pokud chcete získat přístup k dalším možnostem, znovu volejte přejmenování na řádku. Můžete kdykoli pokračovat v úpravách identifikátoru, který se přejmenovává.</target>
         <note>For screenreaders. {0} is the identifier being renamed.</note>
       </trans-unit>
       <trans-unit id="Applying_changes">
@@ -37,6 +37,31 @@
         <target state="translated">Chcete přesto pokračovat? Výsledkem může být poškozený kód.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Downloading_IntelliSense_index_for_0">
+        <source>Downloading IntelliSense index for {0}</source>
+        <target state="new">Downloading IntelliSense index for {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed">
+        <source>Downloading index failed</source>
+        <target state="new">Downloading index failed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed_0">
+        <source>Downloading index failed:{0}</source>
+        <target state="new">Downloading index failed:{0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">položky z neimportovaných oborů názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">Rozbalování</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
         <source>Extract method encountered the following issues:</source>
         <target state="translated">Při extrahování metody došlo k následujícím problémům:</target>
@@ -50,6 +75,11 @@
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Příkaz Formátovat dokument provedl další čištění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="translated">Přejít na základní typ</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -67,9 +97,9 @@
         <target state="translated">Klíčové slovo – Control</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="translated">Hledají se báze...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -92,20 +122,25 @@
         <target state="translated">Interpunkce</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="new">Rename _file</target>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="translated">Odebrání dokumentu se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
-        <target state="new">Rename _file (type does not match file name)</target>
+        <target state="translated">Přejmenovat _soubor (typ neodpovídá názvu souboru)</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_partial_type">
         <source>Rename _file (not allowed on partial types)</source>
-        <target state="new">Rename _file (not allowed on partial types)</target>
+        <target state="translated">Přejmenovat _soubor (nepovoleno pro dílčí typy)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="new">Rename symbol's _file</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -119,7 +154,27 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">Tento symbol nemá žádný základ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">Přepnout komentář k bloku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">Přepnout komentář k řádku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">Přepíná se komentář k bloku...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">Přepíná se komentář k řádku...</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -210,6 +265,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">Řetězec – Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="translated">Čeká se na dokončení aktivity na pozadí...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">
@@ -319,7 +379,7 @@
       </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
-        <target state="translated">Úprava pravidla</target>
+        <target state="translated">Hrubá úprava</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_will_update_1_reference_in_1_file">
@@ -337,14 +397,29 @@
         <target state="translated">Při přejmenování dojde k aktualizaci {0} odkazů v {1} souborech.</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
+        <source>You cannot rename this element because it is contained in a read-only file.</source>
+        <target state="translated">Tento element nejde přejmenovat, protože je obsažen v souboru jen pro čtení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
+        <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
+        <target state="translated">Tento element nejde přejmenovat, protože se nachází v umístění, na které nejde přejít.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">Základy {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">Vyřeší se tento počet konfliktů: {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implemented_members">
+        <source>'{0}' implemented members</source>
+        <target state="translated">Implementované členy {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -425,11 +500,6 @@
       <trans-unit id="Given_Workspace_doesn_t_support_Undo">
         <source>Given Workspace doesn't support Undo</source>
         <target state="translated">Daný pracovní prostor nepodporuje vrácení akce zpátky.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
-        <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">Dokument musí být obsažený v pracovním prostoru, který vytvořil tuto datovou službu</target>
         <note />
       </trans-unit>
       <trans-unit id="Searching">
@@ -592,9 +662,9 @@
         <target state="translated">Upozornění verze Preview</target>
         <note />
       </trans-unit>
-      <trans-unit id="from_metadata">
-        <source>from metadata</source>
-        <target state="translated">z metadat</target>
+      <trans-unit id="external">
+        <source>(external)</source>
+        <target state="translated">(externí)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -884,7 +954,7 @@
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
-        <target state="translated">Stroj musí být připojený k interaktivnímu oknu.</target>
+        <target state="translated">Stroj musí být připojený k oknu Interactive.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changes_the_current_prompt_settings">
@@ -950,11 +1020,6 @@
       <trans-unit id="Peek">
         <source>Peek</source>
         <target state="translated">Náhled</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="symbol_cannot_be_a_namespace">
-        <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'Symbol nemůže být obor názvů.</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">

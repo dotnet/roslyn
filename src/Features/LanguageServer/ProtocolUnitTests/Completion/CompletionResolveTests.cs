@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var tags = new string[] { "Class", "Internal" };
             var completionParams = CreateCompletionParams(locations["caret"].Single());
             var completionItem = CreateCompletionItem("A", LSP.CompletionItemKind.Class, tags, completionParams);
@@ -32,12 +34,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var expected = CreateResolvedCompletionItem("A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
 
-            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(solution, completionItem, clientCapabilities);
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(workspace.CurrentSolution, completionItem, clientCapabilities);
             AssertJsonEquals(expected, results);
         }
 
         private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
-            => await GetLanguageServer(solution).ResolveCompletionItemAsync(solution, completionItem, clientCapabilities, CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName,
+                completionItem, clientCapabilities, null, CancellationToken.None);
 
         private static LSP.VSCompletionItem CreateResolvedCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters,
             ClassifiedTextElement description, string detail, string documentation)

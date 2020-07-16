@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -7,6 +9,7 @@ Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -18,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class NamedTypeSymbol
         Inherits TypeSymbol
-        Implements INamedTypeSymbol
+        Implements INamedTypeSymbol, INamedTypeSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -716,7 +719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' basesBeingResolved are passed if there are any types already have their bases resolved
         ''' so that the derived implementation could avoid infinite recursion
         ''' </summary>
-        Friend MustOverride Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend MustOverride Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
 
         ''' <summary>
         ''' NamedTypeSymbol calls derived implementations of this method when declared interfaces
@@ -725,7 +728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' basesBeingResolved are passed if there are any types already have their bases resolved
         ''' so that the derived implementation could avoid infinite recursion
         ''' </summary>
-        Friend MustOverride Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend MustOverride Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
 
         ''' <summary>
         ''' Base type as "declared".
@@ -734,7 +737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If DeclaredBase must be accessed while other DeclaredBases are being resolved, 
         ''' the bases that are being resolved must be specified here to prevent potential infinite recursion.
         ''' </summary>
-        Friend Overridable Function GetDeclaredBase(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
+        Friend Overridable Function GetDeclaredBase(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             If _lazyDeclaredBase Is ErrorTypeSymbol.UnknownResultType Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
                 AtomicStoreReferenceAndDiagnostics(_lazyDeclaredBase, MakeDeclaredBase(basesBeingResolved, diagnostics), diagnostics, ErrorTypeSymbol.UnknownResultType)
@@ -786,7 +789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If DeclaredInterfaces must be accessed while other DeclaredInterfaces are being resolved, 
         ''' the bases that are being resolved must be specified here to prevent potential infinite recursion.
         ''' </summary>
-        Friend Overridable Function GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overridable Function GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As ImmutableArray(Of NamedTypeSymbol)
             If _lazyDeclaredInterfaces.IsDefault Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
                 AtomicStoreArrayAndDiagnostics(_lazyDeclaredInterfaces, MakeDeclaredInterfaces(basesBeingResolved, diagnostics), diagnostics)
@@ -796,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyDeclaredInterfaces
         End Function
 
-        Friend Function GetDeclaredInterfacesWithDefinitionUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Function GetDeclaredInterfacesWithDefinitionUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of NamedTypeSymbol)
             Dim result = GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
             For Each iface In result
@@ -806,9 +809,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Friend Function GetDirectBaseInterfacesNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Function GetDirectBaseInterfacesNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As ImmutableArray(Of NamedTypeSymbol)
             If Me.TypeKind = TypeKind.Interface Then
-                If basesBeingResolved Is Nothing Then
+                If basesBeingResolved.InheritsBeingResolvedOpt Is Nothing Then
                     Return Me.InterfacesNoUseSiteDiagnostics
                 Else
                     Return GetDeclaredBaseInterfacesSafe(basesBeingResolved)
@@ -818,13 +821,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Friend Overridable Function GetDeclaredBaseInterfacesSafe(basesBeingResolved As ConsList(Of Symbol)) As ImmutableArray(Of NamedTypeSymbol)
-            Debug.Assert(basesBeingResolved.Any)
-            If basesBeingResolved.Contains(Me) Then
+        Friend Overridable Function GetDeclaredBaseInterfacesSafe(basesBeingResolved As BasesBeingResolved) As ImmutableArray(Of NamedTypeSymbol)
+            Debug.Assert(Me.IsInterface)
+            Debug.Assert(basesBeingResolved.InheritsBeingResolvedOpt.Any)
+            If basesBeingResolved.InheritsBeingResolvedOpt.Contains(Me) Then
                 Return Nothing
             End If
 
-            Return GetDeclaredInterfacesNoUseSiteDiagnostics(If(basesBeingResolved, ConsList(Of Symbol).Empty).Prepend(Me))
+            Return GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved.PrependInheritsBeingResolved(Me))
         End Function
 
         ''' <summary>
@@ -1003,30 +1007,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function DeriveUseSiteErrorInfoFromTypeArguments() As DiagnosticInfo
             Dim argsErrorInfo As DiagnosticInfo = Nothing
+            Dim currentType As NamedTypeSymbol = Me
 
-            For Each arg As TypeSymbol In Me.TypeArgumentsNoUseSiteDiagnostics
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
+            Do
+                For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
+                    Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
 
-                If errorInfo IsNot Nothing Then
-                    If errorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                        Return errorInfo
+                    If errorInfo IsNot Nothing Then
+                        If errorInfo.Code = ERRID.ERR_UnsupportedType1 Then
+                            Return errorInfo
+                        End If
+
+                        If argsErrorInfo Is Nothing Then
+                            argsErrorInfo = errorInfo
+                        End If
                     End If
-
-                    If argsErrorInfo Is Nothing Then
-                        argsErrorInfo = errorInfo
-                    End If
-                End If
-            Next
-
-            If Me.HasTypeArgumentsCustomModifiers Then
-                Dim modifiersErrorInfo As DiagnosticInfo = Nothing
-
-                For i As Integer = 0 To Me.Arity - 1
-                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)))
                 Next
 
-                Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
-            End If
+                If currentType.HasTypeArgumentsCustomModifiers Then
+                    Dim modifiersErrorInfo As DiagnosticInfo = Nothing
+
+                    For i As Integer = 0 To currentType.Arity - 1
+                        modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(currentType.GetTypeArgumentCustomModifiers(i)))
+                    Next
+
+                    If modifiersErrorInfo IsNot Nothing Then
+                        If modifiersErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
+                            Return modifiersErrorInfo
+                        End If
+
+                        If argsErrorInfo Is Nothing Then
+                            argsErrorInfo = modifiersErrorInfo
+                        End If
+                    End If
+                End If
+
+                currentType = currentType.ContainingType
+            Loop While currentType IsNot Nothing AndAlso Not currentType.IsDefinition
 
             Return argsErrorInfo
         End Function
@@ -1111,6 +1128,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_EnumUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.EnumUnderlyingType
+            Get
+                Return Me.EnumUnderlyingType
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeSymbolInternal_EnumUnderlyingType As INamedTypeSymbolInternal Implements INamedTypeSymbolInternal.EnumUnderlyingType
             Get
                 Return Me.EnumUnderlyingType
             End Get
@@ -1211,6 +1234,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
+            Get
+                Return Nothing
+            End Get
+        End Property
+
 #End Region
 
 #Region "ISymbol"
@@ -1271,8 +1300,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             If Not IsUnboundGenericType AndAlso
-                ContainingSymbol?.Kind = SymbolKind.Namespace AndAlso
-                ContainingNamespace?.ContainingNamespace?.IsGlobalNamespace = True AndAlso
+                (ContainingSymbol?.Kind = SymbolKind.Namespace).GetValueOrDefault() AndAlso
+                (ContainingNamespace.ContainingNamespace?.IsGlobalNamespace).GetValueOrDefault() AndAlso
                 Name = TupleTypeSymbol.TupleTypeName AndAlso
                 ContainingNamespace.Name = MetadataHelpers.SystemString Then
 

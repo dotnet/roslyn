@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -28,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         private class MockCommentSelectionService : AbstractCommentSelectionService
         {
             public MockCommentSelectionService(bool supportsBlockComment)
-            {
-                SupportsBlockComment = supportsBlockComment;
-            }
+                => SupportsBlockComment = supportsBlockComment;
 
             public override string SingleLineCommentString => "//";
             public override bool SupportsBlockComment { get; }
@@ -589,7 +588,6 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInsideAndBlockSelected()
@@ -714,36 +712,26 @@ class A
         }
 
         private static void UncommentSelection(string code, IEnumerable<TextChange> expectedChanges, Span expectedSelectedSpan, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, new[] { expectedSelectedSpan }, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Uncomment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, new[] { expectedSelectedSpan }, supportBlockComments, Operation.Uncomment);
 
         private static void UncommentSelection(string code, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Uncomment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Uncomment);
 
         private static void CommentSelection(string code, IEnumerable<TextChange> expectedChanges, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, null /*expectedSelectedSpans*/, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Comment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, null /*expectedSelectedSpans*/, supportBlockComments, Operation.Comment);
 
         private static void CommentSelection(string code, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Comment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
 
         private static void CommentSelection(ITextView textView, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(textView, expectedChanges, expectedSelectedSpans, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Comment);
-        }
+            => CommentOrUncommentSelection(textView, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
 
         private static void CommentOrUncommentSelection(
             string code,
             IEnumerable<TextChange> expectedChanges,
             IEnumerable<Span> expectedSelectedSpans,
             bool supportBlockComments,
-            CommentUncommentSelectionCommandHandler.Operation operation)
+            Operation operation)
         {
             using var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code);
             var selectedSpans = SetupSelection(disposableView.TextView);
@@ -756,33 +744,34 @@ class A
             IEnumerable<TextChange> expectedChanges,
             IEnumerable<Span> expectedSelectedSpans,
             bool supportBlockComments,
-            CommentUncommentSelectionCommandHandler.Operation operation)
+            Operation operation)
         {
             var textUndoHistoryRegistry = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IEditorOperationsFactoryService>();
             var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory);
             var service = new MockCommentSelectionService(supportBlockComments);
 
-            var trackingSpans = new List<ITrackingSpan>();
-            var textChanges = new List<TextChange>();
+            var edits = commandHandler.CollectEditsAsync(
+                null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None).GetAwaiter().GetResult();
 
-            commandHandler.CollectEdits(
-                null, service, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer),
-                textChanges, trackingSpans, operation, CancellationToken.None);
+            Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, edits.TextChanges);
 
-            Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, textChanges);
+            var trackingSpans = edits.TrackingSpans
+                .Select(textSpan => AbstractCommentSelectionBase<Operation>.CreateTrackingSpan(
+                    edits.ResultOperation, textView.TextBuffer.CurrentSnapshot, textSpan.TrackingTextSpan))
+                .ToList();
 
             // Actually apply the edit to let the tracking spans adjust.
             using (var edit = textView.TextBuffer.CreateEdit())
             {
-                textChanges.Do(tc => edit.Replace(tc.Span.ToSpan(), tc.NewText));
+                edits.TextChanges.Do(tc => edit.Replace(tc.Span.ToSpan(), tc.NewText));
 
                 edit.Apply();
             }
 
             if (trackingSpans.Any())
             {
-                textView.SetSelection(trackingSpans.First().GetSpan(textView.TextSnapshot));
+                textView.SetSelection(trackingSpans.First().GetSpan(textView.TextBuffer.CurrentSnapshot));
             }
 
             if (expectedSelectedSpans != null)

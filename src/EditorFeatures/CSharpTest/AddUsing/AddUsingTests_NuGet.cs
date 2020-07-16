@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -24,17 +26,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 
     public class AddUsingNuGetTests : AbstractAddUsingTests
     {
-        const string NugetOrgSource = "nuget.org";
+        private const string NugetOrgSource = "nuget.org";
 
-        private static readonly ImmutableArray<PackageSource> NugetPackageSources =
-            ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/"));
+        private static readonly ValueTask<ImmutableArray<PackageSource>?> NugetPackageSources =
+            new ValueTask<ImmutableArray<PackageSource>?>(ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/")));
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
         {
             var workspace = base.CreateWorkspaceFromFile(initialMarkup, parameters);
-            workspace.Options = workspace.Options
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
-                .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
+                .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true)));
             return workspace;
         }
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
-            installerServiceMock.Setup(i => i.GetPackageSources()).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                 .Returns(true);
 
@@ -86,7 +88,7 @@ class C
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
-            installerServiceMock.Setup(i => i.GetPackageSources()).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                 .Returns(true);
 
@@ -115,7 +117,7 @@ class C
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
-            installerServiceMock.Setup(i => i.GetPackageSources()).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage"))
                 .Returns(true);
 
@@ -141,7 +143,7 @@ class C
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(Enumerable.Empty<Project>());
             installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "2.0")).Returns(Enumerable.Empty<Project>());
-            installerServiceMock.Setup(i => i.GetPackageSources()).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                 .Returns(ImmutableArray.Create("1.0", "2.0"));
 
@@ -185,7 +187,7 @@ parameters: new TestParameters(index: 2, fixProviderData: data));
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
-            installerServiceMock.Setup(i => i.GetPackageSources()).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                 .Returns(true);
 
@@ -217,7 +219,7 @@ class C
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(Enumerable.Empty<Project>());
-            installerServiceMock.Setup(i => i.GetPackageSources()).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                 .Returns(ImmutableArray.Create("1.0"));
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -251,7 +253,7 @@ class C
             installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns(Enumerable.Empty<Project>());
-            installerServiceMock.Setup(i => i.GetPackageSources()).Returns(NugetPackageSources);
+            installerServiceMock.Setup(i => i.TryGetPackageSourcesAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(NugetPackageSources);
             installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                 .Returns(ImmutableArray.Create("1.0"));
             installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -275,7 +277,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        private Task<IList<PackageWithTypeResult>> CreateSearchResult(
+        private static Task<IList<PackageWithTypeResult>> CreateSearchResult(
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
@@ -283,9 +285,9 @@ class C
                 rank: 0, containingNamespaceNames: containingNamespaceNames));
         }
 
-        private Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
+        private static Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
             => Task.FromResult<IList<PackageWithTypeResult>>(ImmutableArray.Create(results));
 
-        private ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
+        private static ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
     }
 }

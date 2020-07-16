@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -26,10 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+            => _serviceProvider = serviceProvider;
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
@@ -63,19 +65,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
         private string GetSourceLine(string filePath, int lineNumber)
         {
-            using (var invisibleEditor = new InvisibleEditor(
-                _serviceProvider, filePath, hierarchyOpt: null, needsSave: false, needsUndoDisabled: false))
+            using var invisibleEditor = new InvisibleEditor(
+                _serviceProvider, filePath, hierarchyOpt: null, needsSave: false, needsUndoDisabled: false);
+            var vsTextLines = invisibleEditor.VsTextLines;
+            if (vsTextLines != null &&
+                vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
+                vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
             {
-                var vsTextLines = invisibleEditor.VsTextLines;
-                if (vsTextLines != null &&
-                    vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
-                    vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
-                {
-                    return lineText;
-                }
-
-                return ServicesVSResources.Preview_unavailable;
+                return lineText;
             }
+
+            return ServicesVSResources.Preview_unavailable;
         }
 
         private class ExternalDefinitionItem : DefinitionItem
@@ -98,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                        originationParts: default,
                        sourceSpans: default,
                        properties: null,
+                       displayableProperties: null,
                        displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
@@ -108,10 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             public override bool CanNavigateTo(Workspace workspace) => true;
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
-            {
-                return TryOpenFile() && TryNavigateToPosition();
-            }
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
+                => TryOpenFile() && TryNavigateToPosition();
 
             private bool TryOpenFile()
             {
@@ -139,8 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
                 try
                 {
-                    var lines = Marshal.GetObjectForIUnknown(bufferPtr) as IVsTextLines;
-                    if (lines == null)
+                    if (!(Marshal.GetObjectForIUnknown(bufferPtr) is IVsTextLines lines))
                     {
                         return false;
                     }

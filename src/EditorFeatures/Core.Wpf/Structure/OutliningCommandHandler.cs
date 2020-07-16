@@ -1,26 +1,28 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name("Outlining Command Handler")]
-    internal sealed class OutliningCommandHandler : VSCommanding.ICommandHandler<StartAutomaticOutliningCommandArgs>
+    internal sealed class OutliningCommandHandler : ICommandHandler<StartAutomaticOutliningCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OutliningCommandHandler(IOutliningManagerService outliningManagerService)
-        {
-            _outliningManagerService = outliningManagerService;
-        }
+            => _outliningManagerService = outliningManagerService;
 
         public string DisplayName => EditorFeaturesResources.Outlining;
 
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             return false;
         }
 
-        public VSCommanding.CommandState GetCommandState(StartAutomaticOutliningCommandArgs args)
+        public CommandState GetCommandState(StartAutomaticOutliningCommandArgs args)
         {
             var outliningManager = _outliningManagerService.GetOutliningManager(args.TextView);
             var enabled = false;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 enabled = outliningManager.Enabled;
             }
 
-            return new VSCommanding.CommandState(isAvailable: !enabled);
+            return new CommandState(isAvailable: !enabled);
         }
     }
 }

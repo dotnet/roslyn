@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 
@@ -33,12 +37,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The method that declares the type parameter, or null.
         /// </summary>
-        IMethodSymbol DeclaringMethod { get; }
+        IMethodSymbol? DeclaringMethod { get; }
 
         /// <summary>
         /// The type that declares the type parameter, or null.
         /// </summary>
-        INamedTypeSymbol DeclaringType { get; }
+        INamedTypeSymbol? DeclaringType { get; }
 
         /// <summary>
         /// True if the reference type constraint (<c>class</c>) was specified for the type parameter.
@@ -94,6 +98,6 @@ namespace Microsoft.CodeAnalysis
         /// If this is a type parameter of a reduced extension method, gets the type parameter definition that
         /// this type parameter was reduced from. Otherwise, returns Nothing.
         /// </summary>
-        ITypeParameterSymbol ReducedFrom { get; }
+        ITypeParameterSymbol? ReducedFrom { get; }
     }
 }

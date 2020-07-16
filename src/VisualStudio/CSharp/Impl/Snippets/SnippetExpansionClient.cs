@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -96,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var contextLocation = root.FindToken(position).Parent;
 
-            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
+            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode);
             if (!newUsingDirectives.Any())
             {
                 return document;
@@ -110,8 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
 
             var addImportService = document.GetLanguageService<IAddImportsService>();
+            var generator = document.GetLanguageService<SyntaxGenerator>();
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
+            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, placeSystemNamespaceFirst, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 
@@ -122,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         }
 
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
-            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
+            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
             var existingUsings = contextLocation.GetEnclosingUsingDirectives();
@@ -147,6 +151,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 {
                     continue;
                 }
+                else if (candidateUsing.ContainsDiagnostics && !namespaceToImport.Contains("="))
+                {
+                    // Retry by parsing the namespace as a name and constructing a using directive from it
+                    candidateUsing = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceToImport))
+                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithTrailingTrivia(SyntaxFactory.Space));
+                }
 
                 if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))
                 {
@@ -155,11 +165,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
 
             return newUsings;
-        }
-
-        private static string GetAliasName(UsingDirectiveSyntax usingDirective)
-        {
-            return (usingDirective.Alias == null || usingDirective.Alias.Name == null) ? null : usingDirective.Alias.Name.ToString();
         }
     }
 }

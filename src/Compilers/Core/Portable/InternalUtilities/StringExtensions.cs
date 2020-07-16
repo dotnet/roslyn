@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -24,7 +29,7 @@ namespace Roslyn.Utilities
             return (number < numerals.Length) ? numerals[number] : number.ToString();
         }
 
-        public static string Join(this IEnumerable<string> source, string separator)
+        public static string Join(this IEnumerable<string?> source, string separator)
         {
             if (source == null)
             {
@@ -52,28 +57,31 @@ namespace Roslyn.Utilities
         private static readonly Func<char, char> s_toLower = char.ToLower;
         private static readonly Func<char, char> s_toUpper = char.ToUpper;
 
-        public static string ToPascalCase(
-            this string shortName,
+        [return: NotNullIfNotNull(parameterName: "shortName")]
+        public static string? ToPascalCase(
+            this string? shortName,
             bool trimLeadingTypePrefix = true)
         {
             return ConvertCase(shortName, trimLeadingTypePrefix, s_toUpper);
         }
 
-        public static string ToCamelCase(
-            this string shortName,
+        [return: NotNullIfNotNull(parameterName: "shortName")]
+        public static string? ToCamelCase(
+            this string? shortName,
             bool trimLeadingTypePrefix = true)
         {
             return ConvertCase(shortName, trimLeadingTypePrefix, s_toLower);
         }
 
-        private static string ConvertCase(
-            this string shortName,
+        [return: NotNullIfNotNull(parameterName: "shortName")]
+        private static string? ConvertCase(
+            this string? shortName,
             bool trimLeadingTypePrefix,
             Func<char, char> convert)
         {
             // Special case the common .NET pattern of "IGoo" as a type name.  In this case we
             // want to generate "goo" as the parameter name.  
-            if (!string.IsNullOrEmpty(shortName))
+            if (!RoslynString.IsNullOrEmpty(shortName))
             {
                 if (trimLeadingTypePrefix && (shortName.LooksLikeInterfaceName() || shortName.LooksLikeTypeParameterName()))
                 {
@@ -89,17 +97,17 @@ namespace Roslyn.Utilities
             return shortName;
         }
 
-        internal static bool IsValidClrTypeName(this string name)
+        internal static bool IsValidClrTypeName([NotNullWhen(returnValue: true)] this string? name)
         {
-            return !string.IsNullOrEmpty(name) && name.IndexOf('\0') == -1;
+            return !RoslynString.IsNullOrEmpty(name) && name.IndexOf('\0') == -1;
         }
 
         /// <summary>
         /// Checks if the given name is a sequence of valid CLR names separated by a dot.
         /// </summary>
-        internal static bool IsValidClrNamespaceName(this string name)
+        internal static bool IsValidClrNamespaceName([NotNullWhen(returnValue: true)] this string? name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (RoslynString.IsNullOrEmpty(name))
             {
                 return false;
             }
@@ -124,7 +132,7 @@ namespace Roslyn.Utilities
             this string name,
             bool isCaseSensitive)
         {
-            string cleaned = name;
+            string? cleaned = name;
             while ((cleaned = GetWithoutAttributeSuffix(cleaned, isCaseSensitive)) != null)
             {
                 name = cleaned;
@@ -135,12 +143,12 @@ namespace Roslyn.Utilities
 
         internal static bool TryGetWithoutAttributeSuffix(
             this string name,
-            out string result)
+            [NotNullWhen(returnValue: true)] out string? result)
         {
             return TryGetWithoutAttributeSuffix(name, isCaseSensitive: true, result: out result);
         }
 
-        internal static string GetWithoutAttributeSuffix(
+        internal static string? GetWithoutAttributeSuffix(
             this string name,
             bool isCaseSensitive)
         {
@@ -150,7 +158,7 @@ namespace Roslyn.Utilities
         internal static bool TryGetWithoutAttributeSuffix(
             this string name,
             bool isCaseSensitive,
-            out string result)
+            [NotNullWhen(returnValue: true)] out string? result)
         {
             if (name.HasAttributeSuffix(isCaseSensitive))
             {
@@ -203,7 +211,7 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static string Unquote(this string arg)
         {
-            return Unquote(arg, out var quoted);
+            return Unquote(arg, out _);
         }
 
         internal static string Unquote(this string arg, out bool quoted)

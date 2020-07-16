@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -359,9 +361,9 @@ public class TestClass
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (11,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (11,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case (default):
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(11, 19),
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(11, 19),
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
@@ -1034,9 +1036,9 @@ class C
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS0150: A constant value is expected
+                // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
@@ -1045,9 +1047,9 @@ class C
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
                 );
             CreateCompilation(text).VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
@@ -1152,7 +1154,7 @@ class Program
             // Ensure the model can still bind without throwing when multiple labels values 
             // have duplicate constants (ConstantValue.Bad).  
             var symbolInfo = semanticModel.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
         }
 
         #endregion

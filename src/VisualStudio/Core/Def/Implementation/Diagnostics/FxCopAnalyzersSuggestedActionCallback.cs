@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,7 +24,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
-    [Export(typeof(ISuggestedActionCallback))]
+    // Temporarily disabled due to noise: https://github.com/dotnet/roslyn/issues/39818
+    //[Export(typeof(ISuggestedActionCallback))]
     internal class FxCopAnalyzersSuggestedActionCallback : ForegroundThreadAffinitizedObject, ISuggestedActionCallback
     {
         private const string AnalyzerVsixHyperlink = @"https://marketplace.visualstudio.com/items?itemName=VisualStudioPlatformTeam.MicrosoftCodeAnalysis2019";
@@ -87,11 +91,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return;
             }
 
-            // Only show if the VSIX and NuGet are not installed, the info bar hasn't been shown this session,
-            // and the user is candidate based on light bulb usage.
+            // Only show if following conditions are satisfied:
+            // 1. Info bar hasn't been shown this session
+            // 2. FxCopAnalyzers VSIX is not installed 
+            // 3. FxCopAnalyzers NuGet is not installed
+            // 4. There are no unresolved analyzer references for active project and
+            // 5. User is candidate based on light bulb usage.
             if (!_infoBarChecked &&
                 !IsVsixInstalled() &&
-                !IsNuGetInstalled() &&
+                !IsNuGetInstalled(out var hasUnresolvedAnalyzerReference) &&
+                !hasUnresolvedAnalyzerReference &&
                 IsCandidate(action))
             {
                 ShowInfoBarIfNecessary();
@@ -123,8 +132,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return _vsixInstallStatus == FxCopAnalyzersInstallStatus.Installed;
         }
 
-        private bool IsNuGetInstalled()
+        private bool IsNuGetInstalled(out bool hasUnresolvedAnalyzerReference)
         {
+            hasUnresolvedAnalyzerReference = false;
             if (_nugetInstallStatusForCurrentSolution != FxCopAnalyzersInstallStatus.Installed)
             {
                 var activeDocumentId = _documentTrackingService.TryGetActiveDocument();
@@ -139,24 +149,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     return false;
                 }
 
-                foreach (var analyzerReference in document.Project.AnalyzerReferences)
+                if (IsNuGetInstalled(document.Project.AnalyzerReferences, out hasUnresolvedAnalyzerReference))
                 {
-                    if (ChildAnalyzerNuGetPackageIds.Contains(analyzerReference.Display))
-                    {
-                        // We set installed to ensure we don't go through this again next time a
-                        // suggested action is called for any document in current solution.
-                        _nugetInstallStatusForCurrentSolution = FxCopAnalyzersInstallStatus.Installed;
-                        return true;
-                    }
+                    // We set installed to ensure we don't go through this again next time a
+                    // suggested action is called for any document in current solution.
+                    _nugetInstallStatusForCurrentSolution = FxCopAnalyzersInstallStatus.Installed;
+                    return true;
                 }
             }
 
             return false;
         }
 
+        // internal for testing purposes.
+        internal static bool IsNuGetInstalled(
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            out bool hasUnresolvedAnalyzerReference)
+        {
+            var foundAnalyzerReference = false;
+            hasUnresolvedAnalyzerReference = false;
+            foreach (var analyzerReference in analyzerReferences)
+            {
+                if (analyzerReference is UnresolvedAnalyzerReference)
+                {
+                    hasUnresolvedAnalyzerReference = true;
+                    continue;
+                }
+
+                var display = analyzerReference.Display;
+                if (display != null &&
+                    ChildAnalyzerNuGetPackageIds.Contains(display))
+                {
+                    foundAnalyzerReference = true;
+                }
+            }
+
+            return foundAnalyzerReference;
+        }
+
         private bool IsCandidate(SuggestedAction action)
         {
-            // Candidates fill the following critera:
+            // Candidates fill the following criteria:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
             //     2: Have triggered a lightbulb on 3 separate days or if this is a code quality suggested action.
 
@@ -188,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                         FxCopAnalyzersInstallLogger.Log(nameof(FxCopAnalyzersInstallOptions.HasMetCandidacyRequirements));
                     }
 
-                    _workspace.Options = options;
+                    _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(options));
                 }
             }
 
@@ -208,7 +241,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             if (timeSinceLastShown.TotalDays >= 1)
             {
-                _workspace.Options = _workspace.Options.WithChangedOption(FxCopAnalyzersInstallOptions.LastDateTimeInfoBarShown, utcNow.ToBinary());
+                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                    .WithChangedOption(FxCopAnalyzersInstallOptions.LastDateTimeInfoBarShown, utcNow.ToBinary())));
                 FxCopAnalyzersInstallLogger.Log("InfoBarShown");
 
                 var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
@@ -276,7 +310,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private void DoNotShowAgain()
         {
-            _workspace.Options = _workspace.Options.WithChangedOption(FxCopAnalyzersInstallOptions.NeverShowAgain, true);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(FxCopAnalyzersInstallOptions.NeverShowAgain, true)));
             FxCopAnalyzersInstallLogger.Log(nameof(FxCopAnalyzersInstallOptions.NeverShowAgain));
         }
     }

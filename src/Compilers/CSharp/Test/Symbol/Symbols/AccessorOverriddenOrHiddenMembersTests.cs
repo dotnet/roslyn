@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -1014,7 +1016,7 @@ using System;
                 var source = testCase.Item1;
                 var expectedResult = testCase.Item2;
 
-                var compilation = CreateCompilation(source);
+                var compilation = (Compilation)CreateCompilation(source);
                 var syntaxTree = compilation.SyntaxTrees.Single();
                 var nodes = syntaxTree.GetRoot().DescendantNodes();
 
@@ -1035,27 +1037,27 @@ using System;
                 Assert.Equal(0, memberNameSyntax.Arity);
 
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                var classDisposable = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Disposable");
+                var classDisposable = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Disposable");
                 Assert.Equal(TypeKind.Class, classDisposable.TypeKind);
                 Assert.Equal("Disposable", classDisposable.Name);
 
-                var localD = (LocalSymbol)semanticModel.GetSymbolInfo(identifierSyntax).Symbol;
+                var localD = (ILocalSymbol)semanticModel.GetSymbolInfo(identifierSyntax).Symbol;
                 Assert.Equal("d", localD.Name);
                 Assert.Equal("Disposable", localD.Type.Name);
                 Assert.Equal(classDisposable, localD.Type);
 
-                var methodDispose = (MethodSymbol)semanticModel.GetSymbolInfo(memberAccessSyntax).Symbol;
+                var methodDispose = (IMethodSymbol)semanticModel.GetSymbolInfo(memberAccessSyntax).Symbol;
                 Assert.Equal("Dispose", methodDispose.Name);
                 Assert.Equal(0, methodDispose.Arity);
-                Assert.Equal(0, methodDispose.ParameterCount);
+                Assert.Empty(methodDispose.Parameters);
                 Assert.True(methodDispose.ReturnsVoid);
                 Assert.Equal(classDisposable, methodDispose.ContainingType);
                 Assert.Equal(Accessibility.Public, methodDispose.DeclaredAccessibility);
-                Assert.False(methodDispose.IsExplicitInterfaceImplementation);
+                Assert.Empty(methodDispose.ExplicitInterfaceImplementations);
 
                 var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
                 var interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
-                var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is NamedTypeSymbol;
+                var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is INamedTypeSymbol;
                 Assert.Equal(expectedResult.isInterfaceNameBound, isInterfaceNameBound);
 
                 var memberAccessed = memberAccessSyntax;

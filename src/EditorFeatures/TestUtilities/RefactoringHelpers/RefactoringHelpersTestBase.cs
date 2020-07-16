@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -24,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
         protected readonly TWorkspaceFixture fixture;
 
         protected RefactoringHelpersTestBase(TWorkspaceFixture workspaceFixture)
-        {
-            this.fixture = workspaceFixture;
-        }
+            => this.fixture = workspaceFixture;
 
         public override void Dispose()
         {
@@ -39,19 +39,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
         protected async Task TestAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
         {
             text = GetSelectionAndResultSpans(text, out var selection, out var result);
-            var resultNode = await GetNodeForSelection<TNode>(text, selection, predicate).ConfigureAwait(false);
+            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate).ConfigureAwait(false);
 
             Assert.NotNull(resultNode);
             Assert.Equal(result, resultNode.Span);
         }
 
+        protected async Task TestUnderselectedAsync<TNode>(string text) where TNode : SyntaxNode
+        {
+            text = GetSelectionSpan(text, out var selection);
+            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, Functions<TNode>.True).ConfigureAwait(false);
+
+            Assert.NotNull(resultNode);
+            Assert.True(CodeRefactoringHelpers.IsNodeUnderselected(resultNode, selection));
+        }
+
+        protected async Task TestNotUnderselectedAsync<TNode>(string text) where TNode : SyntaxNode
+        {
+            text = GetSelectionAndResultSpans(text, out var selection, out var result);
+            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, Functions<TNode>.True).ConfigureAwait(false);
+
+            Assert.Equal(result, resultNode.Span);
+            Assert.False(CodeRefactoringHelpers.IsNodeUnderselected(resultNode, selection));
+        }
 
         protected Task TestMissingAsync<TNode>(string text) where TNode : SyntaxNode => TestMissingAsync<TNode>(text, Functions<TNode>.True);
         protected async Task TestMissingAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
         {
             text = GetSelectionSpan(text, out var selection);
 
-            var resultNode = await GetNodeForSelection<TNode>(text, selection, predicate).ConfigureAwait(false);
+            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate).ConfigureAwait(false);
             Assert.Null(resultNode);
         }
 
@@ -86,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             return text;
         }
 
-        private async Task<TNode> GetNodeForSelection<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        private async Task<TNode> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
         {
             var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
             var relevantNodes = await document.GetRelevantNodesAsync<TNode>(selection, CancellationToken.None).ConfigureAwait(false);

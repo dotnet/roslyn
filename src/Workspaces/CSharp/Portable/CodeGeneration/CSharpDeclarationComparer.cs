@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -61,9 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private readonly bool _includeName;
 
         private CSharpDeclarationComparer(bool includeName)
-        {
-            _includeName = includeName;
-        }
+            => _includeName = includeName;
 
         public int Compare(SyntaxNode x, SyntaxNode y)
         {
@@ -129,8 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // for REPL, don't mess with order, just put new one at the end.
                     return 1;
                 default:
-                    Contract.Fail("Syntax nodes x and y are not declarations");
-                    return 0;
+                    throw ExceptionUtilities.UnexpectedValue(x.Kind());
             }
         }
 
@@ -307,9 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool ContainsToken(SyntaxTokenList list, SyntaxKind kind)
-        {
-            return list.Contains(token => token.Kind() == kind);
-        }
+            => list.Contains(token => token.Kind() == kind);
 
         private enum Accessibility
         {
@@ -321,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Private
         }
 
-        private static int GetAccessibilityPrecedence(SyntaxNode declaration, SyntaxNode parent, SyntaxTokenList modifiers)
+        private static int GetAccessibilityPrecedence(SyntaxTokenList modifiers, SyntaxNode parent)
         {
             if (ContainsToken(modifiers, SyntaxKind.PublicKeyword))
             {
@@ -395,8 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static bool EqualAccessibility(SyntaxNode x, SyntaxTokenList xModifiers, SyntaxNode y, SyntaxTokenList yModifiers, out int comparisonResult)
         {
-            var xAccessibility = GetAccessibilityPrecedence(x, x.Parent ?? y.Parent, xModifiers);
-            var yAccessibility = GetAccessibilityPrecedence(y, y.Parent ?? x.Parent, yModifiers);
+            var xAccessibility = GetAccessibilityPrecedence(xModifiers, x.Parent ?? y.Parent);
+            var yAccessibility = GetAccessibilityPrecedence(yModifiers, y.Parent ?? x.Parent);
 
             comparisonResult = xAccessibility - yAccessibility;
             return comparisonResult == 0;
@@ -431,19 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var yParameterCount = y.Parameters.Count;
 
             comparisonResult = xParameterCount - yParameterCount;
-
-            return comparisonResult == 0;
-        }
-
-        private static bool EqualTypeParameterCount(TypeParameterListSyntax x, TypeParameterListSyntax y, out int comparisonResult)
-        {
-            if (NeitherNull(x, y, out comparisonResult))
-            {
-                var xParameterCount = x.Parameters.Count;
-                var yParameterCount = y.Parameters.Count;
-
-                comparisonResult = xParameterCount - yParameterCount;
-            }
 
             return comparisonResult == 0;
         }

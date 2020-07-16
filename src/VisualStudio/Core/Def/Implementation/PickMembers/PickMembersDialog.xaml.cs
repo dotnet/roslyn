@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -96,8 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         {
             if (Members.SelectedIndex >= 0)
             {
-                var row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
-                if (row == null)
+                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is ListViewItem row))
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
@@ -143,9 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             private readonly PickMembersDialog _dialog;
 
             public TestAccessor(PickMembersDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
 

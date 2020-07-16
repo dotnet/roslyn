@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -73,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 
-        Private Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
+        Private Shared Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
             Dim serializationAllowed = False
             For Each item In options.AdditionalFiles
                 If item.Path.EndsWith("app.config", StringComparison.OrdinalIgnoreCase) Then
@@ -85,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             Return serializationAllowed
         End Function
 
-        Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+        Public Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
             Dim namedType = DirectCast(context.Symbol, INamedTypeSymbol)
 
             If namedType.AllInterfaces.Contains(context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable")) Then

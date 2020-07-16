@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
@@ -189,11 +191,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim id = ERRID.ERR_None
 
             Select Case type.TypeKind
-                Case TypeKind.Interface,
-                    TypeKind.Structure,
+                Case TypeKind.Interface
+                    For Each member As Symbol In type.GetMembersUnordered()
+                        If member.Kind <> SymbolKind.NamedType Then
+                            If Not member.IsMustOverride Then
+                                id = ERRID.ERR_DefaultInterfaceImplementationInNoPIAType
+                            ElseIf member.IsNotOverridable Then
+                                id = ERRID.ERR_ReAbstractionInNoPIAType
+                            End If
+                        End If
+                    Next
+
+                    If id = ERRID.ERR_None Then
+                        GoTo checksForAllEmbedabbleTypes
+                    End If
+
+                Case TypeKind.Structure,
                     TypeKind.Enum,
                     TypeKind.Delegate
-
+checksForAllEmbedabbleTypes:
                     If type.IsTupleType Then
                         type = type.TupleUnderlyingType
                     End If

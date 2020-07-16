@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -305,6 +307,248 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableParameters()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, string b, string c)
+    {
+    }
+}",
+@$"
+using System;
+
+class C
+{{
+    public C(string a, string b, string c)
+    {{
+        if (string.IsNullOrEmpty(a))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}")}"", nameof(a));
+        }}
+
+        if (string.IsNullOrEmpty(b))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}")}"", nameof(b));
+        }}
+
+        if (string.IsNullOrEmpty(c))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}")}"", nameof(c));
+        }}
+    }}
+}}", index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCursorNotOnParameters()
+        {
+            await TestMissingInRegularAndScriptAsync(
+
+@"
+using System;
+
+class C
+{
+    public C(string a[|,|] string b, string c)
+    {
+    }
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableWithCursorOnNonNullable()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C(string a, [||]bool b, string c)
+    {
+    }
+}",
+@$"
+using System;
+
+class C
+{{
+    public C(string a, bool b, string c)
+    {{
+        if (string.IsNullOrEmpty(a))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}")}"", nameof(a));
+        }}
+
+        if (string.IsNullOrEmpty(c))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}")}"", nameof(c));
+        }}
+    }}
+}}", index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableNonNullable()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, bool b, string c)
+    {
+    }
+}",
+@$"
+using System;
+
+class C
+{{
+    public C(string a, bool b, string c)
+    {{
+        if (string.IsNullOrEmpty(a))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}")}"", nameof(a));
+        }}
+
+        if (string.IsNullOrEmpty(c))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}")}"", nameof(c));
+        }}
+    }}
+}}", index: 3);
+
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableStringsAndObjects()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, object b, string c)
+    {
+    }
+}",
+@$"
+using System;
+
+class C
+{{
+    public C(string a, object b, string c)
+    {{
+        if (string.IsNullOrEmpty(a))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}")}"", nameof(a));
+        }}
+
+        if (b is null)
+        {{
+            throw new ArgumentNullException(nameof(b));
+        }}
+
+        if (string.IsNullOrEmpty(c))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}")}"", nameof(c));
+        }}
+    }}
+}}", index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableObjects()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]object a, object b, object c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(object a, object b, object c)
+    {
+        if (a is null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+
+        if (b is null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        if (c is null)
+        {
+            throw new ArgumentNullException(nameof(c));
+        }
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableStructs()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]int ? a, bool ? b, double ? c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(int ? a, bool ? b, double ? c)
+    {
+        if (a is null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+
+        if (b is null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        if (c is null)
+        {
+            throw new ArgumentNullException(nameof(c));
+        }
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExistingPropertyAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -402,7 +646,7 @@ class C
         S = s;
     }
 }", parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1117,6 +1361,22 @@ class C
     }
 }");
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnIndexerParameters()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int this[[|object a|], object b, object c]
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSpecialStringCheck1()
@@ -1131,19 +1391,19 @@ class C
     {
     }
 }",
-@"
+@$"
 using System;
 
 class C
-{
+{{
     public C(string s)
-    {
+    {{
         if (string.IsNullOrEmpty(s))
-        {
-            throw new ArgumentException(""message"", nameof(s));
-        }
-    }
-}", index: 1);
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}")}"", nameof(s));
+        }}
+    }}
+}}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1159,19 +1419,19 @@ class C
     {
     }
 }",
-@"
+@$"
 using System;
 
 class C
-{
+{{
     public C(string s)
-    {
+    {{
         if (string.IsNullOrWhiteSpace(s))
-        {
-            throw new ArgumentException(""message"", nameof(s));
-        }
-    }
-}", index: 2);
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{nameof(s)}")}"", nameof(s));
+        }}
+    }}
+}}", index: 2);
         }
 
         [WorkItem(19173, "https://github.com/dotnet/roslyn/issues/19173")]
@@ -1206,23 +1466,23 @@ class Program
     {
     }
 }",
-@"
+@$"
 using System;
 
 class Program
-{
+{{
     static void Main(String bar)
-    {
+    {{
         if (String.IsNullOrEmpty(bar))
-        {
-            throw new ArgumentException(""message"", nameof(bar));
-        }
-    }
-}", index: 1,
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(bar)}")}"", nameof(bar));
+        }}
+    }}
+}}", index: 1,
     parameters: new TestParameters(
         options: Option(
-            CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
-            CodeStyleOptions.FalseWithSuggestionEnforcement)));
+            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+            CodeStyleOptions2.FalseWithSuggestionEnforcement)));
         }
 
         [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
@@ -1253,7 +1513,7 @@ class C
     }
 }",
     parameters: new TestParameters(options:
-        Option(CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption.Silent))));
+        Option(CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent))));
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
@@ -1477,6 +1737,25 @@ class C
     void M(Action<int, int> a)
     {
         M((x[||]
+    }
+}");
+        }
+
+        [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingInArgList()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private static void M()
+    {
+        M2(__arglist(1, 2, 3, 5, 6));
+    }
+
+    public static void M2([||]__arglist)
+    {
     }
 }");
         }

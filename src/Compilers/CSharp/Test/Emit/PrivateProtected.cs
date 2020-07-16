@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -95,7 +98,7 @@ public class Base
             var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2,
                 options: TestOptions.SigningReleaseDll,
                 assemblyName: "Paul");
-            var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
+            var bb = (NamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {
                 switch (member.Name)

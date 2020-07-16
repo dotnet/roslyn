@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -106,9 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public ImmutableArray<TItem> AggregateItems<TData>(IEnumerable<IGrouping<TData, TItem>> groupedItems)
         {
-            var aggregateItems = ArrayBuilder<TItem>.GetInstance();
-            var projectNames = ArrayBuilder<string>.GetInstance();
-            var projectGuids = ArrayBuilder<Guid>.GetInstance();
+            using var _0 = ArrayBuilder<TItem>.GetInstance(out var aggregateItems);
+            using var _1 = ArrayBuilder<string>.GetInstance(out var projectNames);
+            using var _2 = ArrayBuilder<Guid>.GetInstance(out var projectGuids);
 
             string[] stringArrayCache = null;
             Guid[] guidArrayCache = null;
@@ -119,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             foreach (var (_, items) in groupedItems)
             {
                 TItem firstItem = null;
-                bool hasSingle = true;
+                var hasSingle = true;
 
                 foreach (var item in items)
                 {
@@ -159,12 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 projectGuids.Clear();
             }
 
-            projectNames.Free();
-            projectGuids.Free();
-
-            var result = Order(aggregateItems).ToImmutableArray();
-            aggregateItems.Free();
-            return result;
+            return Order(aggregateItems).ToImmutableArray();
         }
 
         public abstract IEqualityComparer<TItem> GroupingComparer { get; }
@@ -306,9 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected void AddAggregateKey(object data, object aggregateKey)
-        {
-            _aggregateKeyMap.Add(GetItemKey(data), aggregateKey);
-        }
+            => _aggregateKeyMap.Add(GetItemKey(data), aggregateKey);
 
         protected object TryGetAggregateKey(object data)
         {
@@ -322,9 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void RemoveAggregateKey_NoLock(object data)
-        {
-            _aggregateKeyMap.Remove(GetItemKey(data));
-        }
+            => _aggregateKeyMap.Remove(GetItemKey(data));
 
         IDisposable ITableDataSource.Subscribe(ITableDataSink sink)
         {
@@ -378,14 +371,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public void Remove(ITableEntriesSnapshotFactory factory)
-            {
-                _sink.RemoveFactory(factory);
-            }
+                => _sink.RemoveFactory(factory);
 
             public void RemoveAll()
-            {
-                _sink.RemoveAllFactories();
-            }
+                => _sink.RemoveAllFactories();
 
             public void Dispose()
             {
@@ -404,14 +393,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             private void Register()
-            {
-                UpdateSubscriptions(s => s.Add(this));
-            }
+                => UpdateSubscriptions(s => s.Add(this));
 
             private void UnRegister()
-            {
-                UpdateSubscriptions(s => s.Remove(this));
-            }
+                => UpdateSubscriptions(s => s.Remove(this));
 
             private void UpdateSubscriptions(Func<ImmutableArray<SubscriptionWithoutLock>, ImmutableArray<SubscriptionWithoutLock>> update)
             {

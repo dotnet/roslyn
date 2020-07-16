@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
@@ -1101,6 +1103,43 @@ End Class
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Get_P", Glyph.MethodPublic, bolded:=True),
                     Item("P", Glyph.PropertyPublic, bolded:=True)}))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(37621, "https://github.com/dotnet/roslyn/issues/37621")>
+        Public Async Function TestGenerateEventWithAttributedDelegateType() As Task
+            Await AssertGeneratedResultIsAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <ProjectReference>LibraryWithInaccessibleAttribute</ProjectReference>
+                        <Document>
+Class C
+    Inherits BaseType
+End Class
+                        </Document>
+                    </Project>
+                    <Project Language="Visual Basic" Name="LibraryWithInaccessibleAttribute" CommonReferences="true">
+                        <Document><![CDATA[[
+Friend Class AttributeType
+    Inherits Attribute
+End Class
+
+Delegate Sub DelegateType(<AttributeType> parameterWithInaccessibleAttribute As Object)
+
+Public Class BaseType
+    Public Event E As DelegateType
+End Class
+                    ]]></Document></Project>
+                </Workspace>,
+                 String.Format(VBEditorResources._0_Events, "C"), "E",
+                <Result>
+Class C
+    Inherits BaseType
+
+    Private Sub C_E(parameterWithInaccessibleAttribute As Object) Handles Me.E
+
+    End Sub
+End Class
+                </Result>)
         End Function
 
     End Class

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -46,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         where TNameSyntax : SyntaxNode
         where TBaseArgumentListSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly int _dotToken;
         private readonly int _questionToken;
 
         protected AbstractChainedExpressionWrapper(
             Indentation.IIndentationService indentationService,
-            ISyntaxFactsService syntaxFacts) : base(indentationService)
+            ISyntaxFacts syntaxFacts) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
             _dotToken = syntaxFacts.SyntaxKinds.DotToken;
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // nodes and tokens we want to treat as individual elements.  i.e. an 
             // element that would be kept together.  For example, the arg-list of an
             // invocation is an element we do not want to ever break-up/wrap. 
-            var pieces = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            using var _1 = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var pieces);
             Decompose(node, pieces);
 
             // Now that we have the pieces, find 'chunks' similar to the form:
@@ -132,11 +134,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // 
             // Here 'remainder' is everything up to the next <c>. Name (...)</c> chunk.
 
-            var chunks = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance();
+            using var _2 = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance(out var chunks);
             BreakPiecesIntoChunks(pieces, chunks);
-
-            pieces.Free();
-            return chunks.ToImmutableAndFree();
+            return chunks.ToImmutable();
         }
 
         private void BreakPiecesIntoChunks(
@@ -219,28 +219,28 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             return -1;
         }
 
-        private bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsNode &&
                piece.AsNode() is TNode;
 
-        private bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsToken &&
                piece.AsToken().RawKind == tokenKind;
 
-        private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
+        private static ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
-            var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start);
+            using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);
             for (var i = start; i < end; i++)
             {
                 result.Add(pieces[i]);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private bool IsDecomposableChainPart(SyntaxNode node)

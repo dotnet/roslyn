@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             bool isWithEvents = false,
             TypeKind typeKind = TypeKind.Unknown)
         {
-            var symbolMock = new Mock<ISymbol>();
+            var symbolMock = new Mock<ISymbol>(MockBehavior.Strict);
 
             symbolMock.SetupGet(s => s.Kind).Returns(kind);
             symbolMock.SetupGet(s => s.DeclaredAccessibility).Returns(declaredAccessibility);

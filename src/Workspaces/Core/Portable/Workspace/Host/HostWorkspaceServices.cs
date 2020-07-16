@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -86,18 +88,14 @@ namespace Microsoft.CodeAnalysis.Host
         /// Returns true if the language is supported.
         /// </summary>
         public virtual bool IsSupported(string languageName)
-        {
-            return false;
-        }
+            => false;
 
         /// <summary>
         /// Gets the <see cref="HostLanguageServices"/> for the language name.
         /// </summary>
         /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
         public virtual HostLanguageServices GetLanguageServices(string languageName)
-        {
-            throw new NotSupportedException(string.Format(WorkspacesResources.The_language_0_is_not_supported, languageName));
-        }
+            => throw new NotSupportedException(string.Format(WorkspacesResources.The_language_0_is_not_supported, languageName));
 
         public delegate bool MetadataFilter(IReadOnlyDictionary<string, object> metadata);
 

@@ -1,17 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(InternalsVisibleToCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(DeclarationNameCompletionProvider))]
+    [Shared]
     internal sealed class InternalsVisibleToCompletionProvider : AbstractInternalsVisibleToCompletionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public InternalsVisibleToCompletionProvider()
+        {
+        }
 
         protected override IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot)
         {
-            var builder = default(ImmutableList<SyntaxNode>.Builder);
+            var builder = (ImmutableList<SyntaxNode>.Builder)null;
             if (documentRoot is CompilationUnitSyntax compilationUnit)
             {
                 foreach (var attributeList in compilationUnit.AttributeLists)
@@ -38,5 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ? arguments[0].Expression
                 : null;
         }
+
+        protected override bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition)
+            => CompletionUtilities.IsStartingNewWord(text, insertedCharacterPosition);
     }
 }

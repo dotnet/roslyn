@@ -2,19 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="translated">Error de sintaxis de la línea de comandos: "{0}" no es un valor válido para la opción "{1}". El valor debe tener el formato "{2}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Use la versión de lenguaje {0} o superior para usar los comentarios después del carácter de continuación de línea.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">El tipo "{0}" no se puede incrustar porque tiene un miembro no abstracto. Puede establecer la propiedad "Incrustar tipos de interoperabilidad" en false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">No es posible que un mismo directorio ("{0}") contenga varios archivos de configuración del analizador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">El tipo "{0}" no se puede insertar porque tiene una reabstracción de un miembro de la interfaz base. Puede establecer la propiedad "Incrustar tipos de interoperabilidad" en false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="translated">El tiempo de ejecución de destino no admite la implementación de interfaz predeterminada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="translated">El entorno de ejecución de destino no admite la accesibilidad de tipo "Protected", "Protected Friend" o "Private Protected" para un miembro de una interfaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">comentarios después de la continuación de línea</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -95,8 +120,11 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
 
@@ -209,7 +237,7 @@
                                   especificaciones del carácter comodín.
 -reference:&lt;lista_archivos&gt;            Hacer referencia a los metadatos desde el ensamblado
                                   especificado. (Forma corta: -r)
--analyzer:&lt;lista_archivos &gt;             Ejecutar analizadores desde este ensamblado
+-analyzer:&lt;lista_archivos&gt;             Ejecutar analizadores desde este ensamblado
                                   (Forma corta: -a)
 -additionalfile:&lt;lista_archivos&gt;       Archivos adicionales que no afectan directamente a la
                                   generación de código, pero que los analizadores pueden usar para producir
@@ -250,13 +278,16 @@
 
                                   - ERRORES Y ADVERTENCIAS -
 -nowarn                           Deshabilitar todas las advertencias.
--nowarn:&lt;lista_números &gt;             Deshabilitar una lista de advertencias individuales.
+-nowarn:&lt;lista_números&gt;             Deshabilitar una lista de advertencias individuales.
 -warnaserror[+|-]                 Tratar todas las advertencias como errores.
--warnaserror[+|-]:&lt;lista_números &gt;   Tratar una lista de advertencias como errores.
+-warnaserror[+|-]:&lt;lista_números&gt;   Tratar una lista de advertencias como errores.
 -ruleset:&lt;archivo&gt;                   Especificar un archivo de conjunto de reglas que deshabilite diagnósticos
                                   específicos.
--errorlog:&lt;archivo&gt;                  Especificar un archivo para registrar todos los diagnósticos del
-                                  compilador y del analizador.
+-errorlog:&lt;archivo&gt;[,version=&lt;versión_de_sarif&gt;]         
+                                  Especificar un archivo para registrar todos los diagnósticos del
+                                  compilador y del analizador en formato SARIF.
+                                  sarif_version:{1|2|2.1} El valor predeterminado es 1. 2 y 2.1
+                                  significa SARIF versión 2.1.0.
 -reportanalyzer                   Notificar información adicional del analizador, como
                                   el tiempo de ejecución.
 
@@ -330,8 +361,7 @@
                                   Debe ser x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred o anycpu (valor predeterminado).
 -preferreduilang                  Especificar el nombre del lenguaje de salida preferido.
--nosdkpath                        Deshabilite la búsqueda de la ruta de acceso del SDK predeterminado para ensamblados
-								  de biblioteca estándar.
+-nosdkpath                        Deshabilite la búsqueda de la ruta de acceso del SDK predeterminado para ensamblados de biblioteca estándar.
 -sdkpath:&lt;ruta de acceso&gt;                   Ubicación del directorio de .NET Framework SDK
                                   (mscorlib.dll).
 -subsystemversion:&lt;versión&gt;       Especificar la versión del subsistema del PE de salida.
@@ -344,6 +374,16 @@
 -vbruntime:&lt;archivo&gt;                 Compilar con el entorno de ejecución alternativo de
                                   Visual Basic en &lt;archivo&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="new">There are no function pointer types in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="new">There are no native integer types in VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -744,6 +784,11 @@
       <trans-unit id="ERR_IllegalChar">
         <source>Character is not valid.</source>
         <target state="translated">El carácter no es válido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">Se ha especificado el argumento stdin "-", pero la entrada no se ha redirigido desde el flujo de entrada estándar.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
@@ -1506,8 +1551,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">No se pudo emitir el módulo '{0}'.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="translated">No se pudo emitir el módulo "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -3236,7 +3281,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">El carácter de continuación de línea '_' debe ir precedido de al menos un espacio en blanco y debe ser el último carácter de la línea.</target>
+        <target state="translated">El carácter de continuación de línea "_ " debe ir precedido de al menos un espacio en blanco y debe ir seguido de un comentario o " _" debe ser el último carácter de la línea.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -3291,7 +3336,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNames3">
         <source>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}' (via '{2}').</source>
-        <target state="translated">La interfaz '{0}' solo se puede heredar una vez por esta interfaz, pero ya aparece con diferentes nombres de elementos de tupla, como '{1}' }' (a través de '{2}').</target>
+        <target state="translated">La interfaz '{0}' solo se puede heredar una vez por esta interfaz, pero ya aparece con diferentes nombres de elementos de tupla, como '{1}' (a través de '{2}').</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3">
@@ -4036,7 +4081,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedType1">
         <source>'{0}' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.</source>
-        <target state="translated">'No se puede hacer que '{0}' admita valores NULL y no se puede usar como tipo de datos de un elemento de matriz, campo, miembro de tipo anónimo, argumento de tipo, parámetro 'ByRef' o instrucción return.</target>
+        <target state="translated">No se puede hacer que "{0}" admita valores NULL y no se puede usar como tipo de datos de un elemento de matriz, campo, miembro de tipo anónimo, argumento de tipo, parámetro "ByRef" o instrucción "return".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoTypecharInAlias">
@@ -4346,7 +4391,7 @@
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyNameInvalid">
         <source>Friend declaration '{0}' is invalid and cannot be resolved.</source>
-        <target state="translated">La declaración de confianza '{0}' no es válida y no se puede resolver.</target>
+        <target state="translated">La declaración "friend" "{0}" no es válida y no se puede resolver.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendAssemblyBadAccessOverride2">
@@ -6054,7 +6099,7 @@
       </trans-unit>
       <trans-unit id="WRN_SynthMemberShadowsSynthMember7_Title">
         <source>Property or event implicitly declares member, which conflicts with a member implicitly declared for property or event in the base type</source>
-        <target state="translated">La propiedad o el evento declaran implícitamente al miembro, lo que es incompatible con la declaración implícita de un miembro para la propiedad o el evento del tipo base</target>
+        <target state="translated">La propiedad o el evento declaran implícitamente al miembro, lo que crea un conflicto con la declaración implícita de un miembro para la propiedad o el evento del tipo base</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3">
@@ -7194,7 +7239,7 @@
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyCantBeWriteOnly">
         <source>Auto-implemented properties cannot be WriteOnly.</source>
-        <target state="translated">Las propiedades implementadas automáticamente no pueden ser de solo escritura.</target>
+        <target state="translated">Las propiedades implementadas automáticamente no pueden ser WriteOnly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFCount">
@@ -8760,8 +8805,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La longitud de la constante de cadena supera el límite de memoria actual. Pruebe dividiendo la cadena en varias constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="translated">La longitud de la constante de cadena resultante de la concatenación supera el valor System.Int32.MaxValue. Pruebe a dividir la cadena en varias constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9106,7 +9151,17 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="translated">No se admite "{0}" en VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="translated">El atributo no se admite en VB</target>
         <note />
       </trans-unit>
     </body>

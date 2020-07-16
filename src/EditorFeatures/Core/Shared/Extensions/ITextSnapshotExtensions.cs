@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
@@ -21,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// format given snapshot and apply text changes to buffer
         /// </summary>
         public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, CancellationToken cancellationToken)
-        {
-            snapshot.FormatAndApplyToBuffer(span, rules: null, cancellationToken: cancellationToken);
-        }
+            => snapshot.FormatAndApplyToBuffer(span, rules: null, cancellationToken: cancellationToken);
 
         /// <summary>
         /// format given snapshot and apply text changes to buffer
@@ -60,6 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
+        /// 
+        /// for synchronous code path, make sure to use synchronous version 
+        /// <see cref="GetFullyLoadedOpenDocumentInCurrentContextWithChanges(ITextSnapshot, IUIThreadOperationContext, IThreadingContext)"/>.
+        /// otherwise, one can get into a deadlock
         /// </summary>
         public static async Task<Document> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
@@ -72,10 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return null;
             }
 
-            var description = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, document.Name);
-
             // partial mode is always cancellable
-            using (operationContext.AddScope(allowCancellation: true, description))
+            using (operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
                 var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)
@@ -88,6 +91,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 // get proper document
                 return snapshot.GetOpenDocumentInCurrentContextWithChanges();
             }
+        }
+
+        /// <summary>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
+        /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
+        /// </summary>
+        public static Document GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+            this ITextSnapshot snapshot, IUIThreadOperationContext operationContext, IThreadingContext threadingContext)
+        {
+            // make sure this is only called from UI thread
+            threadingContext.ThrowIfNotOnUIThread();
+
+            return threadingContext.JoinableTaskFactory.Run(() =>
+                snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext));
         }
     }
 }

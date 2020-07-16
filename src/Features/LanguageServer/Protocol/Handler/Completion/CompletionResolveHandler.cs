@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
@@ -17,10 +23,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal class CompletionResolveHandler : AbstractRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
-        public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CompletionResolveHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        {
+        }
+
+        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
         {
             CompletionResolveData data;
             if (completionItem.Data is CompletionResolveData)
@@ -32,18 +44,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
             }
 
-            var request = data.CompletionParams;
-
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = SolutionProvider.GetDocument(data.TextDocument, clientName);
             if (document == null)
             {
                 return completionItem;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
-            var completionService = document.Project.LanguageServices.GetService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(keepThreadContext);
+            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
+            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return completionItem;
@@ -55,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(keepThreadContext);
+            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
 
             var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
             LSP.CompletionItem resolvedCompletionItem;
@@ -76,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return resolvedCompletionItem;
         }
 
-        private LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
+        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
         {
             return new LSP.VSCompletionItem
             {

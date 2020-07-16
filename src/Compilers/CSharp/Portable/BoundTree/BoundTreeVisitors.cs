@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -48,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitArrayAccess(node as BoundArrayAccess, arg);
                 case BoundKind.TypeOfOperator:
                     return VisitTypeOfOperator(node as BoundTypeOfOperator, arg);
+                case BoundKind.DefaultLiteral:
+                    return VisitDefaultLiteral(node as BoundDefaultLiteral, arg);
                 case BoundKind.DefaultExpression:
                     return VisitDefaultExpression(node as BoundDefaultExpression, arg);
                 case BoundKind.IsOperator:
@@ -217,8 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+#nullable enable
         [DebuggerStepThrough]
-        private BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        private BoundExpression? VisitExpressionWithStackGuard(BoundExpression node)
         {
             try
             {
@@ -233,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// We should be intentional about behavior of derived classes regarding guarding against stack overflow.
         /// </summary>
-        protected abstract BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node);
+        protected abstract BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node);
+#nullable restore
     }
 }

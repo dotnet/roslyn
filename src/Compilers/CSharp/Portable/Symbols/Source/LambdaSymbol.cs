@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeWithAnnotations _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
+        private readonly bool _isStatic;
 
         /// <summary>
         /// This symbol is used as the return type of a LambdaSymbol when we are interpreting
@@ -50,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
+            _isStatic = unboundLambda.IsStatic;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, diagnostics);
         }
@@ -86,10 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool IsStatic
-        {
-            get { return false; }
-        }
+        public override bool IsStatic => _isStatic;
 
         public override bool IsAsync
         {
@@ -144,6 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return AreContainingSymbolLocalsZeroed; }
+        }
+
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }
@@ -192,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetInferredReturnType(RefKind refKind, TypeWithAnnotations inferredReturnType)
         {
             Debug.Assert(inferredReturnType.HasType);
-            Debug.Assert((object)_returnType.Type == ReturnTypeIsBeingInferred);
+            Debug.Assert(_returnType.Type.IsErrorType());
             _refKind = refKind;
             _returnType = inferredReturnType;
         }
@@ -361,8 +367,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
-                var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
+                var parameter = new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
                 ParameterHelpers.AddNullCheckingErrorsToParameter(diagnostics, parameter);
+
                 builder.Add(parameter);
             }
 
@@ -375,13 +382,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)this == symbol) return true;
 
-            var lambda = symbol as LambdaSymbol;
-            return (object)lambda != null
+            return symbol is LambdaSymbol lambda
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
-                && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypesWithAnnotations, this.ParameterTypesWithAnnotations, (p1, p2) => p1.Type.Equals(p2.Type))
-                && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
+                && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
+                                                               (p1, p2, compareKind) => p1.Equals(p2, compareKind))
+                && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
@@ -403,6 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
 

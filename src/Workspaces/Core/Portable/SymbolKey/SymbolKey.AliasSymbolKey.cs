@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -16,11 +18,17 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteString(FirstOrDefault(symbol.DeclaringSyntaxReferences)?.SyntaxTree.FilePath ?? "");
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var name = reader.ReadString();
-                var targetResolution = reader.ReadSymbolKey();
+                var targetResolution = reader.ReadSymbolKey(out var targetFailureReason);
                 var filePath = reader.ReadString();
+
+                if (targetFailureReason != null)
+                {
+                    failureReason = $"({nameof(AliasSymbolKey)} {nameof(targetResolution)} failed -> {targetFailureReason})";
+                    return default;
+                }
 
                 var syntaxTree = reader.GetSyntaxTree(filePath);
                 if (syntaxTree != null)
@@ -32,11 +40,13 @@ namespace Microsoft.CodeAnalysis
                         var result = Resolve(semanticModel, syntaxTree.GetRoot(reader.CancellationToken), name, target, reader.CancellationToken);
                         if (result.HasValue)
                         {
+                            failureReason = null;
                             return result.Value;
                         }
                     }
                 }
 
+                failureReason = $"({nameof(AliasSymbolKey)} '{name}' not found)";
                 return default;
             }
 

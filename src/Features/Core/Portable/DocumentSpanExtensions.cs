@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,13 +17,16 @@ namespace Microsoft.CodeAnalysis
             return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan);
         }
 
-        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool isPreview)
+        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan,
-                options: solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview));
+
+            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, showInPreviewTab);
+            options = options.WithChangedOption(NavigationOptions.ActivateTab, activateTab);
+
+            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options);
         }
 
         public static async Task<bool> IsHiddenAsync(

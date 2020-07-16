@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
@@ -17,16 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
     public abstract partial class BooleanCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest
     {
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider(performExperimentCheck: false));
+                        new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
         }
 
         public class TrueConfigurationTests : BooleanCodeStyleOptionConfigurationTests
@@ -94,7 +96,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -105,7 +107,7 @@ dotnet_style_object_initializer = true:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_RuleExists_True()
             {
                 var input = @"
@@ -243,7 +245,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = false:suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -254,7 +256,7 @@ dotnet_style_object_initializer = true:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_MaintainSeverity_True()
             {
                 var input = @"
@@ -467,7 +469,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion
@@ -616,7 +618,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion

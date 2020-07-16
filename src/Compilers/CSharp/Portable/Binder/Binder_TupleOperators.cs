@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -37,13 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (convertedType is null)
             {
+                // Note: issues with default will already have been reported by BindSimpleBinaryOperator (ie. we couldn't find a suitable element-wise operator)
                 if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr is BoundTupleLiteral tuple)
                 {
                     // Although the tuple will remain typeless, we'll give elements converted types as possible
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
                     if (multiple.Operators.Length == 0)
                     {
-                        return BindToNaturalType(expr, diagnostics);
+                        return BindToNaturalType(expr, diagnostics, reportNoTargetType: false);
                     }
 
                     ImmutableArray<BoundExpression> arguments = tuple.Arguments;
@@ -57,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, tuple, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
+                        tuple.Syntax, tuple, wasTargetTyped: false, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
                 }
 
                 // This element isn't getting a converted type
-                return BindToNaturalType(expr, diagnostics);
+                return BindToNaturalType(expr, diagnostics, reportNoTargetType: false);
             }
 
             // We were able to determine a converted type (for this tuple literal or element), we can just convert to it
@@ -90,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
-            int ignored = 0;
-            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, ref ignored);
+            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right);
             switch (comparison)
             {
                 case BoundLiteral _:
@@ -194,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
             right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
 
-            if ((left.Type is null && left.IsLiteralDefault()) ||
-                (right.Type is null && right.IsLiteralDefault()))
+            if (left.IsLiteralDefaultOrTypelessNew() ||
+                right.IsLiteralDefaultOrTypelessNew())
             {
-                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous);
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 
@@ -324,14 +326,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsTupleBinaryOperation(BoundExpression left, BoundExpression right)
         {
-            bool leftDefault = left.IsLiteralDefault();
-            bool rightDefault = right.IsLiteralDefault();
-            if (leftDefault && rightDefault)
+            bool leftDefaultOrNew = left.IsLiteralDefaultOrTypelessNew();
+            bool rightDefaultOrNew = right.IsLiteralDefaultOrTypelessNew();
+            if (leftDefaultOrNew && rightDefaultOrNew)
             {
                 return false;
             }
 
-            return (GetTupleCardinality(left) > 1 || leftDefault) && (GetTupleCardinality(right) > 1 || rightDefault);
+            return (GetTupleCardinality(left) > 1 || leftDefaultOrNew) &&
+                   (GetTupleCardinality(right) > 1 || rightDefaultOrNew);
         }
 
         private static int GetTupleCardinality(BoundExpression expr)
@@ -394,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
-            var tuple = TupleTypeSymbol.Create(locationOpt: null,
+            var tuple = NamedTypeSymbol.CreateTuple(locationOpt: null,
                 elementTypesWithAnnotations: convertedTypes.SelectAsArray(t => TypeWithAnnotations.Create(t)),
                 elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, includeNullability: false, errorPositions: default, syntax, diagnostics);

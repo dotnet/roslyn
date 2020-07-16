@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var body = declaration.Body as BlockSyntax;
 
             return body.TryConvertToExpressionBody(
-                declaration.Kind(), options, conversionPreference,
+                options, conversionPreference,
                 out expression, out semicolon);
         }
 
@@ -97,14 +99,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             // able to create the right sort of block body (i.e. with a return-statement or
             // expr-statement).  So, if we can't figure out what lambda type this is, we should not
             // proceed.
-            var lambdaType = semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType as INamedTypeSymbol;
-            if (lambdaType == null || lambdaType.DelegateInvokeMethod == null)
+            if (!(semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType is INamedTypeSymbol lambdaType) || lambdaType.DelegateInvokeMethod == null)
             {
                 return false;
             }
 
             var canOffer = expressionBodyOpt.TryConvertToStatement(
-                semicolonTokenOpt: default, createReturnStatementForExpression: false, out _);
+                semicolonTokenOpt: null, createReturnStatementForExpression: false, out _);
             if (!canOffer)
             {
                 // Couldn't even convert the expression into statement form.
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 semanticModel, originalDeclaration);
 
             if (!expressionBody.TryConvertToStatement(
-                    semicolonTokenOpt: default,
+                    semicolonTokenOpt: null,
                     createReturnStatementForExpression,
                     out var statement))
             {
@@ -228,11 +229,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeFixProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public UseExpressionBodyForLambdaCodeFixProvider()
+        {
+        }
     }
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public UseExpressionBodyForLambdaCodeRefactoringProvider()
+        {
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

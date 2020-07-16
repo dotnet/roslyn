@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -11,7 +15,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -21,20 +24,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
-    internal partial class ContainedLanguage<TPackage, TLanguageService>
-        where TPackage : AbstractPackage<TPackage, TLanguageService>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
+    internal partial class ContainedLanguage
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private readonly TLanguageService _languageService;
+        private readonly Guid _languageServiceGuid;
 
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
 
-        public VisualStudioProject Project { get; }
+        public VisualStudioProject? Project { get; }
 
         protected readonly ContainedDocument ContainedDocument;
 
@@ -69,70 +68,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
-        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
-        public ContainedLanguage(
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
-            AbstractProject project,
+            VisualStudioProject? project,
             IVsHierarchy hierarchy,
             uint itemid,
-            TLanguageService languageService,
-            SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule,
-            Workspace workspace)
+            VisualStudioProjectTracker? projectTrackerOpt,
+            ProjectId projectId,
+            Guid languageServiceGuid,
+            AbstractFormattingRule? vbHelperFormattingRule = null)
             : this(bufferCoordinator,
                    componentModel,
-                   project.VisualStudioProject,
-                   hierarchy,
-                   itemid,
-                   project.ProjectTracker,
-                   project.Id,
-                   languageService,
-                   vbHelperFormattingRule: null)
+                   projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>(),
+                   projectId,
+                   project,
+                   GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
+                   languageServiceGuid,
+                   vbHelperFormattingRule)
         {
-            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
         }
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        public ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            AbstractProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            TLanguageService languageService,
-            SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule)
-            : this(bufferCoordinator,
-                   componentModel,
-                   project.VisualStudioProject,
-                   hierarchy,
-                   itemid,
-                   projectTrackerOpt: null,
-                   project.VisualStudioProject.Id,
-                   languageService,
-                   vbHelperFormattingRule: null)
+        public static string GetFilePathFromHierarchyAndItemId(IVsHierarchy hierarchy, uint itemid)
         {
-            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
+            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out string filePath)))
+            {
+                // we couldn't look up the document moniker from an hierarchy for an itemid.
+                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
+                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
+                if (!hierarchy.TryGetItemName(itemid, out filePath!))
+                {
+                    FatalError.Report(new System.Exception("Failed to get document moniker for a contained document"));
+                }
+            }
+
+            return filePath;
         }
 
         internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
-            VisualStudioProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            VisualStudioProjectTracker projectTrackerOpt,
+            Workspace workspace,
             ProjectId projectId,
-            TLanguageService languageService,
-            AbstractFormattingRule vbHelperFormattingRule = null)
+            VisualStudioProject? project,
+            string filePath,
+            Guid languageServiceGuid,
+            AbstractFormattingRule? vbHelperFormattingRule = null)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
             this.Project = project;
-            _languageService = languageService;
+            _languageServiceGuid = languageServiceGuid;
 
-            this.Workspace = projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>();
+            this.Workspace = workspace;
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
@@ -149,17 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // Create our tagger
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
-
-            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out var filePath)))
-            {
-                // we couldn't look up the document moniker from an hierarchy for an itemid.
-                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
-                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
-                if (!hierarchy.TryGetItemName(itemid, out filePath))
-                {
-                    FatalError.Report(new System.Exception("Failed to get document moniker for a contained document"));
-                }
-            }
 
             DocumentId documentId;
 
@@ -187,8 +165,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 bufferCoordinator,
                 this.Workspace,
                 project,
-                hierarchy,
-                itemid,
                 componentModel,
                 vbHelperFormattingRule);
 
@@ -218,7 +194,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             if (_bufferTagAggregator != null)
             {
                 _bufferTagAggregator.Dispose();
-                _bufferTagAggregator = null;
             }
         }
 

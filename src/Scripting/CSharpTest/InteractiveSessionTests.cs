@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1082,7 +1083,7 @@ new object[] { x, y, z }
         public void AwaitVoid()
         {
             var task = CSharpScript.EvaluateAsync<object>("await System.Threading.Tasks.Task.Run(() => { })");
-            Assert.Equal(null, task.Result);
+            Assert.Null(task.Result);
             Assert.Equal(TaskStatus.RanToCompletion, task.Status);
         }
 
@@ -1146,6 +1147,29 @@ static T G<T>(T t, Func<T, Task<T>> f)
                 Result;
 
             Assert.Equal(3, state.ReturnValue);
+        }
+
+        [Fact, WorkItem(39548, "https://github.com/dotnet/roslyn/issues/39548")]
+        public async Task PatternVariableDeclaration()
+        {
+            var state = await CSharpScript.RunAsync("var x = (false, 4);");
+            state = await state.ContinueWithAsync("x is (false, var y)");
+            Assert.Equal(true, state.ReturnValue);
+        }
+
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task CSharp9PatternForms()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
+            var state = await CSharpScript.RunAsync("object x = 1;", options: options);
+            state = await state.ContinueWithAsync("x is long or int", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is int and < 10", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is (long or < 10L)", options: options);
+            Assert.Equal(false, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is not > 100", options: options);
+            Assert.Equal(true, state.ReturnValue);
         }
 
         #endregion
@@ -1385,7 +1409,7 @@ d
         {
             Assert.Equal(2, CSharpScript.EvaluateAsync<int>("1+1").Result);
 
-            Assert.Equal(null, CSharpScript.EvaluateAsync<string>("null").Result);
+            Assert.Null(CSharpScript.EvaluateAsync<string>("null").Result);
 
             try
             {
@@ -1402,9 +1426,9 @@ d
             var options = ScriptOptions.Default.AddReferences(HostAssembly);
 
             var cint = CSharpScript.EvaluateAsync<C<int>>("null", options).Result;
-            Assert.Equal(null, cint);
+            Assert.Null(cint);
 
-            Assert.Equal(null, CSharpScript.EvaluateAsync<int?>("null", options).Result);
+            Assert.Null(CSharpScript.EvaluateAsync<int?>("null", options).Result);
 
             try
             {
@@ -1442,7 +1466,7 @@ using System.Collections.Generic;
 new List<ArgumentException>()
 ").Result;
 
-            Assert.Equal(null, value.FirstOrDefault());
+            Assert.Null(value.FirstOrDefault());
         }
 
         public class B
@@ -1499,7 +1523,7 @@ new List<ArgumentException>()
         {
             var m = new M<string>();
             var result = CSharpScript.EvaluateAsync<string>("G()", globals: m);
-            Assert.Equal(null, result.Result);
+            Assert.Null(result.Result);
         }
 
         [Fact]
@@ -1589,7 +1613,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1774,6 +1798,95 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
                         break;
                 }
             }
+        }
+
+        public class E
+        {
+            public bool TryGetValue(out object obj)
+            {
+                obj = new object();
+                return true;
+            }
+        }
+
+        [Fact]
+        [WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
+        public async Task MethodCallWithImplicitReceiverAndOutVar()
+        {
+            var code = @"
+if(TryGetValue(out var result)){
+    _ = result;
+}
+return true;
+";
+
+            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(E), globals: new E());
+            Assert.True(result);
+        }
+
+        public class F
+        {
+            public bool Value = true;
+        }
+
+        [Fact]
+        public void StaticMethodCannotAccessGlobalInstance()
+        {
+            var code = @"
+static bool M()
+{
+	return Value;
+}
+return M();
+";
+
+            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
+                    // (4,9): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // 				return Value;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 9));
+        }
+
+        [Fact]
+        [WorkItem(39581, "https://github.com/dotnet/roslyn/issues/39581")]
+        public void StaticLocalFunctionCannotAccessGlobalInstance()
+        {
+            var code = @"
+bool M()
+{
+	return Inner();
+	static bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
+
+            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
+                    // (7,10): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // 					return Value;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(7, 10));
+        }
+
+        [Fact]
+        public async Task LocalFunctionCanAccessGlobalInstance()
+        {
+            var code = @"
+bool M()
+{
+	return Inner();
+	bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
+
+            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(F), globals: new F());
+            Assert.True(result);
         }
 
         #endregion

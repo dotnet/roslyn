@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -317,6 +319,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitThrowExpression((BoundThrowExpression)expression, used);
                     break;
 
+                case BoundKind.FunctionPointerInvocation:
+                    EmitCalli((BoundFunctionPointerInvocation)expression, used ? UseKind.UsedAsValue : UseKind.Unused);
+                    break;
+
+                case BoundKind.FunctionPointerLoad:
+                    EmitLoadFunction((BoundFunctionPointerLoad)expression, used);
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -405,32 +415,45 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // if T happens to be a value type, it could be a target of mutating calls.
                     receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
 
-                    // unconstrained case needs to handle case where T is actually a struct.
-                    // such values are never nulls
-                    // we will emit a check for such case, but the check is really a JIT-time 
-                    // constant since JIT will know if T is a struct or not.
+                    if (receiverTemp is null)
+                    {
+                        // unconstrained case needs to handle case where T is actually a struct.
+                        // such values are never nulls
+                        // we will emit a check for such case, but the check is really a JIT-time 
+                        // constant since JIT will know if T is a struct or not.
 
-                    // if ((object)default(T) != null) 
-                    // {
-                    //     goto whenNotNull
-                    // }
-                    // else
-                    // {
-                    //     temp = receiverRef
-                    //     receiverRef = ref temp
-                    // }
-                    EmitDefaultValue(receiverType, true, receiver.Syntax);
-                    EmitBox(receiverType, receiver.Syntax);
-                    _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
-                    EmitLoadIndirect(receiverType, receiver.Syntax);
+                        // if ((object)default(T) != null) 
+                        // {
+                        //     goto whenNotNull
+                        // }
+                        // else
+                        // {
+                        //     temp = receiverRef
+                        //     receiverRef = ref temp
+                        // }
+                        EmitDefaultValue(receiverType, true, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
 
-                    cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
-                    _builder.EmitLocalStore(cloneTemp);
-                    _builder.EmitLocalAddress(cloneTemp);
-                    _builder.EmitLocalLoad(cloneTemp);
-                    EmitBox(receiver.Type, receiver.Syntax);
+                        cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
+                        _builder.EmitLocalStore(cloneTemp);
+                        _builder.EmitLocalAddress(cloneTemp);
+                        _builder.EmitLocalLoad(cloneTemp);
+                        EmitBox(receiverType, receiver.Syntax);
 
-                    // here we have loaded a ref to a temp and its boxed value { &T, O }
+                        // here we have loaded a ref to a temp and its boxed value { &T, O }
+                    }
+                    else
+                    {
+                        // We are calling the expression on a copy of the target anyway, 
+                        // so even if T is a struct, we don't need to make sure we call the expression on the original target.
+
+                        // We currently have an address on the stack. Duplicate it, and load the value of the address.
+                        _builder.EmitOpCode(ILOpCode.Dup);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                    }
                 }
                 else
                 {
@@ -921,6 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                     case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                     case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                    case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                         _builder.EmitOpCode(ILOpCode.Ldelem_i);
                         break;
 
@@ -1309,6 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                     _builder.EmitOpCode(ILOpCode.Ldind_i);
                     break;
 
@@ -1613,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
-            int stackBehavior = GetCallStackBehavior(call);
+            int stackBehavior = GetCallStackBehavior(call.Method, call.Arguments);
             switch (callKind)
             {
                 case CallKind.Call:
@@ -1634,56 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(actualMethodTargetedByTheCall, call.Syntax,
                             actualMethodTargetedByTheCall.IsVararg ? (BoundArgListOperator)call.Arguments[call.Arguments.Length - 1] : null);
 
-            if (!method.ReturnsVoid)
-            {
-                EmitPopIfUnused(useKind != UseKind.Unused);
-            }
-            else if (_ilEmitStyle == ILEmitStyle.Debug)
-            {
-                // The only void methods with usable return values are constructors and we represent those
-                // as BoundObjectCreationExpressions, not BoundCalls.
-                Debug.Assert(useKind == UseKind.Unused, "Using the return value of a void method.");
-                Debug.Assert(_method.GenerateDebugInfo, "Implied by this.emitSequencePoints");
-
-                // DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
-                // debugger sees an event indicating that a user break (vs a breakpoint) has occurred.
-                // When this happens, it uses ICorDebugILFrame.GetIP(out uint, out CorDebugMappingResult)
-                // to determine the current instruction pointer.  This method returns the instruction
-                // *after* the call.  The source location is then given by the last sequence point before
-                // or on this instruction.  As a result, if the instruction after the call has its own
-                // sequence point, then that sequence point will be used to determine the source location
-                // and the debugging experience will be disrupted.  The easiest way to ensure that the next
-                // instruction does not have a sequence point is to insert a nop.  Obviously, we only do this
-                // if debugging is enabled and optimization is disabled.
-
-                // From ILGENREC::genCall:
-                //   We want to generate a NOP after CALL opcodes that end a statement so the debugger
-                //   has better stepping behavior
-
-                // CONSIDER: In the native compiler, there's an additional restriction on when this nop is
-                // inserted.  It is quite complicated, but it basically seems to say that, if we thought
-                // we could omit the temp-and-copy for a struct construction and it turned out that we
-                // couldn't (perhaps because the assigned local was captured by a lambda), and if we're
-                // not using the result of the constructor call (how can this even happen?), then we don't
-                // want to insert the nop.  Since the consequence of not implementing this complicated logic
-                // is an extra nop in debug code, this is likely not a priority.
-
-                // CONSIDER: The native compiler also checks !(tree->flags & EXF_NODEBUGINFO).  We don't have
-                // this mutable bit on our bound nodes, so we can't exactly match the behavior.  We might be
-                // able to approximate the native behavior by inspecting call.WasCompilerGenerated, but it is
-                // not in a reliable state after lowering.
-
-                _builder.EmitOpCode(ILOpCode.Nop);
-            }
-
-            if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
-            {
-                EmitLoadIndirect(method.ReturnType, call.Syntax);
-            }
-            else if (useKind == UseKind.UsedAsAddress)
-            {
-                Debug.Assert(method.RefKind != RefKind.None);
-            }
+            EmitCallCleanup(call.Syntax, useKind, method);
 
             FreeOptTemp(tempOpt);
         }
@@ -1728,6 +1704,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Call:
                     return ((BoundCall)receiver).Method.RefKind != RefKind.None;
 
+                case BoundKind.FunctionPointerInvocation:
+                    return ((BoundFunctionPointerInvocation)receiver).FunctionPointer.Signature.RefKind != RefKind.None;
+
                 case BoundKind.Dup:
                     return ((BoundDup)receiver).RefKind != RefKind.None;
 
@@ -1738,34 +1717,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
-        private static int GetCallStackBehavior(BoundCall call)
+        private static int GetCallStackBehavior(MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             int stack = 0;
 
-            if (!call.Method.ReturnsVoid)
+            if (!method.ReturnsVoid)
             {
                 // The call puts the return value on the stack.
                 stack += 1;
             }
 
-            if (call.Method.RequiresInstanceReceiver)
+            if (method.RequiresInstanceReceiver)
             {
                 // The call pops the receiver off the stack.
                 stack -= 1;
             }
 
-            if (call.Method.IsVararg)
+            if (method.IsVararg)
             {
                 // The call pops all the arguments, fixed and variadic.
-                int fixedArgCount = call.Arguments.Length - 1;
-                int varArgCount = ((BoundArgListOperator)call.Arguments[fixedArgCount]).Arguments.Length;
+                int fixedArgCount = arguments.Length - 1;
+                int varArgCount = ((BoundArgListOperator)arguments[fixedArgCount]).Arguments.Length;
                 stack -= fixedArgCount;
                 stack -= varArgCount;
             }
             else
             {
                 // The call pops all the arguments.
-                stack -= call.Arguments.Length;
+                stack -= arguments.Length;
             }
 
             return stack;
@@ -1905,6 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we can ignore that if the actual result is unused
             if (used)
             {
+                _sawStackalloc = true;
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
 
@@ -1984,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (originalDef.ContainingType.Name == TupleTypeSymbol.TupleTypeName &&
+            if (originalDef.ContainingType.Name == NamedTypeSymbol.ValueTupleTypeName &&
                     (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
@@ -2004,7 +1984,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (TryEmitAssignmentInPlace(assignmentOperator, useKind != UseKind.Unused))
             {
-                Debug.Assert(!assignmentOperator.IsRef);
                 return;
             }
 
@@ -2071,6 +2050,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //    i.e. target must not be on the heap and we should not be in a try block.
         private bool TryEmitAssignmentInPlace(BoundAssignmentOperator assignmentOperator, bool used)
         {
+            // If the left hand is itself a ref, then we can't use in-place assignment
+            // because we need to spill the creation. This code can't be written in C#, but
+            // can be produced by lowering.
+            if (assignmentOperator.IsRef)
+            {
+                return false;
+            }
+
             var left = assignmentOperator.Left;
 
             // if result is used, and lives on heap, we must keep RHS value on the stack.
@@ -2421,6 +2408,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BoundKind.FunctionPointerInvocation:
+                    {
+                        var left = (BoundFunctionPointerInvocation)assignmentTarget;
+
+                        Debug.Assert(left.FunctionPointer.Signature.RefKind != RefKind.None);
+                        EmitCalli(left, UseKind.UsedAsAddress);
+
+                        lhsUsesStack = true;
+                    }
+                    break;
+
                 case BoundKind.PropertyAccess:
                 case BoundKind.IndexerAccess:
                 // Property access should have been rewritten.
@@ -2609,6 +2607,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)expression).FunctionPointer.Signature.RefKind != RefKind.None);
+                    EmitIndirectStore(expression.Type, expression.Syntax);
+                    break;
+
                 case BoundKind.ModuleVersionId:
                     EmitModuleVersionIdStore((BoundModuleVersionId)expression);
                     break;
@@ -2714,6 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                     _builder.EmitOpCode(ILOpCode.Stelem_i);
                     break;
 
@@ -2803,6 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                     _builder.EmitOpCode(ILOpCode.Stind_i);
                     break;
 
@@ -2898,7 +2903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 }
 
-                if (type.IsPointerType() || type.SpecialType == SpecialType.System_UIntPtr)
+                if (type.IsPointerOrFunctionPointer() || type.SpecialType == SpecialType.System_UIntPtr)
                 {
                     // default(whatever*) and default(UIntPtr) can be emitted as:
                     _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
@@ -3284,11 +3289,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+                    Debug.Assert(conversionKind != ConversionKind.NullLiteral && conversionKind != ConversionKind.DefaultLiteral);
 
                     if (conversionKind.IsImplicitConversion() &&
                         conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.DefaultOrNullLiteral)
+                        conversionKind != ConversionKind.NullLiteral &&
+                        conversionKind != ConversionKind.DefaultLiteral)
                     {
                         return StackMergeType(conversion.Operand);
                     }
@@ -3374,6 +3380,101 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.EmitOpCode(ILOpCode.Box);
             EmitSymbolToken(type, syntaxNode);
+        }
+
+        private void EmitCalli(BoundFunctionPointerInvocation ptrInvocation, UseKind useKind)
+        {
+            EmitExpression(ptrInvocation.InvokedExpression, used: true);
+            LocalDefinition temp = null;
+            // The function pointer token must be the last thing on the stack before the
+            // calli invocation, but we need to preserve left-to-right semantics of the
+            // actual code. If there are arguments, therefore, we evaluate the code that
+            // produces the function pointer token, store it in a local, evaluate the
+            // arguments, then load that token again.
+            if (ptrInvocation.Arguments.Length > 0)
+            {
+                temp = AllocateTemp(ptrInvocation.InvokedExpression.Type, ptrInvocation.Syntax);
+                _builder.EmitLocalStore(temp);
+            }
+
+            FunctionPointerMethodSymbol method = ptrInvocation.FunctionPointer.Signature;
+            EmitArguments(ptrInvocation.Arguments, method.Parameters, ptrInvocation.ArgumentRefKindsOpt);
+            var stackBehavior = GetCallStackBehavior(ptrInvocation.FunctionPointer.Signature, ptrInvocation.Arguments);
+
+            if (temp is object)
+            {
+                _builder.EmitLocalLoad(temp);
+                FreeTemp(temp);
+            }
+
+            _builder.EmitOpCode(ILOpCode.Calli, stackBehavior);
+            EmitSignatureToken(ptrInvocation.FunctionPointer, ptrInvocation.Syntax);
+            EmitCallCleanup(ptrInvocation.Syntax, useKind, method);
+        }
+
+        private void EmitCallCleanup(SyntaxNode syntax, UseKind useKind, MethodSymbol method)
+        {
+            if (!method.ReturnsVoid)
+            {
+                EmitPopIfUnused(useKind != UseKind.Unused);
+            }
+            else if (_ilEmitStyle == ILEmitStyle.Debug)
+            {
+                // The only void methods with usable return values are constructors and the only
+                // time we see them here, the return should be unused.
+                Debug.Assert(useKind == UseKind.Unused, "Using the return value of a void method.");
+                Debug.Assert(_method.GenerateDebugInfo, "Implied by this.emitSequencePoints");
+
+                // DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
+                // debugger sees an event indicating that a user break (vs a breakpoint) has occurred.
+                // When this happens, it uses ICorDebugILFrame.GetIP(out uint, out CorDebugMappingResult)
+                // to determine the current instruction pointer.  This method returns the instruction
+                // *after* the call.  The source location is then given by the last sequence point before
+                // or on this instruction.  As a result, if the instruction after the call has its own
+                // sequence point, then that sequence point will be used to determine the source location
+                // and the debugging experience will be disrupted.  The easiest way to ensure that the next
+                // instruction does not have a sequence point is to insert a nop.  Obviously, we only do this
+                // if debugging is enabled and optimization is disabled.
+
+                // From ILGENREC::genCall:
+                //   We want to generate a NOP after CALL opcodes that end a statement so the debugger
+                //   has better stepping behavior
+
+                // CONSIDER: In the native compiler, there's an additional restriction on when this nop is
+                // inserted.  It is quite complicated, but it basically seems to say that, if we thought
+                // we could omit the temp-and-copy for a struct construction and it turned out that we
+                // couldn't (perhaps because the assigned local was captured by a lambda), and if we're
+                // not using the result of the constructor call (how can this even happen?), then we don't
+                // want to insert the nop.  Since the consequence of not implementing this complicated logic
+                // is an extra nop in debug code, this is likely not a priority.
+
+                // CONSIDER: The native compiler also checks !(tree->flags & EXF_NODEBUGINFO).  We don't have
+                // this mutable bit on our bound nodes, so we can't exactly match the behavior.  We might be
+                // able to approximate the native behavior by inspecting call.WasCompilerGenerated, but it is
+                // not in a reliable state after lowering.
+
+                _builder.EmitOpCode(ILOpCode.Nop);
+            }
+
+            if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
+            {
+                EmitLoadIndirect(method.ReturnType, syntax);
+            }
+            else if (useKind == UseKind.UsedAsAddress)
+            {
+                Debug.Assert(method.RefKind != RefKind.None);
+            }
+        }
+
+        private void EmitLoadFunction(BoundFunctionPointerLoad load, bool used)
+        {
+            Debug.Assert(load.Type is { TypeKind: TypeKind.FunctionPointer });
+
+            if (used)
+            {
+                _builder.EmitOpCode(ILOpCode.Ldftn);
+                EmitSymbolToken(load.TargetMethod, load.Syntax, optArgList: null);
+            }
         }
     }
 }

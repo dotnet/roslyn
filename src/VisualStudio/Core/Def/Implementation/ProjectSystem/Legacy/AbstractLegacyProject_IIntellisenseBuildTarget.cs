@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 id: IDEDiagnosticIds.IntellisenseBuildFailedDiagnosticId,
                 category: FeaturesResources.Roslyn_HostError,
                 message: ServicesVSResources.Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled,
-                enuMessageForBingSearch: ServicesVSResources.ResourceManager.GetString(nameof(ServicesVSResources.Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled), CodeAnalysis.Diagnostics.Extensions.s_USCultureInfo),
+                enuMessageForBingSearch: ServicesVSResources.ResourceManager.GetString(nameof(ServicesVSResources.Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled), CodeAnalysis.Diagnostics.Extensions.USCultureInfo),
                 severity: DiagnosticSeverity.Warning,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected override object GetExtenderNames()
-        {
-            return CodeModelService.GetExternalTypeExtenderNames();
-        }
+            => CodeModelService.GetExternalTypeExtenderNames();
 
         protected override object GetExtender(string name)
         {
@@ -125,18 +125,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         public EnvDTE.CodeElement AddBase(object @base, object position)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public void RemoveBase(object element)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public void RemoveMember(object element)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
     }
 }

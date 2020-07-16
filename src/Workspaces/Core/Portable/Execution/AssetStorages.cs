@@ -1,11 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+
+#if NETSTANDARD2_0
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -15,52 +23,19 @@ namespace Microsoft.CodeAnalysis.Execution
     internal partial class AssetStorages
     {
         /// <summary>
-        /// global asset is an asset which life time is same as host
-        /// </summary>
-        private readonly ConcurrentDictionary<object, CustomAsset> _globalAssets;
-
-        /// <summary>
         /// map from solution checksum scope to its associated asset storage
         /// </summary>
         private readonly ConcurrentDictionary<int, Storage> _storages;
 
         public AssetStorages()
         {
-            _globalAssets = new ConcurrentDictionary<object, CustomAsset>(concurrencyLevel: 2, capacity: 10);
             _storages = new ConcurrentDictionary<int, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
-        public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        public static Storage CreateStorage(SolutionState solutionState)
+            => new Storage(solutionState);
 
-            if (!_globalAssets.TryAdd(value, asset))
-            {
-                // there is existing one, make sure asset is same
-                Contract.ThrowIfFalse(_globalAssets[value].Checksum == asset.Checksum);
-            }
-        }
-
-        public CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            _globalAssets.TryGetValue(value, out var asset);
-
-            return asset;
-        }
-
-        public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            _globalAssets.TryRemove(value, out var asset);
-        }
-
-        public Storage CreateStorage(SolutionState solutionState)
-        {
-            return new Storage(solutionState);
-        }
-
-        public RemotableData GetRemotableData(int scopeId, Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
@@ -70,22 +45,10 @@ namespace Microsoft.CodeAnalysis.Execution
 
             // search snapshots we have
             var storage = _storages[scopeId];
-            var remotableData = storage.TryGetRemotableData(checksum, cancellationToken);
+            var remotableData = await storage.TryGetRemotableDataAsync(checksum, cancellationToken).ConfigureAwait(false);
             if (remotableData != null)
             {
                 return remotableData;
-            }
-
-            // search global assets
-            foreach (var kv in _globalAssets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var asset = kv.Value;
-                if (asset.Checksum == checksum)
-                {
-                    return asset;
-                }
             }
 
             // if it reached here, it means things get cancelled. due to involving 2 processes,
@@ -98,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return null;
         }
 
-        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums);
 
@@ -114,31 +77,12 @@ namespace Microsoft.CodeAnalysis.Execution
             // search checksum trees we have
             var storage = _storages[scopeId];
 
-            storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
+            await storage.AppendRemotableDataAsync(searchingChecksumsLeft.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
                 // no checksum left to find
                 Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
                 return result;
-            }
-
-            // search global assets
-            foreach (var kv in _globalAssets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var asset = kv.Value;
-                if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
-                {
-                    result[asset.Checksum] = asset;
-
-                    if (result.Count == numberOfChecksumsToSearch)
-                    {
-                        // no checksum left to find
-                        Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
-                        return result;
-                    }
-                }
             }
 
             // if it reached here, it means things get cancelled. due to involving 2 processes,
@@ -151,31 +95,31 @@ namespace Microsoft.CodeAnalysis.Execution
             return result;
         }
 
-        public void RegisterSnapshot(PinnedRemotableDataScope scope, AssetStorages.Storage storage)
+        public void RegisterSnapshot(int scopeId, AssetStorages.Storage storage)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
-            if (!_storages.TryAdd(scope.SolutionInfo.ScopeId, storage))
+            if (!_storages.TryAdd(scopeId, storage))
             {
                 // this should make failure more explicit
                 FailFast.OnFatalException(new Exception("who is adding same snapshot?"));
             }
         }
 
-        public void UnregisterSnapshot(PinnedRemotableDataScope scope)
+        public void UnregisterSnapshot(int scopeId)
         {
             // calling it multiple times for same snapshot is not allowed.
-            if (!_storages.TryRemove(scope.SolutionInfo.ScopeId, out var dummy))
+            if (!_storages.TryRemove(scopeId, out _))
             {
                 // this should make failure more explicit
                 FailFast.OnFatalException(new Exception("who is removing same snapshot?"));
             }
         }
 
-        public RemotableData GetRemotableData_TestOnly(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<RemotableData?> TestOnly_GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            foreach (var kv in _storages)
+            foreach (var (scopeId, _) in _storages)
             {
-                var data = GetRemotableData(kv.Key, checksum, cancellationToken);
+                var data = await GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false);
                 if (data != null)
                 {
                     return data;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public abstract class EditingTestBase : CSharpTestBase
     {
-        internal static readonly CSharpEditAndContinueAnalyzer Analyzer = new CSharpEditAndContinueAnalyzer();
+        internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
+        {
+            return new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker());
+        }
 
         internal enum MethodKind
         {
@@ -29,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
 
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
-        {
-            return new RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine: null);
-        }
+            => new RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine: null);
 
         internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap)
         {
@@ -40,12 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, bool preserveLocalVariables = false)
-        {
-            return new SemanticEditDescription(kind, symbolProvider, null, preserveLocalVariables);
-        }
+            => new SemanticEditDescription(kind, symbolProvider, null, preserveLocalVariables);
 
         private static SyntaxTree ParseSource(string source)
-            => CSharpEditAndContinueTestHelpers.Instance.ParseText(ActiveStatementsDescription.ClearTags(source));
+            => CSharpEditAndContinueTestHelpers.CreateInstance().ParseText(ActiveStatementsDescription.ClearTags(source));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
         {
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var m2 = MakeMethodBody(src2, kind);
 
             var diagnostics = new List<RudeEditDiagnostic>();
-            var match = Analyzer.GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
+            var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
             var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
 
             Assert.Equal(kind != MethodKind.Regular && kind != MethodKind.ConstructorWithParameters, needsSyntaxMap);
@@ -90,42 +91,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, MethodKind kind = MethodKind.Regular)
         {
             var methodMatch = GetMethodMatch(src1, src2, kind);
-            return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch);
+            return EditAndContinueTestHelpers.GetMethodMatches(CreateAnalyzer(), methodMatch);
         }
 
         public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
-        {
-            return EditAndContinueTestHelpers.ToMatchingPairs(match);
-        }
+            => EditAndContinueTestHelpers.ToMatchingPairs(match);
 
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
-        {
-            return EditAndContinueTestHelpers.ToMatchingPairs(matches);
-        }
+            => EditAndContinueTestHelpers.ToMatchingPairs(matches);
 
         internal static BlockSyntax MakeMethodBody(
             string bodySource,
             MethodKind kind = MethodKind.Regular)
         {
-            string source;
-            switch (kind)
+            var source = kind switch
             {
-                case MethodKind.Iterator:
-                    source = "class C { IEnumerable<int> F() { " + bodySource + " } }";
-                    break;
-
-                case MethodKind.Async:
-                    source = "class C { async Task<int> F() { " + bodySource + " } }";
-                    break;
-
-                case MethodKind.ConstructorWithParameters:
-                    source = "class C { C" + bodySource + " }";
-                    break;
-
-                default:
-                    source = "class C { void F() { " + bodySource + " } }";
-                    break;
-            }
+                MethodKind.Iterator => "class C { IEnumerable<int> F() { " + bodySource + " } }",
+                MethodKind.Async => "class C { async Task<int> F() { " + bodySource + " } }",
+                MethodKind.ConstructorWithParameters => "class C { C" + bodySource + " }",
+                _ => "class C { void F() { " + bodySource + " } }",
+            };
 
             var tree = ParseSource(source);
             var root = tree.GetRoot();
@@ -145,14 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource)
-        {
-            return new ActiveStatementsDescription(oldSource, newSource);
-        }
+            => new ActiveStatementsDescription(oldSource, newSource);
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
-        {
-            return new SyntaxMapDescription(oldSource, newSource);
-        }
+            => new SyntaxMapDescription(oldSource, newSource);
 
         internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
         {
@@ -163,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var body2 = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(decl2).GetRoot()).Body;
 
             var diagnostics = new List<RudeEditDiagnostic>();
-            var match = Analyzer.GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
+            _ = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
             var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
 
             // Active methods are detected to preserve local variables for variable mapping and

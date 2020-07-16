@@ -35,14 +35,15 @@ indent_size = 2
 end_of_line = lf
 indent_size = 2
 
-# Dotnet diagnostic settings
-[*.{cs,vb}]
-dotnet_diagnostic.xUnit2018.severity = none # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
-
 # Dotnet code style settings:
 [*.{cs,vb}]
+
+# IDE0055: Fix formatting
+dotnet_diagnostic.IDE0055.severity = warning
+
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
 # Avoid "this." and "Me." if not necessary
 dotnet_style_qualification_for_field = false:refactoring
 dotnet_style_qualification_for_property = false:refactoring
@@ -140,6 +141,13 @@ dotnet_naming_symbols.all_members.applicable_kinds = *
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
+# error RS2008: Enable analyzer release tracking for the analyzer project containing rule '{0}'
+dotnet_diagnostic.RS2008.severity = none
+
+# IDE0073: File header
+dotnet_diagnostic.IDE0073.severity = warning
+file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.\nSee the LICENSE file in the project root for more information.
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings
@@ -209,3 +217,54 @@ csharp_space_between_square_brackets = false
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
+
+# warning RS0037: PublicAPI.txt is missing '#nullable enable'
+dotnet_diagnostic.RS0037.severity = none
+
+[src/CodeStyle/**.{cs,vb}]
+# warning RS0005: Do not use generic CodeAction.Create to create CodeAction
+dotnet_diagnostic.RS0005.severity = none
+
+[src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures}/**/*.{cs,vb}]
+
+# IDE0011: Add braces
+csharp_prefer_braces = when_multiline:warning
+# NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
+dotnet_diagnostic.IDE0011.severity = warning
+
+# IDE0035: Remove unreachable code
+dotnet_diagnostic.IDE0035.severity = warning
+
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = warning
+
+# IDE0040: Add accessibility modifiers
+dotnet_diagnostic.IDE0040.severity = warning
+
+# IDE0043: Format string contains invalid placeholder
+dotnet_diagnostic.IDE0043.severity = warning
+
+# IDE0044: Make field readonly
+dotnet_diagnostic.IDE0044.severity = warning
+
+# CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
+# IDE0051: Remove unused private member
+dotnet_diagnostic.IDE0051.severity = warning
+
+# IDE0052: Remove unread private member
+dotnet_diagnostic.IDE0052.severity = warning
+
+# IDE0059: Unnecessary assignment to a value
+dotnet_diagnostic.IDE0059.severity = warning
+
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = warning
+
+# CA1822: Make member static
+dotnet_diagnostic.CA1822.severity = warning
+
+# Prefer "var" everywhere
+dotnet_diagnostic.IDE0007.severity = warning
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = true:warning

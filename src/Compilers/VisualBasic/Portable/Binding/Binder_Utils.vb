@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
@@ -37,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given a list of keywords and an set of keywords kinds to search, return the first keyword
+        ''' Given a list of keywords and a set of keywords kinds to search, return the first keyword
         ''' in the list, if any, that matches one of the keyword kinds.
         ''' </summary>
         Public Shared Function FindFirstKeyword(syntax As SyntaxTokenList,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate implementation-specific state machine initialization for the kickoff method body.
         /// </summary>
-        protected abstract BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType);
+        protected abstract BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies);
 
         /// <summary>
         /// Generate implementation-specific state machine member method implementations.
@@ -106,6 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // fields for the captured variables of the method
             var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics);
+
+            if (diagnostics.HasAnyErrors())
+            {
+                // Avoid triggering assertions in further lowering.
+                return new BoundBadStatement(F.Syntax, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+            }
 
             CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nextFreeHoistedLocalSlot);
 
@@ -275,6 +283,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // plus code to initialize all of the parameter proxies result.proxy
             var proxies = PreserveInitialParameterValuesAndThreadId ? initialParameters : nonReusableLocalProxies;
 
+            bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType, proxies));
+
+            return F.Block(
+                ImmutableArray.Create(stateMachineVariable),
+                bodyBuilder.ToImmutableAndFree());
+        }
+
+        protected BoundStatement GenerateParameterStorage(LocalSymbol stateMachineVariable, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
+        {
+            var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
             // starting with the "this" proxy
             if (!method.IsStatic)
             {
@@ -398,19 +417,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 managedThreadId = MakeCurrentThreadId();
 
                 var thenBuilder = ArrayBuilder<BoundStatement>.GetInstance(4);
-                thenBuilder.Add(
-                    // this.state = {initialState};
-                    F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
+                GenerateResetInstance(thenBuilder, initialState);
 
                 thenBuilder.Add(
                     // result = this;
                     F.Assignment(F.Local(resultVariable), F.This()));
-
-                var extraReset = GetExtraResetForIteratorGetEnumerator();
-                if (extraReset != null)
-                {
-                    thenBuilder.Add(extraReset);
-                }
 
                 if (method.IsStatic || method.ThisParameter.Type.IsReferenceType)
                 {
@@ -469,6 +480,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return getEnumerator;
         }
 
+        /// <summary>
+        /// Generate logic to reset the current instance (rather than creating a new instance)
+        /// </summary>
+        protected virtual void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
+        {
+            builder.Add(
+                // this.state = {initialState};
+                F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
+        }
+
         protected virtual BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy)
         {
             Debug.Assert(!method.IsIterator || !method.IsAsync); // an override handles async-iterators
@@ -476,12 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // result.parameter = this.parameterProxy;
             return F.Assignment(resultParameter, parameterProxy);
         }
-
-        /// <summary>
-        /// Async-iterator methods use a GetAsyncEnumerator method just like the GetEnumerator of iterator methods.
-        /// But they need to do a bit more work (to reset the dispose mode).
-        /// </summary>
-        protected virtual BoundStatement GetExtraResetForIteratorGetEnumerator() => null;
 
         /// <summary>
         /// Returns true if either Thread.ManagedThreadId or Environment.CurrentManagedThreadId are available

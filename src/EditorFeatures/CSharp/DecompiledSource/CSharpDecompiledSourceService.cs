@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +20,7 @@ using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
@@ -34,9 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         private static readonly FileVersionInfo decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
         public CSharpDecompiledSourceService(HostLanguageServices provider)
-        {
-            this.provider = provider;
-        }
+            => this.provider = provider;
 
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
@@ -78,23 +80,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
+            return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
-            document = await Formatter.FormatAsync(
-                  document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                  options: null, Formatter.GetDefaultFormattingRules(document), cancellationToken).ConfigureAwait(false);
+            var formattedDoc = await Formatter.FormatAsync(
+                 document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options: null,
+                 CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+                 cancellationToken).ConfigureAwait(false);
 
-            return document;
+            return formattedDoc;
         }
 
-        private Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
+        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
         {
             // Load the assembly.
             var file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
+            var logger = new StringBuilder();
+
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(file, new AssemblyResolver(compilation), new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(file, new AssemblyResolver(compilation, logger), new DecompilerSettings());
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
             decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
@@ -103,10 +114,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
+
+            text += "#if false // " + CSharpEditorResources.Decompilation_log + Environment.NewLine;
+            text += logger.ToString();
+            text += "#endif" + Environment.NewLine;
+
             return document.WithText(SourceText.From(text));
         }
 
-        private async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        private static async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -132,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
+        private static async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -141,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return document.WithSyntaxRoot(newSyntaxRoot);
         }
 
-        private string GetFullReflectionName(INamedTypeSymbol containingType)
+        private static string GetFullReflectionName(INamedTypeSymbol containingType)
         {
             var stack = new Stack<string>();
             stack.Push(containingType.MetadataName);

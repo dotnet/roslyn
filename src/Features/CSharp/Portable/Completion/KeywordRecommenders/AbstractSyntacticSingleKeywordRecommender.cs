@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -23,15 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             bool isValidInPreprocessorContext = false,
             bool shouldFormatOnCommit = false)
         {
-            this.KeywordKind = keywordKind;
+            KeywordKind = keywordKind;
             _isValidInPreprocessorContext = isValidInPreprocessorContext;
-            this.ShouldFormatOnCommit = shouldFormatOnCommit;
+            ShouldFormatOnCommit = shouldFormatOnCommit;
         }
 
         protected virtual Task<bool> IsValidContextAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IsValidContext(position, context, cancellationToken));
-        }
+            => Task.FromResult(IsValidContext(position, context, cancellationToken));
 
         protected virtual bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var syntaxKind = await this.RecommendKeywordAsync(position, context, cancellationToken).ConfigureAwait(false);
+            var syntaxKind = await RecommendKeywordAsync(position, context, cancellationToken).ConfigureAwait(false);
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
                     new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value),
-                        shouldFormatOnCommit: this.ShouldFormatOnCommit,
+                        shouldFormatOnCommit: ShouldFormatOnCommit,
                         matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
             }
 
@@ -54,24 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
-        internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync_Test(int position, CSharpSyntaxContext context)
-        {
-            var syntaxKind = await this.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
-            if (syntaxKind.HasValue)
-            {
-                var matchPriority = ShouldPreselect(context, CancellationToken.None) ? SymbolMatchPriority.Keyword : MatchPriority.Default;
-                return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: matchPriority));
-            }
-
-            return null;
-        }
-
         private async Task<SyntaxKind?> RecommendKeywordAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // NOTE: The collector ensures that we're not in "NonUserCode" like comments, strings, inactive code
             // for perf reasons.
-            var syntaxTree = context.SemanticModel.SyntaxTree;
             if (!_isValidInPreprocessorContext &&
                 context.IsPreProcessorDirectiveContext)
             {
@@ -83,7 +69,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return null;
             }
 
-            return this.KeywordKind;
+            return KeywordKind;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractSyntacticSingleKeywordRecommender _recommender;
+
+            public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
+                => _recommender = recommender;
+
+            internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context)
+            {
+                var syntaxKind = await _recommender.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
+                if (syntaxKind.HasValue)
+                {
+                    var matchPriority = _recommender.ShouldPreselect(context, CancellationToken.None) ? SymbolMatchPriority.Keyword : MatchPriority.Default;
+                    return SpecializedCollections.SingletonEnumerable(
+                        new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: matchPriority));
+                }
+
+                return null;
+            }
         }
     }
 }

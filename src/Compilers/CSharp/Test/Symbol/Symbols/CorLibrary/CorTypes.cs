@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact]
         public void PresentCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetCoreApp30.SystemRuntimeRef });
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestMetadata.NetCoreApp31.SystemRuntime });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime.AsImmutableOrNull()) });
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp31.SystemRuntime.AsImmutableOrNull()) });
 
             msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -9,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DisposeAnalysis
     Public Class DisposableFieldsShouldBeDisposedTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(), Nothing)
+            Return (New DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(isEnabledByDefault:=True), Nothing)
         End Function
 
         ' Ensure that we explicitly test missing diagnostic, which has no corresponding code fix (non-fixable diagnostic).

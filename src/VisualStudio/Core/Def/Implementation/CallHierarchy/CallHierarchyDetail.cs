@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -60,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             if (document != null)
             {
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
-                var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+                var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)
+                                                .WithChangedOption(NavigationOptions.ActivateTab, false);
                 navigator.TryNavigateToSpan(_workspace, document.Id, _span, options);
             }
         }

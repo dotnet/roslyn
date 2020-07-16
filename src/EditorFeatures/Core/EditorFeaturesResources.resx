@@ -267,9 +267,6 @@
   <data name="Given_Workspace_doesn_t_support_Undo" xml:space="preserve">
     <value>Given Workspace doesn't support Undo</value>
   </data>
-  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
-    <value>Document must be contained in the workspace that created this service</value>
-  </data>
   <data name="Searching" xml:space="preserve">
     <value>Searching...</value>
   </data>
@@ -366,9 +363,6 @@
   <data name="Preview_Warning" xml:space="preserve">
     <value>Preview Warning</value>
   </data>
-  <data name="from_metadata" xml:space="preserve">
-    <value>from metadata</value>
-  </data>
   <data name="Automatic_Line_Ender" xml:space="preserve">
     <value>Automatic Line Ender</value>
   </data>
@@ -392,6 +386,12 @@
   </data>
   <data name="You_cannot_rename_this_element" xml:space="preserve">
     <value>You cannot rename this element.</value>
+  </data>
+  <data name="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file" xml:space="preserve">
+    <value>You cannot rename this element because it is contained in a read-only file.</value>
+  </data>
+  <data name="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to" xml:space="preserve">
+    <value>You cannot rename this element because it is in a location that cannot be navigated to.</value>
   </data>
   <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
     <value>Please resolve errors in your code before renaming this element.</value>
@@ -582,9 +582,6 @@
   <data name="Peek" xml:space="preserve">
     <value>Peek</value>
   </data>
-  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
-    <value>'symbol' cannot be a namespace.</value>
-  </data>
   <data name="Apply1" xml:space="preserve">
     <value>_Apply</value>
   </data>
@@ -724,8 +721,14 @@ Do you want to proceed?</value>
   <data name="Locating_implementations" xml:space="preserve">
     <value>Locating implementations...</value>
   </data>
+  <data name="Locating_bases" xml:space="preserve">
+    <value>Locating bases...</value>
+  </data>
   <data name="Go_To_Implementation" xml:space="preserve">
     <value>Go To Implementation</value>
+  </data>
+  <data name="Go_To_Base" xml:space="preserve">
+    <value>Go To Base</value>
   </data>
   <data name="The_symbol_has_no_implementations" xml:space="preserve">
     <value>The symbol has no implementations.</value>
@@ -886,8 +889,8 @@ Do you want to proceed?</value>
   <data name="Operator_Overloaded" xml:space="preserve">
     <value>Operator - Overloaded</value>
   </data>
-  <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
-    <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
+  <data name="Waiting_for_background_work_to_finish" xml:space="preserve">
+    <value>Waiting for background work to finish...</value>
   </data>
   <data name="The_symbol_has_no_base" xml:space="preserve">
     <value>The symbol has no base.</value>
@@ -895,8 +898,9 @@ Do you want to proceed?</value>
   <data name="_0_bases" xml:space="preserve">
     <value>'{0}' bases</value>
   </data>
-  <data name="Rename_file" xml:space="preserve">
-    <value>Rename _file</value>
+  <data name="Rename_symbols_file" xml:space="preserve">
+    <value>Rename symbol's _file</value>
+    <comment>Indicates that the file a symbol is defined in will also be renamed</comment>
   </data>
   <data name="Rename_file_partial_type" xml:space="preserve">
     <value>Rename _file (not allowed on partial types)</value>
@@ -904,5 +908,41 @@ Do you want to proceed?</value>
   </data>
   <data name="Rename_file_name_doesnt_match" xml:space="preserve">
     <value>Rename _file (type does not match file name)</value>
+  </data>
+  <data name="Toggle_Block_Comment" xml:space="preserve">
+    <value>Toggle Block Comment</value>
+  </data>
+  <data name="Toggling_block_comment" xml:space="preserve">
+    <value>Toggling block comment...</value>
+  </data>
+  <data name="Toggle_Line_Comment" xml:space="preserve">
+    <value>Toggle Line Comment</value>
+  </data>
+  <data name="Toggling_line_comment" xml:space="preserve">
+    <value>Toggling line comment...</value>
+  </data>
+  <data name="Expander_display_text" xml:space="preserve">
+    <value>items from unimported namespaces</value>
+  </data>
+  <data name="Expander_image_element" xml:space="preserve">
+    <value>Expander</value>
+  </data>
+  <data name="Removal_of_document_not_supported" xml:space="preserve">
+    <value>Removal of document not supported</value>
+  </data>
+  <data name="_0_implemented_members" xml:space="preserve">
+    <value>'{0}' implemented members</value>
+  </data>
+  <data name="external" xml:space="preserve">
+    <value>(external)</value>
+  </data>
+  <data name="Downloading_index_failed" xml:space="preserve">
+    <value>Downloading index failed</value>
+  </data>
+  <data name="Downloading_index_failed_0" xml:space="preserve">
+    <value>Downloading index failed:{0}</value>
+  </data>
+  <data name="Downloading_IntelliSense_index_for_0" xml:space="preserve">
+    <value>Downloading IntelliSense index for {0}</value>
   </data>
 </root>

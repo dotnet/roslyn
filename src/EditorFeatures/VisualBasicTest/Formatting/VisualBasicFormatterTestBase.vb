@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -10,17 +12,26 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.EditorUtilities
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <[UseExportProvider]>
     Public Class VisualBasicFormatterTestBase
         Inherits CoreFormatterTestsBase
 
-        Friend Overrides Function GetLanguageName() As String
+        Public Sub New(output As ITestOutputHelper)
+            MyBase.New(output)
+        End Sub
+
+        Protected Overrides Function GetLanguageName() As String
             Return LanguageNames.VisualBasic
         End Function
 
-        Protected Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Tasks.Task
+        Protected Overrides Function ParseCompilationUnit(expected As String) As SyntaxNode
+            Return SyntaxFactory.ParseCompilationUnit(expected)
+        End Function
+
+        Protected Shared Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim hostdoc = workspace.Documents.First()
 
@@ -28,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 ' create new buffer with cloned content
-                Dim clonedBuffer = EditorFactory.CreateBuffer(buffer.ContentType.TypeName, workspace.ExportProvider, buffer.CurrentSnapshot.GetText())
+                Dim clonedBuffer = EditorFactory.CreateBuffer(workspace.ExportProvider, buffer.ContentType, buffer.CurrentSnapshot.GetText())
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim syntaxTree = Await document.GetSyntaxTreeAsync()

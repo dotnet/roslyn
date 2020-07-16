@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var solution = invocationDocument.Project.Solution;
 
             var referencedSymbols = fixAllReferences
-                ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
+                ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
             var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)
                 {
-                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan);
+                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan, getInnermostNodeForTie: true);
                     var existingParameters = generator.GetParameters(methodNode);
                     var insertionIndex = newParameterIndex ?? existingParameters.Count;
 
@@ -120,7 +123,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
-
                     if (method.MethodKind == MethodKind.ReducedExtension)
                     {
                         insertionIndex++;
@@ -136,18 +138,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return solution;
         }
 
-        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
+        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
-            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progress = new StreamingProgressCollector();
 
             await SymbolFinder.FindReferencesAsync(
-                symbolAndProjectId: SymbolAndProjectId.Create(method, invocationDocument.Project.Id),
-                solution: invocationDocument.Project.Solution,
-                documents: null,
-                progress: progress,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                method, invocationDocument.Project.Solution, progress: progress,
+                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
             return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                     .OfType<IMethodSymbol>()
@@ -155,7 +153,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                                     .ToImmutableArray();
         }
 
-        private IParameterSymbol CreateParameterSymbol(
+        private static IParameterSymbol CreateParameterSymbol(
             IMethodSymbol method,
             ITypeSymbol parameterType,
             RefKind refKind,
@@ -211,7 +209,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 {
                     // First parameter is on hte same line as the method.  
 
-                    // We want to insert the parameter at the front of the exsiting parameter
+                    // We want to insert the parameter at the front of the existing parameter
                     // list.  That means we need to move the current first parameter to a new
                     // line.  Give the current first parameter the indentation of the second
                     // parameter in the list.
@@ -232,7 +230,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     // make sure the current first parameter gets a newline so it stays on 
                     // its own line.
 
-                    // We want to insert the parameter at the front of the exsiting parameter
+                    // We want to insert the parameter at the front of the existing parameter
                     // list.  That means we need to move the current first parameter to a new
                     // line.  Give the current first parameter the indentation of the second
                     // parameter in the list.
@@ -271,11 +269,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
+        private static ImmutableArray<SyntaxTrivia> GetDesiredLeadingIndentation(
             SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
-            var triviaList = new List<SyntaxTrivia>();
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaList);
             if (includeLeadingNewLine)
             {
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
@@ -299,7 +297,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(lastWhitespace);
             }
 
-            return triviaList;
+            return triviaList.ToImmutable();
         }
 
         private static bool ShouldPlaceParametersOnNewLine(

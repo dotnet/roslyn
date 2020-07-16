@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -19,26 +23,54 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// Note, this must return object instead of ClassificationSpan b/c liveshare uses dynamic to convert handler results.
     /// Unfortunately, ClassificationSpan is an internal type and cannot be defined in the external access layer.
     /// </summary>
-    internal class ClassificationsHandler : ILspRequestHandler<ClassificationParams, object[], Solution>
+    internal class ClassificationsHandler : AbstractClassificationsHandler
     {
-        public async Task<object[]> HandleAsync(ClassificationParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public ClassificationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
-            var actualDocumentURI = requestContext.ProtocolConverter.FromProtocolUri(request.TextDocument.Uri);
-            var document = requestContext.Context.GetDocumentFromURI(actualDocumentURI);
-            var classificationService = document?.Project.LanguageServices.GetService<IClassificationService>();
+        }
 
-            if (document == null || classificationService == null)
-            {
-                return Array.Empty<ClassificationSpan>();
-            }
+        protected override async Task AddClassificationsAsync(IClassificationService classificationService, Document document, TextSpan textSpan, List<ClassifiedSpan> spans, CancellationToken cancellationToken)
+            => await classificationService.AddSemanticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
+    }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = ProtocolConversions.RangeToTextSpan(request.Range, text);
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.ClassificationsName)]
+    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
+    internal class RoslynClassificationsHandler : ClassificationsHandler
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynClassificationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        {
+        }
+    }
 
-            var spans = new List<ClassifiedSpan>();
-            await classificationService.AddSemanticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
+    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, RoslynMethods.ClassificationsName)]
+    internal class CSharpClassificationsHandler : ClassificationsHandler
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpClassificationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        {
+        }
+    }
 
-            return spans.Select(c => new ClassificationSpan { Classification = c.ClassificationType, Range = ProtocolConversions.TextSpanToRange(c.TextSpan, text) }).ToArray();
+    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, RoslynMethods.ClassificationsName)]
+    internal class VisualBasicClassificationsHandler : ClassificationsHandler
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicClassificationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        {
+        }
+    }
+
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, RoslynMethods.ClassificationsName)]
+    internal class TypeScriptClassificationsHandler : ClassificationsHandler
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptClassificationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        {
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -2125,10 +2127,10 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,13): error CS1014: A get or set accessor expected
+                // (4,13): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 13),
-                // (4,18): error CS1014: A get or set accessor expected
+                // (4,18): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
                 // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
@@ -2190,15 +2192,15 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
-                // (4,13): error CS1014: A get or set accessor expected
+                // (4,13): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 13),
-                // (4,18): error CS1014: A get or set accessor expected
+                // (4,18): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
-                // (4,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (4,9): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int P1 {add; remove;} = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9),
                 // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 9)
@@ -2227,9 +2229,9 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
-                // (4,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (4,9): error CS8053: Instance properties in interfaces cannot have initializers..
                 //     int P1 {get; set;} = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 9)
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9)
                 );
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -3488,10 +3490,10 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,22): error CS1014: A get or set accessor expected
+                // (4,22): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 22),
-                // (4,27): error CS1014: A get or set accessor expected
+                // (4,27): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 27),
                 // (4,9): error CS0548: 'I1.this[int]': property or indexer must have at least one accessor
@@ -3556,10 +3558,10 @@ public interface I1
                 // (4,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 36),
-                // (4,22): error CS1014: A get or set accessor expected
+                // (4,22): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 22),
-                // (4,27): error CS1014: A get or set accessor expected
+                // (4,27): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 27),
                 // (4,9): error CS0548: 'I1.this[int]': property or indexer must have at least one accessor
@@ -8700,7 +8702,7 @@ class Test2 : I1
             Assert.Null(test2.FindImplementationForInterfaceMember(m5));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34658")]
+        [Fact]
         [WorkItem(34658, "https://github.com/dotnet/roslyn/issues/34658")]
         public void MethodModifiers_18()
         {
@@ -9197,27 +9199,27 @@ public partial interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (4,24): error CS0766: Partial methods must have a void return type
+                // (4,24): error CS8794: Partial method 'I1.M1()' must have accessibility modifiers because it has a non-void return type.
                 //     static partial int M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M1").WithLocation(4, 24),
-                // (5,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M1").WithArguments("I1.M1()").WithLocation(4, 24),
+                // (5,32): error CS8793: Partial method 'I1.M2()' must have an implementation part because it has accessibility modifiers.
                 //     public static partial void M2();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 32),
-                // (6,34): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M2").WithArguments("I1.M2()").WithLocation(5, 32),
+                // (6,34): error CS8793: Partial method 'I1.M3()' must have an implementation part because it has accessibility modifiers.
                 //     internal static partial void M3();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M3").WithLocation(6, 34),
-                // (7,33): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M3").WithArguments("I1.M3()").WithLocation(6, 34),
+                // (7,33): error CS8793: Partial method 'I1.M4()' must have an implementation part because it has accessibility modifiers.
                 //     private static partial void M4();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M4").WithLocation(7, 33),
-                // (8,25): error CS0752: A partial method cannot have out parameters
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M4").WithArguments("I1.M4()").WithLocation(7, 33),
+                // (8,25): error CS8795: Partial method 'I1.M5(out int)' must have accessibility modifiers because it has 'out' parameters.
                 //     static partial void M5(out int x);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M5").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M5").WithArguments("I1.M5(out int)").WithLocation(8, 25),
                 // (11,25): error CS0759: No defining declaration found for implementing declaration of partial method 'I1.M8()'
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M8").WithArguments("I1.M8()").WithLocation(11, 25),
                 // (18,17): error CS0111: Type 'I1' already defines a member called 'M6' with the same parameter types
                 //     static void M6() {}
@@ -9226,56 +9228,59 @@ public partial interface I1
                 //     static partial void M7();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "I1").WithLocation(19, 25),
                 // (20,25): error CS0757: A partial method may not have multiple implementing declarations
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneActual, "M8").WithLocation(20, 25),
+                // (20,25): error CS0111: Type 'I1' already defines a member called 'M8' with the same parameter types
+                //     static partial void M8() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "I1").WithLocation(20, 25),
                 // (21,25): error CS0756: A partial method may not have multiple defining declarations
-                //     static partial void M9(); 
+                //     static partial void M9();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M9").WithLocation(21, 25),
-                // (22,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M10").WithLocation(22, 32),
-                // (22,32): error CS0756: A partial method may not have multiple defining declarations
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M10").WithLocation(22, 32),
-                // (23,35): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (21,25): error CS0111: Type 'I1' already defines a member called 'M9' with the same parameter types
+                //     static partial void M9();
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "I1").WithLocation(21, 25),
+                // (22,32): error CS8796: Partial method 'I1.M10()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     static extern partial void M10();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M10").WithArguments("I1.M10()").WithLocation(22, 32),
+                // (23,35): error CS8793: Partial method 'I1.M11()' must have an implementation part because it has accessibility modifiers.
                 //     protected static partial void M11();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M11").WithLocation(23, 35),
-                // (24,44): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M11").WithArguments("I1.M11()").WithLocation(23, 35),
+                // (24,44): error CS8793: Partial method 'I1.M12()' must have an implementation part because it has accessibility modifiers.
                 //     protected internal static partial void M12();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M12").WithLocation(24, 44),
-                // (25,43): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M12").WithArguments("I1.M12()").WithLocation(24, 44),
+                // (25,43): error CS8793: Partial method 'I1.M13()' must have an implementation part because it has accessibility modifiers.
                 //     private protected static partial void M13();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M13").WithLocation(25, 43)
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M13").WithArguments("I1.M13()").WithLocation(25, 43)
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation2.VerifyDiagnostics(
-                // (4,24): error CS0766: Partial methods must have a void return type
+                // (4,24): error CS8794: Partial method 'I1.M1()' must have accessibility modifiers because it has a non-void return type.
                 //     static partial int M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M1").WithLocation(4, 24),
-                // (5,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M1").WithArguments("I1.M1()").WithLocation(4, 24),
+                // (5,32): error CS8793: Partial method 'I1.M2()' must have an implementation part because it has accessibility modifiers.
                 //     public static partial void M2();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 32),
-                // (6,34): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M2").WithArguments("I1.M2()").WithLocation(5, 32),
+                // (6,34): error CS8793: Partial method 'I1.M3()' must have an implementation part because it has accessibility modifiers.
                 //     internal static partial void M3();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M3").WithLocation(6, 34),
-                // (7,33): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M3").WithArguments("I1.M3()").WithLocation(6, 34),
+                // (7,33): error CS8793: Partial method 'I1.M4()' must have an implementation part because it has accessibility modifiers.
                 //     private static partial void M4();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M4").WithLocation(7, 33),
-                // (8,25): error CS0752: A partial method cannot have out parameters
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M4").WithArguments("I1.M4()").WithLocation(7, 33),
+                // (8,25): error CS8795: Partial method 'I1.M5(out int)' must have accessibility modifiers because it has 'out' parameters.
                 //     static partial void M5(out int x);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M5").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M5").WithArguments("I1.M5(out int)").WithLocation(8, 25),
                 // (10,17): error CS8701: Target runtime doesn't support default interface implementation.
                 //     static void M7() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M7").WithLocation(10, 17),
                 // (11,25): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M8").WithLocation(11, 25),
                 // (11,25): error CS0759: No defining declaration found for implementing declaration of partial method 'I1.M8()'
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M8").WithArguments("I1.M8()").WithLocation(11, 25),
                 // (18,17): error CS8701: Target runtime doesn't support default interface implementation.
                 //     static void M6() {}
@@ -9287,32 +9292,35 @@ public partial interface I1
                 //     static partial void M7();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "I1").WithLocation(19, 25),
                 // (20,25): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M8").WithLocation(20, 25),
                 // (20,25): error CS0757: A partial method may not have multiple implementing declarations
-                //     static partial void M8() {} 
+                //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneActual, "M8").WithLocation(20, 25),
+                // (20,25): error CS0111: Type 'I1' already defines a member called 'M8' with the same parameter types
+                //     static partial void M8() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "I1").WithLocation(20, 25),
                 // (21,25): error CS0756: A partial method may not have multiple defining declarations
-                //     static partial void M9(); 
+                //     static partial void M9();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M9").WithLocation(21, 25),
+                // (21,25): error CS0111: Type 'I1' already defines a member called 'M9' with the same parameter types
+                //     static partial void M9();
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "I1").WithLocation(21, 25),
                 // (22,32): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static extern partial void M10(); 
+                //     static extern partial void M10();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M10").WithLocation(22, 32),
-                // (22,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M10").WithLocation(22, 32),
-                // (22,32): error CS0756: A partial method may not have multiple defining declarations
-                //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M10").WithLocation(22, 32),
-                // (23,35): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (22,32): error CS8796: Partial method 'I1.M10()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     static extern partial void M10();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M10").WithArguments("I1.M10()").WithLocation(22, 32),
+                // (23,35): error CS8793: Partial method 'I1.M11()' must have an implementation part because it has accessibility modifiers.
                 //     protected static partial void M11();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M11").WithLocation(23, 35),
-                // (24,44): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M11").WithArguments("I1.M11()").WithLocation(23, 35),
+                // (24,44): error CS8793: Partial method 'I1.M12()' must have an implementation part because it has accessibility modifiers.
                 //     protected internal static partial void M12();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M12").WithLocation(24, 44),
-                // (25,43): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M12").WithArguments("I1.M12()").WithLocation(24, 44),
+                // (25,43): error CS8793: Partial method 'I1.M13()' must have an implementation part because it has accessibility modifiers.
                 //     private protected static partial void M13();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M13").WithLocation(25, 43)
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M13").WithArguments("I1.M13()").WithLocation(25, 43)
                 );
         }
 
@@ -9348,34 +9356,43 @@ interface I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (4,25): error CS8796: Partial method 'I1.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(4, 25),
-                // (5,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("I1.M1()").WithLocation(4, 25),
+                // (5,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void M2();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 27),
-                // (6,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (6,26): error CS8796: Partial method 'I1.M3()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M3();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M3").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
                 // (10,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(10, 21),
-                // (15,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (15,25): error CS8796: Partial method 'I1.M4()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M4() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M4").WithLocation(15, 25),
-                // (16,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     abstract partial void M5(); 
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M4").WithArguments("I1.M4()").WithLocation(15, 25),
+                // (15,25): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     sealed partial void M4() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M4").WithLocation(15, 25),
+                // (16,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M5").WithLocation(16, 27),
                 // (16,27): error CS0756: A partial method may not have multiple defining declarations
-                //     abstract partial void M5(); 
+                //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M5").WithLocation(16, 27),
-                // (17,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (16,27): error CS0111: Type 'I1' already defines a member called 'M5' with the same parameter types
+                //     abstract partial void M5();
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "I1").WithLocation(16, 27),
+                // (17,26): error CS8796: Partial method 'I1.M6()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M6() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M6").WithLocation(17, 26),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M6").WithArguments("I1.M6()").WithLocation(17, 26),
+                // (17,26): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     virtual partial void M6() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M6").WithLocation(17, 26),
                 // (19,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),
@@ -11583,9 +11600,9 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
-                // (4,24): error CS8050: Only auto-implemented properties can have initializers.
+                // (4,24): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public virtual int P1 { get; } = 0; 
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 24),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 24),
                 // (4,29): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public virtual int P1 { get; } = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 29)
@@ -12394,9 +12411,9 @@ class Test1 : I1
                 // (8,24): error CS0238: 'I1.P3' cannot be sealed because it is not an override
                 //     sealed private int P3 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 24),
-                // (14,17): error CS8050: Only auto-implemented properties can have initializers.
+                // (14,17): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     private int P4 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithArguments("I1.P4").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithArguments("I1.P4").WithLocation(14, 17),
                 // (14,21): error CS0501: 'I1.P4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P4 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P4.get").WithLocation(14, 21),
@@ -13759,9 +13776,9 @@ class Test2 : I1, I2, I3
 {}
 ";
             ValidatePropertyModifiers_14(source1,
-                // (4,23): error CS8050: Only auto-implemented properties can have initializers.
+                // (4,23): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public sealed int P1 {get;} = 0; 
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 23),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 23),
                 // (4,27): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public sealed int P1 {get;} = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 27),
@@ -14022,9 +14039,9 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (44,26): error CS0503: The abstract property 'I8.P8' cannot be marked virtual
                 //     abstract virtual int P8 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("property", "I8.P8").WithLocation(44, 26),
-                // (44,26): error CS8050: Only auto-implemented properties can have initializers.
+                // (44,26): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract virtual int P8 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithArguments("I8.P8").WithLocation(44, 26),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithArguments("I8.P8").WithLocation(44, 26),
                 // (90,15): error CS0535: 'Test2' does not implement interface member 'I0.P0'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("Test2", "I0.P0").WithLocation(90, 15),
@@ -14470,9 +14487,9 @@ class Test2 : I1, I2, I3, I4, I5
                 // (16,47): error CS0179: 'I4.P4.set' cannot be extern and declare a body
                 //     private extern int P4 { get {throw null;} set {throw null;}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I4.P4.set").WithLocation(16, 47),
-                // (20,23): error CS8050: Only auto-implemented properties can have initializers.
+                // (20,23): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     extern sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P5").WithArguments("I5.P5").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 23),
                 // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(23, 15),
@@ -14702,9 +14719,9 @@ class Test2 : I1, I2, I3, I4, I5
                 // (20,25): error CS0106: The modifier 'override' is not valid for this item
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 25),
-                // (20,25): error CS8050: Only auto-implemented properties can have initializers.
+                // (20,25): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     override sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P5").WithArguments("I5.P5").WithLocation(20, 25),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 25),
                 // (20,29): error CS0501: 'I5.P5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I5.P5.get").WithLocation(20, 29),
@@ -17460,7 +17477,7 @@ public interface I2
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // https://github.com/dotnet/roslyn/issues/34455: The wording "accessor not found in interface member" is somewhat misleading
-            //                                                in this scenario. The accessor is there, but cannot be implemented. Prehaps
+            //                                                in this scenario. The accessor is there, but cannot be implemented. Perhaps
             //                                                the message should be adjusted. Should also check diagnostics for an attempt
             //                                                to implement other sealed members.
             compilation1.VerifyDiagnostics(
@@ -20694,6 +20711,372 @@ class Test2 : I1, I2, I3
         }
 
         [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_01()
+        {
+            var source1 =
+@"
+    interface I1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1
+    {
+        protected I1.I2 M1();
+
+        protected interface I5
+        {
+            I1.I2 M5();
+        }
+    }
+
+    class CI3 : I3
+    {
+        I1.I2 I3.M1() => null;
+
+        class CI5 : I3.I5
+        {
+            I1.I2 I3.I5.M5() => null;
+        }
+    }
+
+    class C3 : I1
+    {
+        protected virtual void M1(I1.I2 x) { }
+
+        protected interface I7
+        {
+            I1.I2 M7();
+        }
+    }
+
+    class CC3 : C3
+    {
+        protected override void M1(I1.I2 x) { }
+
+        class CI7 : C3.I7
+        {
+            I1.I2 C3.I7.M7() => null;
+        }
+    }
+
+    class C33 : C1
+    {
+        protected virtual void M1(C1.I2 x) { }
+
+        protected class C55
+        {
+            public virtual C1.I2 M55() => null;
+        }
+    }
+
+    class CC33 : C33
+    {
+        protected override void M1(C1.I2 x) { }
+
+        class CC55 : C33.C55
+        {
+            public override C1.I2 M55() => null;
+        }
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_02()
+        {
+            var source1 =
+@"
+    interface I1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1
+    {
+        interface I4
+        {
+            protected I1.I2 M4();
+        }
+    }
+
+    class CI4 : I3.I4
+    {
+        I1.I2 I3.I4.M4() => null;
+    }
+
+    class C3 : I1
+    {
+        public interface I6
+        {
+            protected I1.I2 M6();
+        }
+    }
+
+    class CI6 : C3.I6
+    {
+        I1.I2 C3.I6.M6() => null;
+    }
+
+    class C33 : C1
+    {
+        public class C44
+        {
+            protected virtual C1.I2 M44() => null;
+        }
+    }
+
+    class CC44 : C33.C44
+    {
+        protected override C1.I2 M44() => null;
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (20,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I3.I4.M4()'
+                //             protected I1.I2 M4();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M4").WithArguments("I3.I4.M4()", "I1.I2").WithLocation(20, 29),
+                // (24,17): error CS0535: 'CI4' does not implement interface member 'I3.I4.M4()'
+                //     class CI4 : I3.I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3.I4").WithArguments("CI4", "I3.I4.M4()").WithLocation(24, 17),
+                // (26,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                //         I1.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 12),
+                // (26,21): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 21),
+                // (33,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'C3.I6.M6()'
+                //             protected I1.I2 M6();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1.I2").WithLocation(33, 29),
+                // (37,17): error CS0535: 'CI6' does not implement interface member 'C3.I6.M6()'
+                //     class CI6 : C3.I6
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C3.I6").WithArguments("CI6", "C3.I6.M6()").WithLocation(37, 17),
+                // (39,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                //         I1.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(39, 12),
+                // (39,21): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 21),
+                // (46,37): error CS0050: Inconsistent accessibility: return type 'C1.I2' is less accessible than method 'C33.C44.M44()'
+                //             protected virtual C1.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1.I2").WithLocation(46, 37),
+                // (52,31): error CS0122: 'C1.I2' is inaccessible due to its protection level
+                //         protected override C1.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("C1.I2").WithLocation(52, 31)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_03()
+        {
+            var source1 =
+@"
+    interface I1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1<int>
+    {
+        protected I1<string>.I2 M1();
+
+        protected interface I5
+        {
+            I1<string>.I2 M5();
+        }
+    }
+
+    class CI3 : I3
+    {
+        I1<string>.I2 I3.M1() => null;
+
+        class CI5 : I3.I5
+        {
+            I1<string>.I2 I3.I5.M5() => null;
+        }
+    }
+
+    class C3 : I1<int>
+    {
+        protected virtual void M1(I1<string>.I2 x) { }
+
+        protected interface I7
+        {
+            I1<string>.I2 M7();
+        }
+    }
+
+    class CC3 : C3
+    {
+        protected override void M1(I1<string>.I2 x) { }
+
+        class CI7 : C3.I7
+        {
+            I1<string>.I2 C3.I7.M7() => null;
+        }
+    }
+
+    class C33 : C1<int>
+    {
+        protected virtual void M1(C1<string>.I2 x) { }
+
+        protected class C55
+        {
+            public virtual C1<string>.I2 M55() => null;
+        }
+    }
+
+    class CC33 : C33
+    {
+        protected override void M1(C1<string>.I2 x) { }
+
+        class CC55 : C33.C55
+        {
+            public override C1<string>.I2 M55() => null;
+        }
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_04()
+        {
+            var source1 =
+@"
+    interface I1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1<int>
+    {
+        interface I4
+        {
+            protected I1<string>.I2 M4();
+        }
+    }
+
+    class CI4 : I3.I4
+    {
+        I1<string>.I2 I3.I4.M4() => null;
+    }
+
+    class C3 : I1<int>
+    {
+        public interface I6
+        {
+            protected I1<string>.I2 M6();
+        }
+    }
+
+    class CI6 : C3.I6
+    {
+        I1<string>.I2 C3.I6.M6() => null;
+    }
+
+    class C33 : C1<int>
+    {
+        public class C44
+        {
+            protected virtual C1<string>.I2 M44() => null;
+        }
+    }
+
+    class CC44 : C33.C44
+    {
+        protected override C1<string>.I2 M44() => null;
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (20,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'I3.I4.M4()'
+                //             protected I1<string>.I2 M4();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M4").WithArguments("I3.I4.M4()", "I1<string>.I2").WithLocation(20, 37),
+                // (24,17): error CS0535: 'CI4' does not implement interface member 'I3.I4.M4()'
+                //     class CI4 : I3.I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3.I4").WithArguments("CI4", "I3.I4.M4()").WithLocation(24, 17),
+                // (26,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
+                //         I1<string>.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(26, 20),
+                // (26,29): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1<string>.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 29),
+                // (33,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'C3.I6.M6()'
+                //             protected I1<string>.I2 M6();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1<string>.I2").WithLocation(33, 37),
+                // (37,17): error CS0535: 'CI6' does not implement interface member 'C3.I6.M6()'
+                //     class CI6 : C3.I6
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C3.I6").WithArguments("CI6", "C3.I6.M6()").WithLocation(37, 17),
+                // (39,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
+                //         I1<string>.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(39, 20),
+                // (39,29): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1<string>.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 29),
+                // (46,45): error CS0050: Inconsistent accessibility: return type 'C1<string>.I2' is less accessible than method 'C33.C44.M44()'
+                //             protected virtual C1<string>.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1<string>.I2").WithLocation(46, 45),
+                // (52,39): error CS0122: 'C1<string>.I2' is inaccessible due to its protection level
+                //         protected override C1<string>.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("C1<string>.I2").WithLocation(52, 39)
+                );
+        }
+
+        [Fact]
         public void IndexerModifiers_15()
         {
             var source1 =
@@ -23389,9 +23772,6 @@ public interface I1
                 // (15,48): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
-                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P13;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32)
@@ -23705,52 +24085,52 @@ public interface I1
                 // (4,32): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public event System.Action P01;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.3", "8.0").WithLocation(4, 32),
-                // (5,40): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,40): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 40),
-                // (6,49): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,49): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     protected internal event System.Action P03 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 49),
-                // (7,39): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (7,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     internal event System.Action P04 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(7, 39),
-                // (8,38): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private event System.Action P05 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(8, 38),
-                // (9,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action P06 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(9, 37),
-                // (10,38): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (10,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual event System.Action P07 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(10, 38),
-                // (11,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (11,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     sealed event System.Action P08 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(11, 37),
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
-                // (12,39): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (12,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(12, 39),
-                // (13,39): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (13,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(13, 39),
                 // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
-                // (14,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(14, 37),
                 // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
-                // (14,43): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,43): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(14, 43),
                 // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
-                // (15,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (15,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(15, 37),
                 // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -23759,7 +24139,7 @@ public interface I1
                 // (15,40): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
-                // (15,42): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (15,42): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(15, 42),
                 // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -23771,9 +24151,6 @@ public interface I1
                 // (16,32): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7.3", "8.0").WithLocation(16, 32),
-                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P13;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
@@ -23867,9 +24244,6 @@ public interface I1
                 // (16,32): error CS8701: Target runtime doesn't support default interface implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P13").WithLocation(16, 32),
-                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P13;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
@@ -26676,39 +27050,24 @@ class Test2 : I1, I2, I3, I4, I5
                 // (20,39): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.3", "8.0").WithLocation(20, 39),
-                // (26,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (26,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add => throw null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(26, 9),
-                // (27,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (27,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove => throw null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(27, 9),
-                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
-                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
                 // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
-                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.add").WithLocation(16, 40),
                 // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.remove").WithLocation(16, 40),
-                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.add").WithLocation(20, 39),
                 // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.remove").WithLocation(20, 39),
-                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P1; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.add").WithLocation(4, 32),
                 // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P1; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32)
@@ -26721,48 +27080,33 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
-                // (4,32): error CS8501: Target runtime doesn't support default interface implementation.
+                // (4,32): error CS8701: Target runtime doesn't support default interface implementation.
                 //     extern event System.Action P1; 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P1").WithLocation(4, 32),
-                // (8,40): error CS8501: Target runtime doesn't support default interface implementation.
+                // (8,40): error CS8701: Target runtime doesn't support default interface implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P2").WithLocation(8, 40),
-                // (16,40): error CS8501: Target runtime doesn't support default interface implementation.
+                // (16,40): error CS8701: Target runtime doesn't support default interface implementation.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P4").WithLocation(16, 40),
-                // (20,39): error CS8501: Target runtime doesn't support default interface implementation.
+                // (20,39): error CS8701: Target runtime doesn't support default interface implementation.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P5").WithLocation(20, 39),
-                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
                 // (12,39): error CS8701: Target runtime doesn't support default interface implementation.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P3").WithLocation(12, 39),
-                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
                 // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
-                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.add").WithLocation(16, 40),
                 // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.remove").WithLocation(16, 40),
-                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.add").WithLocation(20, 39),
                 // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.remove").WithLocation(20, 39),
-                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern event System.Action P1; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.add").WithLocation(4, 32),
                 // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P1; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32),
@@ -26784,15 +27128,15 @@ class Test2 : I1, I2, I3, I4, I5
 @"
 public interface I1
 {
-    abstract extern event System.Action P1; 
+    abstract extern event System.Action P1;
 }
 public interface I2
 {
-    extern event System.Action P2 = null; 
+    extern event System.Action P2 = null;
 }
 public interface I3
 {
-    static extern event System.Action P3 {add => throw null; remove => throw null;} 
+    static extern event System.Action P3 {add => throw null; remove => throw null;}
 }
 public interface I4
 {
@@ -26813,16 +27157,16 @@ class Test2 : I1, I2, I3, I4
 ";
             ValidateEventModifiers_17(source1,
                 // (4,41): error CS0180: 'I1.P1' cannot be both extern and abstract
-                //     abstract extern event System.Action P1; 
+                //     abstract extern event System.Action P1;
                 Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I1.P1").WithLocation(4, 41),
                 // (8,32): error CS0068: 'I2.P2': instance event in interface cannot have initializer
-                //     extern event System.Action P2 = null; 
+                //     extern event System.Action P2 = null;
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P2").WithArguments("I2.P2").WithLocation(8, 32),
                 // (12,43): error CS0179: 'I3.P3.add' cannot be extern and declare a body
-                //     static extern event System.Action P3 {add => throw null; remove => throw null;} 
+                //     static extern event System.Action P3 {add => throw null; remove => throw null;}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I3.P3.add").WithLocation(12, 43),
                 // (12,62): error CS0179: 'I3.P3.remove' cannot be extern and declare a body
-                //     static extern event System.Action P3 {add => throw null; remove => throw null;} 
+                //     static extern event System.Action P3 {add => throw null; remove => throw null;}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I3.P3.remove").WithLocation(12, 62),
                 // (16,45): error CS0179: 'I4.P4.add' cannot be extern and declare a body
                 //     private extern event System.Action P4 { add {throw null;} remove {throw null;}}
@@ -26839,8 +27183,11 @@ class Test2 : I1, I2, I3, I4
                 // (28,28): error CS0539: 'Test2.P4' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I4.P4 { add => throw null; remove => throw null;}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P4").WithArguments("Test2.P4").WithLocation(28, 28),
+                // (8,32): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P2 = null;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 32),
                 // (8,32): warning CS0067: The event 'I2.P2' is never used
-                //     extern event System.Action P2 = null; 
+                //     extern event System.Action P2 = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P2").WithArguments("I2.P2").WithLocation(8, 32)
                 );
         }
@@ -27051,9 +27398,6 @@ class Test2 : I1, I2, I3, I4, I5
                 // (33,28): error CS0539: 'Test2.P5' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I5.P5 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P5").WithArguments("Test2.P5").WithLocation(33, 28),
-                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     static extern event System.Action P3;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
                 // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
@@ -28963,6 +29307,221 @@ class Test1
         }
 
         [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_10()
+        {
+            var source1 =
+@"
+interface I1
+{
+    protected interface I2
+    {
+    }
+}
+
+class C1
+{
+    protected interface I2
+    {
+    }
+}
+
+interface I3 : I1, I1.I2
+{
+    private void M1(I1.I2 x) { }
+}
+
+interface I4 : I1, I2
+{
+    I2 MI4();
+}
+
+interface I5 : I1.I2, I1
+{
+    private void M1(I1.I2 x) { }
+}
+
+interface I6 : I2, I1
+{
+    I2 MI6();
+}
+
+class C3 : I1, I1.I2
+{
+    private void M1(I1.I2 x) { }
+}
+
+class C4 : I1, I2
+{
+    void MC4(I2 x) { }
+}
+
+class C5 : I1.I2, I1
+{
+    private void M1(I1.I2 x) { }
+}
+
+class C6 : I2, I1
+{
+    void MC6(I2 x) { }
+}
+
+class C33 : C1, C1.I2
+{
+    protected void M1(C1.I2 x) { }
+}
+
+class C44 : C1, I2
+{
+    void M1(I2 x) { }
+}
+
+interface I7 : I8
+{
+    public interface I8 : I7
+    {
+    }
+}
+
+class C7 : I8
+{
+    public interface I8
+    {
+    }
+}
+
+interface I9 : I9.I10
+{
+    public interface I10 : I9
+    {
+    }
+}
+
+interface I11
+{
+    public interface I12 : I13
+    {
+    }
+
+    public interface I13
+    {
+    }
+
+    public interface I14 : I11.I13
+    {
+    }
+}
+
+class C11
+{
+    public interface I12 : I13
+    {
+    }
+
+    public interface I13
+    {
+    }
+
+    public interface I14 : I11.I13
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (16,23): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // interface I3 : I1, I1.I2
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(16, 23),
+                // (21,20): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // interface I4 : I1, I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(21, 20),
+                // (23,8): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I4.MI4()'
+                //     I2 MI4();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "MI4").WithArguments("I4.MI4()", "I1.I2").WithLocation(23, 8),
+                // (26,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // interface I5 : I1.I2, I1
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 19),
+                // (31,16): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // interface I6 : I2, I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(31, 16),
+                // (33,8): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I6.MI6()'
+                //     I2 MI6();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "MI6").WithArguments("I6.MI6()", "I1.I2").WithLocation(33, 8),
+                // (36,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // class C3 : I1, I1.I2
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(36, 19),
+                // (41,16): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // class C4 : I1, I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(41, 16),
+                // (43,14): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                //     void MC4(I2 x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(43, 14),
+                // (46,15): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // class C5 : I1.I2, I1
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(46, 15),
+                // (51,12): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // class C6 : I2, I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(51, 12),
+                // (53,14): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                //     void MC6(I2 x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(53, 14),
+                // (56,20): error CS0122: 'C1.I2' is inaccessible due to its protection level
+                // class C33 : C1, C1.I2
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("C1.I2").WithLocation(56, 20),
+                // (61,17): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // class C44 : C1, I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(61, 17),
+                // (66,16): error CS0246: The type or namespace name 'I8' could not be found (are you missing a using directive or an assembly reference?)
+                // interface I7 : I8
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I8").WithArguments("I8").WithLocation(66, 16),
+                // (73,12): error CS0246: The type or namespace name 'I8' could not be found (are you missing a using directive or an assembly reference?)
+                // class C7 : I8
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I8").WithArguments("I8").WithLocation(73, 12),
+                // (80,11): error CS0529: Inherited interface 'I9.I10' causes a cycle in the interface hierarchy of 'I9'
+                // interface I9 : I9.I10
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I9").WithArguments("I9", "I9.I10").WithLocation(80, 11),
+                // (82,22): error CS0529: Inherited interface 'I9' causes a cycle in the interface hierarchy of 'I9.I10'
+                //     public interface I10 : I9
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I10").WithArguments("I9.I10", "I9").WithLocation(82, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38735, "https://github.com/dotnet/roslyn/issues/38735")]
+        public void NestedTypes_52()
+        {
+            var source1 =
+@"
+interface I1 : IA<int>.NF { }
+
+interface IQ<T> { }
+
+interface IA<T> : IB<IQ<T>> { }
+
+interface IB<T> : IA<IQ<T>> { }
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (2,24): error CS0426: The type name 'NF' does not exist in the type 'IA<int>'
+                // interface I1 : IA<int>.NF { }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "NF").WithArguments("NF", "IA<int>").WithLocation(2, 24),
+                // (6,11): error CS0529: Inherited interface 'IB<IQ<T>>' causes a cycle in the interface hierarchy of 'IA<T>'
+                // interface IA<T> : IB<IQ<T>> { }
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IA").WithArguments("IA<T>", "IB<IQ<T>>").WithLocation(6, 11),
+                // (8,11): error CS0529: Inherited interface 'IA<IQ<T>>' causes a cycle in the interface hierarchy of 'IB<T>'
+                // interface IB<T> : IA<IQ<T>> { }
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB<T>", "IA<IQ<T>>").WithLocation(8, 11)
+                );
+        }
+
+        [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void MethodImplementationInDerived_01()
         {
@@ -29715,8 +30274,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
-                                                 references: new[] { TestReferences.NetCoreApp30.SystemThreadingTasksRef });
+                                                 targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -30671,9 +31229,6 @@ class Test1 : I2, I3, I1<string>
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
-                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
@@ -30702,9 +31257,6 @@ class Test1 : I2, I3, I1<string>
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
-                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
@@ -30771,12 +31323,6 @@ class Test1 : I2, I3, I1<string>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation2.VerifyDiagnostics(
-                // (3,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
-                // (3,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 15),
@@ -30802,12 +31348,6 @@ class Test1 : I2, I3, I1<string>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation3.VerifyDiagnostics(
-                // (3,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
-                // (3,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 15),
@@ -32928,12 +33468,12 @@ class Test2 : I4
                 // (14,12): error CS0551: Explicit interface implementation 'I2.I1.M2' is missing accessor 'I1.M2.get'
                 //     int I1.M2 
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M2").WithArguments("I2.I1.M2", "I1.M2.get").WithLocation(14, 12),
-                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1.set'
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1'
                 // class Test1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1.set").WithLocation(20, 15),
-                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2.get'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2'
                 // class Test1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2.get").WithLocation(20, 15),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2").WithLocation(20, 15),
                 // (36,9): error CS0550: 'I4.I3.M1.set' adds an accessor not found in interface member 'I3.M1'
                 //         set => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I4.I3.M1.set", "I3.M1").WithLocation(36, 9),
@@ -32946,9 +33486,9 @@ class Test2 : I4
                 // (43,21): error CS0501: 'I4.I3.M3.set' must declare a body because it is not marked abstract, extern, or partial
                 //     int I3.M3 {get; set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.M3.set").WithLocation(43, 21),
-                // (44,12): error CS8050: Only auto-implemented properties can have initializers.
+                // (44,12): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int I3.M4 {get; set;} = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
                 // (44,16): error CS0501: 'I4.I3.M4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     int I3.M4 {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.M4.get").WithLocation(44, 16),
@@ -34978,27 +35518,21 @@ class Test3 : I5
                 // (14,28): error CS0065: 'I2.I1.M2': event property must have both add and remove accessors
                 //     event System.Action I1.M2 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M2").WithArguments("I2.I1.M2").WithLocation(14, 28),
-                // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1.remove'
+                // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1'
                 // class Test2 : I4
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1.remove").WithLocation(33, 15),
-                // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1.add'
-                // class Test2 : I4
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1.add").WithLocation(33, 15),
-                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1.remove'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1").WithLocation(33, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1'
                 // class Test1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1.remove").WithLocation(20, 15),
-                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2.add'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2'
                 // class Test1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2.add").WithLocation(20, 15),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2").WithLocation(20, 15),
                 // (38,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     event System.Action I3.M1
                 Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(38, 27),
-                // (41,15): error CS0535: 'Test3' does not implement interface member 'I3.M1.remove'
+                // (41,15): error CS0535: 'Test3' does not implement interface member 'I3.M1'
                 // class Test3 : I5
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test3", "I3.M1.remove").WithLocation(41, 15),
-                // (41,15): error CS0535: 'Test3' does not implement interface member 'I3.M1.add'
-                // class Test3 : I5
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test3", "I3.M1.add").WithLocation(41, 15)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test3", "I3.M1").WithLocation(41, 15)
                 );
         }
 
@@ -36797,12 +37331,12 @@ class Test2 : I4
                 // (14,12): error CS0551: Explicit interface implementation 'I2.I1.this[long]' is missing accessor 'I1.this[long].get'
                 //     int I1.this[long x] 
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.I1.this[long]", "I1.this[long].get").WithLocation(14, 12),
-                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.this[long].get'
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.this[long]'
                 // class Test1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[long].get").WithLocation(20, 15),
-                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int].set'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[long]").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
                 // class Test1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int].set").WithLocation(20, 15),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int]").WithLocation(20, 15),
                 // (36,9): error CS0550: 'I4.I3.this[int].set' adds an accessor not found in interface member 'I3.this[int]'
                 //         set => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I4.I3.this[int].set", "I3.this[int]").WithLocation(36, 9),
@@ -38615,9 +39149,9 @@ public interface I1
                 // (4,26): error CS0501: 'I1.F1.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int F1 {get; set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.F1.set").WithLocation(4, 26),
-                // (5,17): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,17): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     private int F5 {get;} = 5;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "F5").WithArguments("I1.F5").WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "F5").WithArguments("I1.F5").WithLocation(5, 17),
                 // (5,21): error CS0501: 'I1.F5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int F5 {get;} = 5;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.F5.get").WithLocation(5, 21)
@@ -42919,7 +43453,7 @@ I2.-
         public void RuntimeFeature_01()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestReferences.Net461.mscorlibRef },
+                                                 references: new[] { TestMetadata.Net461.mscorlib },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -42930,7 +43464,7 @@ I2.-
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestReferences.NetCoreApp30.SystemRuntimeRef },
+                                                 references: new[] { TestMetadata.NetCoreApp31.SystemRuntime },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -43228,7 +43762,7 @@ namespace System
 ";
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll,
-                                                 references: new[] { TestReferences.Net461.mscorlibRef },
+                                                 references: new[] { TestMetadata.Net461.mscorlib },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -44138,7 +44672,7 @@ public interface ITest33
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35911")]
+        [Fact]
         [WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")]
         public void NoPia_10()
         {
@@ -44187,9 +44721,9 @@ class UsePia
                 var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
 
                 compilation1.VerifyEmitDiagnostics(
-                    // (4,29): error CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+                    // (4,29): error CS8750: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.
                     //     public static void Main(ITest44 x)
-                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType, "ITest44").WithArguments("ITest44").WithLocation(4, 29)
+                    Diagnostic(ErrorCode.ERR_ReAbstractionInNoPIAType, "ITest44").WithArguments("ITest44").WithLocation(4, 29)
                     );
             }
         }
@@ -45255,7 +45789,7 @@ class Test1 : I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             validate(compilation1.SourceModule);
 
@@ -45263,7 +45797,7 @@ class Test1 : I2
                 // (9,30): error CS0754: A partial method may not explicitly implement an interface method
                 //     abstract partial void I1.M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M1").WithLocation(9, 30),
-                // (9,30): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                // (9,30): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void I1.M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(9, 30),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
@@ -49257,9 +49791,9 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,21): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { get; set; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -49286,9 +49820,9 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,21): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -49315,9 +49849,9 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,21): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { set; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -54164,5 +54698,5165 @@ public interface I2 : I1
                 );
         }
 
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ImplicitImplementationOfNonPublicMethod_01()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method assembly hidebysig newslot strict virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""I1.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method I1::M
+
+  .method public hidebysig instance string 
+          Test() cil managed
+  {
+    // Code size       12 (0xc)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  callvirt   instance string I1::M()
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  } // end of method I1::Test
+
+} // end of class I1
+
+.class public auto ansi beforefieldinit C0
+       extends System.Object
+       implements I1
+{
+  .method public hidebysig newslot virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""C0.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method C0::M
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C0::.ctor
+
+} // end of class C0
+";
+
+            var source1 =
+@"
+class Test
+{
+    static void Main()
+    {
+        I1 x = new C0();
+        System.Console.WriteLine(x.Test());
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, expectedOutput: "C0.M");
+
+            var c0 = compilation1.GetTypeByMetadataName("C0");
+            var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
+
+            Assert.Equal("System.String C0.M()", c0.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void ImplicitImplementationOfNonPublicMethod_02()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method assembly hidebysig newslot strict virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""I1.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method I1::M
+
+  .method public hidebysig instance string 
+          Test() cil managed
+  {
+    // Code size       12 (0xc)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  callvirt   instance string I1::M()
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  } // end of method I1::Test
+
+} // end of class I1
+
+.class public auto ansi beforefieldinit C0
+       extends System.Object
+       implements I1
+{
+  .method public hidebysig newslot virtual 
+          instance string  M() cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""C0.M""
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0009
+
+    IL_0009:  ldloc.0
+    IL_000a:  ret
+  } // end of method C0::M
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C0::.ctor
+
+} // end of class C0
+";
+
+            var source1 =
+@"
+class Test : C0, I1
+{
+    static void Main()
+    {
+        I1 x = new Test();
+        System.Console.WriteLine(x.Test());
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, expectedOutput: "C0.M");
+
+            var test = compilation1.GetTypeByMetadataName("Test");
+            var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
+
+            Assert.Equal("System.String C0.M()", test.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ImplicitImplementationOfNonPublicMethod_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal string M()
+    {
+        return ""I1.M"";
+    }
+
+    public sealed string Test()
+    {
+        return M();
+    }
+}
+
+public class C0 : I1
+{
+    public virtual string M()
+    {
+        return ""C0.M"";
+    }
+}
+
+class Test : C0, I1
+{
+    static void Main()
+    {
+        I1 x = new Test();
+        System.Console.WriteLine(x.Test());
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+
+            var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
+            var c0 = compilation1.GetTypeByMetadataName("C0");
+            var test = compilation1.GetTypeByMetadataName("Test");
+
+            Assert.Equal("System.String C0.M()", c0.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+            Assert.Equal("System.String C0.M()", test.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+
+            compilation1.VerifyDiagnostics(
+                // (15,19): error CS8704: 'C0' does not implement interface member 'I1.M()'. 'C0.M()' cannot implicitly implement a non-public member.
+                // public class C0 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("C0", "I1.M()", "C0.M()").WithLocation(15, 19)
+                );
+        }
+
+        private static string BuildAssemblyExternClause(PortableExecutableReference reference)
+        {
+            AssemblyIdentity assemblyIdentity = ((AssemblyMetadata)reference.GetMetadata()).GetAssembly().Identity;
+            Version version = assemblyIdentity.Version;
+            var publicKeyToken = assemblyIdentity.PublicKeyToken;
+
+            return @"
+.assembly extern " + assemblyIdentity.Name + @"
+{
+  .publickeytoken = (" +
+  publicKeyToken[0].ToString("X2") +
+  publicKeyToken[1].ToString("X2") +
+  publicKeyToken[2].ToString("X2") +
+  publicKeyToken[3].ToString("X2") +
+  publicKeyToken[4].ToString("X2") +
+  publicKeyToken[5].ToString("X2") +
+  publicKeyToken[6].ToString("X2") +
+  publicKeyToken[7].ToString("X2") +
+@" )
+  .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
+}
+";
+        }
+
+        [Fact]
+        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        public void WindowsRuntimeEvent_01()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntimeInteropServicesWindowsRuntime) +
+@"
+.class public auto ansi sealed Event
+       extends [System.Runtime]System.MulticastDelegate
+{
+  .method private hidebysig specialname rtspecialname 
+          instance void  .ctor(object 'object',
+                               native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  Invoke() runtime managed
+  {
+  }
+
+} // end of class Event
+
+.class interface public abstract auto ansi Interface`1<T>
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  add_Normal(class Event 'value') cil managed
+  {
+  }
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  remove_Normal(class Event 'value') cil managed
+  {
+  }
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 
+          add_WinRT([in] class Event 'value') cil managed
+  {
+  }
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  remove_WinRT([in] valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 'value') cil managed
+  {
+  }
+
+  .event Event Normal
+  {
+    .addon instance void Interface`1::add_Normal(class Event)
+    .removeon instance void Interface`1::remove_Normal(class Event)
+  } // end of event I`1::Normal
+
+  .event Event WinRT
+  {
+    .addon instance valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken Interface`1::add_WinRT(class Event)
+    .removeon instance void Interface`1::remove_WinRT(valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+  }
+} // end of class Interface
+";
+
+            var source = @"
+interface I1 : Interface<int>
+{
+    event Event Interface<int>.Normal 
+    { 
+        add { throw null; }
+        remove { throw null; }
+    }
+
+    event Event Interface<int>.WinRT 
+    { 
+        add 
+        {
+            return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken();
+        }
+        remove 
+        {
+            System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken x = value;
+            x.ToString();
+        }
+    }
+}
+
+class C1 : I1, Interface<int>
+{}
+";
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebugWinMD })
+            {
+                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetStandardLatest);
+
+                void Validate(ModuleSymbol m)
+                {
+                    var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                    var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                    var baseInterface = i1.Interfaces().Single();
+
+                    Assert.True(baseInterface.IsInterface);
+                    Assert.True(i1.IsInterface);
+
+                    var i1Normal = i1.GetMember<EventSymbol>("Interface<System.Int32>.Normal");
+                    var i1WinRT = i1.GetMember<EventSymbol>("Interface<System.Int32>.WinRT");
+
+                    var baseInterfaceNormal = baseInterface.GetMember<EventSymbol>("Normal");
+                    var baseInterfaceWinRT = baseInterface.GetMember<EventSymbol>("WinRT");
+
+                    Assert.False(baseInterfaceNormal.IsWindowsRuntimeEvent);
+                    Assert.False(i1Normal.IsWindowsRuntimeEvent);
+                    Assert.True(baseInterfaceWinRT.IsWindowsRuntimeEvent);
+                    Assert.True(i1WinRT.IsWindowsRuntimeEvent);
+
+                    Assert.Same(i1Normal, i1.FindImplementationForInterfaceMember(baseInterfaceNormal));
+                    Assert.Same(i1Normal.AddMethod, i1.FindImplementationForInterfaceMember(baseInterfaceNormal.AddMethod));
+                    Assert.Same(i1Normal.RemoveMethod, i1.FindImplementationForInterfaceMember(baseInterfaceNormal.RemoveMethod));
+                    Assert.Same(i1WinRT, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                    Assert.Same(i1WinRT.AddMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                    Assert.Same(i1WinRT.RemoveMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                    Assert.Same(i1Normal, c1.FindImplementationForInterfaceMember(baseInterfaceNormal));
+                    Assert.Same(i1Normal.AddMethod, c1.FindImplementationForInterfaceMember(baseInterfaceNormal.AddMethod));
+                    Assert.Same(i1Normal.RemoveMethod, c1.FindImplementationForInterfaceMember(baseInterfaceNormal.RemoveMethod));
+                    Assert.Same(i1WinRT, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                    Assert.Same(i1WinRT.AddMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                    Assert.Same(i1WinRT.RemoveMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                    Assert.Equal("void I1.Interface<System.Int32>.Normal.add", i1Normal.AddMethod.ToTestDisplayString());
+                    Assert.Equal("void I1.Interface<System.Int32>.Normal.remove", i1Normal.RemoveMethod.ToTestDisplayString());
+                    Assert.Equal("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken I1.Interface<System.Int32>.WinRT.add", i1WinRT.AddMethod.ToTestDisplayString());
+                    Assert.Equal("void I1.Interface<System.Int32>.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
+                }
+
+                Validate(comp.SourceModule);
+
+                CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+            }
+        }
+
+        [Fact]
+        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        public void WindowsRuntimeEvent_02()
+        {
+            var source = @"
+interface I1
+{
+    event System.Action WinRT 
+    { 
+        add 
+        {
+            return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken();
+        }
+        remove 
+        {
+            System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken x = value;
+            x.ToString();
+        }
+    }
+}
+
+class C1 : I1
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetStandardLatest);
+
+            void Validate(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var c1 = m.GlobalNamespace.GetTypeMember("C1");
+
+                var i1WinRT = i1.GetMember<EventSymbol>("WinRT");
+
+                Assert.True(i1WinRT.IsWindowsRuntimeEvent);
+
+                Assert.Same(i1WinRT, c1.FindImplementationForInterfaceMember(i1WinRT));
+                Assert.Same(i1WinRT.AddMethod, c1.FindImplementationForInterfaceMember(i1WinRT.AddMethod));
+                Assert.Same(i1WinRT.RemoveMethod, c1.FindImplementationForInterfaceMember(i1WinRT.RemoveMethod));
+
+                Assert.Equal("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken I1.WinRT.add", i1WinRT.AddMethod.ToTestDisplayString());
+                Assert.Equal("void I1.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
+            }
+
+            Validate(comp.SourceModule);
+
+            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+        }
+
+        [Fact]
+        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        public void WindowsRuntimeEvent_03()
+        {
+            var source = @"
+interface Interface
+{
+    event System.Action WinRT; 
+}
+
+interface I1 : Interface
+{
+    event System.Action Interface.WinRT 
+    { 
+        add 
+        {
+            return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken();
+        }
+        remove 
+        {
+            System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken x = value;
+            x.ToString();
+        }
+    }
+}
+
+class C1 : I1, Interface
+{}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetStandardLatest);
+
+            void Validate(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                var baseInterface = i1.Interfaces().Single();
+
+                Assert.True(baseInterface.IsInterface);
+                Assert.True(i1.IsInterface);
+
+                var i1WinRT = i1.GetMember<EventSymbol>("Interface.WinRT");
+
+                var baseInterfaceWinRT = baseInterface.GetMember<EventSymbol>("WinRT");
+
+                Assert.True(baseInterfaceWinRT.IsWindowsRuntimeEvent);
+                Assert.True(i1WinRT.IsWindowsRuntimeEvent);
+
+                Assert.Same(i1WinRT, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                Assert.Same(i1WinRT.AddMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                Assert.Same(i1WinRT.RemoveMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                Assert.Same(i1WinRT, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                Assert.Same(i1WinRT.AddMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                Assert.Same(i1WinRT.RemoveMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                Assert.Equal("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken I1.Interface.WinRT.add", i1WinRT.AddMethod.ToTestDisplayString());
+                Assert.Equal("void I1.Interface.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
+            }
+
+            Validate(comp.SourceModule);
+
+            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_01()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P1() cil managed
+  {
+  } // end of method I1::get_P1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P2() cil managed
+  {
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+  } // end of method I1::set_P2
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_P3(int32 'value') cil managed
+  {
+  } // end of method I1::set_P3
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  add_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+  } // end of method I1::add_E1
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+  } // end of method I1::remove_E1
+
+  .event [System.Runtime]System.Action E1
+  {
+    .addon instance void I1::add_E1(class [System.Runtime]System.Action)
+    .removeon instance void I1::remove_E1(class [System.Runtime]System.Action)
+  } // end of event I1::E1
+  .property instance int32 P1()
+  {
+    .get instance int32 I1::get_P1()
+  } // end of property I1::P1
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+  .property instance int32 P3()
+  {
+    .set instance void I1::set_P3(int32)
+  } // end of property I1::P3
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+       implements I1
+{
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  I1.get_P1() cil managed
+  {
+    .override I1::get_P1
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.get_P1
+
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.get_P2
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.set_P2
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.set_P3(int32 'value') cil managed
+  {
+    .override I1::set_P3
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.set_P3
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.add_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    .override I1::add_E1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  throw
+  } // end of method C1::I1.add_E1
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    .override I1::remove_E1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  throw
+  } // end of method C1::I1.remove_E1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+} // end of class C1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P1() cil managed
+  {
+    .override I1::get_P1
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P1
+
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P3(int32 'value') cil managed
+  {
+    .override I1::set_P3
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P3
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.add_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    .override I1::add_E1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  throw
+  } // end of method I2::I1.add_E1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    .override I1::remove_E1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  throw
+  } // end of method I2::I1.remove_E1
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test1 : C1, I1
+{
+}
+
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P1 {get => throw null;}
+    public long P2 {get => throw null; set => throw null;}
+    public long P3 {set => throw null;}
+}
+
+class Test4 : C1, I1
+{
+    public long P1 {get => throw null;}
+    public long P2 {get => throw null; set => throw null;}
+    public long P3 {set => throw null;}
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.E1'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.E1").WithLocation(6, 19),
+                // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(6, 19),
+                // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(6, 19),
+                // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P3'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P3").WithLocation(6, 19),
+                // (10,15): error CS0535: 'Test3' does not implement interface member 'I1.E1'
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test3", "I1.E1").WithLocation(10, 15),
+                // (10,15): error CS0738: 'Test3' does not implement interface member 'I1.P1'. 'Test3.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P1", "Test3.P1", "int").WithLocation(10, 15),
+                // (10,15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(10, 15),
+                // (10,15): error CS0738: 'Test3' does not implement interface member 'I1.P3'. 'Test3.P3' cannot implement 'I1.P3' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P3", "Test3.P3", "int").WithLocation(10, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var test4 = compilation1.GetTypeByMetadataName("Test4");
+            var i1P1 = i1.GetMember<PropertySymbol>("P1");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i1P3 = i1.GetMember<PropertySymbol>("P3");
+            var i1E1 = i1.GetMember<EventSymbol>("E1");
+            var i2i1P1get = i2.GetMember<MethodSymbol>("I1.get_P1");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+            var i2i1P3set = i2.GetMember<MethodSymbol>("I1.set_P3");
+            var i2i1E1add = i2.GetMember<MethodSymbol>("I1.add_E1");
+            var i2i1E1remove = i2.GetMember<MethodSymbol>("I1.remove_E1");
+            var c1i1P1get = c1.GetMember<MethodSymbol>("I1.get_P1");
+            var c1i1P2get = c1.GetMember<MethodSymbol>("I1.get_P2");
+            var c1i1P2set = c1.GetMember<MethodSymbol>("I1.set_P2");
+            var c1i1P3set = c1.GetMember<MethodSymbol>("I1.set_P3");
+            var c1i1E1add = c1.GetMember<MethodSymbol>("I1.add_E1");
+            var c1i1E1remove = c1.GetMember<MethodSymbol>("I1.remove_E1");
+
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1E1));
+
+            Assert.Same(i2i1P1get, test2.FindImplementationForInterfaceMember(i1P1.GetMethod));
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(i2i1P3set, test2.FindImplementationForInterfaceMember(i1P3.SetMethod));
+            Assert.Same(i2i1E1add, test2.FindImplementationForInterfaceMember(i1E1.AddMethod));
+            Assert.Same(i2i1E1remove, test2.FindImplementationForInterfaceMember(i1E1.RemoveMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1E1));
+
+            Assert.Same(c1i1P1get, test1.FindImplementationForInterfaceMember(i1P1.GetMethod));
+            Assert.Same(c1i1P2get, test1.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test1.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(c1i1P3set, test1.FindImplementationForInterfaceMember(i1P3.SetMethod));
+            Assert.Same(c1i1E1add, test1.FindImplementationForInterfaceMember(i1E1.AddMethod));
+            Assert.Same(c1i1E1remove, test1.FindImplementationForInterfaceMember(i1E1.RemoveMethod));
+            Assert.Null(test1.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(test1.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(test1.FindImplementationForInterfaceMember(i1E1));
+
+            Assert.Same(c1i1P1get, test4.FindImplementationForInterfaceMember(i1P1.GetMethod));
+            Assert.Same(c1i1P2get, test4.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test4.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(c1i1P3set, test4.FindImplementationForInterfaceMember(i1P3.SetMethod));
+            Assert.Same(c1i1E1add, test4.FindImplementationForInterfaceMember(i1E1.AddMethod));
+            Assert.Same(c1i1E1remove, test4.FindImplementationForInterfaceMember(i1E1.RemoveMethod));
+            Assert.Null(test4.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(test4.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(test4.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(test4.FindImplementationForInterfaceMember(i1E1));
+
+            Assert.Same(i2i1P1get, test3.FindImplementationForInterfaceMember(i1P1.GetMethod));
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(i2i1P3set, test3.FindImplementationForInterfaceMember(i1P3.SetMethod));
+            Assert.Same(i2i1E1add, test3.FindImplementationForInterfaceMember(i1E1.AddMethod));
+            Assert.Same(i2i1E1remove, test3.FindImplementationForInterfaceMember(i1E1.RemoveMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1E1));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_02()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P2() cil managed
+  {
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+  } // end of method I1::set_P2
+
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+       implements I1
+{
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.get_P2
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.set_P2
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+  .property instance int32 I1.P2()
+  {
+    .get instance int32 C1::I1.get_P2()
+  } // end of property C1::I1.P2
+} // end of class C1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .property instance int32 I1.P2()
+  {
+    .get instance int32 I2::I1.get_P2()
+  } // end of property I2::I1.P2
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test1 : C1, I1
+{
+}
+
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+
+class Test4 : C1, I1
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(6, 19),
+                // (10, 15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(10, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var test4 = compilation1.GetTypeByMetadataName("Test4");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i2i1P2 = i2.GetMember<PropertySymbol>("I1.P2");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+            var c1i1P2 = c1.GetMember<PropertySymbol>("I1.P2");
+            var c1i1P2get = c1.GetMember<MethodSymbol>("I1.get_P2");
+            var c1i1P2set = c1.GetMember<MethodSymbol>("I1.set_P2");
+
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(c1i1P2get, test1.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test1.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(c1i1P2, test1.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(c1i1P2get, test4.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test4.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(c1i1P2, test4.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_03()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P2() cil managed
+  {
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+  } // end of method I1::set_P2
+
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+       implements I1
+{
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.get_P2
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.set_P2
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+  .property instance int32 I1.P2()
+  {
+    .set instance void C1::I1.set_P2(int32)
+  } // end of property C1::I1.P2
+} // end of class C1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .property instance int32 I1.P2()
+  {
+    .set instance void I2::I1.set_P2(int32)
+  } // end of property I2::I1.P2
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test1 : C1, I1
+{
+}
+
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+
+class Test4 : C1, I1
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(6, 19),
+                // (10,15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(10, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var test4 = compilation1.GetTypeByMetadataName("Test4");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i2i1P2 = i2.GetMember<PropertySymbol>("I1.P2");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+            var c1i1P2 = c1.GetMember<PropertySymbol>("I1.P2");
+            var c1i1P2get = c1.GetMember<MethodSymbol>("I1.get_P2");
+            var c1i1P2set = c1.GetMember<MethodSymbol>("I1.set_P2");
+
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(c1i1P2get, test1.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test1.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(c1i1P2, test1.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(c1i1P2get, test4.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test4.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(c1i1P2, test4.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_04()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P2() cil managed
+  {
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+  } // end of method I1::set_P2
+
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+       implements I1
+{
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.get_P2
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::I1.set_P2
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+  .property instance int32 I1.P21()
+  {
+    .get instance int32 C1::I1.get_P2()
+  } // end of property C1::I1.P2
+
+  .property instance int32 I1.P22()
+  {
+    .set instance void C1::I1.set_P2(int32)
+  } // end of property C1::I1.P2
+} // end of class C1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .property instance int32 I1.P21()
+  {
+    .get instance int32 I2::I1.get_P2()
+  } // end of property I2::I1.P2
+
+  .property instance int32 I1.P22()
+  {
+    .set instance void I2::I1.set_P2(int32)
+  } // end of property I2::I1.P2
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test1 : C1, I1
+{
+}
+
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+
+class Test4 : C1, I1
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(6, 19),
+                // (10,15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(10, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var test4 = compilation1.GetTypeByMetadataName("Test4");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+            var c1i1P2get = c1.GetMember<MethodSymbol>("I1.get_P2");
+            var c1i1P2set = c1.GetMember<MethodSymbol>("I1.set_P2");
+
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(c1i1P2get, test1.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test1.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test1.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(c1i1P2get, test4.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(c1i1P2set, test4.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test4.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+        }
+
+        [Fact]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_05()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P2() cil managed
+  {
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+  } // end of method I1::set_P2
+
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot specialname 
+          instance int32  get_P2() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldc.i4.1
+    IL_0001:  ret
+  } // end of method C1::get_P2
+
+  .method public hidebysig newslot specialname 
+          instance void  set_P2(int32 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C1::set_P2
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+  .property instance int32 P2()
+  {
+    .get instance int32 C1::get_P2()
+    .set instance void C1::set_P2(int32)
+  } // end of property C1::P2
+} // end of class C1
+
+.class public auto ansi beforefieldinit C2
+       extends C1
+       implements I1
+{
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldc.i4.2
+    IL_0001:  ret
+  } // end of method C2::I1.get_P2
+
+  .method private hidebysig newslot specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method C2::I1.set_P2
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void C1::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C2::.ctor
+
+  .property instance int32 I1.P21()
+  {
+    .get instance int32 C2::I1.get_P2()
+  } // end of property C2::I1.P2
+
+  .property instance int32 I1.P22()
+  {
+    .set instance void C2::I1.set_P2(int32)
+  } // end of property C2::I1.P2
+} // end of class C2
+";
+
+            var source1 =
+@"
+class C3 : C2, I1
+{
+    static void Main()
+    {
+        I1 x = new C3();
+        System.Console.WriteLine(x.P2);
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe);
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var c3 = compilation1.GetTypeByMetadataName("C3");
+            Assert.Null(c3.FindImplementationForInterfaceMember(i1.GetMember<PropertySymbol>("P2")));
+
+            CompileAndVerify(compilation1, expectedOutput: "2");
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_06()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname virtual 
+          instance int32  get_P1() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::get_P1
+
+  .method public hidebysig newslot specialname virtual 
+          instance int32  get_P2() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::set_P2
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  set_P3(int32 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::set_P3
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  add_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::add_E1
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::remove_E1
+
+  .event [System.Runtime]System.Action E1
+  {
+    .addon instance void I1::add_E1(class [System.Runtime]System.Action)
+    .removeon instance void I1::remove_E1(class [System.Runtime]System.Action)
+  } // end of event I1::E1
+  .property instance int32 P1()
+  {
+    .get instance int32 I1::get_P1()
+  } // end of property I1::P1
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+  .property instance int32 P3()
+  {
+    .set instance void I1::set_P3(int32)
+  } // end of property I1::P3
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P1() cil managed
+  {
+    .override I1::get_P1
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P1
+
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P3(int32 'value') cil managed
+  {
+    .override I1::set_P3
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P3
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.add_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    .override I1::add_E1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  throw
+  } // end of method I2::I1.add_E1
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  {
+    .override I1::remove_E1
+    // Code size       3 (0x3)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  throw
+  } // end of method I2::I1.remove_E1
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P1 {get => throw null;}
+    public long P2 {get => throw null; set => throw null;}
+    public long P3 {set => throw null;}
+}
+
+interface I3 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.E1'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.E1").WithLocation(2, 19),
+                // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 19),
+                // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(2, 19),
+                // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P3'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P3").WithLocation(2, 19),
+                // (6,15): error CS0535: 'Test3' does not implement interface member 'I1.E1'
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test3", "I1.E1").WithLocation(6, 15),
+                // (6,15): error CS0738: 'Test3' does not implement interface member 'I1.P1'. 'Test3.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P1", "Test3.P1", "int").WithLocation(6, 15),
+                // (6,15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(6, 15),
+                // (6,15): error CS0738: 'Test3' does not implement interface member 'I1.P3'. 'Test3.P3' cannot implement 'I1.P3' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P3", "Test3.P3", "int").WithLocation(6, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var i3 = compilation1.GetTypeByMetadataName("I3");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var i1P1 = i1.GetMember<PropertySymbol>("P1");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i1P3 = i1.GetMember<PropertySymbol>("P3");
+            var i1E1 = i1.GetMember<EventSymbol>("E1");
+            var i2i1P1get = i2.GetMember<MethodSymbol>("I1.get_P1");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+            var i2i1P3set = i2.GetMember<MethodSymbol>("I1.set_P3");
+            var i2i1E1add = i2.GetMember<MethodSymbol>("I1.add_E1");
+            var i2i1E1remove = i2.GetMember<MethodSymbol>("I1.remove_E1");
+
+            Assert.Null(i3.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(i3.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(i3.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(i3.FindImplementationForInterfaceMember(i1E1));
+
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1E1));
+
+            Assert.Same(i2i1P1get, test2.FindImplementationForInterfaceMember(i1P1.GetMethod));
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(i2i1P3set, test2.FindImplementationForInterfaceMember(i1P3.SetMethod));
+            Assert.Same(i2i1E1add, test2.FindImplementationForInterfaceMember(i1E1.AddMethod));
+            Assert.Same(i2i1E1remove, test2.FindImplementationForInterfaceMember(i1E1.RemoveMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1E1));
+
+            Assert.Same(i2i1P1get, test3.FindImplementationForInterfaceMember(i1P1.GetMethod));
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Same(i2i1P3set, test3.FindImplementationForInterfaceMember(i1P3.SetMethod));
+            Assert.Same(i2i1E1add, test3.FindImplementationForInterfaceMember(i1E1.AddMethod));
+            Assert.Same(i2i1E1remove, test3.FindImplementationForInterfaceMember(i1E1.RemoveMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P1));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P3));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1E1));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_07()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname virtual 
+          instance int32  get_P2() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::set_P2
+
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .property instance int32 I1.P2()
+  {
+    .get instance int32 I2::I1.get_P2()
+  } // end of property I2::I1.P2
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+
+interface I3 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(2, 19),
+                // (6,15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(6, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var i3 = compilation1.GetTypeByMetadataName("I3");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i2i1P2 = i2.GetMember<PropertySymbol>("I1.P2");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+
+            Assert.Null(i3.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_08()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname virtual 
+          instance int32  get_P2() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::set_P2
+
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .property instance int32 I1.P2()
+  {
+    .set instance void I2::I1.set_P2(int32)
+  } // end of property I2::I1.P2
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+
+interface I3 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(2, 19),
+                // (6,15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(6, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var i3 = compilation1.GetTypeByMetadataName("I3");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i2i1P2 = i2.GetMember<PropertySymbol>("I1.P2");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+
+            Assert.Null(i3.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
+        public void ExplicitlyImplementedViaAccessors_09()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname virtual 
+          instance int32  get_P2() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::get_P2
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  set_P2(int32 'value') cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I1::set_P2
+
+  .property instance int32 P2()
+  {
+    .get instance int32 I1::get_P2()
+    .set instance void I1::set_P2(int32)
+  } // end of property I1::P2
+} // end of class I1
+
+.class interface public abstract auto ansi I2
+       implements I1
+{
+  .method private hidebysig specialname virtual final 
+          instance int32  I1.get_P2() cil managed
+  {
+    .override I1::get_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.get_P2
+
+  .method private hidebysig specialname virtual final 
+          instance void  I1.set_P2(int32 'value') cil managed
+  {
+    .override I1::set_P2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  throw
+  } // end of method I2::I1.set_P2
+
+  .property instance int32 I1.P21()
+  {
+    .get instance int32 I2::I1.get_P2()
+  } // end of property I2::I1.P2
+
+  .property instance int32 I1.P22()
+  {
+    .set instance void I2::I1.set_P2(int32)
+  } // end of property I2::I1.P2
+} // end of class I2
+";
+
+            var source1 =
+@"
+class Test2 : I2, I1
+{
+}
+
+class Test3 : I2
+{
+    public long P2 {get => throw null; set => throw null;}
+}
+
+interface I3 : I2
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
+                // class Test2 : I2, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P2").WithLocation(2, 19),
+                // (6,15): error CS0738: 'Test3' does not implement interface member 'I1.P2'. 'Test3.P2' cannot implement 'I1.P2' because it does not have the matching return type of 'int'.
+                // class Test3 : I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test3", "I1.P2", "Test3.P2", "int").WithLocation(6, 15)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var i3 = compilation1.GetTypeByMetadataName("I3");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var test3 = compilation1.GetTypeByMetadataName("Test3");
+            var i1P2 = i1.GetMember<PropertySymbol>("P2");
+            var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
+            var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
+
+            Assert.Null(i3.FindImplementationForInterfaceMember(i1P2));
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test2.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test2.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
+
+            Assert.Same(i2i1P2get, test3.FindImplementationForInterfaceMember(i1P2.GetMethod));
+            Assert.Same(i2i1P2set, test3.FindImplementationForInterfaceMember(i1P2.SetMethod));
+            Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_01()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance string  get_P1() cil managed
+  {
+  } // end of method I1::get_P1
+
+  .property instance string P1()
+  {
+    .get instance string I1::get_P1()
+  } // end of property I1::P1
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+{
+  .method public hidebysig specialname virtual instance string 
+          get_P1() cil managed
+  {
+    // Code size       6 (0x6)
+    .maxstack  8
+    IL_0000:  ldstr      ""C1""
+    IL_0005:  ret
+  } // end of method C1::get_P1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+  .property instance string P2()
+  {
+    .get instance string C1::get_P1()
+  } // end of property C1::P1
+} // end of class C1
+";
+
+            var source1 =
+@"
+class C2 : C1, I1
+{
+    static void Main()
+    {
+        I1 x = new C2();
+        System.Console.WriteLine(x.P1);
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
+                // class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1").WithLocation(2, 16)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var c2 = compilation1.GetTypeByMetadataName("C2");
+            var p1 = i1.GetMember<PropertySymbol>("P1");
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1.GetMethod));
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_02()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname virtual 
+          instance string  get_P1() cil managed
+  {
+    // Code size       6 (0x6)
+    .maxstack  8
+    IL_0000:  ldstr      ""I1""
+    IL_0005:  ret
+  } // end of method I1::get_P1
+
+  .property instance string P1()
+  {
+    .get instance string I1::get_P1()
+  } // end of property I1::P1
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+{
+  .method public hidebysig specialname virtual instance string 
+          get_P1() cil managed
+  {
+    // Code size       6 (0x6)
+    .maxstack  8
+    IL_0000:  ldstr      ""C1""
+    IL_0005:  ret
+  } // end of method C1::get_P1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+  .property instance string P2()
+  {
+    .get instance string C1::get_P1()
+  } // end of property C1::P1
+} // end of class C1
+";
+
+            var source1 =
+@"
+class C2 : C1, I1
+{
+    static void Main()
+    {
+        I1 x = new C2();
+        System.Console.WriteLine(x.P1);
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
+                // class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1").WithLocation(2, 16)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var c2 = compilation1.GetTypeByMetadataName("C2");
+            var p1 = i1.GetMember<PropertySymbol>("P1");
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1.GetMethod));
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_03()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance string  get_P1() cil managed
+  {
+  } // end of method I1::get_P1
+
+  .property instance string P1()
+  {
+    .get instance string I1::get_P1()
+  } // end of property I1::P1
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+{
+  .method public hidebysig specialname virtual instance string 
+          get_P1() cil managed
+  {
+    // Code size       6 (0x6)
+    .maxstack  8
+    IL_0000:  ldstr      ""C1""
+    IL_0005:  ret
+  } // end of method C1::get_P1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+} // end of class C1
+";
+
+            var source1 =
+@"
+class C2 : C1, I1
+{
+    static void Main()
+    {
+        I1 x = new C2();
+        System.Console.WriteLine(x.P1);
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
+                // class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1").WithLocation(2, 16),
+                // (2,16): error CS0470: Method 'C1.get_P1()' cannot implement interface accessor 'I1.P1.get' for type 'C2'. Use an explicit interface implementation.
+                // class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("C1.get_P1()", "I1.P1.get", "C2").WithLocation(2, 16)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+            var c2 = compilation1.GetTypeByMetadataName("C2");
+            var p1 = i1.GetMember<PropertySymbol>("P1");
+            Assert.Same(c1.GetMember("get_P1"), c2.FindImplementationForInterfaceMember(p1.GetMethod));
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_04()
+        {
+            var ilSource =
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+@"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot specialname virtual 
+          instance string  get_P1() cil managed
+  {
+    // Code size       6 (0x6)
+    .maxstack  8
+    IL_0000:  ldstr      ""I1""
+    IL_0005:  ret
+  } // end of method I1::get_P1
+
+  .property instance string P1()
+  {
+    .get instance string I1::get_P1()
+  } // end of property I1::P1
+} // end of class I1
+
+.class public auto ansi beforefieldinit C1
+       extends [System.Runtime]System.Object
+{
+  .method public hidebysig specialname virtual instance string 
+          get_P1() cil managed
+  {
+    // Code size       6 (0x6)
+    .maxstack  8
+    IL_0000:  ldstr      ""C1""
+    IL_0005:  ret
+  } // end of method C1::get_P1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+} // end of class C1
+";
+
+            var source1 =
+@"
+class C2 : C1, I1
+{
+    static void Main()
+    {
+        I1 x = new C2();
+        System.Console.WriteLine(x.P1);
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
+                // class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1").WithLocation(2, 16),
+                // (2,16): error CS0470: Method 'C1.get_P1()' cannot implement interface accessor 'I1.P1.get' for type 'C2'. Use an explicit interface implementation.
+                // class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I1").WithArguments("C1.get_P1()", "I1.P1.get", "C2").WithLocation(2, 16)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+            var c2 = compilation1.GetTypeByMetadataName("C2");
+            var p1 = i1.GetMember<PropertySymbol>("P1");
+            Assert.Same(c1.GetMember("get_P1"), c2.FindImplementationForInterfaceMember(p1.GetMethod));
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1));
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_11()
+        {
+            var source1 =
+@"
+interface A : A.B
+{
+    public interface B { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'A.B' causes a cycle in the interface hierarchy of 'A'
+                // interface A : A.B
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "A").WithArguments("A", "A.B").WithLocation(2, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_12()
+        {
+            var source1 =
+@"
+interface A : A.B.I
+{
+    public interface B : A
+    {
+        public interface I { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'A.B.I' causes a cycle in the interface hierarchy of 'A'
+                // interface A : A.B.I
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "A").WithArguments("A", "A.B.I").WithLocation(2, 11),
+                // (4,22): error CS0529: Inherited interface 'A' causes a cycle in the interface hierarchy of 'A.B'
+                //     public interface B : A
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "B").WithArguments("A.B", "A").WithLocation(4, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_13()
+        {
+            var source1 =
+@"
+interface IA : IB.IQ
+{
+}
+
+interface IB : IA
+{
+    interface IQ { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'IB.IQ' causes a cycle in the interface hierarchy of 'IA'
+                // interface IA : IB.IQ
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IA").WithArguments("IA", "IB.IQ").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'IA' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : IA
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "IA").WithLocation(6, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_14()
+        {
+            var source1 =
+@"
+interface IB : IA
+{
+    interface IQ { }
+}
+
+interface IA : IB.IQ
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'IA' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : IA
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "IA").WithLocation(2, 11),
+                // (7,11): error CS0529: Inherited interface 'IB.IQ' causes a cycle in the interface hierarchy of 'IA'
+                // interface IA : IB.IQ
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IA").WithArguments("IA", "IB.IQ").WithLocation(7, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_15()
+        {
+            var source1 =
+@"
+class B : IA
+{
+    public interface IQ { }
+}
+
+interface IA : B.IQ
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_16()
+        {
+            var source1 =
+@"
+interface I1
+{
+    class C : I1 { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_17()
+        {
+            var source1 =
+@"
+class C : C.I1
+{
+    interface I1 { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_18()
+        {
+            var source1 =
+@"
+public class CB : CB.CCB.IB, CB.ICB.IB
+{
+    public class CCB
+    {
+        public interface IB { }
+    }
+    public interface ICB
+    {
+        public interface IB { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_19()
+        {
+            var source1 =
+@"
+public class CD : CD.ICD.CB
+{
+    public interface ICD
+    {
+        public class CB { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,14): error CS0146: Circular base class dependency involving 'CD.ICD.CB' and 'CD'
+                // public class CD : CD.ICD.CB
+                Diagnostic(ErrorCode.ERR_CircularBase, "CD").WithArguments("CD.ICD.CB", "CD").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_20()
+        {
+            var source1 =
+@"
+public interface IE : IE.CIE.IB, IE.IIE.IB
+{
+    public class CIE
+    {
+        public interface IB { }
+    }
+    public interface IIE
+    {
+        public interface IB { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,18): error CS0529: Inherited interface 'IE.CIE.IB' causes a cycle in the interface hierarchy of 'IE'
+                // public interface IE : IE.CIE.IB, IE.IIE.IB
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IE").WithArguments("IE", "IE.CIE.IB").WithLocation(2, 18),
+                // (2,18): error CS0529: Inherited interface 'IE.IIE.IB' causes a cycle in the interface hierarchy of 'IE'
+                // public interface IE : IE.CIE.IB, IE.IIE.IB
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IE").WithArguments("IE", "IE.IIE.IB").WithLocation(2, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_21()
+        {
+            var source1 =
+@"
+class C1 : C1.C2.I3
+{
+    public class C2
+    {
+        public interface I3
+        {
+
+        }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_22()
+        {
+            var source1 =
+@"
+class CA : IB.CQ
+{
+    public interface I1
+    { }
+}
+
+interface IB : CA.I1
+{
+    public class CQ
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // class CA : IB.CQ
+                Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(2, 7),
+                // (8,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : CA.I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "CA.I1").WithLocation(8, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_23()
+        {
+            var source1 =
+@"
+interface IB : CA.I1
+{
+    public class CQ
+    { }
+}
+
+class CA : IB.CQ
+{
+    public interface I1
+    { }
+}
+
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : CA.I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "CA.I1").WithLocation(2, 11),
+                // (8,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // class CA : IB.CQ
+                Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(8, 7)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_24()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static C100 Test1() => new C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_25()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static I100.C100 Test1() => new I100.C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        I100.C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_26()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static I101.C100 Test1() => new I101.C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        I101.C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_27()
+        {
+            var source1 =
+@"
+public interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+    }
+}
+
+public class C100
+{
+    public void Test1()
+    {
+        System.Console.WriteLine(""C100.Test1"");
+    }
+}
+
+public interface I101 : I100
+{
+    C100 Test1();
+}
+
+class Test : I101
+{
+    public virtual C100 Test1() => new C100();
+
+    static void Main()
+    {
+        I101 x = new Test();
+        x.Test1().Test1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (26,14): error CS0738: 'Test' does not implement interface member 'I101.Test1()'. 'Test.Test1()' cannot implement 'I101.Test1()' because it does not have the matching return type of 'I100.C100'.
+                // class Test : I101
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I101").WithArguments("Test", "I101.Test1()", "Test.Test1()", "I100.C100").WithLocation(26, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_28()
+        {
+            var source1 =
+@"
+public interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+    }
+}
+
+public class C100
+{
+    public void Test1()
+    {
+        System.Console.WriteLine(""C100.Test1"");
+    }
+}
+
+public interface I101 : I100
+{
+    C100 Test1();
+}
+
+class Test : I101
+{
+    public virtual I100.C100 Test1() => new I100.C100();
+
+    static void Main()
+    {
+        I101 x = new Test();
+        x.Test1().Test1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1, expectedOutput: "I100.C100.Test1");
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_29()
+        {
+            var source1 =
+@"
+interface A : C.E
+{
+}
+
+interface B : A
+{
+    public interface E
+    {}
+}
+
+interface C : B
+{
+    public interface E
+    {}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'C.E' causes a cycle in the interface hierarchy of 'A'
+                // interface A : C.E
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "A").WithArguments("A", "C.E").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'A' causes a cycle in the interface hierarchy of 'B'
+                // interface B : A
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "B").WithArguments("B", "A").WithLocation(6, 11),
+                // (12,11): error CS0529: Inherited interface 'B' causes a cycle in the interface hierarchy of 'C'
+                // interface C : B
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "C").WithArguments("C", "B").WithLocation(12, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_30()
+        {
+            var source1 =
+@"
+#nullable enable
+
+interface A : B, C<object>
+{
+}
+
+interface B : C<object?>
+{
+}
+
+interface C<T>
+{
+    public interface E
+    {}
+}
+
+interface D : A.E
+{
+    A.E Test();
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,11): warning CS8645: 'C<object>' is already listed in the interface list on type 'A' with different nullability of reference types.
+                // interface A : B, C<object>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11),
+                // (18,17): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
+                // interface D : A.E
+                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(18, 17),
+                // (20,7): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
+                //     A.E Test();
+                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(20, 7)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_31()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+        void Test(I2 x);
+    }
+}
+
+interface I4 : I1, I3
+{
+    class C1 : I2
+    {
+        public void Test(I2 x)
+        {}
+    }
+}
+
+interface I5 : I3, I1
+{
+    class C2 : I2
+    {
+        public void Test(I2 x)
+        {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_32()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+        void Test(I2 x);
+    }
+}
+
+interface I4 : I1, I3
+{
+    class C1 : I2
+    {
+        void I2.Test(I2 x)
+        {}
+    }
+}
+
+interface I5 : I3, I1
+{
+    class C2 : I2
+    {
+        void I2.Test(I2 x)
+        {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_33()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    interface I2
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (10,15): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(10, 15),
+                // (23,22): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(23, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_34()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    new public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_35()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    interface I2
+    {
+    }
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (9,15): warning CS0108: 'I3.I2' hides inherited member 'I1.I2()'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2()").WithLocation(9, 15),
+                // (22,22): warning CS0108: 'C3.I4' hides inherited member 'C1.I4()'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4()").WithLocation(22, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_36()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+    }
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    new public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_37()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    {
+    }
+}
+
+interface I3 : I1
+{
+    void I2();
+}
+
+class C1
+{
+    public interface I4
+    {
+    }
+}
+
+class C3 : C1
+{
+    public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (11,10): warning CS0108: 'I3.I2()' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     void I2();
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2()", "I1.I2").WithLocation(11, 10),
+                // (23,17): warning CS0108: 'C3.I4()' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public void I4()
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4()", "C1.I4").WithLocation(23, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_38()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    {
+    }
+}
+
+interface I3 : I1
+{
+    new void I2();
+}
+
+class C1
+{
+    public interface I4
+    {
+    }
+}
+
+class C3 : C1
+{
+    new public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_39()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    static int I2 = 1;
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    public static int I4 = 3;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     static int I2 = 1;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(9, 16),
+                // (19,23): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public static int I4 = 3;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(19, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_40()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    new static int I2 = 1;
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    new public static int I4 = 3;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_41()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    static int I2 = 0;
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    public static int I4 = 1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2()'. Use the new keyword if hiding was intended.
+                //     static int I2 = 0;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2()").WithLocation(9, 16),
+                // (20,23): warning CS0108: 'C3.I4' hides inherited member 'C1.I4()'. Use the new keyword if hiding was intended.
+                //     public static int I4 = 1;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4()").WithLocation(20, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_42()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    new static int I2 = 0;
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    new public static int I4 = 1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_43()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    void I2();
+}
+
+class C1
+{
+    public static int I4 = 1;
+}
+
+class C3 : C1
+{
+    public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,10): warning CS0108: 'I3.I2()' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     void I2();
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2()", "I1.I2").WithLocation(9, 10),
+                // (19,17): warning CS0108: 'C3.I4()' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public void I4()
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4()", "C1.I4").WithLocation(19, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_44()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    new void I2();
+}
+
+class C1
+{
+    public static int I4 = 1;
+}
+
+class C3 : C1
+{
+    new public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_45()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    interface I2<T>
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public interface I4<T>
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_46()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2<T>
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public new interface I4<T>
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (10,19): warning CS0109: The member 'I3.I2<T>' does not hide an accessible member. The new keyword is not required.
+                //     new interface I2<T>
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "I2").WithArguments("I3.I2<T>").WithLocation(10, 19),
+                // (23,26): warning CS0109: The member 'C3.I4<T>' does not hide an accessible member. The new keyword is not required.
+                //     public new interface I4<T>
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "I4").WithArguments("C3.I4<T>").WithLocation(23, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_47()
+        {
+            var source1 =
+@"
+interface I1<T>
+{
+    interface I2
+    { }
+
+    interface I2<U>
+    { }
+}
+
+interface I3 : I1<int>
+{
+    interface I2
+    {
+    }
+}
+
+class C1<T>
+{
+    public interface I4
+    { }
+
+    public interface I4<U>
+    { }
+}
+
+class C3 : C1<int>
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (13,15): warning CS0108: 'I3.I2' hides inherited member 'I1<int>.I2'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1<int>.I2").WithLocation(13, 15),
+                // (29,22): warning CS0108: 'C3.I4' hides inherited member 'C1<int>.I4'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1<int>.I4").WithLocation(29, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_48()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 1;
+}
+
+interface I3 : I1
+{
+    interface I2
+    {
+    }
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,15): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(9, 15),
+                // (21,22): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(21, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_49()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 1;
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+    }
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    new public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_50()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    static int I2 = 0;
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public static int I4 = 2;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (10,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     static int I2 = 0;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(10, 16),
+                // (21,23): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public static int I4 = 2;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(21, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_51()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new static int I2 = 0;
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    new public static int I4 = 2;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_01()
+        {
+            var source1 =
+@"
+interface I1<out T1, in T2, T3>
+{
+    delegate void D11(T1 x);
+    delegate T2 D12();
+    delegate T3 D13(T3 x);
+
+    void M1(T1 x);
+    T2 M2();
+    T3 M3(T3 x);
+
+    interface I2
+    {
+        void M21(T1 x);
+        T2 M22();
+        T3 M23(T3 x);
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,23): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.D11.Invoke(T1)'. 'T1' is covariant.
+                //     delegate void D11(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.D11.Invoke(T1)", "T1", "covariant", "contravariantly").WithLocation(4, 23),
+                // (5,14): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.D12.Invoke()'. 'T2' is contravariant.
+                //     delegate T2 D12();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.D12.Invoke()", "T2", "contravariant", "covariantly").WithLocation(5, 14),
+                // (8,13): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.M1(T1)'. 'T1' is covariant.
+                //     void M1(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.M1(T1)", "T1", "covariant", "contravariantly").WithLocation(8, 13),
+                // (9,5): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.M2()'. 'T2' is contravariant.
+                //     T2 M2();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.M2()", "T2", "contravariant", "covariantly").WithLocation(9, 5),
+                // (14,18): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.I2.M21(T1)'. 'T1' is covariant.
+                //         void M21(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.I2.M21(T1)", "T1", "covariant", "contravariantly").WithLocation(14, 18),
+                // (15,9): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.I2.M22()'. 'T2' is contravariant.
+                //         T2 M22();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.I2.M22()", "T2", "contravariant", "covariantly").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_02()
+        {
+            var source1 =
+@"
+interface I2<in T1, out T2>
+{
+    delegate void D21(T1 x);
+    delegate T2 D22();
+
+    void M1(T1 x);
+    T2 M2();
+
+    interface I2
+    {
+        void M21(T1 x);
+        T2 M22();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_03()
+        {
+            var source1 =
+@"
+interface I1<out T1, in T2, T3>
+{
+    interface I2
+    {
+        delegate void D11(T1 x);
+        delegate T2 D12();
+        delegate T3 D13(T3 x);
+
+        interface I3
+        {
+            void M31(T1 x);
+            T2 M32();
+            T3 M33(T3 x);
+        }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (6,27): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.I2.D11.Invoke(T1)'. 'T1' is covariant.
+                //         delegate void D11(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.I2.D11.Invoke(T1)", "T1", "covariant", "contravariantly").WithLocation(6, 27),
+                // (7,18): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.I2.D12.Invoke()'. 'T2' is contravariant.
+                //         delegate T2 D12();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.I2.D12.Invoke()", "T2", "contravariant", "covariantly").WithLocation(7, 18),
+                // (12,22): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.I2.I3.M31(T1)'. 'T1' is covariant.
+                //             void M31(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2, T3>.I2.I3.M31(T1)", "T1", "covariant", "contravariantly").WithLocation(12, 22),
+                // (13,13): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2, T3>.I2.I3.M32()'. 'T2' is contravariant.
+                //             T2 M32();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2, T3>.I2.I3.M32()", "T2", "contravariant", "covariantly").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_04()
+        {
+            var source1 =
+@"
+interface I2<in T1, out T2>
+{
+    interface I2
+    {
+        delegate void D21(T1 x);
+        delegate T2 D22();
+
+        interface I3
+        {
+            void M31(T1 x);
+            T2 M32();
+        }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_05()
+        {
+            var source1 =
+@"
+interface I1<out T1>
+{
+    class C1
+    {
+        void MC1(T1 x) {}
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    struct S1
+    {
+        void MS1(T1 x) {}
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    enum E1 {}
+}
+
+interface I2<in T2>
+{
+    class C2
+    {
+        T2 MC2() => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    struct S2
+    {
+        T2 MS2() => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    enum E2 {}
+}
+
+interface I3<T3>
+{
+    class C3
+    {
+        T3 MC3(T3 x) => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    struct S3
+    {
+        T3 MS3(T3 x) => default;
+        class C {}
+        struct S {}
+        enum E {}
+    }
+    enum E3 {}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,11): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     class C1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C1").WithLocation(4, 11),
+                // (11,12): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     struct S1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S1").WithLocation(11, 12),
+                // (18,10): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     enum E1 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E1").WithLocation(18, 10),
+                // (23,11): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     class C2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C2").WithLocation(23, 11),
+                // (30,12): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     struct S2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S2").WithLocation(30, 12),
+                // (37,10): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //     enum E2 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E2").WithLocation(37, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_06()
+        {
+            var source1 =
+@"
+interface I1<out T1>
+{
+    interface I0
+    {
+        class C1
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        struct S1
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        enum E1 {}
+    }
+}
+
+interface I2<in T2>
+{
+    interface I0
+    {
+        class C2
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        struct S2
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        enum E2 {}
+    }
+}
+
+interface I3<T3>
+{
+    interface I0
+    {
+        class C3
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        struct S3
+        {
+            interface I
+            {
+                class C {}
+                struct S {}
+                enum E {}
+            }
+        }
+        enum E3 {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (6,15): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         class C1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C1").WithLocation(6, 15),
+                // (15,16): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         struct S1
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S1").WithLocation(15, 16),
+                // (24,14): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         enum E1 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E1").WithLocation(24, 14),
+                // (32,15): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         class C2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "C2").WithLocation(32, 15),
+                // (41,16): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         struct S2
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "S2").WithLocation(41, 16),
+                // (50,14): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
+                //         enum E2 {}
+                Diagnostic(ErrorCode.ERR_VarianceInterfaceNesting, "E2").WithLocation(50, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_07()
+        {
+            var source1 =
+@"
+public interface I1<out T1, in T2, T3>
+{
+    void M1()
+    {
+        T1 x = local(default, default);
+
+        T1 local(T1 x, I2 y)
+        {
+            System.Console.WriteLine(""M1"");
+            return x;
+        }
+    }
+
+    void M2()
+    {
+        T2 x = local(default, default);
+
+        T2 local(T2 x, I2.I3 y)
+        {
+            System.Console.WriteLine(""M2"");
+            return x;
+        }
+    }
+
+    void M3()
+    {
+        T3 x = local(default);
+
+        T3 local(T3 x)
+        {
+            System.Console.WriteLine(""M3"");
+            return x;
+        }
+    }
+
+    interface I2
+    {
+        void M4()
+        {
+            System.Console.WriteLine(""M4"");
+        }
+
+        interface I3
+        {
+        }
+    }
+
+    delegate T1 D1(T2 x);
+    delegate T3 D3(T3 x);
+}
+";
+            var source2 =
+@"
+class C1 : I1<C1, C1, C1>, I1<C1, object, C1>.I2
+{
+    static void Main()
+    {
+        I1<C1, C1, C1> x = new C1();
+        x.M1();
+        x.M2();
+        x.M3();
+
+        var y = (I1<C1, object, C1>.I2)x;
+        I1<object, C1, C1>.I2 z = y;
+        z.M4();
+
+        I1<C1, object, C1>.D1 d1 = M5;
+        I1<object, C1, C1>.D1 d2 = d1;
+        _ = d2(new C1());
+    }
+
+    static C1 M5(object x)
+    {
+        System.Console.WriteLine(""M5"");
+        return (C1)x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2
+M3
+M4
+M5");
+            }
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_08()
+        {
+            var source1 =
+@"
+public interface I1<out T1, in T2>
+{
+    void M1()
+    {
+        System.Func<T1, T1> d = (T1 x) =>
+                                {
+                                    System.Console.WriteLine(""M1"");
+                                    return x;
+                                };
+        d(default);
+    }
+
+    void M2()
+    {
+        System.Func<T2, T2> d = (T2 x) =>
+                                {
+                                    System.Console.WriteLine(""M2"");
+                                    return x;
+                                };
+        d(default);
+    }
+}
+
+class C1 : I1<C1, C1>
+{
+    static void Main()
+    {
+        I1<C1, C1> x = new C1();
+        x.M1();
+        x.M2();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2");
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_09()
+        {
+            var source1 =
+@"
+using System.Collections.Generic;
+
+class Program : I2<int>
+{
+    static void Main()
+    {
+        ((I2<int>)new Program()).M2().GetEnumerator().MoveNext();
+    }
+}
+
+interface I2<out T>
+{
+    IEnumerable<int> M2()
+    {
+        System.Console.WriteLine(""M2"");
+        yield break;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M2");
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_10()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.F1 = ""a"";
+        I2<string, string>.F2 = ""b"";
+        System.Console.WriteLine(I2<string, string>.F1);
+        System.Console.WriteLine(I2<string, string>.F2);
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 F1 = default;
+    static T2 F2 = default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b");
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_11()
+        {
+            var source1 =
+@"
+public interface I1<out T1, in T2>
+{
+    void M1()
+    {
+        T1 x = local(default);
+
+        T1 local(T1 x)
+        {
+            System.Console.WriteLine(GetString(""M1""));
+            return x;
+        }
+    }
+
+    string GetString(string s) => s;
+
+    void M2()
+    {
+        T2 x = local(default);
+
+        T2 local(T2 x)
+        {
+            System.Console.WriteLine(GetString(""M2""));
+            return x;
+        }
+    }
+}
+";
+            var source2 =
+@"
+class C1 : I1<C1, C1>
+{
+    static void Main()
+    {
+        I1<C1, C1> x = new C1();
+        x.M1();
+        x.M2();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2");
+            }
+        }
+
+        [Fact]
+        [WorkItem(39731, "https://github.com/dotnet/roslyn/issues/39731")]
+        public void VarianceSafety_12()
+        {
+            var source1 =
+@"
+interface I1<out T1, in T2>
+{
+    private void M1(T1 x) {}
+    private T2 M2() => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,21): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2>.M1(T1)'. 'T1' is covariant.
+                //     private void M1(T1 x) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I1<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly").WithLocation(4, 21),
+                // (5,13): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I1<T1, T2>.M2()'. 'T2' is contravariant.
+                //     private T2 M2() => default;
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I1<T1, T2>.M2()", "T2", "contravariant", "covariantly").WithLocation(5, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I1::M1() => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I1'
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.M1()", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        private static void AssertNoMethodImplementation(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            Assert.Empty(i1.GetMembers().OfType<MethodSymbol>().Single().ExplicitInterfaceImplementations);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_02()
+        {
+            var source1 =
+@"
+interface I1 : I1
+{
+    int I1::M1() => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I1").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I1'
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.M1()", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_03()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I2::M1() => throw null;
+}
+
+interface I2
+{
+    int M1();
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.I2.M1()': containing type does not implement interface 'I2'
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1()", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            Assert.Same(i2.GetMembers().OfType<MethodSymbol>().Single(), i1.GetMembers().OfType<MethodSymbol>().Single().ExplicitInterfaceImplementations.Single());
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_04()
+        {
+            var source1 =
+@"
+interface I1 : I2
+{
+    int I2::M1() => throw null;
+}
+
+interface I2 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I2'
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.M1()", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11),
+                // (4,13): error CS0539: 'I1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1()").WithLocation(4, 13),
+                // (7,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(7, 11)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_05()
+        {
+            var source1 =
+@"
+interface I2 : I1
+{
+}
+
+interface I1 : I2
+{
+    int I2::M1() => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(6, 11),
+                // (8,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I2'
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.M1()", "I2").WithLocation(8, 9),
+                // (8,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(8, 11),
+                // (8,13): error CS0539: 'I1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::M1() => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1()").WithLocation(8, 13)
+                );
+
+            AssertNoMethodImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_06()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I1::P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.P1': containing type does not implement interface 'I1'
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.P1", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        private static void AssertNoPropertyImplementation(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m = i1.GetMembers().OfType<PropertySymbol>().Single();
+            Assert.Empty(m.ExplicitInterfaceImplementations);
+            Assert.Empty(m.GetMethod.ExplicitInterfaceImplementations);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_07()
+        {
+            var source1 =
+@"
+interface I1 : I1
+{
+    int I1::P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I1").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.P1': containing type does not implement interface 'I1'
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.P1", "I1").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I1::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_08()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int I2::P1 => throw null;
+}
+
+interface I2
+{
+    int P1 {get;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1.I2.P1': containing type does not implement interface 'I2'
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.P1", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var m1 = i1.GetMembers().OfType<PropertySymbol>().Single();
+            var m2 = i2.GetMembers().OfType<PropertySymbol>().Single();
+            Assert.Same(m2, m1.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m2.GetMethod, m1.GetMethod.ExplicitInterfaceImplementations.Single());
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_09()
+        {
+            var source1 =
+@"
+interface I1 : I2
+{
+    int I2::P1 => throw null;
+}
+
+interface I2 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (4,9): error CS0540: 'I1.P1': containing type does not implement interface 'I2'
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P1", "I2").WithLocation(4, 9),
+                // (4,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 11),
+                // (4,13): error CS0539: 'I1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I1.P1").WithLocation(4, 13),
+                // (7,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(7, 11)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_10()
+        {
+            var source1 =
+@"
+interface I2 : I1
+{
+}
+
+interface I1 : I2
+{
+    int I2::P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(6, 11),
+                // (8,9): error CS0540: 'I1.P1': containing type does not implement interface 'I2'
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P1", "I2").WithLocation(8, 9),
+                // (8,11): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(8, 11),
+                // (8,13): error CS0539: 'I1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I2::P1 => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I1.P1").WithLocation(8, 13)
+                );
+
+            AssertNoPropertyImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_11()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action I1::E1
+    { add => throw null; remove => throw null;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0540: 'I1.E1': containing type does not implement interface 'I1'
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.E1", "I1").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
+
+        private static void AssertNoEventImplementation(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m = i1.GetMembers().OfType<EventSymbol>().Single();
+            Assert.Empty(m.ExplicitInterfaceImplementations);
+            Assert.Empty(m.AddMethod.ExplicitInterfaceImplementations);
+            Assert.Empty(m.RemoveMethod.ExplicitInterfaceImplementations);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_12()
+        {
+            var source1 =
+@"
+interface I1 : I1
+{
+    event System.Action I1::E1
+    { add => throw null; remove => throw null;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I1").WithLocation(2, 11),
+                // (4,25): error CS0540: 'I1.E1': containing type does not implement interface 'I1'
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.E1", "I1").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I1::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_13()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action I2::E1
+    { add => throw null; remove => throw null;}
+}
+
+interface I2
+{
+    event System.Action E1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0540: 'I1.I2.E1': containing type does not implement interface 'I2'
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.E1", "I2").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var i2 = compilation1.GetTypeByMetadataName("I2");
+            var m1 = i1.GetMembers().OfType<EventSymbol>().Single();
+            var m2 = i2.GetMembers().OfType<EventSymbol>().Single();
+            Assert.Same(m2, m1.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m2.AddMethod, m1.AddMethod.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m2.RemoveMethod, m1.RemoveMethod.ExplicitInterfaceImplementations.Single());
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_14()
+        {
+            var source1 =
+@"
+interface I1 : I2
+{
+    event System.Action I2::E1
+    { add => throw null; remove => throw null;}
+}
+
+interface I2 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (4,25): error CS0540: 'I1.E1': containing type does not implement interface 'I2'
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.E1", "I2").WithLocation(4, 25),
+                // (4,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(4, 27),
+                // (4,29): error CS0539: 'I1.E1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "E1").WithArguments("I1.E1").WithLocation(4, 29),
+                // (8,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(8, 11)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_15()
+        {
+            var source1 =
+@"
+interface I2 : I1
+{
+}
+
+interface I1 : I2
+{
+    event System.Action I2::E1
+    { add => throw null; remove => throw null;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(6, 11),
+                // (8,25): error CS0540: 'I1.E1': containing type does not implement interface 'I2'
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.E1", "I2").WithLocation(8, 25),
+                // (8,27): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(8, 27),
+                // (8,29): error CS0539: 'I1.E1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I2::E1
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "E1").WithArguments("I1.E1").WithLocation(8, 29)
+                );
+
+            AssertNoEventImplementation(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
+        public void Errors_16()
+        {
+            var source1 =
+@"
+interface I1<T>
+{
+    int I1<int>.P1 => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,9): error CS0540: 'I1<T>.P1': containing type does not implement interface 'I1<int>'
+                //     int I1<int>.P1 => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<int>").WithArguments("I1<T>.P1", "I1<int>").WithLocation(4, 9)
+                );
+        }
+
+        [Fact, WorkItem(41481, "https://github.com/dotnet/roslyn/issues/41481")]
+        public void IncompletePropertyImplementationSyntax_01()
+        {
+            var source1 =
+@"interface A
+{
+    object A.B{";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (3,12): error CS0540: 'A.B': containing type does not implement interface 'A'
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "A").WithArguments("A.B", "A").WithLocation(3, 12),
+                // (3,14): error CS0548: 'A.B': property or indexer must have at least one accessor
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "B").WithArguments("A.B").WithLocation(3, 14),
+                // (3,16): error CS1513: } expected
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 16),
+                // (3,16): error CS1513: } expected
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 16)
+                );
+        }
     }
 }

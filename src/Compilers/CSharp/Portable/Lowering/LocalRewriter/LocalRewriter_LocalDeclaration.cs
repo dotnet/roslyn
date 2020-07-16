@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -9,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
+        public override BoundNode? VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             return RewriteLocalDeclaration(node, node.Syntax, node.LocalSymbol, VisitExpression(node.InitializerOpt), node.HasErrors);
         }
 
-        private BoundStatement RewriteLocalDeclaration(BoundLocalDeclaration originalOpt, SyntaxNode syntax, LocalSymbol localSymbol, BoundExpression rewrittenInitializer, bool hasErrors = false)
+        private BoundStatement? RewriteLocalDeclaration(BoundLocalDeclaration? originalOpt, SyntaxNode syntax, LocalSymbol localSymbol, BoundExpression? rewrittenInitializer, bool hasErrors = false)
         {
             // A declaration of a local variable without an initializer has no associated IL.
             // Simply remove the declaration from the bound tree. The local symbol will
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentLocalDeclarationIfNecessary(originalOpt, localSymbol, rewrittenLocalDeclaration);
         }
 
-        private BoundStatement InstrumentLocalDeclarationIfNecessary(BoundLocalDeclaration originalOpt, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration)
+        private BoundStatement InstrumentLocalDeclarationIfNecessary(BoundLocalDeclaration? originalOpt, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration)
         {
             // Add sequence points, if necessary.
             if (this.Instrument && originalOpt?.WasCompilerGenerated == false && !localSymbol.IsConst &&

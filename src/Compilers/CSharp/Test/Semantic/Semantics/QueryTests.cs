@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -6,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2176,7 +2179,7 @@ public class Test2
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
             var info2 = semanticModel.GetSemanticInfoSummary(selectClause);
-            var m = (MethodSymbol)info2.Symbol;
+            var m = (IMethodSymbol)info2.Symbol;
             Assert.Equal("Select", m.ReducedFrom.Name);
         }
 
@@ -2517,7 +2520,7 @@ class Program
             var semanticModel = compilation.GetSemanticModel(tree);
 
             semanticModel.GetDiagnostics().Verify(
-                // (21,30): error CS1935: Could not find an implementation of the query pattern for source type 'System.Collections.Generic.IEnumerable<int>'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+                // (21,30): error CS1935: Could not find an implementation of the query pattern for source type 'System.Collections.Generic.IEnumerable<int>'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
                 //         var q1 = from num in System.Linq.Enumerable.Range(4, 5).Where(n => n > 10)
                 Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "System.Linq.Enumerable.Range(4, 5).Where(n => n > 10)").WithArguments("System.Collections.Generic.IEnumerable<int>", "Select"));
         }
@@ -2816,12 +2819,12 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
 ", new DiagnosticDescription[] {
-                // file.cs(9,18): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                // file.cs(9,31): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(9, 18),
-                // file.cs(10,41): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "Cast<GC>").WithArguments("System.GC").WithLocation(9, 31),
+                // file.cs(10,28): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(10, 41)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
             });
         }
 
@@ -2898,7 +2901,7 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
@@ -2931,7 +2934,7 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
@@ -3106,7 +3109,8 @@ class Test
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(selectNode);
-            Assert.NotNull(symbolInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol); // there is no select method to call because the receiver is bad
             var typeInfo = model.GetTypeInfo(selectNode);
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
@@ -3134,7 +3138,8 @@ class Test
             var model = compilation.GetSemanticModel(tree);
             var queryInfo = model.GetQueryClauseInfo(joinNode);
 
-            Assert.NotNull(queryInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, queryInfo);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

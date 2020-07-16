@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,8 @@ using Xunit;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -59,19 +63,19 @@ class Hello
 
         private static IClientConnection CreateClientConnection(Task<ConnectionData> task)
         {
-            var connection = new Mock<IClientConnection>();
+            var connection = new Mock<IClientConnection>(MockBehavior.Strict);
             connection
-                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(task);
             return connection.Object;
         }
 
         private static IClientConnectionHost CreateClientConnectionHost(params Task<IClientConnection>[] connections)
         {
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             var index = 0;
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken ct) => connections[index++]);
 
             return host.Object;
@@ -115,9 +119,9 @@ class Hello
 
         private static Mock<IClientConnectionHost> CreateNopClientConnectionHost()
         {
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
             return host;
         }
@@ -133,14 +137,14 @@ class Hello
         public async Task ClientConnectionThrowsHandlingBuild()
         {
             var ex = new Exception();
-            var clientConnection = new Mock<IClientConnection>();
+            var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
             clientConnection
-                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(FromException<ConnectionData>(ex));
 
             var task = Task.FromResult(clientConnection.Object);
 
-            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            var connectionData = await ServerDispatcher.HandleClientConnectionAsync(task).ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientException, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -150,7 +154,7 @@ class Hello
         {
             var ex = new Exception();
             var task = FromException<IClientConnection>(ex);
-            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            var connectionData = await ServerDispatcher.HandleClientConnectionAsync(task).ConfigureAwait(true);
             Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -159,9 +163,9 @@ class Hello
         public void KeepAliveNoConnections()
         {
             var keepAlive = TimeSpan.FromSeconds(3);
-            var connectionHost = new Mock<IClientConnectionHost>();
+            var connectionHost = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             connectionHost
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
 
             var listener = new TestableDiagnosticListener();
@@ -227,9 +231,9 @@ class Hello
             var totalCount = 2;
             var readySource = new TaskCompletionSource<bool>();
             var list = new List<TaskCompletionSource<ConnectionData>>();
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken ct) =>
                 {
                     if (list.Count < totalCount)
@@ -267,17 +271,17 @@ class Hello
         [Fact]
         public void ClientExceptionShouldBeginShutdown()
         {
-            var client = new Mock<IClientConnection>();
+            var client = new Mock<IClientConnection>(MockBehavior.Strict);
             client
-                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Throws(new Exception());
 
             var listenCancellationToken = default(CancellationToken);
             var first = true;
 
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken cancellationToken) =>
                 {
                     if (first)
@@ -301,6 +305,32 @@ class Hello
         }
 
         [Fact]
+        public async Task ClientDisconnectDuringBuild()
+        {
+            using var buildStartedMre = new ManualResetEvent(initialState: false);
+            using var clientClosedMre = new ManualResetEvent(initialState: false);
+            var host = new TestableCompilerServerHost(runCompilation: (request, cancellationToken) =>
+            {
+                buildStartedMre.Set();
+                clientClosedMre.WaitOne();
+                return new CompletedBuildResponse(0, utf8output: false, "");
+            });
+
+            using var serverData = await ServerUtil.CreateServer(compilerServerHost: host).ConfigureAwait(false);
+
+            // Create a short lived client that send a request but does not wait for the 
+            using (var client = await BuildServerConnection.TryConnectToServerAsync(serverData.PipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
+            {
+                await s_emptyCSharpBuildRequest.WriteAsync(client).ConfigureAwait(false);
+                await buildStartedMre.WaitOneAsync().ConfigureAwait(false);
+            }
+
+            clientClosedMre.Set();
+            var reason = await serverData.ConnectionCompletionCollection.TakeAsync().ConfigureAwait(false);
+            Assert.Equal(CompletionReason.ClientDisconnect, reason);
+        }
+
+        [Fact]
         public void MutexStopsServerStarting()
         {
             var pipeName = Guid.NewGuid().ToString("N");
@@ -315,7 +345,7 @@ class Hello
                 try
                 {
                     var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-                    var result = DesktopBuildServerController.RunServer(
+                    var result = BuildServerController.CreateAndRunServer(
                         pipeName,
                         Path.GetTempPath(),
                         host.Object,
@@ -336,7 +366,7 @@ class Hello
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(() =>
                 {
                     // Use a thread instead of Task to guarantee this code runs on a different
@@ -365,7 +395,7 @@ class Hello
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
 
-            var result = DesktopBuildServerController.RunServer(
+            var result = BuildServerController.CreateAndRunServer(
                 pipeName,
                 Path.GetTempPath(),
                 host.Object,
@@ -482,7 +512,7 @@ class Hello
                     }
 
                     cancellationToken.WaitHandle.WaitOne();
-                    return new RejectedBuildResponse();
+                    return new RejectedBuildResponse("");
                 };
 
                 var list = new List<Task<BuildResponse>>();
@@ -515,6 +545,17 @@ class Hello
                     Assert.True(threw);
                 }
             }
+        }
+
+        [WorkItem(13995, "https://github.com/dotnet/roslyn/issues/13995")]
+        [Fact]
+        public async Task RejectEmptyTempPath()
+        {
+            using var temp = new TempRoot();
+            using var serverData = await ServerUtil.CreateServer();
+            var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
+            var response = await ServerUtil.Send(serverData.PipeName, request);
+            Assert.Equal(ResponseType.Rejected, response.Type);
         }
 
         [Fact]

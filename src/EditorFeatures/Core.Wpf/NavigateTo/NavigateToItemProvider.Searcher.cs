@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,9 +8,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -65,25 +67,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken))
-                    using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
+                    using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
+                    using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
+                    _progress.AddItems(_solution.Projects.Count());
+
+                    var workspace = _solution.Workspace;
+
+                    // If the workspace is tracking documents, use that to prioritize our search
+                    // order.  That way we provide results for the documents the user is working
+                    // on faster than the rest of the solution.
+                    var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+                    if (docTrackingService != null)
                     {
-                        _progress.AddItems(_solution.Projects.Count());
-
-                        var workspace = _solution.Workspace;
-
-                        // If the workspace is tracking documents, use that to prioritize our search
-                        // order.  That way we provide results for the documents the user is working
-                        // on faster than the rest of the solution.
-                        var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
-                        if (docTrackingService != null)
-                        {
-                            await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await SearchAllProjectsAsync().ConfigureAwait(false);
-                        }
+                        await SearchProjectsInPriorityOrderAsync(docTrackingService).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await SearchAllProjectsAsync().ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -91,28 +91,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
                 finally
                 {
-                    _callback.Done();
+                    var service = _solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                    if (_callback is INavigateToCallback2 callback2 &&
+                        !await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false))
+                    {
+                        // providing this extra information will make UI to show indication to users
+                        // that result might not contain full data
+                        callback2.Done(IncompleteReason.SolutionLoading);
+                    }
+                    else
+                    {
+                        _callback.Done();
+                    }
                 }
             }
 
-            private async Task SearchProjectsInPriorityOrder(IDocumentTrackingService docTrackingService)
+            private async Task SearchProjectsInPriorityOrderAsync(IDocumentTrackingService docTrackingService)
             {
                 var processedProjects = new HashSet<Project>();
 
-                var activeDocOpt = docTrackingService.GetActiveDocument(_solution);
+                var activeDocument = docTrackingService.GetActiveDocument(_solution);
                 var visibleDocs = docTrackingService.GetVisibleDocuments(_solution)
-                                                    .Where(d => d != activeDocOpt)
+                                                    .Where(d => d != activeDocument)
                                                     .ToImmutableArray();
 
                 // First, if there's an active document, search that project first, prioritizing
                 // that active document and all visible documents from it.
-                if (activeDocOpt != null)
+                if (activeDocument != null)
                 {
-                    var activeProject = activeDocOpt.Project;
+                    var activeProject = activeDocument.Project;
                     processedProjects.Add(activeProject);
 
                     var visibleDocsFromProject = visibleDocs.Where(d => d.Project == activeProject);
-                    var priorityDocs = ImmutableArray.Create(activeDocOpt).AddRange(visibleDocsFromProject);
+                    var priorityDocs = ImmutableArray.Create(activeDocument).AddRange(visibleDocsFromProject);
 
                     // Search the active project first.  That way we can deliver results that are
                     // closer in scope to the user quicker without forcing them to do something like
@@ -160,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    await SearchAsyncWorker(project, priorityDocuments).ConfigureAwait(false);
+                    await SearchCoreAsync(project, priorityDocuments).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -168,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            private async Task SearchAsyncWorker(Project project, ImmutableArray<Document> priorityDocuments)
+            private async Task SearchCoreAsync(Project project, ImmutableArray<Document> priorityDocuments)
             {
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {
@@ -218,24 +229,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback.AddItem(navigateToItem);
             }
 
-            private PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
-            {
-                switch (matchKind)
+            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
+                => matchKind switch
                 {
-                    case NavigateToMatchKind.Exact: return PatternMatchKind.Exact;
-                    case NavigateToMatchKind.Prefix: return PatternMatchKind.Prefix;
-                    case NavigateToMatchKind.Substring: return PatternMatchKind.Substring;
-                    case NavigateToMatchKind.Regular: return PatternMatchKind.Fuzzy;
-                    case NavigateToMatchKind.None: return PatternMatchKind.Fuzzy;
-                    case NavigateToMatchKind.CamelCaseExact: return PatternMatchKind.CamelCaseExact;
-                    case NavigateToMatchKind.CamelCasePrefix: return PatternMatchKind.CamelCasePrefix;
-                    case NavigateToMatchKind.CamelCaseNonContiguousPrefix: return PatternMatchKind.CamelCaseNonContiguousPrefix;
-                    case NavigateToMatchKind.CamelCaseSubstring: return PatternMatchKind.CamelCaseSubstring;
-                    case NavigateToMatchKind.CamelCaseNonContiguousSubstring: return PatternMatchKind.CamelCaseNonContiguousSubstring;
-                    case NavigateToMatchKind.Fuzzy: return PatternMatchKind.Fuzzy;
-                    default: throw ExceptionUtilities.UnexpectedValue(matchKind);
-                }
-            }
+                    NavigateToMatchKind.Exact => PatternMatchKind.Exact,
+                    NavigateToMatchKind.Prefix => PatternMatchKind.Prefix,
+                    NavigateToMatchKind.Substring => PatternMatchKind.Substring,
+                    NavigateToMatchKind.Regular => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.None => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
+                    NavigateToMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
+                    NavigateToMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
+                    NavigateToMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
+                    NavigateToMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
+                    NavigateToMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
+                    _ => throw ExceptionUtilities.UnexpectedValue(matchKind),
+                };
 
             /// <summary>
             /// Returns the name for the language used by the old Navigate To providers.
@@ -243,17 +252,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             /// <remarks> It turns out this string is used for sorting and for some SQM data, so it's best
             /// to keep it unchanged.</remarks>
             private static string GetNavigateToLanguage(string languageName)
-            {
-                switch (languageName)
+                => languageName switch
                 {
-                    case LanguageNames.CSharp:
-                        return "csharp";
-                    case LanguageNames.VisualBasic:
-                        return "vb";
-                    default:
-                        return languageName;
-                }
-            }
+                    LanguageNames.CSharp => "csharp",
+                    LanguageNames.VisualBasic => "vb",
+                    _ => languageName,
+                };
         }
     }
 }

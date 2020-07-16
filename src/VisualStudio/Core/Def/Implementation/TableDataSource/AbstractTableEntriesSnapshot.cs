@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _trackingPoints = trackingPoints;
         }
 
-        public abstract bool TryNavigateTo(int index, bool previewTab);
+        public abstract bool TryNavigateTo(int index, bool previewTab, bool activate);
         public abstract bool TryGetValue(int index, string columnName, out object content);
 
         public int VersionNumber
@@ -60,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return -1;
             }
 
-            var ourSnapshot = newerSnapshot as AbstractTableEntriesSnapshot<TItem>;
-            if (ourSnapshot == null || ourSnapshot.Count == 0)
+            if (!(newerSnapshot is AbstractTableEntriesSnapshot<TItem> ourSnapshot) || ourSnapshot.Count == 0)
             {
                 // not ours, we don't know how to track index
                 return -1;
@@ -98,15 +99,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         public void Dispose()
-        {
-            StopTracking();
-        }
+            => StopTracking();
 
         internal TItem GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
-                return default;
+                return null;
             }
 
             return _items[index];
@@ -149,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab, bool activate)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -157,7 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab);
+            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
+                                           .WithChangedOption(NavigationOptions.ActivateTab, activate);
             if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options))
             {
                 return true;
@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return false;
         }
 
-        protected bool TryNavigateToItem(int index, bool previewTab)
+        protected bool TryNavigateToItem(int index, bool previewTab, bool activate)
         {
             var item = GetItem(index);
             var documentId = item?.DocumentId;
@@ -196,13 +196,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 position = item.GetOriginalPosition();
             }
 
-            return TryNavigateTo(workspace, documentId, position, previewTab);
+            return TryNavigateTo(workspace, documentId, position, previewTab, activate);
         }
 
         protected static string GetFileName(string original, string mapped)
-        {
-            return mapped == null ? original : original == null ? mapped : Combine(original, mapped);
-        }
+            => mapped == null ? original : original == null ? mapped : Combine(original, mapped);
 
         private static string Combine(string path1, string path2)
         {
@@ -231,9 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         // we don't use these
         public object Identity(int index)
-        {
-            return null;
-        }
+            => null;
 
         public void StartCaching()
         {

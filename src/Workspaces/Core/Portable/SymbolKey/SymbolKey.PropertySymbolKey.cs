@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System.Diagnostics;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,17 +17,29 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingTypeResolution = reader.ReadSymbolKey();
+                var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
                 var isIndexer = reader.ReadBoolean();
-
                 using var refKinds = reader.ReadRefKindArray();
-                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
+
+                if (containingTypeFailureReason != null)
+                {
+                    failureReason = $"({nameof(PropertySymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
+                    return default;
+                }
+
+                if (parameterTypesFailureReason != null)
+                {
+                    failureReason = $"({nameof(PropertySymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";
+                    return default;
+                }
 
                 if (parameterTypes.IsDefault)
                 {
+                    failureReason = $"({nameof(PropertySymbolKey)} no parameter types)";
                     return default;
                 }
 
@@ -45,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(PropertySymbolKey)} '{metadataName}' not found)", out failureReason);
             }
         }
     }

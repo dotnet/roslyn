@@ -22,11 +22,6 @@
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">다른 위치에서 사용되지 않는 로컬 선언을 추출된 메서드로 이동(_M)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Interface 및 MustOverride 멤버 자동 삽입(_I)</target>
@@ -44,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <target state="translated">가져오지 않은 네임스페이스의 항목 표시(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -94,8 +89,8 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">''에 대해 XML 문서 주석 생성(_G)</target>
-        <note />
+        <target state="needs-review-translation">'''에 대해 XML 문서 주석 생성(_G)</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
@@ -115,6 +110,11 @@
       <trans-unit id="Regular">
         <source>Regular</source>
         <target state="translated">일반</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">요약 정보에 설명 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">

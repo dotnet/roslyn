@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -29,9 +31,8 @@ End Module</code>
     'End Sub
 End Module</code>
 
-            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Comment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
         End Sub
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
         Public Sub UncommentAndFormat1()
@@ -47,7 +48,7 @@ End Module</code>
     End Sub
 End Module</code>
 
-            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
@@ -64,10 +65,10 @@ End Module</code>
     End Sub
 End Module</code>
 
-            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
         End Sub
 
-        Private Shared Sub InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code As String, expected As String, operation As CommentUncommentSelectionCommandHandler.Operation)
+        Private Shared Sub InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code As String, expected As String, operation As Operation)
             ' do this since xml value put only vbLf
             code = code.Replace(vbLf, vbCrLf)
             expected = expected.Replace(vbLf, vbCrLf)
@@ -88,7 +89,7 @@ End Module</code>
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())
 
-                Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,21 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ObjectCreationExpressionSignatureHelpProvider()
         {
         }
 
         public override bool IsTriggerCharacter(char ch)
-        {
-            return ch == '(' || ch == ',';
-        }
+            => ch == '(' || ch == ',';
 
         public override bool IsRetriggerCharacter(char ch)
-        {
-            return ch == ')';
-        }
+            => ch == ')';
 
-        private bool TryGetObjectCreationExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ObjectCreationExpressionSyntax expression)
+        private bool TryGetObjectCreationExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out BaseObjectCreationExpressionSyntax expression)
         {
             if (!CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out expression))
             {
@@ -41,11 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool IsTriggerToken(SyntaxToken token)
-        {
-            return SignatureHelpUtilities.IsTriggerParenOrComma<ObjectCreationExpressionSyntax>(token, IsTriggerCharacter);
-        }
+            => SignatureHelpUtilities.IsTriggerParenOrComma<BaseObjectCreationExpressionSyntax>(token, IsTriggerCharacter);
 
-        private static bool IsArgumentListToken(ObjectCreationExpressionSyntax expression, SyntaxToken token)
+        private static bool IsArgumentListToken(BaseObjectCreationExpressionSyntax expression, SyntaxToken token)
         {
             return expression.ArgumentList != null &&
                 expression.ArgumentList.Span.Contains(token.SpanStart) &&
@@ -60,9 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(objectCreationExpression, cancellationToken).ConfigureAwait(false);
-            var type = semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type as INamedTypeSymbol;
-            if (type == null)
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(objectCreationExpression, cancellationToken).ConfigureAwait(false);
+            if (!(semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is INamedTypeSymbol type))
             {
                 return null;
             }
@@ -73,15 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
-                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)
-                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
+                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, type)
+                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
 
             return CreateSignatureHelpItems(items, textSpan,
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);

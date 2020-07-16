@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports System.Windows
@@ -12,10 +14,10 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     <[UseExportProvider]>
     Public Class InteractivePasteCommandhandlerTests
-        Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
-        Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
+        Private Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
+        Private Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
 
-        Private Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
+        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
             Dim handler = New InteractivePasteCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService),
                                                              workspace.GetService(Of ITextUndoHistoryRegistry))
             handler.RoslynClipboard = New MockClipboard()
@@ -36,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
-
 
                 Dim json = "
                 [
@@ -219,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End Using
         End Sub
 
-        Private Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
+        Private Shared Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
             clipboard.Clear()
 
             Dim data = New DataObject()
@@ -238,7 +239,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End If
             clipboard.SetDataObject(data)
         End Sub
-
 
         Private Class MockClipboard
             Implements InteractivePasteCommandHandler.IRoslynClipboard

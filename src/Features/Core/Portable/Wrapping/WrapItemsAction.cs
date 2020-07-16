@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -56,41 +58,38 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var operations = await base.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
             var operationsList = operations.ToList();
 
-            operationsList.Add(new RecordCodeActionOperation(this.SortTitle, this.ParentTitle));
+            operationsList.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
             return operationsList;
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
+            => SortByMostRecentlyUsed(codeActions, s_mruTitles, a => GetSortTitle(a));
+
+        public static ImmutableArray<T> SortByMostRecentlyUsed<T>(
+            ImmutableArray<T> items, ImmutableArray<string> mostRecentlyUsedKeys, Func<T, string> getKey)
         {
-            // make a local so this array can't change out from under us.
-            var mruTitles = s_mruTitles;
-            return codeActions.Sort((ca1, ca2) =>
+            return items.Sort((d1, d2) =>
             {
-                var titleIndex1 = mruTitles.IndexOf(GetSortTitle(ca1));
-                var titleIndex2 = mruTitles.IndexOf(GetSortTitle(ca2));
+                var mruIndex1 = mostRecentlyUsedKeys.IndexOf(getKey(d1));
+                var mruIndex2 = mostRecentlyUsedKeys.IndexOf(getKey(d2));
 
-                if (titleIndex1 >= 0 && titleIndex2 >= 0)
-                {
-                    // we've invoked both of these before.  Order by how recently it was invoked.
-                    return titleIndex1 - titleIndex2;
-                }
+                // If both are in the mru, prefer the one earlier on.
+                if (mruIndex1 >= 0 && mruIndex2 >= 0)
+                    return mruIndex1 - mruIndex2;
 
-                // one of these has never been invoked.  It's always after an item that has been
-                // invoked.
-                if (titleIndex1 >= 0)
-                {
+                // if either is in the mru, and the other is not, then the mru item is preferred.
+                if (mruIndex1 >= 0)
                     return -1;
-                }
 
-                if (titleIndex2 >= 0)
-                {
+                if (mruIndex2 >= 0)
                     return 1;
-                }
 
-                // Neither of these has been invoked.   Keep it in the same order we found it in the
-                // array.  Note: we cannot return 0 here as ImmutableArray/Array are not guaranteed
-                // to sort stably.
-                return codeActions.IndexOf(ca1) - codeActions.IndexOf(ca2);
+                // Neither are in the mru.  Sort them based on their original locations.
+                var index1 = items.IndexOf(d1);
+                var index2 = items.IndexOf(d2);
+
+                // Note: we don't return 0 here as ImmutableArray.Sort is not stable.
+                return index1 - index2;
             });
         }
 

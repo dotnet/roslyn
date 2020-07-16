@@ -1,16 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     /// <summary>
     /// DiagnosticData serializer
     /// </summary>
-    internal struct DiagnosticDataSerializer
+    internal readonly struct DiagnosticDataSerializer
     {
         // version of serialized format
         private const int FormatVersion = 1;
@@ -36,54 +39,57 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             Version = version;
         }
 
-        public async Task<bool> SerializeAsync(object documentOrProject, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
+        public async Task<bool> SerializeAsync(IPersistentStorageService persistentService, Project project, TextDocument? textDocument, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(textDocument == null || textDocument.Project == project);
+
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-            WriteTo(writer, items, cancellationToken);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            {
+                WriteDiagnosticData(writer, items, cancellationToken);
+            }
 
-            var solution = GetSolution(documentOrProject);
-            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            using var storage = persistService.GetStorage(solution);
+            using var storage = persistentService.GetStorage(project.Solution);
 
             stream.Position = 0;
-            return await WriteStreamAsync(storage, documentOrProject, key, stream, cancellationToken).ConfigureAwait(false);
+
+            var writeTask = (textDocument != null) ?
+                textDocument is Document document ?
+                    storage.WriteStreamAsync(document, key, stream, cancellationToken) :
+                    storage.WriteStreamAsync(GetSerializationKeyForNonSourceDocument(textDocument, key), stream, cancellationToken) :
+                storage.WriteStreamAsync(project, key, stream, cancellationToken);
+
+            return await writeTask.ConfigureAwait(false);
         }
 
-        public async Task<StrongBox<ImmutableArray<DiagnosticData>>> DeserializeAsync(object documentOrProject, string key, CancellationToken cancellationToken)
-        {
-            // we have persisted data
-            var solution = GetSolution(documentOrProject);
-            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+        private static string GetSerializationKeyForNonSourceDocument(TextDocument document, string key)
+            => document.Id + ";" + key;
 
-            using var storage = persistService.GetStorage(solution);
-            using var stream = await ReadStreamAsync(storage, key, documentOrProject, cancellationToken).ConfigureAwait(false);
-            using var reader = ObjectReader.TryGetReader(stream);
+        public async ValueTask<ImmutableArray<DiagnosticData>> DeserializeAsync(IPersistentStorageService persistentService, Project project, TextDocument? textDocument, string key, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(textDocument == null || textDocument.Project == project);
+
+            using var storage = persistentService.GetStorage(project.Solution);
+
+            var readTask = (textDocument != null) ?
+                textDocument is Document document ?
+                    storage.ReadStreamAsync(document, key, cancellationToken) :
+                    storage.ReadStreamAsync(GetSerializationKeyForNonSourceDocument(textDocument, key), cancellationToken) :
+                storage.ReadStreamAsync(project, key, cancellationToken);
+
+            using var stream = await readTask.ConfigureAwait(false);
+            using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
 
             if (reader == null)
             {
-                return null;
+                return default;
             }
 
-            // we return StrongBox rather than ImmutableArray due to task lib's issue with allocations
-            // when returning default(value type)
-            return ReadFrom(reader, documentOrProject, cancellationToken);
+            return ReadDiagnosticData(reader, project, textDocument, cancellationToken);
         }
 
-        private Task<bool> WriteStreamAsync(IPersistentStorage storage, object documentOrProject, string key, Stream stream, CancellationToken cancellationToken)
-        {
-            if (documentOrProject is Document document)
-            {
-                return storage.WriteStreamAsync(document, key, stream, cancellationToken);
-            }
-
-            var project = (Project)documentOrProject;
-            return storage.WriteStreamAsync(project, key, stream, cancellationToken);
-        }
-
-        public void WriteTo(ObjectWriter writer, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
+        public void WriteDiagnosticData(ObjectWriter writer, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
             writer.WriteInt32(FormatVersion);
 
@@ -110,21 +116,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 writer.WriteBoolean(item.IsSuppressed);
                 writer.WriteInt32(item.WarningLevel);
 
-                if (item.HasTextSpan)
-                {
-                    // document state
-                    writer.WriteInt32(item.TextSpan.Start);
-                    writer.WriteInt32(item.TextSpan.Length);
-                }
-                else
-                {
-                    // project state
-                    writer.WriteInt32(0);
-                    writer.WriteInt32(0);
-                }
+                // unused
+                writer.WriteInt32(0);
+                writer.WriteInt32(0);
 
-                WriteTo(writer, item.DataLocation);
-                WriteTo(writer, item.AdditionalLocations, cancellationToken);
+                WriteLocation(writer, item.DataLocation);
+                WriteAdditionalLocations(writer, item.AdditionalLocations, cancellationToken);
 
                 writer.WriteInt32(item.CustomTags.Count);
                 foreach (var tag in item.CustomTags)
@@ -141,30 +138,26 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
         }
 
-        private static void WriteTo(ObjectWriter writer, IReadOnlyCollection<DiagnosticDataLocation> additionalLocations, CancellationToken cancellationToken)
+        private static void WriteAdditionalLocations(ObjectWriter writer, IReadOnlyCollection<DiagnosticDataLocation> additionalLocations, CancellationToken cancellationToken)
         {
-            writer.WriteInt32(additionalLocations?.Count ?? 0);
-            if (additionalLocations != null)
+            writer.WriteInt32(additionalLocations.Count);
+
+            foreach (var location in additionalLocations)
             {
-                foreach (var location in additionalLocations)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    WriteTo(writer, location);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                WriteLocation(writer, location);
             }
         }
 
-        private static void WriteTo(ObjectWriter writer, DiagnosticDataLocation item)
+        private static void WriteLocation(ObjectWriter writer, DiagnosticDataLocation? item)
         {
             if (item == null)
             {
                 writer.WriteBoolean(false);
                 return;
             }
-            else
-            {
-                writer.WriteBoolean(true);
-            }
+
+            writer.WriteBoolean(true);
 
             if (item.SourceSpan.HasValue)
             {
@@ -190,68 +183,46 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             writer.WriteInt32(item.MappedEndColumn);
         }
 
-        private Task<Stream> ReadStreamAsync(IPersistentStorage storage, string key, object documentOrProject, CancellationToken cancellationToken)
-        {
-            if (documentOrProject is Document document)
-            {
-                return storage.ReadStreamAsync(document, key, cancellationToken);
-            }
-
-            var project = (Project)documentOrProject;
-            return storage.ReadStreamAsync(project, key, cancellationToken);
-        }
-
-        public StrongBox<ImmutableArray<DiagnosticData>> ReadFrom(ObjectReader reader, object documentOrProject, CancellationToken cancellationToken)
-        {
-            if (documentOrProject is Document document)
-            {
-                return ReadFrom(reader, document.Project, document, cancellationToken);
-            }
-
-            var project = (Project)documentOrProject;
-            return ReadFrom(reader, project, null, cancellationToken);
-        }
-
-        private StrongBox<ImmutableArray<DiagnosticData>> ReadFrom(ObjectReader reader, Project project, Document document, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> ReadDiagnosticData(ObjectReader reader, Project project, TextDocument? document, CancellationToken cancellationToken)
         {
             try
             {
-                using var pooledObject = SharedPools.Default<List<DiagnosticData>>().GetPooledObject();
-
-                var list = pooledObject.Object;
-
                 var format = reader.ReadInt32();
                 if (format != FormatVersion)
                 {
-                    return null;
+                    return default;
                 }
 
                 // saved data is for same analyzer of different version of dll
                 var analyzerVersion = VersionStamp.ReadFrom(reader);
                 if (analyzerVersion != AnalyzerVersion)
                 {
-                    return null;
+                    return default;
                 }
 
                 var version = VersionStamp.ReadFrom(reader);
                 if (version != VersionStamp.Default && version != Version)
                 {
-                    return null;
+                    return default;
                 }
 
-                ReadFrom(reader, project, document, list, cancellationToken);
-
-                return new StrongBox<ImmutableArray<DiagnosticData>>(list.ToImmutableArray());
+                return ReadDiagnosticDataArray(reader, project, document, cancellationToken);
             }
             catch (Exception)
             {
-                return null;
+                return default;
             }
         }
 
-        private static void ReadFrom(ObjectReader reader, Project project, Document document, List<DiagnosticData> list, CancellationToken cancellationToken)
+        private static ImmutableArray<DiagnosticData> ReadDiagnosticDataArray(ObjectReader reader, Project project, TextDocument? document, CancellationToken cancellationToken)
         {
             var count = reader.ReadInt32();
+            if (count == 0)
+            {
+                return ImmutableArray<DiagnosticData>.Empty;
+            }
+
+            var builder = ArrayBuilder<DiagnosticData>.GetInstance(count);
 
             for (var i = 0; i < count; i++)
             {
@@ -271,9 +242,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 var isSuppressed = reader.ReadBoolean();
                 var warningLevel = reader.ReadInt32();
 
-                var start = reader.ReadInt32();
-                var length = reader.ReadInt32();
-                var textSpan = new TextSpan(start, length);
+                // these fields are unused - the actual span is read in ReadLocation
+                _ = reader.ReadInt32();
+                _ = reader.ReadInt32();
 
                 var location = ReadLocation(project, reader, document);
                 var additionalLocations = ReadAdditionalLocations(project, reader);
@@ -284,17 +255,31 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 var propertiesCount = reader.ReadInt32();
                 var properties = GetProperties(reader, propertiesCount);
 
-                list.Add(new DiagnosticData(
-                    id, category, message, messageFormat, severity, defaultSeverity, isEnabledByDefault, warningLevel, customTags, properties,
-                    project.Id, location, additionalLocations,
+                builder.Add(new DiagnosticData(
+                    id: id,
+                    category: category,
+                    message: message,
+                    enuMessageForBingSearch: messageFormat,
+                    severity: severity,
+                    defaultSeverity: defaultSeverity,
+                    isEnabledByDefault: isEnabledByDefault,
+                    warningLevel: warningLevel,
+                    customTags: customTags,
+                    properties: properties,
+                    projectId: project.Id,
+                    location: location,
+                    additionalLocations: additionalLocations,
+                    language: project.Language,
                     title: title,
                     description: description,
                     helpLink: helpLink,
                     isSuppressed: isSuppressed));
             }
+
+            return builder.ToImmutableAndFree();
         }
 
-        private static DiagnosticDataLocation ReadLocation(Project project, ObjectReader reader, Document documentOpt)
+        private static DiagnosticDataLocation? ReadLocation(Project project, ObjectReader reader, TextDocument? document)
         {
             var exists = reader.ReadBoolean();
             if (!exists)
@@ -320,8 +305,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             var mappedEndLine = reader.ReadInt32();
             var mappedEndColumn = reader.ReadInt32();
 
-            var documentId = documentOpt != null
-                ? documentOpt.Id
+            var documentId = document != null
+                ? document.Id
                 : project.Documents.FirstOrDefault(d => d.FilePath == originalFile)?.Id;
 
             return new DiagnosticDataLocation(documentId, sourceSpan,
@@ -335,17 +320,21 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             var result = new List<DiagnosticDataLocation>();
             for (var i = 0; i < count; i++)
             {
-                result.Add(ReadLocation(project, reader, documentOpt: null));
+                var location = ReadLocation(project, reader, document: null);
+                if (location != null)
+                {
+                    result.Add(location);
+                }
             }
 
             return result;
         }
 
-        private static ImmutableDictionary<string, string> GetProperties(ObjectReader reader, int count)
+        private static ImmutableDictionary<string, string?> GetProperties(ObjectReader reader, int count)
         {
             if (count > 0)
             {
-                var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                var properties = ImmutableDictionary.CreateBuilder<string, string?>();
                 for (var i = 0; i < count; i++)
                 {
                     properties.Add(reader.ReadString(), reader.ReadString());
@@ -354,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 return properties.ToImmutable();
             }
 
-            return ImmutableDictionary<string, string>.Empty;
+            return ImmutableDictionary<string, string?>.Empty;
         }
 
         private static IReadOnlyList<string> GetCustomTags(ObjectReader reader, int count)
@@ -371,17 +360,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
 
             return SpecializedCollections.EmptyReadOnlyList<string>();
-        }
-
-        private static Solution GetSolution(object documentOrProject)
-        {
-            if (documentOrProject is Document document)
-            {
-                return document.Project.Solution;
-            }
-
-            var project = (Project)documentOrProject;
-            return project.Solution;
         }
     }
 }

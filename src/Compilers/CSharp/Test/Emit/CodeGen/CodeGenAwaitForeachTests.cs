@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -38,7 +41,7 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -717,6 +720,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
+            Assert.True(info.IsAsynchronous);
             Assert.Equal("C.Enumerator C.GetAsyncEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Boolean> C.Enumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Enumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
@@ -2498,7 +2502,7 @@ public class C
     IL_000c:  br         IL_009a
     // sequence point: {
     IL_0011:  nop
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_0012:  nop
     // sequence point: new C()
     IL_0013:  ldarg.0
@@ -4184,7 +4188,7 @@ class C
 
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      258 (0x102)
+  // Code size      272 (0x110)
   .maxstack  3
   .locals init (int V_0,
                 System.Threading.CancellationToken V_1,
@@ -4208,7 +4212,7 @@ class C
     IL_0012:  ldarg.0
     IL_0013:  newobj     ""Collection<int>..ctor()""
     IL_0018:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_001d:  nop
     // sequence point: c
     IL_001e:  ldarg.0
@@ -4262,7 +4266,7 @@ class C
     IL_008c:  ldloca.s   V_3
     IL_008e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
     IL_0093:  nop
-    IL_0094:  leave.s    IL_0101
+    IL_0094:  leave.s    IL_010f
     // async: resume
     IL_0096:  ldarg.0
     IL_0097:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
@@ -4285,7 +4289,7 @@ class C
     IL_00ca:  ldarg.0
     IL_00cb:  ldnull
     IL_00cc:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-    IL_00d1:  leave.s    IL_00ed
+    IL_00d1:  leave.s    IL_00f4
   }
   catch System.Exception
   {
@@ -4295,22 +4299,28 @@ class C
     IL_00d6:  ldc.i4.s   -2
     IL_00d8:  stfld      ""int C.<Main>d__0.<>1__state""
     IL_00dd:  ldarg.0
-    IL_00de:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_00e3:  ldloc.s    V_4
-    IL_00e5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00ea:  nop
-    IL_00eb:  leave.s    IL_0101
+    IL_00de:  ldnull
+    IL_00df:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
+    IL_00e4:  ldarg.0
+    IL_00e5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_00ea:  ldloc.s    V_4
+    IL_00ec:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00f1:  nop
+    IL_00f2:  leave.s    IL_010f
   }
   // sequence point: }
-  IL_00ed:  ldarg.0
-  IL_00ee:  ldc.i4.s   -2
-  IL_00f0:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_00f4:  ldarg.0
+  IL_00f5:  ldc.i4.s   -2
+  IL_00f7:  stfld      ""int C.<Main>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_00f5:  ldarg.0
-  IL_00f6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_00fb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0100:  nop
-  IL_0101:  ret
+  IL_00fc:  ldarg.0
+  IL_00fd:  ldnull
+  IL_00fe:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
+  IL_0103:  ldarg.0
+  IL_0104:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_0109:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_010e:  nop
+  IL_010f:  ret
 }", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
         }
 
@@ -4915,6 +4925,60 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+        }
+
+        [Fact]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        public void GetAwaiterBoxingConversion()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+interface I1 { }
+interface I2 { }
+struct StructAwaitable1 : I1 { }
+struct StructAwaitable2 : I2 { }
+
+class Enumerable
+{
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    internal class Enumerator
+    {
+        public object Current => null;
+        public StructAwaitable1 MoveNextAsync() => new StructAwaitable1();
+        public StructAwaitable2 DisposeAsync() => new StructAwaitable2();
+    }
+}
+
+static class Extensions
+{
+    internal static TaskAwaiter<bool> GetAwaiter(this I1 x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.FromResult(false).GetAwaiter();
+    }
+    internal static TaskAwaiter GetAwaiter(this I2 x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.CompletedTask.GetAwaiter();
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        await foreach (var o in new Enumerable())
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable1StructAwaitable2");
         }
     }
 }

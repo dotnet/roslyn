@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
 
   <!--
@@ -25,12 +25,12 @@
       
       <!-- The Roslyn built binaries must be taken from these locations because this is the location where signing occurs -->
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.DiaSymReader.Native.amd64.dll"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.DiaSymReader.Native.x86.dll"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Microsoft.DiaSymReader.Native.amd64.dll"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Microsoft.DiaSymReader.Native.x86.dll"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe" NgenArchitecture="all" NgenApplication="csc.exe" NgenPriority="2"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe.config"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.rsp"/>
@@ -44,7 +44,6 @@
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\net472\VBCSCompiler.exe.config"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" NgenArchitecture="all" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.Core.targets"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.EditorConfig.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.CSharp.Core.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.VisualBasic.Core.targets"/>
 
@@ -68,8 +67,11 @@
       <_NoNGen Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
       
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
-      <DesktopCompilerArtifact Update="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Collections.Immutable.dll" NgenPriority="1" />
-      <DesktopCompilerArtifact Update="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Reflection.Metadata.dll" NgenPriority="1" />
+      
+      <!-- Note: do not use Update attribute (see https://github.com/microsoft/msbuild/issues/1124) -->
+      <DesktopCompilerArtifact NgenPriority="1" Condition="'%(Identity)' == '$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Collections.Immutable.dll'" />
+      <DesktopCompilerArtifact NgenPriority="1" Condition="'%(Identity)' == '$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Reflection.Metadata.dll'" />
+      
       <DesktopCompilerArtifact Include="@(_NoOptimizationData)" Exclude="@(_NoNGen)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
       <DesktopCompilerArtifact Include="@(_NoNGen)" />
 

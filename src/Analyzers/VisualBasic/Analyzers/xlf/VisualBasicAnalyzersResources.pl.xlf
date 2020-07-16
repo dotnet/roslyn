@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../VisualBasicAnalyzersResources.resx">
+    <body>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">Instrukcja „if” może zostać uproszczona</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_statement_is_unnecessary">
+        <source>Imports statement is unnecessary.</source>
+        <target state="translated">Instrukcja imports jest niepotrzebna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_ByVal">
+        <source>'ByVal' keyword is unnecessary and can be removed.</source>
+        <target state="new">'ByVal' keyword is unnecessary and can be removed.</target>
+        <note>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
+      <trans-unit id="Use_IsNot_Nothing_check">
+        <source>Use 'IsNot Nothing' check</source>
+        <target state="translated">Użyj sprawdzania „IsNot Nothing”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Is_Nothing_check">
+        <source>Use 'Is Nothing' check</source>
+        <target state="translated">Użyj sprawdzania „Is Nothing”</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

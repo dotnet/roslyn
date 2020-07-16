@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -71,6 +73,14 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool IsExclusive { get; set; }
 
         /// <summary>
+        /// Set to true if the corresponding provider can provide extended items with current context,
+        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
+        /// but we still want to show the expander so user can explicitly request them to be added to 
+        /// completion list if we are in the appropriate context.
+        /// </summary>
+        internal bool ExpandItemsAvailable { get; set; }
+
+        /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
         /// </summary>
         public CompletionContext(
@@ -121,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
         /// 
-        /// Suggestion mode disables autoselection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
+        /// Suggestion mode disables auto-selection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
         /// 
         /// Specifying a <see cref="SuggestionModeItem"/> is a request that the completion host operate in suggestion mode.
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.

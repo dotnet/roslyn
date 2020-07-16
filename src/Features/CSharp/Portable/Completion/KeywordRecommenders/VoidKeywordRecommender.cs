@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -39,24 +41,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsMemberReturnTypeContext(position, context, cancellationToken) ||
                 context.IsGlobalStatementContext ||
                 context.IsTypeOfExpressionContext ||
-                syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken) ||
                 context.IsDelegateReturnTypeContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 IsUnsafeLocalVariableDeclarationContext(context) ||
                 IsUnsafeParameterTypeContext(context) ||
                 IsUnsafeCastTypeContext(context) ||
-                IsUnsafeDefaultExpressionContext(context, cancellationToken) ||
+                IsUnsafeDefaultExpressionContext(context) ||
                 context.IsFixedVariableDeclarationContext ||
-                context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
+                context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                context.SyntaxTree.IsLocalFunctionDeclarationContext(position, SyntaxKindSet.AllLocalFunctionModifiers, cancellationToken);
         }
 
-        private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
-                context.SyntaxTree.IsDefaultExpressionContext(context.Position, context.LeftToken, cancellationToken);
+                context.SyntaxTree.IsDefaultExpressionContext(context.Position, context.LeftToken);
         }
 
-        private bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -77,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
                 context.IsParameterTypeContext;
         }
 
-        private bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -96,14 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;
             return
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
         }

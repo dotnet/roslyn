@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -255,30 +257,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Marshal.ThrowExceptionForHR(_textManager.GetUserPreferences4(null, languagePreferences, null));
 
             SetValueForOption(optionKey.Option, ref languagePreferences[0], value);
-            SetUserPreferencesMaybeAsync(languagePreferences);
+            _ = SetUserPreferencesMaybeAsync(languagePreferences);
 
             // Even if we didn't call back, say we completed the persist
             return true;
         }
 
-        private void SetUserPreferencesMaybeAsync(LANGPREFERENCES3[] languagePreferences)
+        private async Task SetUserPreferencesMaybeAsync(LANGPREFERENCES3[] languagePreferences)
         {
-            if (IsForeground())
-            {
-                Marshal.ThrowExceptionForHR(_textManager.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
-            }
-            else
-            {
-                Task.Factory.StartNew(
-                    async () =>
-                    {
-                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        this.SetUserPreferencesMaybeAsync(languagePreferences);
-                    },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    TaskScheduler.Default).Unwrap();
-            }
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            Marshal.ThrowExceptionForHR(_textManager.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
         }
     }
 }

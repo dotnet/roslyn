@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -25,22 +27,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
-                RecordDefinitions(parameters);
+                recordDefinitions(parameters);
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    this.parameterMap.Add(parameter.Name, parameter);
+                    if (!parameter.IsDiscard)
+                    {
+                        this.parameterMap.Add(parameter.Name, parameter);
+                    }
                 }
             }
-        }
 
-        private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
-        {
-            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
-            foreach (var s in definitions)
+            void recordDefinitions(ImmutableArray<ParameterSymbol> definitions)
             {
-                if (!declarationMap.ContainsKey(s.Name))
+                var declarationMap = _definitionMap ??= new SmallDictionary<string, ParameterSymbol>();
+                foreach (var s in definitions)
                 {
-                    declarationMap.Add(s.Name, s);
+                    if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
+                    {
+                        declarationMap.Add(s.Name, s);
+                    }
                 }
             }
         }
@@ -71,13 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: Specifically not overriding IsIndirectlyInIterator.
 
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
+        {
+            return TypeWithAnnotations.Create(CreateErrorType());
+        }
+
+        protected override void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (node != null)
             {
                 diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
             }
-            return TypeWithAnnotations.Create(CreateErrorType());
         }
 
         internal override void LookupSymbolsInSingleBinder(
@@ -148,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(false, "what else could be defined in a lambda?");
+            diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return false;
         }
 

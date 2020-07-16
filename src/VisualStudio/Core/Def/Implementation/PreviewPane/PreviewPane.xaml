@@ -11,7 +11,7 @@
              Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.PanelTextBrushKey}}"
              d:DesignHeight="300" d:DesignWidth="400" 
              x:Name="ThisPane"
-             AutomationProperties.Name="{Binding ElementName=ThisPane, Path=AutomationName}">
+             AutomationProperties.Name="{Binding Path=AutomationName, RelativeSource={RelativeSource Self}}">
     <UserControl.Resources>
         <SolidColorBrush x:Key="Expander.MouseOver.Circle.Stroke" Color="#FF5593FF"/>
         <SolidColorBrush x:Key="Expander.MouseOver.Circle.Fill" Color="#FFF3F9FF"/>

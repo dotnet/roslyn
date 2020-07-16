@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Commanding.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -577,8 +580,6 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-
-
         <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods1() As Task
@@ -958,7 +959,7 @@ End Namespace</element>
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New OrganizeDocumentCommandHandler()
+                Dim handler = New OrganizeDocumentCommandHandler(exportProvider.GetExportedValue(Of IThreadingContext)())
 
                 Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

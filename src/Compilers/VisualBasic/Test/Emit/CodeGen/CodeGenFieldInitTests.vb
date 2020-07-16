@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Roslyn.Test.Utilities
@@ -695,7 +697,7 @@ End Class
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
             CompilationUtils.AssertTheseDiagnostics(compilation2.Emit(New MemoryStream()).Diagnostics,
 <expected>
-BC36970: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa829.dll'.
+BC36970: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa829.dll': Unable to determine specific cause of the failure.
 </expected>)
         End Sub
 

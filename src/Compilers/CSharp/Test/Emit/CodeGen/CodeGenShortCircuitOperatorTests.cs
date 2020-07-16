@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2461,49 +2463,34 @@ False
 False");
             comp.VerifyIL("Program.Test<T>(System.Func<T>)", @"
 {
-  // Code size      110 (0x6e)
+  // Code size       72 (0x48)
   .maxstack  2
-  .locals init (T V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  callvirt   ""T System.Func<T>.Invoke()""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  initobj    ""T""
-  IL_0011:  ldloc.1
-  IL_0012:  box        ""T""
-  IL_0017:  brtrue.s   IL_002c
-  IL_0019:  ldobj      ""T""
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloc.1
-  IL_0022:  box        ""T""
-  IL_0027:  brtrue.s   IL_002c
-  IL_0029:  pop
-  IL_002a:  br.s       IL_0037
-  IL_002c:  constrained. ""T""
-  IL_0032:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0037:  ldarg.0
-  IL_0038:  callvirt   ""T System.Func<T>.Invoke()""
-  IL_003d:  stloc.0
-  IL_003e:  ldloca.s   V_0
-  IL_0040:  ldloca.s   V_1
-  IL_0042:  initobj    ""T""
-  IL_0048:  ldloc.1
-  IL_0049:  box        ""T""
-  IL_004e:  brtrue.s   IL_0062
-  IL_0050:  ldobj      ""T""
-  IL_0055:  stloc.1
-  IL_0056:  ldloca.s   V_1
-  IL_0058:  ldloc.1
-  IL_0059:  box        ""T""
-  IL_005e:  brtrue.s   IL_0062
-  IL_0060:  pop
-  IL_0061:  ret
-  IL_0062:  constrained. ""T""
-  IL_0068:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_006d:  ret
+  IL_0009:  dup
+  IL_000a:  ldobj      ""T""
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_0019
+  IL_0016:  pop
+  IL_0017:  br.s       IL_0024
+  IL_0019:  constrained. ""T""
+  IL_001f:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0024:  ldarg.0
+  IL_0025:  callvirt   ""T System.Func<T>.Invoke()""
+  IL_002a:  stloc.0
+  IL_002b:  ldloca.s   V_0
+  IL_002d:  dup
+  IL_002e:  ldobj      ""T""
+  IL_0033:  box        ""T""
+  IL_0038:  brtrue.s   IL_003c
+  IL_003a:  pop
+  IL_003b:  ret
+  IL_003c:  constrained. ""T""
+  IL_0042:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0047:  ret
 }
 ");
         }

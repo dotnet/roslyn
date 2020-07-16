@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isForOverride = false)
         {
             Debug.Assert(this.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            Debug.Assert((object)containingSymbol != null);
+            RoslynDebug.Assert((object)containingSymbol != null);
             Debug.Assert((containingSymbol.Kind == SymbolKind.NamedType) || (containingSymbol.Kind == SymbolKind.Method));
             Debug.Assert(typeParameters.Length > 0);
             Debug.Assert(clauses.Count > 0);
@@ -49,20 +52,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // An array of constraint clauses, one for each type parameter, indexed by ordinal.
-            var results = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(n, fillWithValue: null);
-            var syntaxNodes = ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>>.GetInstance(n, fillWithValue: null);
+            var results = ArrayBuilder<TypeParameterConstraintClause?>.GetInstance(n, fillWithValue: null);
+            var syntaxNodes = ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>?>.GetInstance(n, fillWithValue: null);
 
             // Bind each clause and add to the results.
             foreach (var clause in clauses)
             {
                 var name = clause.Name.Identifier.ValueText;
+                RoslynDebug.Assert(name is object);
                 int ordinal;
                 if (names.TryGetValue(name, out ordinal))
                 {
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax> typeConstraintNodes) = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
+                    (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax>? typeConstraintNodes) = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeParameterConstraintClause.AdjustConstraintTypes(containingSymbol, typeParameters, results, ref isValueTypeOverride);
 
-            RemoveInvalidConstraints(typeParameters, results, syntaxNodes, diagnostics);
+            RemoveInvalidConstraints(typeParameters, results!, syntaxNodes, diagnostics);
 
             foreach (var typeConstraintsSyntaxes in syntaxNodes)
             {
@@ -107,17 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             syntaxNodes.Free();
 
-            return results.ToImmutableAndFree();
+            return results.ToImmutableAndFree()!;
         }
 
         /// <summary>
         /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
-        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
+        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
-            ArrayBuilder<TypeWithAnnotations> constraintTypes = null;
-            ArrayBuilder<TypeConstraintSyntax> syntaxBuilder = null;
+            ArrayBuilder<TypeWithAnnotations>? constraintTypes = null;
+            ArrayBuilder<TypeConstraintSyntax>? syntaxBuilder = null;
             SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax = constraintClauseSyntax.Constraints;
             Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
             bool hasTypeLikeConstraint = false;
@@ -133,7 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (i != 0)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                            if (!reportedOverrideWithConstraints)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, syntax.GetFirstToken().GetLocation());
+                            }
 
                             if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
                             {
@@ -171,7 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (i != 0)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                            if (!reportedOverrideWithConstraints)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, syntax.GetFirstToken().GetLocation());
+                            }
 
                             if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
                             {
@@ -221,22 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
                             var typeSyntax = typeConstraintSyntax.Type;
-                            var typeSyntaxKind = typeSyntax.Kind();
-
-                            // For pointer types, don't report this error. It is already reported during binding typeSyntax below.
-                            switch (typeSyntaxKind)
-                            {
-                                case SyntaxKind.PredefinedType:
-                                case SyntaxKind.PointerType:
-                                case SyntaxKind.NullableType:
-                                    break;
-                                default:
-                                    if (!SyntaxFacts.IsName(typeSyntax.Kind()))
-                                    {
-                                        diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());
-                                    }
-                                    break;
-                            }
 
                             var type = BindTypeOrConstraintKeyword(typeSyntax, diagnostics, out ConstraintContextualKeyword keyword);
 
@@ -245,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConstraintContextualKeyword.Unmanaged:
                                     if (i != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, typeSyntax.GetLocation());
                                         continue;
                                     }
 
@@ -259,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConstraintContextualKeyword.NotNull:
                                     if (i != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_NotNullConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, typeSyntax.GetLocation());
                                     }
 
                                     constraints |= TypeParameterConstraintKind.NotNull;
@@ -272,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             constraintTypes.Add(type);
-                            syntaxBuilder.Add(typeConstraintSyntax);
+                            syntaxBuilder!.Add(typeConstraintSyntax);
                         }
                         continue;
                     default:
@@ -323,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void RemoveInvalidConstraints(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ArrayBuilder<TypeParameterConstraintClause> constraintClauses,
-            ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>> syntaxNodes,
+            ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>?> syntaxNodes,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(typeParameters.Length > 0);
@@ -338,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static TypeParameterConstraintClause RemoveInvalidConstraints(
             TypeParameterSymbol typeParameter,
             TypeParameterConstraintClause constraintClause,
-            ArrayBuilder<TypeConstraintSyntax> syntaxNodesOpt,
+            ArrayBuilder<TypeConstraintSyntax>? syntaxNodesOpt,
             DiagnosticBag diagnostics)
         {
             if (syntaxNodesOpt != null)
@@ -381,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations constraintType,
             DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
             {
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
@@ -402,13 +396,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeWithAnnotations> constraintTypes,
             DiagnosticBag diagnostics)
         {
-            if (!IsValidConstraintType(syntax, type, diagnostics))
+            if (!isValidConstraintType(syntax, type, diagnostics))
             {
                 return false;
             }
 
-            // Ignore nullability when comparing constraints.
-            if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
+            if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.AllIgnoreOptions)))
             {
                 // "Duplicate constraint '{0}' for type parameter '{1}'"
                 Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.Type.SetUnknownNullabilityForReferenceTypes(), typeParameterName);
@@ -461,89 +454,89 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
-        }
 
-        /// <summary>
-        /// Returns true if the type is a valid constraint type.
-        /// Otherwise returns false and generates a diagnostic.
-        /// </summary>
-        private static bool IsValidConstraintType(TypeConstraintSyntax syntax, TypeWithAnnotations typeWithAnnotations, DiagnosticBag diagnostics)
-        {
-            TypeSymbol type = typeWithAnnotations.Type;
-
-            switch (type.SpecialType)
+            // Returns true if the type is a valid constraint type.
+            // Otherwise returns false and generates a diagnostic.
+            static bool isValidConstraintType(TypeConstraintSyntax syntax, TypeWithAnnotations typeWithAnnotations, DiagnosticBag diagnostics)
             {
-                case SpecialType.System_Enum:
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureEnumGenericTypeConstraint, diagnostics);
-                    break;
+                TypeSymbol type = typeWithAnnotations.Type;
 
-                case SpecialType.System_Delegate:
-                case SpecialType.System_MulticastDelegate:
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureDelegateGenericTypeConstraint, diagnostics);
-                    break;
+                switch (type.SpecialType)
+                {
+                    case SpecialType.System_Enum:
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureEnumGenericTypeConstraint, diagnostics);
+                        break;
 
-                case SpecialType.System_Object:
-                case SpecialType.System_ValueType:
-                case SpecialType.System_Array:
-                    // "Constraint cannot be special class '{0}'"
-                    Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, type);
-                    return false;
-            }
+                    case SpecialType.System_Delegate:
+                    case SpecialType.System_MulticastDelegate:
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureDelegateGenericTypeConstraint, diagnostics);
+                        break;
 
-            switch (type.TypeKind)
-            {
-                case TypeKind.Error:
-                case TypeKind.TypeParameter:
-                    return true;
-
-                case TypeKind.Interface:
-                    break;
-
-                case TypeKind.Dynamic:
-                    // "Constraint cannot be the dynamic type"
-                    Error(diagnostics, ErrorCode.ERR_DynamicTypeAsBound, syntax);
-                    return false;
-
-                case TypeKind.Class:
-                    if (type.IsSealed)
-                    {
-                        goto case TypeKind.Struct;
-                    }
-                    else if (type.IsStatic)
-                    {
-                        // "'{0}': static classes cannot be used as constraints"
-                        Error(diagnostics, ErrorCode.ERR_ConstraintIsStaticClass, syntax, type);
+                    case SpecialType.System_Object:
+                    case SpecialType.System_ValueType:
+                    case SpecialType.System_Array:
+                        // "Constraint cannot be special class '{0}'"
+                        Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, type);
                         return false;
-                    }
-                    break;
+                }
 
-                case TypeKind.Delegate:
-                case TypeKind.Enum:
-                case TypeKind.Struct:
-                    // "'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
-                    Error(diagnostics, ErrorCode.ERR_BadBoundType, syntax, type);
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Error:
+                    case TypeKind.TypeParameter:
+                        return true;
+
+                    case TypeKind.Interface:
+                        break;
+
+                    case TypeKind.Dynamic:
+                        // "Constraint cannot be the dynamic type"
+                        Error(diagnostics, ErrorCode.ERR_DynamicTypeAsBound, syntax);
+                        return false;
+
+                    case TypeKind.Class:
+                        if (type.IsSealed)
+                        {
+                            goto case TypeKind.Struct;
+                        }
+                        else if (type.IsStatic)
+                        {
+                            // "'{0}': static classes cannot be used as constraints"
+                            Error(diagnostics, ErrorCode.ERR_ConstraintIsStaticClass, syntax, type);
+                            return false;
+                        }
+                        break;
+
+                    case TypeKind.Delegate:
+                    case TypeKind.Enum:
+                    case TypeKind.Struct:
+                        // "'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
+                        Error(diagnostics, ErrorCode.ERR_BadBoundType, syntax, type);
+                        return false;
+
+                    case TypeKind.Array:
+                    case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
+                        // "Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
+                        Error(diagnostics, ErrorCode.ERR_BadConstraintType, syntax.GetLocation());
+                        return false;
+
+                    case TypeKind.Submission:
+                    // script class is synthesized, never used as a constraint
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+                }
+
+                if (type.ContainsDynamic())
+                {
+                    // "Constraint cannot be a dynamic type '{0}'"
+                    Error(diagnostics, ErrorCode.ERR_ConstructedDynamicTypeAsBound, syntax, type);
                     return false;
+                }
 
-                case TypeKind.Array:
-                case TypeKind.Pointer:
-                    // CS0706 already reported by parser.
-                    return false;
-
-                case TypeKind.Submission:
-                // script class is synthesized, never used as a constraint
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+                return true;
             }
-
-            if (type.ContainsDynamic())
-            {
-                // "Constraint cannot be a dynamic type '{0}'"
-                Error(diagnostics, ErrorCode.ERR_ConstructedDynamicTypeAsBound, syntax, type);
-                return false;
-            }
-
-            return true;
         }
     }
 }

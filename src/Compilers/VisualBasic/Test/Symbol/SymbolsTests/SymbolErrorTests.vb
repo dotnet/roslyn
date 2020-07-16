@@ -1,13 +1,17 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -6675,7 +6679,7 @@ Module M1
 End Module
         ]]></file>
     </compilation>)
-            compilation1 = compilation1.AddReferences(TestReferences.NetFx.v4_0_30319.System_Web_Services)
+            compilation1 = compilation1.AddReferences(Net451.SystemWebServices)
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30645: Attribute 'WebMethod' cannot be applied to a method with optional parameters.
@@ -6699,7 +6703,7 @@ Module M1
 End Module
         ]]></file>
     </compilation>)
-            compilation1 = compilation1.AddReferences(TestReferences.NetFx.v4_0_30319.System_Web_Services)
+            compilation1 = compilation1.AddReferences(Net451.SystemWebServices)
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
@@ -6745,8 +6749,8 @@ Module M1
 End Module
         ]]></file>
     </compilation>)
-            compilation1 = compilation1.AddReferences(TestReferences.NetFx.v4_0_30319.System_Web_Services,
-                                                      TestReferences.NetFx.v4_0_30319.System_EnterpriseServices.dll)
+            compilation1 = compilation1.AddReferences(Net451.SystemWebServices,
+                                                      Net451.SystemEnterpriseServices)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors><![CDATA[
@@ -6906,7 +6910,7 @@ BC30002: Type 'C1' is not defined.
         Public Sub BC30656ERR_UnsupportedField1()
             Dim csharpComp = CSharp.CSharpCompilation.Create("Test", options:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim text = "public class A  {      public static volatile int X;  }"
-            Dim ref = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim ref = Net40.mscorlib
             csharpComp = csharpComp.AddSyntaxTrees(CSharp.SyntaxFactory.ParseSyntaxTree(text))
             csharpComp = csharpComp.AddReferences(ref)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -8422,7 +8426,7 @@ BC30915: 'goo' cannot expose the underlying delegate type 'i1.gooEventHandler' o
         End Class
     ]]></file>
 </compilation>,
-{TestReferences.NetFx.v4_0_30319.mscorlib, C1, C2})
+{Net451.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C1' is not supported because it either directly or indirectly inherits from itself.
@@ -8454,7 +8458,7 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
         End Class
     ]]></file>
 </compilation>,
-{TestReferences.NetFx.v4_0_30319.mscorlib, C1, C2})
+{Net451.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C2' is not supported because it either directly or indirectly inherits from itself.
@@ -8486,7 +8490,7 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
         End Class
     ]]></file>
 </compilation>,
-{TestReferences.NetFx.v4_0_30319.mscorlib, C1, C2})
+{Net451.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C1' is not supported because it either directly or indirectly inherits from itself.
@@ -10473,6 +10477,8 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
   {
     // Code size       2 (0x2)
     .maxstack  8
+    ldstr      "Base_VirtGet_Set.Get"
+    call       void [mscorlib]System.Console::WriteLine(string)
     IL_0000:  ldc.i4.1
     IL_0001:  ret
   }
@@ -10481,6 +10487,8 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
           instance void  set_Prop(int32 'value') cil managed
   {
     // Code size       1 (0x1)
+    ldstr      "Base_VirtGet_Set.Set"
+    call       void [mscorlib]System.Console::WriteLine(string)
     .maxstack  8
     IL_0000:  ret
   }
@@ -10509,6 +10517,8 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
   {
     // Code size       2 (0x2)
     .maxstack  8
+    ldstr      "Base_Get_VirtSet.Get"
+    call       void [mscorlib]System.Console::WriteLine(string)
     IL_0000:  ldc.i4.1
     IL_0001:  ret
   }
@@ -10518,6 +10528,8 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
   {
     // Code size       1 (0x1)
     .maxstack  8
+    ldstr      "Base_Get_VirtSet.Set"
+    call       void [mscorlib]System.Console::WriteLine(string)
     IL_0000:  ret
   }
   .property instance int32 Prop()
@@ -10536,7 +10548,7 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
     IL_0006:  ret
   }
 }
-]]>.Value.Replace(vbLf, vbNewLine)
+]]>.Value.Replace(vbLf, vbCrLf)
 
         <WorkItem(528982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528982")>
         <Fact()>
@@ -10549,23 +10561,53 @@ Class VBDerived
 
     Public Overrides Property Prop As Integer
         Get
+            System.Console.WriteLine("VBDerived.Get")
             Return MyBase.Prop
         End Get
         Set(value As Integer)
+            System.Console.WriteLine("VBDerived.Set")
             MyBase.Prop = value
         End Set
     End Property
 
+    Shared Sub Main()
+        Dim o As Base_Get_VirtSet
+        o = New Base_Get_VirtSet()
+        o.Prop = o.Prop
+        o = New VBDerived()
+        o.Prop = o.Prop
+    End Sub
 End Class
         ]]></file>
-    </compilation>, s_typeWithMixedProperty)
+    </compilation>, s_typeWithMixedProperty, options:=TestOptions.DebugExe)
 
-            Dim expectedErrors1 = <errors><![CDATA[
-BC31086: 'Public Overrides Property Prop As Integer' cannot override 'Public Overloads Property Prop As Integer' because it is not declared 'Overridable'.
-    Public Overrides Property Prop As Integer
-                              ~~~~
-                 ]]></errors>
-            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+            ' There are no Errors, but getter is actually not overridden!!!
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("VBDerived.Prop")
+
+                                Assert.True(p1.IsOverrides)
+
+                                Dim baseP1 As PropertySymbol = p1.OverriddenProperty
+                                Assert.True(baseP1.IsOverridable)
+                                Assert.False(baseP1.GetMethod.IsOverridable)
+                                Assert.True(baseP1.SetMethod.IsOverridable)
+
+                                Dim p1Get = p1.GetMethod
+                                Dim p1Set = p1.SetMethod
+
+                                Assert.True(p1Get.IsOverrides)
+                                Assert.Same(baseP1.GetMethod, p1Get.OverriddenMethod)
+                                Assert.True(p1Set.IsOverrides)
+                                Assert.Same(baseP1.SetMethod, p1Set.OverriddenMethod)
+                            End Sub
+
+            CompileAndVerify(compilation1, expectedOutput:=
+"Base_Get_VirtSet.Get
+Base_Get_VirtSet.Set
+Base_Get_VirtSet.Get
+VBDerived.Set
+Base_Get_VirtSet.Set", sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <WorkItem(528982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528982")>
@@ -10579,22 +10621,53 @@ Class VBDerived
 
     Public Overrides Property Prop As Integer
         Get
+            System.Console.WriteLine("VBDerived.Get")
             Return MyBase.Prop
         End Get
         Set(value As Integer)
+            System.Console.WriteLine("VBDerived.Set")
             MyBase.Prop = value
         End Set
     End Property
 
+    Shared Sub Main()
+        Dim o As Base_VirtGet_Set
+        o = New Base_VirtGet_Set()
+        o.Prop = o.Prop
+        o = New VBDerived()
+        o.Prop = o.Prop
+    End Sub
 End Class
         ]]></file>
-    </compilation>, s_typeWithMixedProperty)
+    </compilation>, s_typeWithMixedProperty, options:=TestOptions.DebugExe)
 
-            ' WARNING: There are no Errors, but setter is actually not overridden!!!
+            ' There are no Errors, but setter is actually not overridden!!!
 
-            Dim expectedErrors1 = <errors><![CDATA[
-                                  ]]></errors>
-            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim p1 = m.GlobalNamespace.GetMember(Of PropertySymbol)("VBDerived.Prop")
+
+                                Assert.True(p1.IsOverrides)
+
+                                Dim baseP1 As PropertySymbol = p1.OverriddenProperty
+                                Assert.True(baseP1.IsOverridable)
+                                Assert.True(baseP1.GetMethod.IsOverridable)
+                                Assert.False(baseP1.SetMethod.IsOverridable)
+
+                                Dim p1Get = p1.GetMethod
+                                Dim p1Set = p1.SetMethod
+
+                                Assert.True(p1Get.IsOverrides)
+                                Assert.Same(baseP1.GetMethod, p1Get.OverriddenMethod)
+                                Assert.True(p1Set.IsOverrides)
+                                Assert.Same(baseP1.SetMethod, p1Set.OverriddenMethod)
+                            End Sub
+
+            CompileAndVerify(compilation1, expectedOutput:=
+"Base_VirtGet_Set.Get
+Base_VirtGet_Set.Set
+VBDerived.Get
+Base_VirtGet_Set.Get
+Base_VirtGet_Set.Set", sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact()>
@@ -17232,7 +17305,7 @@ BC36015: 'Private Sub DisposeI(Of T As base)(ByRef Instance As T)' has the same 
                 End Sub
             End Class
         ]]></file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC36551: Extension methods can be defined only in modules.
@@ -17254,7 +17327,7 @@ BC36551: Extension methods can be defined only in modules.
                 End Sub
             End Module
         ]]></file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36552: Extension methods must declare at least one parameter. The first parameter specifies which type to extend.
                 Public Sub Print()
@@ -17275,7 +17348,7 @@ BC36552: Extension methods must declare at least one parameter. The first parame
                 End Sub
             End Module
         ]]></file>
-   </compilation>, {SystemCoreRef})
+   </compilation>, {Net40.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36553: 'Optional' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.
                 Public Sub Print(Optional ByVal str As String = "hello")
@@ -17296,7 +17369,7 @@ BC36553: 'Optional' cannot be applied to the first parameter of an extension met
                 End Sub
             End Module
         ]]></file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36554: 'ParamArray' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.
                 Public Sub Print(ByVal ParamArray str() As String)
@@ -17328,7 +17401,7 @@ Module M
     End Sub
 End Module
 ]]></file>
-</compilation>, {SystemCoreRef})
+</compilation>, {Net40.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36561: Extension method 'M2' has type constraints that can never be satisfied.
     Sub M2(Of T As I(Of U), U)(o As T)

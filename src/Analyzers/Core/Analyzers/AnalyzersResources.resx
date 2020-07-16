@@ -1,0 +1,328 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
+    <value>Remove Unnecessary Cast</value>
+  </data>
+  <data name="Remove_unused_member" xml:space="preserve">
+    <value>Remove unused member</value>
+  </data>
+  <data name="Private_member_0_is_unused" xml:space="preserve">
+    <value>Private member '{0}' is unused.</value>
+  </data>
+  <data name="Remove_unused_private_members" xml:space="preserve">
+    <value>Remove unused private members</value>
+  </data>
+  <data name="Remove_unread_private_members" xml:space="preserve">
+    <value>Remove unread private members</value>
+  </data>
+  <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
+    <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
+  </data>
+  <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
+    <value>Private method '{0}' can be removed as it is never invoked.</value>
+  </data>
+  <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
+    <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
+  </data>
+  <data name="A_source_file_is_missing_a_required_header" xml:space="preserve">
+    <value>A source file is missing a required header.</value>
+  </data>
+  <data name="The_file_header_is_missing_or_not_located_at_the_top_of_the_file" xml:space="preserve">
+    <value>The file header is missing or not located at the top of the file</value>
+  </data>
+  <data name="A_source_file_contains_a_header_that_does_not_match_the_required_text" xml:space="preserve">
+    <value>A source file contains a header that does not match the required text</value>
+  </data>
+  <data name="The_file_header_does_not_match_the_required_text" xml:space="preserve">
+    <value>The file header does not match the required text</value>
+  </data>
+  <data name="Use_throw_expression" xml:space="preserve">
+    <value>Use 'throw' expression</value>
+  </data>
+  <data name="Add_this_or_Me_qualification" xml:space="preserve">
+    <value>Add 'this' or 'Me' qualification.</value>
+  </data>
+  <data name="Member_access_should_be_qualified" xml:space="preserve">
+    <value>Member access should be qualified.</value>
+  </data>
+  <data name="Null_check_can_be_simplified" xml:space="preserve">
+    <value>Null check can be simplified</value>
+  </data>
+  <data name="Simplify_collection_initialization" xml:space="preserve">
+    <value>Simplify collection initialization</value>
+  </data>
+  <data name="Collection_initialization_can_be_simplified" xml:space="preserve">
+    <value>Collection initialization can be simplified</value>
+  </data>
+  <data name="Simplify_object_initialization" xml:space="preserve">
+    <value>Simplify object initialization</value>
+  </data>
+  <data name="Object_initialization_can_be_simplified" xml:space="preserve">
+    <value>Object initialization can be simplified</value>
+  </data>
+  <data name="Add_readonly_modifier" xml:space="preserve">
+    <value>Add readonly modifier</value>
+  </data>
+  <data name="Make_field_readonly" xml:space="preserve">
+    <value>Make field readonly</value>
+  </data>
+  <data name="Naming_rule_violation_0" xml:space="preserve">
+    <value>Naming rule violation: {0}</value>
+    <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
+  </data>
+  <data name="Naming_Styles" xml:space="preserve">
+    <value>Naming Styles</value>
+  </data>
+  <data name="Add_missing_cases" xml:space="preserve">
+    <value>Add missing cases</value>
+  </data>
+  <data name="Populate_switch" xml:space="preserve">
+    <value>Populate switch</value>
+  </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
+  </data>
+  <data name="Expression_value_is_never_used" xml:space="preserve">
+    <value>Expression value is never used</value>
+  </data>
+  <data name="Unnecessary_assignment_of_a_value_to_0" xml:space="preserve">
+    <value>Unnecessary assignment of a value to '{0}'</value>
+  </data>
+  <data name="Unnecessary_assignment_of_a_value" xml:space="preserve">
+    <value>Unnecessary assignment of a value</value>
+  </data>
+  <data name="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc" xml:space="preserve">
+    <value>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
+  </data>
+  <data name="Remove_unused_parameter" xml:space="preserve">
+    <value>Remove unused parameter</value>
+  </data>
+  <data name="Remove_unused_parameter_0" xml:space="preserve">
+    <value>Remove unused parameter '{0}'</value>
+  </data>
+  <data name="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names" xml:space="preserve">
+    <value>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
+  </data>
+  <data name="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</value>
+  </data>
+  <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Parameter '{0}' can be removed; its initial value is never used</value>
+  </data>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
+  </data>
+  <data name="Accessibility_modifiers_required" xml:space="preserve">
+    <value>Accessibility modifiers required</value>
+  </data>
+  <data name="Convert_to_conditional_expression" xml:space="preserve">
+    <value>Convert to conditional expression</value>
+  </data>
+  <data name="Use_coalesce_expression" xml:space="preserve">
+    <value>Use coalesce expression</value>
+  </data>
+  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
+    <value>Changes to expression trees may result in behavior changes at runtime</value>
+  </data>
+  <data name="Parentheses_can_be_removed" xml:space="preserve">
+    <value>Parentheses can be removed</value>
+  </data>
+  <data name="Remove_unnecessary_parentheses" xml:space="preserve">
+    <value>Remove unnecessary parentheses</value>
+  </data>
+  <data name="Add_parentheses_for_clarity" xml:space="preserve">
+    <value>Add parentheses for clarity</value>
+  </data>
+  <data name="Parentheses_should_be_added_for_clarity" xml:space="preserve">
+    <value>Parentheses should be added for clarity</value>
+  </data>
+  <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
+    <value>Prefer explicitly provided tuple element name</value>
+  </data>
+  <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
+    <value>Use explicitly provided tuple name</value>
+  </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
+  </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
+  <data name="Use_null_propagation" xml:space="preserve">
+    <value>Use null propagation</value>
+  </data>
+  <data name="Use_inferred_member_name" xml:space="preserve">
+    <value>Use inferred member name</value>
+  </data>
+  <data name="Member_name_can_be_simplified" xml:space="preserve">
+    <value>Member name can be simplified</value>
+  </data>
+  <data name="Interpolation_can_be_simplified" xml:space="preserve">
+    <value>Interpolation can be simplified</value>
+  </data>
+  <data name="Simplify_interpolation" xml:space="preserve">
+    <value>Simplify interpolation</value>
+  </data>
+  <data name="Use_auto_property" xml:space="preserve">
+    <value>Use auto property</value>
+  </data>
+  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
+    <value>Format string contains invalid placeholder</value>
+  </data>
+  <data name="Invalid_format_string" xml:space="preserve">
+    <value>Invalid format string</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="Simplify_conditional_expression" xml:space="preserve">
+    <value>Simplify conditional expression</value>
+  </data>
+  <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
+    <value>Conditional expression can be simplified</value>
+  </data>
+  <data name="Invalid_global_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid global 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Invalid_scope_for_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid scope for 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Invalid_or_missing_target_for_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid or missing target for 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Avoid_legacy_format_target_in_SuppressMessageAttribute" xml:space="preserve">
+    <value>Avoid legacy format target in 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Avoid_legacy_format_target_0_in_SuppressMessageAttribute" xml:space="preserve">
+    <value>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Remove_unnecessary_suppression" xml:space="preserve">
+    <value>Remove unnecessary suppression</value>
+  </data>
+</root>

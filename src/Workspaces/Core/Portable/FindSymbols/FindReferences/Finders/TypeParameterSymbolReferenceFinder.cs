@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class TypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
     {
         protected override bool CanFind(ITypeParameterSymbol symbol)
-        {
-            return symbol.TypeParameterKind != TypeParameterKind.Method;
-        }
+            => symbol.TypeParameterKind != TypeParameterKind.Method;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // parameter has a different name in different parts that we won't find it.  However,
             // this only happens in error situations.  It is not legal in C# to use a different
             // name for a type parameter in different parts.
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name, symbol.ContainingType.Name);
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name, symbol.ContainingType.Name);
         }
 
         protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

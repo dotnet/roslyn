@@ -4,7 +4,12 @@
     <body>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Aplicar todas as regras de formatação de C# (recuo, disposição, espaçamento)</target>
+        <target state="translated">Aplicar todas as regras de formatação de C# (recuo, quebra de linha, espaçamento)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_show_completion_list_in_argument_lists">
+        <source>Automatically show completion list in argument lists (experimental)</source>
+        <target state="translated">Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -24,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Descarte</target>
+        <target state="translated">Descartar</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -44,17 +49,17 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">Em operadores relacionais:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
-        <note />
+        <target state="needs-review-translation">Em operadores relacionais:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
-        <target state="new">Inside namespace</target>
+        <target state="translated">Namespace interno</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
-        <target state="new">Outside namespace</target>
+        <target state="translated">Namespace externo</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -67,14 +72,19 @@
         <target state="translated">Preferir 'is null' para as verificações de igualdade de referência</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
+        <target state="translated">Preferir a expressão switch</target>
         <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">
         <source>Preferred 'using' directive placement</source>
-        <target state="new">Preferred 'using' directive placement</target>
+        <target state="translated">Posicionamento da diretiva 'using' preferencial</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
@@ -84,7 +94,12 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <target state="translated">Mostrar itens de namespaces não importados (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Mostrar os comentários nas Informações Rápidas</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -94,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
-        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
+        <target state="translated">Sugerir usings para tipos nos assemblies do .NET Framework</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -422,11 +437,6 @@
         <target state="translated">Usar "var" ao gerar locais</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">_Mover a declaração local para o método extraído, caso não esteja sendo usada em outro lugar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">_Mostrar separadores de linha de procedimento</target>
@@ -624,7 +634,7 @@
       </trans-unit>
       <trans-unit id="using_preferences_colon">
         <source>'using' preferences:</source>
-        <target state="new">'using' preferences:</target>
+        <target state="translated">Preferências de 'using':</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
@@ -793,9 +803,9 @@
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">Em outros operadores binários:  &amp;&amp; || ??</target>
-        <note />
+        <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
+        <target state="needs-review-translation">Em outros operadores binários:  &amp;&amp; || ??</target>
+        <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
   </file>

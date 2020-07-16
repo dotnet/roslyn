@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -17,11 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             => new InlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected)
-        {
-            await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
-        }
+            => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
 
-        private string GetTreeText(string initial)
+        private static string GetTreeText(string initial)
         {
             return @"class C
 {
@@ -29,33 +30,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 }";
         }
 
-        private SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
-        {
-            return initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
-        }
+        private static SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
+            => initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
 
-        private SyntaxNode GetFixedNode(dynamic fixedRoot)
-        {
-            return fixedRoot.Members[0].Members[0].BodyOpt;
-        }
+        private static SyntaxNode GetFixedNode(dynamic fixedRoot)
+            => fixedRoot.Members[0].Members[0].BodyOpt;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer1()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer2()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnSecondWithNoInitializer()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnField()
@@ -89,27 +80,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task SingleStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_First()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Second()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Last()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping1()
@@ -3559,7 +3542,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = t?.Something().First()?.ToArray();
+            var identity = (t?.Something().First())?.ToArray();
         }
 
         return null;
@@ -3625,7 +3608,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = (t?.Something2())()?.Something().First()?.ToArray();
+            var identity = ((t?.Something2())()?.Something().First())?.ToArray();
         }
 
         return null;
@@ -3740,9 +3723,12 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
+        [WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task CastInterpolatedStringWhenInliningIntoInvalidCall()
         {
+            // Note: This is an error case.  This test just demonstrates our current behavior.  It
+            // is ok if this behavior changes in the future in response to an implementation change.
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -3756,8 +3742,35 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace($""hello"", ""world"");
+        var s2 = string.Replace((string)$""hello"", ""world"");
     }
+}");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotCastInterpolatedStringWhenInliningIntoValidCall()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = Replace(s1, ""world"");
+    }
+
+    void Replace(string s1, string s2) { }
+}",
+@"class C
+{
+    public void M()
+    {
+        var s2 = Replace($""hello"", ""world"");
+    }
+
+    void Replace(string s1, string s2) { }
 }");
         }
 
@@ -4064,7 +4077,7 @@ class C
 {
     public void M()
     {
-        var (x1, x2) = new C();
+        {|Warning:var (x1, x2) = new C()|};
         var x3 = new C();
     }
 }";
@@ -4556,7 +4569,7 @@ class C
 {
     bool M<T>(ref T x) 
     {
-        return M(ref x) || M(ref x);
+        return {|Warning:M(ref x) || M(ref x)|};
     }
 }");
         }
@@ -4581,7 +4594,7 @@ class C
 {
     bool M<T>(out T x) 
     {
-        return M(out x) || M(out x);
+        return {|Warning:M(out x) || M(out x)|};
     }
 }");
         }
@@ -4650,7 +4663,7 @@ class C
         var [|x|] = (X)(0, 0);
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, int>;
 
 class C
@@ -4659,7 +4672,7 @@ class C
     {
         var x2 = (X)(0, 0);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
@@ -4676,7 +4689,7 @@ class C
         var [|x|] = (X)(0, (0, 0));
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, (int, int)>;
 
 class C
@@ -4685,7 +4698,7 @@ class C
     {
         var x2 = (X)(0, (0, 0));
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4745,6 +4758,567 @@ Console.WriteLine(y); }",
         int x = 0, z = 2;
 
         Console.WriteLine(1); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoConditional1()
+        {
+            await TestFixOneAsync(
+    @"{ var [|x = true|];
+
+System.Diagnostics.Debug.Assert(x); }",
+    @"{
+        {|Warning:System.Diagnostics.Debug.Assert(true)|}; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoConditional2()
+        {
+            await TestFixOneAsync(
+    @"{ var [|x = true|];
+
+System.Diagnostics.Debug.Assert(x == true); }",
+    @"{
+        {|Warning:System.Diagnostics.Debug.Assert(true == true)|}; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoMultipleConditionalLocations()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var [|x = true|];
+        System.Diagnostics.Debug.Assert(x);
+        System.Diagnostics.Debug.Assert(x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task OnlyWarnOnConditionalLocations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [|x = true|];
+        System.Diagnostics.Debug.Assert(x);
+        Console.Writeline(x);
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        Console.Writeline(true);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
+        public async Task TestUnaryNegationOfDeclarationPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+
+class C
+{
+    void Test()
+    {
+        var [|ct|] = CancellationToken.None;
+        if (!(Helper(ct) is string notDiscard)) { }
+    }
+
+    object Helper(CancellationToken ct) { return null; }
+}",
+@"using System.Threading;
+
+class C
+{
+    void Test()
+    {
+        if (!(Helper(CancellationToken.None) is string notDiscard)) { }
+    }
+
+    object Helper(CancellationToken ct) { return null; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(18322, "https://github.com/dotnet/roslyn/issues/18322")]
+        public async Task TestInlineIntoExtensionMethodInvokedOnThis()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Class1
+{
+    void M()
+    {
+        var [|c|] = 8;
+        this.DoStuff(c);
+    }
+}
+
+public static class Class1Extensions { public static void DoStuff(this Class1 c, int x) { } }",
+@"public class Class1
+{
+    void M()
+    {
+        this.DoStuff(8);
+    }
+}
+
+public static class Class1Extensions { public static void DoStuff(this Class1 c, int x) { } }");
+        }
+
+        [WorkItem(8716, "https://github.com/dotnet/roslyn/issues/8716")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyInlinedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        var [||]local = new Action(LocalFunc);
+        local();
+    }
+}",
+@"
+using System;
+class C
+{
+    void Main()
+    {
+        void LocalFunc()
+        {
+            Console.Write(2);
+        }
+        new Action(LocalFunc)();
+    }
+}");
+        }
+
+        [WorkItem(22540, "https://github.com/dotnet/roslyn/issues/22540")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyWhenInliningIntoPattern_01()
+        {
+            await TestInRegularAndScriptAsync(@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+        ExpressionSyntax [||]expression = awaitExpression.Expression;
+
+        if (!(expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
+    }
+}",
+@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+
+        if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
+    }
+}");
+        }
+
+        [WorkItem(45661, "https://github.com/dotnet/roslyn/issues/45661")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyWhenInliningIntoPattern_02()
+        {
+            await TestInRegularAndScriptAsync(@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+        ExpressionSyntax [||]expression = awaitExpression.Expression;
+
+        if (!(expression is ParenthesizedExpressionSyntax { } parenthesizedExpression))
+            return;
+    }
+}",
+@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+
+        if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax { } parenthesizedExpression))
+            return;
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C();
+        c.P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:new C().P = 1|};
+        var c2 = new C();
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_IgnoreParentheses()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = (new C());
+        c.P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:(new C()).P = 1|};
+        var c2 = (new C());
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_MethodInvocation()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = M2();
+        c.P = 1;
+        var c2 = c;
+    }
+
+    C M2()
+    {
+        return new C();
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:M2().P = 1|};
+        var c2 = M2();
+    }
+
+    C M2()
+    {
+        return new C();
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_MethodInvocation2()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C();
+        c.M2();
+        var c2 = c;
+    }
+
+    void M2()
+    {
+        P = 1;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:new C().M2()|};
+        var c2 = new C();
+    }
+
+    void M2()
+    {
+        P = 1;
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_NestedObjectInitialization()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C[1] { new C() };
+        c[0].P = 1;
+        var c2 = c;
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:(new C[1] { new C() })[0].P = 1|};
+        var c2 = new C[1] { new C() };
+    }
+}");
+        }
+
+        [WorkItem(42835, "https://github.com/dotnet/roslyn/issues/42835")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnWhenPossibleChangeInSemanticMeaning_NestedMethodCall()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var [||]c = new C[1] { M2() };
+        c[0].P = 1;
+        var c2 = c;
+    }
+
+    C M2()
+    {
+        P += 1;
+        return new C();
+    }
+}",
+@"
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        {|Warning:(new C[1] { M2() })[0].P = 1|};
+        var c2 = new C[1] { M2() };
+    }
+
+    C M2()
+    {
+        P += 1;
+        return new C();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoWithExpression()
+        {
+            await TestInRegularAndScriptAsync(@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        string [||]x = """";
+        _ = p with { Name = x };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}",
+@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        _ = p with { Name = """" };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        public async Task Call_TopLevelStatement()
+        {
+            var code = @"
+using System;
+
+int [||]x = 1 + 1;
+x.ToString();
+";
+
+            var expected = @"
+using System;
+
+(1 + 1).ToString();
+";
+
+            // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
+            // tested because global statements in script code are field declarations, which are not considered
+            // temporary.
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TopLevelStatement()
+        {
+            // Note: we should simplify 'global' as well
+            // https://github.com/dotnet/roslyn/issues/44420
+            var code = @"
+int val = 0;
+int [||]val2 = val + 1;
+System.Console.WriteLine(val2);
+";
+
+            var expected = @"
+int val = 0;
+global::System.Console.WriteLine(val + 1);
+";
+
+            // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
+            // tested because global statements in script code are field declarations, which are not considered
+            // temporary.
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TopLevelStatement_InScope()
+        {
+            // Note: we should simplify 'global' as well
+            // https://github.com/dotnet/roslyn/issues/44420
+            await TestAsync(@"
+{
+    int val = 0;
+    int [||]val2 = val + 1;
+    System.Console.WriteLine(val2);
+}
+",
+@"
+{
+    int val = 0;
+    global::System.Console.WriteLine(val + 1);
+}
+",
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

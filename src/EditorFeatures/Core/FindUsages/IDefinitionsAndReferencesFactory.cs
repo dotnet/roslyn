@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,6 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
+    using static FindUsagesHelpers;
+
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionItem GetThirdPartyDefinitionItem(
@@ -28,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDefinitionsAndReferencesFactory()
         {
         }
@@ -45,9 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
-            Project project,
+            Solution solution,
             bool includeHiddenLocations)
         {
             // Because we're passing in 'false' for 'includeClassifiedSpans', this won't ever have
@@ -55,25 +64,28 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // to compute the classified spans for the locations of the definition.  So it's totally 
             // fine to pass in CancellationToken.None and block on the result.
             return ToDefinitionItemAsync(
-                definition, project, includeHiddenLocations, includeClassifiedSpans: false,
+                definition, solution, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
                 options: FindReferencesSearchOptions.Default, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
-            Project project,
+            Solution solution,
+            bool isPrimary,
             bool includeHiddenLocations,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return ToDefinitionItemAsync(definition, project,
+            return ToDefinitionItemAsync(
+                definition, solution, isPrimary,
                 includeHiddenLocations, includeClassifiedSpans: true,
                 options, cancellationToken);
         }
 
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
             this ISymbol definition,
-            Project project,
+            Solution solution,
+            bool isPrimary,
             bool includeHiddenLocations,
             bool includeClassifiedSpans,
             FindReferencesSearchOptions options,
@@ -85,18 +97,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             //
             // This ensures that the type will both display properly to the user, as well as ensuring
             // that we can accurately resolve the type later on when we try to navigate to it.
-            definition = definition.OriginalDefinition;
+            if (!definition.IsTupleField())
+            {
+                // In an earlier implementation of the compiler APIs, tuples and tuple fields symbols were definitions
+                // We pretend this is still the case
+                definition = definition.OriginalDefinition;
+            }
 
-            var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
+            var displayParts = GetDisplayParts(definition);
             var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
 
-            var properties = GetProperties(definition);
+            var properties = GetProperties(definition, isPrimary);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -108,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (location.IsInMetadata)
                     {
                         return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, nameDisplayParts, project,
+                            tags, displayParts, nameDisplayParts, solution,
                             definition, properties, displayIfNoReferences);
                     }
                     else if (location.IsInSource)
@@ -119,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                             continue;
                         }
 
-                        var document = project.Solution.GetDocument(location.SourceTree);
+                        var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
                             var documentLocation = !includeClassifiedSpans
@@ -143,14 +160,21 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     properties, displayIfNoReferences);
             }
 
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
+
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(),
-                nameDisplayParts, properties, displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutable(),
+                nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
-        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition)
+        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition, bool isPrimary)
         {
             var properties = ImmutableDictionary<string, string>.Empty;
+
+            if (isPrimary)
+            {
+                properties = properties.Add(DefinitionItem.Primary, "");
+            }
 
             var rqName = RQNameInternal.From(definition);
             if (rqName != null)
@@ -193,39 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }
-
-        private static SymbolDisplayFormat GetFormat(ISymbol definition)
-        {
-            return definition.Kind == SymbolKind.Parameter
-                ? s_parameterDefinitionFormat
-                : s_definitionFormat;
-        }
-
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
-            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
-
-        private static readonly SymbolDisplayFormat s_definitionFormat =
-            new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType,
-                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword | SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword,
-                localOptions: SymbolDisplayLocalOptions.IncludeType,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeContainingType |
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
-                    SymbolDisplayMemberOptions.IncludeModifiers |
-                    SymbolDisplayMemberOptions.IncludeParameters |
-                    SymbolDisplayMemberOptions.IncludeType,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-        private static readonly SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
-            .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }

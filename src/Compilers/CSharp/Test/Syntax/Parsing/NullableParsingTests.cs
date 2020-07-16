@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -557,9 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                     }
                     N(SyntaxKind.QuestionQuestionToken);
-                    N(SyntaxKind.IdentifierName);
+                    M(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 N(SyntaxKind.QuestionToken);
@@ -567,10 +569,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierToken, "y");
                 }
-                N(SyntaxKind.ColonToken);
-                N(SyntaxKind.IdentifierName);
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.IdentifierToken);
                 }
             }
             EOF();
@@ -695,12 +697,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
                             N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {
@@ -717,15 +719,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void DeclarationPattern_NullableArray()
         {
             UsingStatement("switch (e) { case T[]? t: break; }",
-                // (1,21): error CS0443: Syntax error; value expected
+                // (1,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 21),
-                // (1,27): error CS1525: Invalid expression term 'break'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T[]").WithArguments("type pattern").WithLocation(1, 19),
+                // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 27),
-                // (1,27): error CS1003: Syntax error, ':' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":", "?").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":", "break").WithLocation(1, 27));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -738,47 +740,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CaseSwitchLabel);
+                    N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.ConditionalExpression);
+                        N(SyntaxKind.TypePattern);
                         {
-                            N(SyntaxKind.ElementAccessExpression);
+                            N(SyntaxKind.ArrayType);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "T");
                                 }
-                                N(SyntaxKind.BracketedArgumentList);
+                                N(SyntaxKind.ArrayRankSpecifier);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
                                     {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken);
-                                        }
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
                                     }
                                     N(SyntaxKind.CloseBracketToken);
                                 }
                             }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "t");
-                            }
-                            N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
-                    N(SyntaxKind.BreakStatement);
+                    N(SyntaxKind.LabeledStatement);
                     {
-                        N(SyntaxKind.BreakKeyword);
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.IdentifierToken, "t");
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);

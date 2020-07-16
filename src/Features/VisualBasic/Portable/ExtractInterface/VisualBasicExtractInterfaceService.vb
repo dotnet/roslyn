@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -15,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
         Inherits AbstractExtractInterfaceService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -75,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return fullDisplayName
         End Function
 
-        Private Function GetUpdatedImplementsClause(implementsClause As ImplementsClauseSyntax, qualifiedName As QualifiedNameSyntax) As ImplementsClauseSyntax
+        Private Shared Function GetUpdatedImplementsClause(implementsClause As ImplementsClauseSyntax, qualifiedName As QualifiedNameSyntax) As ImplementsClauseSyntax
             If implementsClause IsNot Nothing Then
                 Return implementsClause.AddInterfaceMembers(qualifiedName).WithAdditionalAnnotations(Formatter.Annotation)
             Else
@@ -83,11 +86,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             End If
         End Function
 
-        Private Function CreateFinalSolution(solutionWithInterfaceDocument As Solution, documentIds As IEnumerable(Of DocumentId), docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax)) As Solution
+        Private Shared Function CreateFinalSolution(solutionWithInterfaceDocument As Solution, documentIds As IEnumerable(Of DocumentId), docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax)) As Solution
             Dim finalSolution = solutionWithInterfaceDocument
 
             For Each docId In documentIds
-                finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, docToRootMap(docId), PreservationMode.PreserveIdentity)
+                ' We include this check just so that we're resilient to cases that we haven't considered.
+                If docToRootMap.ContainsKey(docId) Then
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, docToRootMap(docId), PreservationMode.PreserveIdentity)
+                End If
             Next
 
             Return finalSolution

@@ -1,15 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Markup;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,12 +15,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class FindReferencesTests : ServicesTestBase
     {
-        private Solution CreateSolution()
-        {
-            return new AdhocWorkspace().CurrentSolution;
-        }
+        private static Solution CreateSolution()
+            => new AdhocWorkspace().CurrentSolution;
 
-        private Solution GetSingleDocumentSolution(string sourceText)
+        private static Solution GetSingleDocumentSolution(string sourceText)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -33,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
 
-        private Solution GetMultipleDocumentSolution(string[] sourceTexts)
+        private static Solution GetMultipleDocumentSolution(string[] sourceTexts)
         {
             var pid = ProjectId.CreateNewId();
 
@@ -327,7 +322,12 @@ namespace N2
 
             var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
             Assert.Equal(2, references.Count);
-            Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
+
+            var projectIds = new HashSet<ProjectId>();
+            foreach (var r in references)
+                projectIds.Add(solution.GetOriginatingProjectId(r.Definition));
+
+            Assert.True(projectIds.Contains(desktopProject.Id));
         }
 
         [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]
@@ -418,7 +418,7 @@ namespace M
             var refsFromVirtual = await SymbolFinder.FindReferencesAsync(baseVirtualMethodSymbol, solution);
             Assert.Equal(2, refsFromVirtual.Count());
 
-            // FAR from the overriden method should find both methods
+            // FAR from the overridden method should find both methods
             var refsFromOverride = await SymbolFinder.FindReferencesAsync(overriddenMethodSymbol, solution);
             Assert.Equal(2, refsFromOverride.Count());
 

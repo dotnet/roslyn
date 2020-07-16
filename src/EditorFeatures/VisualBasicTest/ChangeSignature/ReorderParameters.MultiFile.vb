@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
@@ -31,7 +34,7 @@ class C
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
@@ -50,7 +53,6 @@ class C
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
                 Dim result = testState.ChangeSignature()
 
@@ -85,7 +87,7 @@ class C
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
@@ -104,7 +106,6 @@ class C
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
                 Dim result = testState.ChangeSignature()
 

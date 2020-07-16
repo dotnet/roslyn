@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -9,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell;
@@ -37,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private int _selectedNonSuppressionStateItems;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticListSuppressionStateService(
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace)
@@ -166,9 +171,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private static bool IsNonRoslynEntrySupportingSuppressionState(ITableEntryHandle entryHandle, out bool isSuppressedEntry)
         {
-            if (entryHandle.TryGetValue(SuppressionStateColumnDefinition.ColumnName, out string suppressionStateValue))
+            if (entryHandle.TryGetValue(StandardTableKeyNames.SuppressionState, out SuppressionState suppressionStateValue))
             {
-                isSuppressedEntry = suppressionStateValue == ServicesVSResources.Suppressed;
+                isSuppressedEntry = suppressionStateValue == SuppressionState.Suppressed;
                 return true;
             }
 
@@ -265,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 continue;
                             }
 
-                            filePathToDocumentMapOpt = filePathToDocumentMapOpt ?? new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                            filePathToDocumentMapOpt ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
                             if (!filePathToDocumentMapOpt.TryGetValue(project, out var filePathMap))
                             {
                                 filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
@@ -377,9 +382,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void HandleNonSuppressionStateEntry(bool added)
-        {
-            UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
-        }
+            => UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
 
         private void UpdateQueryStatus()
         {

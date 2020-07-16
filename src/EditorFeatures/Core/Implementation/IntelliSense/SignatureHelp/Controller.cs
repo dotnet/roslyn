@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -25,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
         private static readonly object s_controllerPropertyKey = new object();
+        private readonly IAsyncCompletionBroker _completionBroker;
 
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
         private ImmutableArray<ISignatureHelpProvider> _providers;
@@ -39,9 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
-            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
+            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
+            IAsyncCompletionBroker completionBroker)
             : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
+            _completionBroker = completionBroker;
             _allProviders = allProviders;
         }
 
@@ -53,10 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
-            IList<ISignatureHelpProvider> providers)
+            IList<ISignatureHelpProvider> providers,
+            IAsyncCompletionBroker completionBroker)
             : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _providers = providers.ToImmutableArray();
+            _completionBroker = completionBroker;
         }
 
         internal static Controller GetInstance(
@@ -64,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             EditorCommandArgs args,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
-            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
+            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
+            IAsyncCompletionBroker completionBroker)
         {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
@@ -73,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     presenter,
                     asyncListener,
                     new DocumentProvider(threadingContext),
-                    allProviders));
+                    allProviders, completionBroker));
         }
 
         private SnapshotPoint GetCaretPointInViewBuffer()
@@ -91,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
             else
             {
-                var selectedItem = modelOpt.SelectedItem;
                 var triggerSpan = modelOpt.GetCurrentSpanInView(this.TextView.TextSnapshot);
 
                 // We want the span to actually only go up to the caret.  So get the expected span

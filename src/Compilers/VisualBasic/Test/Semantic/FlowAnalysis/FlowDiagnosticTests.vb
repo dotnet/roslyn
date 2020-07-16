@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.[Text]
@@ -8,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -237,7 +240,7 @@ L1:
 End Module
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={Net40.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(comp,
 <errors>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
@@ -275,7 +278,7 @@ Friend Module TestNone
 End Module
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={Net40.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -308,7 +311,7 @@ Friend Module TestStruct
 End Module
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={Net40.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -341,7 +344,7 @@ Friend Module TestClass
 End Module
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={Net40.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(comp,
 <errors>
 BC42109: Variable 's1' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
@@ -381,7 +384,7 @@ Friend Module TestNewAndDisposable
 End Module
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={Net40.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -470,7 +473,7 @@ Friend Class TestNewAndDisposable(Of T As {IDisposable, New})
 End Class
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={Net40.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(comp,
 <errors>
 BC42109: Variable 's1' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
@@ -504,7 +507,7 @@ Structure MEMORY_BASIC_INFORMATION
 End Structure
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, references:={Net40.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(comp, <errors></errors>)
         End Sub
 
@@ -1471,7 +1474,7 @@ End Module
                             ]]></file>
                           </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, {SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(program, {Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(comp,
 <errors>

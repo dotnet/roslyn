@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
@@ -27,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(ByVal workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicUseObjectInitializerDiagnosticAnalyzer(), New ConfigureCodeStyleOptionCodeFixProvider(performExperimentCheck:=False))
+            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicUseObjectInitializerDiagnosticAnalyzer(), New ConfigureCodeStyleOptionCodeFixProvider())
         End Function
 
         Public Class TrueConfigurationTests
@@ -90,7 +92,7 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -100,7 +102,7 @@ dotnet_style_object_initializer = true:suggestion
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
             Public Async Function ConfigureEditorconfig_RuleExists_True() As Task
                 Dim input = "
 <Workspace>
@@ -217,7 +219,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:none
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -227,7 +229,7 @@ dotnet_style_object_initializer = true:suggestion
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
             Public Async Function ConfigureEditorconfig_MaintainCurrentSeverity_True() As Task
                 Dim input = "
 <Workspace>
@@ -413,7 +415,7 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion
@@ -540,7 +542,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:suggestion
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion

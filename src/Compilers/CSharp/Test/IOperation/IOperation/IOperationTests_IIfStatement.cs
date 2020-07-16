@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -701,7 +703,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                     Value: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
                     Pattern: 
-                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, DeclaredSymbol: System.Int32 i, MatchesNull: False)
+                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 i, MatchesNull: False)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -743,7 +745,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (obj 
       Value: 
         ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
       Pattern: 
-        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, DeclaredSymbol: System.String str, MatchesNull: False)
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, NarrowedType: System.String, DeclaredSymbol: System.String str, MatchesNull: False)
   WhenTrue: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(str);')
@@ -854,7 +856,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                     Value: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
                     Pattern: 
-                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, DeclaredSymbol: System.Int32 i, MatchesNull: False)
+                      IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 i, MatchesNull: False)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -1250,7 +1252,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
       Value: 
         ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
       Pattern: 
-        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, DeclaredSymbol: System.String str, MatchesNull: False)
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str') (InputType: System.Object, NarrowedType: System.String, DeclaredSymbol: System.String str, MatchesNull: False)
   WhenTrue: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(str);')

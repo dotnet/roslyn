@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 _contextPosition = contextPosition;
             }
 
-            public IEnumerable<StatementSyntax> RemoveRedundantBlock(IEnumerable<StatementSyntax> statements)
+            public static IEnumerable<StatementSyntax> RemoveRedundantBlock(IEnumerable<StatementSyntax> statements)
             {
                 // it must have only one statement
                 if (statements.Count() != 1)
@@ -32,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 // that statement must be a block
-                var block = statements.Single() as BlockSyntax;
-                if (block == null)
+                if (!(statements.Single() is BlockSyntax block))
                 {
                     return statements;
                 }
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return RemoveRedundantBlock(block);
             }
 
-            private IEnumerable<StatementSyntax> RemoveRedundantBlock(BlockSyntax block)
+            private static IEnumerable<StatementSyntax> RemoveRedundantBlock(BlockSyntax block)
             {
                 // if block doesn't have any statement
                 if (block.Statements.Count == 0)
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 map.GetOrAdd(type, _ => new List<LocalDeclarationStatementSyntax>()).Add(statement);
             }
 
-            private IEnumerable<LocalDeclarationStatementSyntax> GetMergedDeclarationStatements(
+            private static IEnumerable<LocalDeclarationStatementSyntax> GetMergedDeclarationStatements(
                 Dictionary<ITypeSymbol, List<LocalDeclarationStatementSyntax>> map)
             {
                 foreach (var keyValuePair in map)
@@ -159,8 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // 3. no trivia except whitespace
                 // 4. type must be known
 
-                var declarationStatement = statement as LocalDeclarationStatementSyntax;
-                if (declarationStatement == null)
+                if (!(statement is LocalDeclarationStatementSyntax declarationStatement))
                 {
                     return false;
                 }
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return true;
             }
 
-            private bool ContainsAnyInitialization(LocalDeclarationStatementSyntax statement)
+            private static bool ContainsAnyInitialization(LocalDeclarationStatementSyntax statement)
             {
                 foreach (var variable in statement.Declaration.Variables)
                 {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return true;
             }
 
-            public IEnumerable<StatementSyntax> RemoveInitializedDeclarationAndReturnPattern(IEnumerable<StatementSyntax> statements)
+            public static IEnumerable<StatementSyntax> RemoveInitializedDeclarationAndReturnPattern(IEnumerable<StatementSyntax> statements)
             {
                 // if we have inline temp variable as service, we could just use that service here.
                 // since it is not a service right now, do very simple clean up
@@ -231,10 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     return statements;
                 }
-
-                var declaration = statements.ElementAtOrDefault(0) as LocalDeclarationStatementSyntax;
-                var returnStatement = statements.ElementAtOrDefault(1) as ReturnStatementSyntax;
-                if (declaration == null || returnStatement == null)
+                if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ReturnStatementSyntax returnStatement))
                 {
                     return statements;
                 }
@@ -264,13 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value));
             }
 
-            public IEnumerable<StatementSyntax> RemoveDeclarationAssignmentPattern(IEnumerable<StatementSyntax> statements)
+            public static IEnumerable<StatementSyntax> RemoveDeclarationAssignmentPattern(IEnumerable<StatementSyntax> statements)
             {
-                // if we have inline temp variable as service, we could just use that service here.
-                // since it is not a service right now, do very simple clean up
-                var declaration = statements.ElementAtOrDefault(0) as LocalDeclarationStatementSyntax;
-                var assignment = statements.ElementAtOrDefault(1) as ExpressionStatementSyntax;
-                if (declaration == null || assignment == null)
+                if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ExpressionStatementSyntax assignment))
                 {
                     return statements;
                 }

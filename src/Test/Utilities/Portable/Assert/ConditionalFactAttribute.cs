@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
@@ -51,8 +53,8 @@ namespace Roslyn.Test.Utilities
     public class ConditionalFactAttribute : FactAttribute
     {
         /// <summary>
-        /// This proprety exists to prevent users of ConditionalFact from accidentally putting documentation
-        /// in the Skip proprety instead of Reason. Putting it into Skip would cause the test to be unconditionally
+        /// This property exists to prevent users of ConditionalFact from accidentally putting documentation
+        /// in the Skip property instead of Reason. Putting it into Skip would cause the test to be unconditionally
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
         [Obsolete("ConditionalFact should use Reason or AlwaysSkip", error: true)]
@@ -91,8 +93,8 @@ namespace Roslyn.Test.Utilities
     public class ConditionalTheoryAttribute : TheoryAttribute
     {
         /// <summary>
-        /// This proprety exists to prevent users of ConditionalFact from accidentally putting documentation
-        /// in the Skip proprety instead of Reason. Putting it into Skip would cause the test to be unconditionally
+        /// This property exists to prevent users of ConditionalFact from accidentally putting documentation
+        /// in the Skip property instead of Reason. Putting it into Skip would cause the test to be unconditionally
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
         [Obsolete("ConditionalTheory should use Reason or AlwaysSkip")]
@@ -154,6 +156,7 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
         public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
@@ -230,6 +233,17 @@ namespace Roslyn.Test.Utilities
 #endif
 
         public override string SkipReason => "Test not supported in DEBUG";
+    }
+
+    public class IsDebug : ExecutionCondition
+    {
+#if DEBUG
+        public override bool ShouldSkip => false;
+#else
+        public override bool ShouldSkip => true;
+#endif
+
+        public override string SkipReason => "Test not supported in RELEASE";
     }
 
     public class WindowsOnly : ExecutionCondition

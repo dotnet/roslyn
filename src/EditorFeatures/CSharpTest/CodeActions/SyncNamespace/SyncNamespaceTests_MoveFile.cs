@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
             var expectedFolders = new List<string[]>();
 
-            var documentPath = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -52,12 +54,12 @@ namespace [||]{declaredNamespace}
                 new[] { "B", "C" }
             };
 
-            var documentPath = CreateDocumentFilePath(Array.Empty<string>());
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>());
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -84,13 +86,13 @@ namespace [||]{declaredNamespace}
                 new[] { "B", "C", "D", "E" }
             };
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(new[] { "B", "C" }, "File2.cs");   // file2 is in <root>\B\C\
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -124,12 +126,12 @@ namespace Foo
                 Array.Empty<string>()
             };
 
-            var documentPath = CreateDocumentFilePath(new[] { "A", "B", "C" });
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "A", "B", "C" });
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}"">   
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">   
 class [||]Class1
 {{
 }}
@@ -158,13 +160,13 @@ class Class2
             expectedFolders.Add(new[] { "B", "C", "D", "E" });
             expectedFolders.Add(new[] { "B.C", "D", "E" });
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(new[] { "B.C" }, "File2.cs");   // file2 is in <root>\B.C\
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -202,14 +204,14 @@ namespace Foo
             expectedFolders.Add(new[] { "B.C", "D", "E" });
             expectedFolders.Add(new[] { "B", "C.D", "E" });
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(new[] { "B", "C.D" }, "File2.cs");   // file2 is in <root>\B\C.D\
             var documentPath3 = CreateDocumentFilePath(new[] { "B.C" }, "File3.cs");   // file3 is in <root>\B.C\
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -248,14 +250,14 @@ namespace Foo
             expectedFolders.Add(new[] { "B", "C", "D", "E" });
             expectedFolders.Add(new[] { "B.C", "D", "E" });
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B.C" }, "File1.cs");                          // file1 is in <root>\B.C\
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B.C" }, "File1.cs");                          // file1 is in <root>\B.C\
             var documentPath2 = CreateDocumentFilePath(new[] { "B", "Foo" }, "File2.cs");   // file2 is in <root>\B\Foo\
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -285,14 +287,14 @@ namespace Foo
             var expectedFolders = new List<string[]>();
             expectedFolders.Add(new[] { "B", "C", "D", "E" });
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "Foo.Bar", "Baz" }, "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "Foo.Bar", "Baz" }, "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
             var documentPath2 = CreateDocumentFilePath(new[] { "B", "Foo" }, "File2.cs");   // file2 is in <root>\B\Foo\
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1

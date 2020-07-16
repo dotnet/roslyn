@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Differencing;
@@ -16,12 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string source,
             ActiveStatementsDescription description)
         {
-            CSharpEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
+            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
                 description.OldTrackingSpans,
                 description.NewSpans,
-                description.OldRegions,
                 description.NewRegions);
         }
 
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ActiveStatementsDescription description,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpEditAndContinueTestHelpers.Instance.VerifyRudeDiagnostics(
+            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyRudeDiagnostics(
                 editScript,
                 description,
                 expectedDiagnostics);
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             IEnumerable<string> expectedNodeUpdates,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpEditAndContinueTestHelpers.Instance.VerifyLineEdits(
+            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyLineEdits(
                 editScript,
                 expectedLineEdits,
                 expectedNodeUpdates,
@@ -101,13 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static void VerifySemantics(
             this EditScript<SyntaxNode> editScript,
-            ActiveStatementsDescription activeStatements = null,
-            TargetFramework[] targetFrameworks = null,
-            IEnumerable<string> additionalOldSources = null,
-            IEnumerable<string> additionalNewSources = null,
-            SemanticEditDescription[] expectedSemanticEdits = null,
-            DiagnosticDescription expectedDeclarationError = null,
-            RudeEditDiagnosticDescription[] expectedDiagnostics = null)
+            ActiveStatementsDescription? activeStatements = null,
+            TargetFramework[]? targetFrameworks = null,
+            IEnumerable<string>? additionalOldSources = null,
+            IEnumerable<string>? additionalNewSources = null,
+            SemanticEditDescription[]? expectedSemanticEdits = null,
+            DiagnosticDescription? expectedDeclarationError = null,
+            RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
             foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp30 })
             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -44,9 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
@@ -63,14 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public int OnAfterSave(uint docCookie)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
         {
@@ -84,8 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            // Doc data reloaded is the most reliable way to know when a document has been loaded and may have a text buffer we can get.
-            if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0)
+            // Either RDTA_DocDataReloaded or RDTA_DocumentInitialized will be triggered if there's a lazy load and the document is now available.
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/937712 for a scenario where we do need the RDTA_DocumentInitialized check.
+            // We still check for RDTA_DocDataReloaded because the RDT will mark something as initialized as soon as there is something in the doc data,
+            // but that might still not be associated with an ITextBuffer.
+            if ((grfAttribs & ((uint)__VSRDTATTRIB.RDTA_DocDataReloaded | (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized)) != 0)
             {
                 _foregroundAffinitization.AssertIsForeground();
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
@@ -121,14 +120,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int OnBeforeSave(uint docCookie)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public bool IsFileOpen(string fileName) => _runningDocumentTable.IsMonikerValid(fileName);
 
@@ -195,12 +190,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // hold onto as a field
             var runningDocumentTable = (IVsRunningDocumentTable)_runningDocumentTable;
             ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
-            uint[] cookies = new uint[16];
+            var cookies = new uint[16];
 
             while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
                    && cookiesFetched > 0)
             {
-                for (int cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
+                for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
                 {
                     var cookie = cookies[cookieIndex];
 
@@ -233,26 +228,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
-        #region IDisposable Support
-        private void Dispose(bool disposing)
-        {
-            if (!_isDisposed)
-            {
-                if (disposing)
-                {
-                    var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
-                    runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
-                    _runningDocumentTableEventsCookie = 0;
-                }
-
-                _isDisposed = true;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(true);
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
+            runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
+            _runningDocumentTableEventsCookie = 0;
+
+            _isDisposed = true;
         }
-        #endregion
     }
 }

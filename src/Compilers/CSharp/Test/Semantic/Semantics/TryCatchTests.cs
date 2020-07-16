@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -38,9 +40,9 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var catchClause = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
-            var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
+            var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
             Assert.Equal("e", localSymbol.Name);
-            Assert.Equal("System.IO.IOException", localSymbol.TypeWithAnnotations.ToDisplayString());
+            Assert.Equal("System.IO.IOException", localSymbol.Type.ToDisplayString());
 
             var filterExprInfo = model.GetSymbolInfo(catchClause.Filter.FilterExpression);
             Assert.Equal("string.operator !=(string, string)", filterExprInfo.Symbol.ToDisplayString());

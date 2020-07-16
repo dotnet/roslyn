@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // define TRACE_LEAKS to get additional diagnostics that can lead to the leak sources. note: it will
 // make everything about 2-3x slower
@@ -16,10 +18,14 @@ using System.Threading;
 
 #if DETECT_LEAKS
 using System.Runtime.CompilerServices;
-
 #endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
+#if NET20
+    internal delegate TReturn Func<TArg, TReturn>(TArg arg);
+#endif
+
     /// <summary>
     /// Generic implementation of object pooling pattern with predefined pool size limit. The main
     /// purpose is that limited number of frequently used objects can be kept in the pool for
@@ -110,6 +116,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             Debug.Assert(size >= 1);
             _factory = factory;
+            _items = new Element[size - 1];
+        }
+
+        internal ObjectPool(Func<ObjectPool<T>, T> factory, int size)
+        {
+            Debug.Assert(size >= 1);
+            _factory = () => factory(this);
             _items = new Element[size - 1];
         }
 

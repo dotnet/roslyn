@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableArray<CharacterSetModificationRule> FilterCharacterRules { get; }
 
         /// <summary>
-        /// Rules that modify the set of characters that can be typed to cause the selected item to be commited.
+        /// Rules that modify the set of characters that can be typed to cause the selected item to be committed.
         /// </summary>
         public ImmutableArray<CharacterSetModificationRule> CommitCharacterRules { get; }
 
@@ -204,58 +206,42 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="FilterCharacterRules"/> property changed.
         /// </summary>
         public CompletionItemRules WithFilterCharacterRules(ImmutableArray<CharacterSetModificationRule> filterCharacterRules)
-        {
-            return With(filterRules: filterCharacterRules);
-        }
+            => With(filterRules: filterCharacterRules);
 
         internal CompletionItemRules WithFilterCharacterRule(CharacterSetModificationRule rule)
-        {
-            return With(filterRules: ImmutableArray.Create(rule));
-        }
+            => With(filterRules: ImmutableArray.Create(rule));
 
         internal CompletionItemRules WithCommitCharacterRule(CharacterSetModificationRule rule)
-        {
-            return With(commitRules: ImmutableArray.Create(rule));
-        }
+            => With(commitRules: ImmutableArray.Create(rule));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="CommitCharacterRules"/> property changed.
         /// </summary>
         public CompletionItemRules WithCommitCharacterRules(ImmutableArray<CharacterSetModificationRule> commitCharacterRules)
-        {
-            return With(commitRules: commitCharacterRules);
-        }
+            => With(commitRules: commitCharacterRules);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="EnterKeyRule"/> property changed.
         /// </summary>
         public CompletionItemRules WithEnterKeyRule(EnterKeyRule enterKeyRule)
-        {
-            return With(enterKeyRule: enterKeyRule);
-        }
+            => With(enterKeyRule: enterKeyRule);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="FormatOnCommit"/> property changed.
         /// </summary>
         public CompletionItemRules WithFormatOnCommit(bool formatOnCommit)
-        {
-            return With(formatOnCommit: formatOnCommit);
-        }
+            => With(formatOnCommit: formatOnCommit);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="MatchPriority"/> property changed.
         /// </summary>
         public CompletionItemRules WithMatchPriority(int matchPriority)
-        {
-            return With(matchPriority: matchPriority);
-        }
+            => With(matchPriority: matchPriority);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="SelectionBehavior"/> property changed.
         /// </summary>
         public CompletionItemRules WithSelectionBehavior(CompletionItemSelectionBehavior selectionBehavior)
-        {
-            return With(selectionBehavior: selectionBehavior);
-        }
+            => With(selectionBehavior: selectionBehavior);
     }
 }

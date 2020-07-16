@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
-using System.Reflection;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static DisposableFile CreateTempAssembly(string declarations, bool prependDefaultHeader = true)
         {
-            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
+            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, autoInherit: true, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
             Assert.NotNull(assemblyPath);
             Assert.Null(pdbPath);
             return new DisposableFile(assemblyPath);
@@ -23,41 +24,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (ExecutionConditionUtil.IsWindowsDesktop)
             {
+                // The desktop ilasm is still necessary because a number of our tests depend on being able to 
+                // emit PDB files for net modules. That feature is not available on coreclr ilasm.
                 return Path.Combine(
                     Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),
                     "ilasm.exe");
             }
+
+            var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
+            var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
+            string ridName;
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                ridName = "win-x64";
+            }
+            else if (ExecutionConditionUtil.IsMacOS)
+            {
+                ridName = "osx-x64";
+            }
+            else if (ExecutionConditionUtil.IsLinux)
+            {
+                ridName = "linux-x64";
+            }
             else
             {
-                var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
-
-                var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
-                string path = null;
-#if DEBUG
-                const string configuration = "Debug";
-#else
-                const string configuration = "Release";
-#endif
-
-                while (directory != null && !File.Exists(path = Path.Combine(directory, "artifacts", "tools", "ILTools", configuration, ilasmExeName)))
-                {
-                    directory = Path.GetDirectoryName(directory);
-                }
-
-                if (directory == null)
-                {
-                    throw new NotSupportedException("Unable to find CoreCLR ilasm tool. Has the Microsoft.NETCore.ILAsm package been published to /artifacts/tools?");
-                }
-
-                return path;
+                throw new PlatformNotSupportedException("Runtime platform not supported for testing");
             }
+
+            return Path.Combine(directory, "runtimes", ridName, "native", ilasmExeName);
         }
 
         private static readonly string IlasmPath = GetIlasmPath();
 
-        public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, out string assemblyPath, out string pdbPath)
+        public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, bool autoInherit, out string assemblyPath, out string pdbPath)
         {
-            if (declarations == null) throw new ArgumentNullException(nameof(declarations));
+            if (declarations == null)
+                throw new ArgumentNullException(nameof(declarations));
 
             using (var sourceFile = new DisposableFile(extension: ".il"))
             {
@@ -92,7 +94,7 @@ $@".assembly '{sourceFileName}' {{}}
 
                 sourceFile.WriteAllText(completeIL);
 
-                var arguments = $"\"{sourceFile.Path}\" -DLL -out=\"{assemblyPath}\"";
+                var arguments = $"\"{sourceFile.Path}\" -DLL {(autoInherit ? "" : "-noautoinherit")} -out=\"{assemblyPath}\"";
 
                 if (includePdb && !MonoHelpers.IsRunningOnMono())
                 {

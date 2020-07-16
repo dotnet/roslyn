@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
-        private class QueryUnboundLambdaState : UnboundLambdaState
+        private sealed class QueryUnboundLambdaState : UnboundLambdaState
         {
             private readonly ImmutableArray<RangeVariableSymbol> _parameters;
             private readonly LambdaBodyFactory _bodyFactory;
             private readonly RangeVariableMap _rangeVariableMap;
 
-            public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory)
-                : base(binder, unboundLambdaOpt: null)
+            public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory, bool includeCache = true)
+                : base(binder, unboundLambdaOpt: null, includeCache)
             {
                 _parameters = parameters;
                 _rangeVariableMap = rangeVariableMap;
@@ -27,10 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override string ParameterName(int index) { return _parameters[index].Name; }
+            public override bool ParameterIsDiscard(int index) { return false; }
+            public override bool HasNames { get { return true; } }
             public override bool HasSignature { get { return true; } }
             public override bool HasExplicitlyTypedParameterList { get { return false; } }
             public override int ParameterCount { get { return _parameters.Length; } }
             public override bool IsAsync { get { return false; } }
+            public override bool IsStatic => false;
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
@@ -45,6 +49,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder ParameterBinder(LambdaSymbol lambdaSymbol, Binder binder)
             {
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
+            }
+
+            protected override UnboundLambdaState WithCachingCore(bool includeCache)
+            {
+                return new QueryUnboundLambdaState(Binder, _rangeVariableMap, _parameters, _bodyFactory, includeCache);
+            }
+
+            protected override BoundExpression GetLambdaExpressionBody(BoundBlock body)
+            {
+                return null;
+            }
+
+            protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)

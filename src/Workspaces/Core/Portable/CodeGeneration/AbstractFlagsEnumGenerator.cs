@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private bool IsFlagsEnum(INamedTypeSymbol typeSymbol)
+        private static bool IsFlagsEnum(INamedTypeSymbol typeSymbol)
         {
             if (typeSymbol.TypeKind != TypeKind.Enum)
             {
@@ -154,14 +155,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private IFieldSymbol GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
+        private static IFieldSymbol GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
         {
             for (var i = allFieldsAndValues.Count - 1; i >= 0; i--)
             {
-                var tuple = allFieldsAndValues[i];
-                if (tuple.value == 0)
+                var (field, value) = allFieldsAndValues[i];
+                if (value == 0)
                 {
-                    return tuple.field;
+                    return field;
                 }
             }
 

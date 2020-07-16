@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     usingsBinder = new InContainerBinder(binder.Container, binder.Next, imports);
                 }
 
-                var uniqueUsings = SpecializedCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
+                var uniqueUsings = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
 
                 foreach (var usingDirective in usingDirectives)
                 {
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // construct the alias sym with the binder for which we are building imports. That
                             // way the alias target can make use of extern alias definitions.
-                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, usingDirective), usingDirective));
+                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, usingDirective.Name, usingDirective.Alias), usingDirective));
                         }
                     }
                     else
@@ -457,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var replacedExternAliases = PooledHashSet<string>.GetInstance();
             replacedExternAliases.AddAll(externs2.Select(e => e.Alias.Name));
-            return externs1.WhereAsArray(e => !replacedExternAliases.Contains(e.Alias.Name)).AddRange(externs2);
+            return externs1.WhereAsArray((e, replacedExternAliases) => !replacedExternAliases.Contains(e.Alias.Name), replacedExternAliases).AddRange(externs2);
         }
 
         private static ImmutableArray<AliasAndExternAliasDirective> BuildExternAliases(

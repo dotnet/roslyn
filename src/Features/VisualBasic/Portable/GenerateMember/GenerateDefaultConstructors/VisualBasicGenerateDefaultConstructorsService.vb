@@ -1,8 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.GenerateFromMembers
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
         Inherits AbstractGenerateDefaultConstructorsService(Of VisualBasicGenerateDefaultConstructorsService)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -27,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
             ' first base-type of a class.
 
             Dim syntaxFacts = semanticDocument.Document.GetLanguageService(Of ISyntaxFactsService)()
-            If syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, Nothing) Then
-                classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start, cancellationToken)
+            Dim typeDecl As SyntaxNode = Nothing
+            If syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, typeDecl) Then
+                classType = TryCast(semanticDocument.SemanticModel.GetDeclaredSymbol(typeDecl), INamedTypeSymbol)
                 Return classType IsNot Nothing AndAlso classType.TypeKind = TypeKind.Class
             End If
 

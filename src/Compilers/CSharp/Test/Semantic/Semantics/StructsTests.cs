@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -336,7 +338,7 @@ class Test
         [Fact]
         public void RetargetedSynthesizedStructConstructor()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var oldMsCorLib = TestMetadata.Net40.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },
@@ -611,6 +613,25 @@ public struct X1
     //     private X()
     Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X").WithLocation(4, 13)
                 );
+        }
+
+        [Fact]
+        public void StructNonAutoPropertyInitializer()
+        {
+            var text = @"struct S
+{
+    public int I { get { throw null; } set {} } = 9;
+}";
+
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+            // (3,16): error CS8050: Only auto-implemented properties can have initializers.
+            //     public int I {get { throw null; } set {} } = 9;
+            Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16),
+            // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+            //     public int I {get { throw null; } set {} } = 9;
+            Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
+);
         }
     }
 }

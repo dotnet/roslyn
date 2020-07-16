@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -26,16 +28,29 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+
+                if (containingSymbolFailureReason != null)
+                {
+                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(containingSymbolFailureReason)} failed -> {containingSymbolFailureReason})";
+                    return default;
+                }
+
+                if (typeArgumentsFailureReason != null)
+                {
+                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
+                    return default;
+                }
 
                 if (typeArguments.IsDefault)
                 {
+                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(typeArguments)} failed)";
                     return default;
                 }
 
@@ -50,7 +65,7 @@ namespace Microsoft.CodeAnalysis
                         isUnboundGenericType, typeArgumentArray);
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(NamedTypeSymbolKey)} failed)", out failureReason);
             }
 
             private static void Resolve(

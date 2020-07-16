@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override bool ContainingScopeHasAsyncKeyword()
             {
-                var node = this.GetContainingScope();
+                var node = GetContainingScope();
 
                 return node switch
                 {
-                    AccessorDeclarationSyntax access => false,
+                    AccessorDeclarationSyntax _ => false,
                     MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
                     ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
                     SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
@@ -44,14 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override SyntaxNode GetContainingScope()
             {
-                Contract.ThrowIfNull(this.SemanticDocument);
-                Contract.ThrowIfTrue(this.SelectionInExpression);
+                Contract.ThrowIfNull(SemanticDocument);
+                Contract.ThrowIfTrue(SelectionInExpression);
 
                 // it contains statements
-                var firstToken = this.GetFirstTokenInSelection();
+                var firstToken = GetFirstTokenInSelection();
                 return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
                 {
-                    return n is BaseMethodDeclarationSyntax ||
+                    return n is AccessorDeclarationSyntax ||
+                           n is LocalFunctionStatementSyntax ||
+                           n is BaseMethodDeclarationSyntax ||
                            n is AccessorDeclarationSyntax ||
                            n is ParenthesizedLambdaExpressionSyntax ||
                            n is SimpleLambdaExpressionSyntax ||
@@ -62,10 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override ITypeSymbol GetContainingScopeType()
             {
-                Contract.ThrowIfTrue(this.SelectionInExpression);
+                Contract.ThrowIfTrue(SelectionInExpression);
 
-                var node = this.GetContainingScope();
-                var semanticModel = this.SemanticDocument.SemanticModel;
+                var node = GetContainingScope();
+                var semanticModel = SemanticDocument.SemanticModel;
 
                 switch (node)
                 {

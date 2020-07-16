@@ -27,11 +27,6 @@
         <target state="translated">添加 “Shadows”</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">可简化“If”语句</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">插入“{0}”。</target>
@@ -74,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">将“{0}”设为可继承</target>
+        <target state="translated">使 "{0}" 可继承</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -90,16 +85,6 @@
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
         <target state="translated">&lt;多种类型&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">删除不必要的导入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -340,11 +325,6 @@
       <trans-unit id="new_variable">
         <source>&lt;new variable&gt;</source>
         <target state="translated">&lt;新变量&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">删除导入并对导入排序(&amp;E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -1403,7 +1383,7 @@ Try...[Catch]...{Catch | Finally}...End Try</target>
       <trans-unit id="A_Using_block_does_three_things_colon_it_creates_and_initializes_variables_in_the_resource_list_it_runs_the_code_in_the_block_and_it_disposes_of_the_variables_before_exiting_Resources_used_in_the_Using_block_must_implement_System_IDisposable_Using_resource1_bracket_resource2_bracket_End_Using">
         <source>A Using block does three things: it creates and initializes variables in the resource list, it runs the code in the block, and it disposes of the variables before exiting. Resources used in the Using block must implement System.IDisposable.
 Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using</source>
-        <target state="translated">Using 块用于执行下列三个操作: 在资源列表中创建并初始化变量、在块中运行代码并在退出之前释放变量。Using 块中使用的资源必须实现 System.Idisposable。
+        <target state="translated">Using 块用于执行下列三个操作: 在资源列表中创建并初始化变量、在块中运行代码并在退出之前释放变量。Using 块中使用的资源必须实现 System.IDisposable。
 Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using</target>
         <note />
       </trans-unit>
@@ -1487,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">使 {0} 为异步函数。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">插入丢失的转换</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">将{0}转换为迭代器</target>
@@ -1520,36 +1495,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
         <target state="translated">在“{0}”中生成扩大转换</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">请勿更改此代码。将清理代码放入以上 Dispose(disposing As Boolean)中。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: 释放未托管资源(未托管对象)并在以下内容中替代 Finalize()。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 仅当以上 Dispose(disposing As Boolean)拥有用于释放未托管资源的代码时才替代 Finalize()。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Visual Basic 添加此代码以正确实现可释放模式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: 如果在以上内容中替代了 Finalize()，则取消注释以下行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports 语句是不需要的。</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1694,7 +1639,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">联接条件</target>
+        <target state="translated">Join 条件</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1830,21 +1775,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">使成为异步 Sub</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">添加 "Me."</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">使用 "Is Nothing" 检查</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">使用 "IsNot Nothing" 检查</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

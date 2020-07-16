@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,13 +21,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSourceService
     {
-        private readonly ICodeGenerationService _codeGenerationService;
-
-        protected AbstractMetadataAsSourceService(ICodeGenerationService codeGenerationService)
-        {
-            _codeGenerationService = codeGenerationService;
-        }
-
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             if (document == null)
@@ -41,11 +36,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 document.Project.Solution,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
+                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
                 cancellationToken).ConfigureAwait(false);
 
+            document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
+
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var docWithDocComments = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
+            var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -55,6 +52,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
         }
+
+        protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// provide formatting rules to be used when formatting MAS file
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <returns>The updated document</returns>
         protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
 
-        protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
+        protected abstract Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
 
         protected abstract ImmutableArray<AbstractReducer> GetReducers();
 
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     new[] { wrappedType });
         }
 
-        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation, ISymbol symbol)
+        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation)
         {
             return new CodeGenerationOptions(
                 contextLocation: contextLocation,

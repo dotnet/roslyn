@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,6 +23,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -69,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
-        {
-            return GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
-        }
+            => GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
 
         public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -84,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             if (newSolution != null)
             {
                 var solutionChanges = newSolution.GetChanges(oldSolution);
+                var ignoreUnchangeableDocuments = oldSolution.Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges;
 
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())
                 {
@@ -93,67 +95,68 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     var oldProject = projectChanges.OldProject;
                     var newProject = projectChanges.NewProject;
 
-                    foreach (var documentId in projectChanges.GetChangedDocuments())
+                    // Exclude changes to unchangeable documents if they will be ignored when applied to workspace.
+                    foreach (var documentId in projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, ignoreUnchangeableDocuments))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
-                            CreateChangedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), newSolution.GetDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
+                            await CreateChangedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), newSolution.GetDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetAddedDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
-                            CreateAddedDocumentPreviewViewAsync(newSolution.GetDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
+                            await CreateAddedDocumentPreviewViewAsync(newSolution.GetDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetRemovedDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, c =>
-                            CreateRemovedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, async c =>
+                            await CreateRemovedDocumentPreviewViewAsync(oldSolution.GetDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetChangedAdditionalDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
-                            CreateChangedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), newSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
+                            await CreateChangedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), newSolution.GetAdditionalDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetAddedAdditionalDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
-                            CreateAddedAdditionalDocumentPreviewViewAsync(newSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
+                            await CreateAddedAdditionalDocumentPreviewViewAsync(newSolution.GetAdditionalDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, c =>
-                            CreateRemovedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, async c =>
+                            await CreateRemovedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetChangedAnalyzerConfigDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
-                            CreateChangedAnalyzerConfigDocumentPreviewViewAsync(oldSolution.GetAnalyzerConfigDocument(documentId), newSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
+                            await CreateChangedAnalyzerConfigDocumentPreviewViewAsync(oldSolution.GetAnalyzerConfigDocument(documentId), newSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetAddedAnalyzerConfigDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
-                            CreateAddedAnalyzerConfigDocumentPreviewViewAsync(newSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
+                            await CreateAddedAnalyzerConfigDocumentPreviewViewAsync(newSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var documentId in projectChanges.GetRemovedAnalyzerConfigDocuments())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, c =>
-                            CreateRemovedAnalyzerConfigDocumentPreviewViewAsync(oldSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c)));
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, async c =>
+                            await CreateRemovedAnalyzerConfigDocumentPreviewViewAsync(oldSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
                     }
 
                     foreach (var metadataReference in projectChanges.GetAddedMetadataReferences())
@@ -249,14 +252,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return false;
         }
 
-        public Task<object> CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
-        }
+        public Task<DifferenceViewerPreview> CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
+            => CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
 
-        private Task<object> CreateAddedDocumentPreviewViewCoreAsync(ITextBuffer newBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        private async ValueTask<DifferenceViewerPreview> CreateAddedDocumentPreviewViewCoreAsync(ITextBuffer newBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var firstLine = string.Format(EditorFeaturesResources.Adding_0_to_1_with_content_colon,
                 document.Name, document.Project.Name);
@@ -269,18 +271,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
                 sourceSpans: new List<object> { firstLine, "\r\n", span }, registryService: _contentTypeRegistryService);
 
-            return CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            return await CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        private Task<object> CreateAddedTextDocumentPreviewViewAsync(
-            TextDocument document,
+        private async Task<DifferenceViewerPreview> CreateAddedTextDocumentPreviewViewAsync<TDocument>(
+            TDocument document,
             double zoomLevel,
-            Func<TextDocument, CancellationToken, ITextBuffer> createBuffer,
+            Func<TDocument, CancellationToken, ValueTask<ITextBuffer>> createBufferAsync,
             Action<Workspace, DocumentId> openTextDocument,
             CancellationToken cancellationToken)
+            where TDocument : TextDocument
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var newBuffer = createBuffer(document, cancellationToken);
+            // openTextDocument must be called from the main thread
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            var newBuffer = await createBufferAsync(document, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
@@ -288,44 +297,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document.Project.Solution.WithTextDocumentText(document.Id, newBuffer.AsTextContainer().CurrentText));
             openTextDocument(rightWorkspace, document.Id);
 
-            return CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            return await CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        public Task<object> CreateAddedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateAddedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateAddedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBuffer: (textDocument, cancellationToken) => CreateNewBuffer((Document)textDocument, cancellationToken),
+                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync(textDocument, cancellationToken),
                 openTextDocument: (workspace, documentId) => workspace.OpenDocument(documentId),
                 cancellationToken);
         }
 
-        public Task<object> CreateAddedAdditionalDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateAddedAdditionalDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateAddedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBuffer: CreateNewPlainTextBuffer,
+                createBufferAsync: CreateNewPlainTextBufferAsync,
                 openTextDocument: (workspace, documentId) => workspace.OpenAdditionalDocument(documentId),
                 cancellationToken);
         }
 
-        public Task<object> CreateAddedAnalyzerConfigDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateAddedAnalyzerConfigDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateAddedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBuffer: CreateNewPlainTextBuffer,
+                createBufferAsync: CreateNewPlainTextBufferAsync,
                 openTextDocument: (workspace, documentId) => workspace.OpenAnalyzerConfigDocument(documentId),
                 cancellationToken);
         }
 
-        public Task<object> CreateRemovedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
-        }
+        public Task<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
+            => CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
 
-        private Task<object> CreateRemovedDocumentPreviewViewCoreAsync(ITextBuffer oldBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        private async ValueTask<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewCoreAsync(ITextBuffer oldBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var firstLine = string.Format(EditorFeaturesResources.Removing_0_from_1_with_content_colon,
                 document.Name, document.Project.Name);
@@ -338,19 +348,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
                 sourceSpans: new List<object> { firstLine, "\r\n" }, registryService: _contentTypeRegistryService);
 
-            return CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            return await CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        private Task<object> CreateRemovedTextDocumentPreviewViewAsync(
-            TextDocument document,
+        private async Task<DifferenceViewerPreview> CreateRemovedTextDocumentPreviewViewAsync<TDocument>(
+            TDocument document,
             double zoomLevel,
-            Func<TextDocument, CancellationToken, ITextBuffer> createBuffer,
+            Func<TDocument, CancellationToken, ValueTask<ITextBuffer>> createBufferAsync,
             Func<Solution, DocumentId, Solution> removeTextDocument,
             Func<Solution, DocumentId, string, SourceText, Solution> addTextDocument,
             Action<Workspace, DocumentId> openTextDocument,
             CancellationToken cancellationToken)
+            where TDocument : TextDocument
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            // openTextDocument must be called from the main thread
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Note: We don't use the original buffer that is associated with oldDocument
             // (and possibly open in the editor) for oldBuffer below. This is because oldBuffer
@@ -362,7 +376,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // the diff view would long have been dismissed by the time user edits the code)
             // resulting in crashes. Instead we create a new buffer from the same content.
             // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
-            var oldBuffer = createBuffer(document, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            var oldBuffer = await createBufferAsync(document, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
@@ -373,50 +389,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftWorkspace = new PreviewWorkspace(leftSolution);
             openTextDocument(leftWorkspace, leftDocument.Id);
 
-            return CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            return await CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        public Task<object> CreateRemovedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateRemovedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBuffer: (textDocument, cancellationToken) => CreateNewBuffer((Document)textDocument, cancellationToken),
+                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync(textDocument, cancellationToken),
                 removeTextDocument: (solution, documentId) => solution.RemoveDocument(documentId),
                 addTextDocument: (solution, documentId, name, text) => solution.AddDocument(documentId, name, text),
                 openTextDocument: (workspace, documentId) => workspace.OpenDocument(documentId),
                 cancellationToken);
         }
 
-        public Task<object> CreateRemovedAdditionalDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateRemovedAdditionalDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateRemovedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBuffer: CreateNewPlainTextBuffer,
+                createBufferAsync: CreateNewPlainTextBufferAsync,
                 removeTextDocument: (solution, documentId) => solution.RemoveAdditionalDocument(documentId),
                 addTextDocument: (solution, documentId, name, text) => solution.AddAdditionalDocument(documentId, name, text),
                 openTextDocument: (workspace, documentId) => workspace.OpenAdditionalDocument(documentId),
                 cancellationToken);
         }
 
-        public Task<object> CreateRemovedAnalyzerConfigDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateRemovedAnalyzerConfigDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateRemovedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBuffer: CreateNewPlainTextBuffer,
+                createBufferAsync: CreateNewPlainTextBufferAsync,
                 removeTextDocument: (solution, documentId) => solution.RemoveAnalyzerConfigDocument(documentId),
                 addTextDocument: (solution, documentId, name, text) => solution.AddAnalyzerConfigDocument(documentId, name, text),
                 openTextDocument: (workspace, documentId) => workspace.OpenAnalyzerConfigDocument(documentId),
                 cancellationToken);
         }
 
-        public Task<object> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
-        }
+        public Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+            => CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
 
-        public Task<object> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public async Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            // OpenDocument must be called from the main thread
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Note: We don't use the original buffer that is associated with oldDocument
             // (and currently open in the editor) for oldBuffer below. This is because oldBuffer
@@ -428,8 +445,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // the diff view would long have been dismissed by the time user edits the code)
             // resulting in crashes. Instead we create a new buffer from the same content.
             // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
-            var oldBuffer = CreateNewBuffer(oldDocument, cancellationToken);
-            var newBuffer = CreateNewBuffer(newDocument, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            var oldBuffer = await CreateNewBufferAsync(oldDocument, cancellationToken);
+            var newBuffer = await CreateNewBufferAsync(newDocument, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Convert the diffs to be line based.  
             // Compute the diffs between the old text and the new.
@@ -439,12 +458,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // We also need to show the spans that are in conflict.
             var originalSpans = GetOriginalSpans(diffResult, cancellationToken);
             var changedSpans = GetChangedSpans(diffResult, cancellationToken);
-            var description = default(string);
-            var allSpans = default(NormalizedSpanCollection);
+            var description = (string)null;
+            var allSpans = (NormalizedSpanCollection)null;
 
             if (newDocument.SupportsSyntaxTree)
             {
-                var newRoot = newDocument.GetSyntaxRootSynchronously(cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                 var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
                 var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
                 var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
@@ -492,15 +513,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 newDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
             rightWorkspace.OpenDocument(newDocument.Id);
 
-            return CreateChangedDocumentViewAsync(
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            return await CreateChangedDocumentViewAsync(
                 oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
                 leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         // NOTE: We are only sharing this code between additional documents and analyzer config documents,
         // which are essentially plain text documents. Regular source documents need special handling
         // and hence have a different implementation.
-        private Task<object> CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
+        private async Task<DifferenceViewerPreview> CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
             TextDocument oldDocument,
             TextDocument newDocument,
             double zoomLevel,
@@ -512,7 +535,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            // openTextDocument must be called from the main thread
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Note: We don't use the original buffer that is associated with oldDocument
             // (and currently open in the editor) for oldBuffer below. This is because oldBuffer
@@ -524,8 +548,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // the diff view would long have been dismissed by the time user edits the code)
             // resulting in crashes. Instead we create a new buffer from the same content.
             // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
-            var oldBuffer = CreateNewPlainTextBuffer(oldDocument, cancellationToken);
-            var newBuffer = CreateNewPlainTextBuffer(newDocument, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            var oldBuffer = await CreateNewPlainTextBufferAsync(oldDocument, cancellationToken);
+            var newBuffer = await CreateNewPlainTextBufferAsync(newDocument, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             // Convert the diffs to be line based.  
             // Compute the diffs between the old text and the new.
@@ -553,12 +579,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 withDocumentText(oldDocument.Project.Solution, oldDocument.Id, newBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveValue));
             openTextDocument(rightWorkSpace, newDocument.Id);
 
-            return CreateChangedDocumentViewAsync(
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            return await CreateChangedDocumentViewAsync(
                 oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
                 leftWorkspace, rightWorkSpace, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        public Task<object> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
                 oldDocument, newDocument, zoomLevel,
@@ -569,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 cancellationToken);
         }
 
-        public Task<object> CreateChangedAnalyzerConfigDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview> CreateChangedAnalyzerConfigDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
                 oldDocument, newDocument, zoomLevel,
@@ -580,12 +608,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 cancellationToken);
         }
 
-        private Task<object> CreateChangedDocumentViewAsync(ITextBuffer oldBuffer, ITextBuffer newBuffer, string description,
+        private async ValueTask<DifferenceViewerPreview> CreateChangedDocumentViewAsync(ITextBuffer oldBuffer, ITextBuffer newBuffer, string description,
             List<LineSpan> originalSpans, List<LineSpan> changedSpans, PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
             double zoomLevel, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (!(originalSpans.Any() && changedSpans.Any()))
             {
                 // Both line spans must be non-empty. Otherwise, below projection buffer factory API call will throw.
@@ -593,8 +619,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 // This can happen in cases where the user has already applied the fix and light bulb has already been dismissed,
                 // but platform hasn't cancelled the preview operation yet. Since the light bulb has already been dismissed at
                 // this point, the preview that we return will never be displayed to the user. So returning null here is harmless.
-                return SpecializedTasks.Default<object>();
+                return null;
             }
+
+            // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
@@ -612,7 +641,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 description,
                 changedSpans.ToArray());
 
-            return CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            return await CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
         private static void AttachAnnotationsToBuffer(
@@ -624,34 +655,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             newBuffer.Properties.AddProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, new NormalizedSnapshotSpanCollection(newBuffer.CurrentSnapshot, suppressDiagnosticsSpans));
         }
 
-        private ITextBuffer CreateNewBuffer(Document document, CancellationToken cancellationToken)
+        private async ValueTask<ITextBuffer> CreateNewBufferAsync(Document document, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // is it okay to create buffer from threads other than UI thread?
             var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
-            return _textBufferFactoryService.CreateTextBuffer(
-                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            var text = await document.State.GetTextAsync(cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            return _textBufferFactoryService.CreateTextBuffer(text.ToString(), contentType);
         }
 
-        private ITextBuffer CreateNewPlainTextBuffer(TextDocument document, CancellationToken cancellationToken)
+        private async ValueTask<ITextBuffer> CreateNewPlainTextBufferAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            // ITextBufferFactoryService is a Visual Studio API which is not documented as free-threaded
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var contentType = _textBufferFactoryService.TextContentType;
 
-            return _textBufferFactoryService.CreateTextBuffer(
-                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            var text = await document.State.GetTextAsync(cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            return _textBufferFactoryService.CreateTextBuffer(text.ToString(), contentType);
         }
 
-        private async Task<object> CreateNewDifferenceViewerAsync(
+        private async ValueTask<DifferenceViewerPreview> CreateNewDifferenceViewerAsync(
             PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
             IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer,
             double zoomLevel, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            // IWpfDifferenceViewerFactoryService is a Visual Studio API which is not documented as free-threaded
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // leftWorkspace can be null if the change is adding a document.
             // rightWorkspace can be null if the change is removing a document.
@@ -707,11 +743,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             diffViewer.LeftView.VisualElement.Focusable = false;
             diffViewer.InlineView.VisualElement.Focusable = false;
 
-            // This code path must be invoked on UI thread.
-            AssertIsForeground();
-
-            // We use ConfigureAwait(true) to stay on the UI thread.
-            await diffViewer.SizeToFitAsync(ThreadingContext).ConfigureAwait(true);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+            await diffViewer.SizeToFitAsync(ThreadingContext, cancellationToken: cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             leftWorkspace?.EnableDiagnostic();
             rightWorkspace?.EnableDiagnostic();
@@ -719,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new DifferenceViewerPreview(diffViewer);
         }
 
-        private List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
+        private static List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -739,7 +773,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         // Find the lines that surround the span of the difference.  Try to expand the span to
         // include both the previous and next lines so that we can show more context to the
         // user.
-        private LineSpan GetLineSpan(
+        private static LineSpan GetLineSpan(
             ITextSnapshot snapshot,
             Span span)
         {
@@ -791,14 +825,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var diffService = _differenceSelectorService.GetTextDifferencingService(
                 oldDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService = diffService ?? _differenceSelectorService.DefaultTextDifferencingService;
+            diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
             return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
             {
                 DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
             });
         }
 
-        private NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();
@@ -813,7 +847,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new NormalizedSpanCollection(lineSpans);
         }
 
-        private NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();

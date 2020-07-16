@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -59,13 +61,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException($"{nameof(checksum)} must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
             }
 
-            using (var pooled = SharedPools.ByteArray.GetPooledObject())
-            {
-                var bytes = pooled.Object;
-                checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
+            using var pooled = SharedPools.ByteArray.GetPooledObject();
+            var bytes = pooled.Object;
+            checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
 
-                return FromWorker(bytes);
-            }
+            return FromWorker(bytes);
         }
 
         public static Checksum FromSerialized(byte[] checksum)
@@ -96,9 +96,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private Checksum(HashData hash)
-        {
-            _checksum = hash;
-        }
+            => _checksum = hash;
 
         public bool Equals(Checksum other)
         {
@@ -128,14 +126,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool operator ==(Checksum left, Checksum right)
-        {
-            return EqualityComparer<Checksum>.Default.Equals(left, right);
-        }
+            => EqualityComparer<Checksum>.Default.Equals(left, right);
 
         public static bool operator !=(Checksum left, Checksum right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
@@ -146,14 +140,10 @@ namespace Microsoft.CodeAnalysis
             => new Checksum(HashData.ReadFrom(reader));
 
         public static string GetChecksumLogInfo(Checksum checksum)
-        {
-            return checksum.ToString();
-        }
+            => checksum.ToString();
 
         public static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
-        {
-            return string.Join("|", checksums.Select(c => c.ToString()));
-        }
+            => string.Join("|", checksums.Select(c => c.ToString()));
 
         /// <summary>
         /// This structure stores the 20-byte hash as an inline value rather than requiring the use of

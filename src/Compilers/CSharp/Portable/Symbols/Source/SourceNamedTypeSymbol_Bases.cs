@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -109,6 +111,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
+
+            // Records can only inherit from other records or object
+            if (declaration.Kind == DeclarationKind.Record &&
+                localBase.SpecialType != SpecialType.System_Object &&
+                SynthesizedRecordClone.FindValidCloneMethod(localBase) is null)
+            {
+                var baseLocation = FindBaseRefSyntax(localBase);
+                diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+            }
+            else if (declaration.Kind != DeclarationKind.Record &&
+                     SynthesizedRecordClone.FindValidCloneMethod(localBase) is object)
+            {
+                var baseLocation = FindBaseRefSyntax(localBase);
+                diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
+            }
         }
 
         protected override void CheckInterfaces(DiagnosticBag diagnostics)
@@ -156,9 +173,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
-                                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                                {
+                                    diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                }
                             }
-                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames))
+                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
                             }
@@ -256,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
 
-            var interfaceLocations = SpecializedCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
+            var interfaceLocations = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -300,6 +320,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            if (declaration.Kind == DeclarationKind.Record)
+            {
+                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
+                {
+                    baseInterfaces.Add(type);
+                    type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+            }
 
             if ((object)baseType != null)
             {
@@ -458,10 +488,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            if (TypeSymbol.Equals(t, baseType, TypeCompareKind.ConsiderEverything))
+                            if (t.Equals(baseType, TypeCompareKind.ConsiderEverything))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
-                                continue;
+                            }
+                            else if (t.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                            {
+                                // duplicates with ?/! differences are reported later, we report local differences between oblivious and ?/! here
+                                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, baseType, this);
                             }
                         }
 
@@ -562,14 +596,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: basesBeingResolved);
-            bool isClass = (typeKind == TypeKind.Class);
+            bool isInterface = (typeKind == TypeKind.Interface);
 
-            ArrayBuilder<NamedTypeSymbol> result = isClass ? null : ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            ArrayBuilder<NamedTypeSymbol> result = isInterface ? ArrayBuilder<NamedTypeSymbol>.GetInstance() : null;
             foreach (var t in declaredInterfaces)
             {
-                if (!isClass)
+                if (isInterface)
                 {
-                    if (BaseTypeAnalysis.InterfaceDependsOn(depends: t, on: this))
+                    if (BaseTypeAnalysis.TypeDependsOn(depends: t, on: this))
                     {
                         result.Add(new ExtendedErrorTypeSymbol(t, LookupResultKind.NotReferencable,
                             diagnostics.Add(ErrorCode.ERR_CycleInInterfaceInheritance, Locations[0], this, t)));
@@ -602,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return isClass ? declaredInterfaces : result.ToImmutableAndFree();
+            return isInterface ? result.ToImmutableAndFree() : declaredInterfaces;
         }
 
         private NamedTypeSymbol MakeAcyclicBaseType(DiagnosticBag diagnostics)
@@ -650,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (BaseTypeAnalysis.ClassDependsOn(declaredBase, this))
+            if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
                 return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable,
                     diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredBase, this));

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 
@@ -23,22 +27,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         event EventHandler<ProgressData> ProgressChanged;
     }
 
-    internal struct ProgressData
+    internal readonly struct ProgressData
     {
         public ProgressStatus Status { get; }
-        public string FilePathOpt { get; }
 
-        public ProgressData(ProgressStatus type, string filePathOpt)
+        /// <summary>
+        /// number of pending work item in the queue. 
+        /// null means N/A for the associated <see cref="Status"/>
+        /// </summary>
+        public int? PendingItemCount { get; }
+
+        public ProgressData(ProgressStatus type, int? pendingItemCount)
         {
             Status = type;
-            FilePathOpt = filePathOpt;
+            PendingItemCount = pendingItemCount;
         }
     }
 
     internal enum ProgressStatus
     {
         Started,
-        Updated,
-        Stoped
+        Paused,
+        PendingItemCountUpdated,
+        Evaluating,
+        Stopped
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -182,6 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 Debug.Assert(type.IsDefinition);
 
+                if (type.IsNativeIntegerType)
+                {
+                    var result = RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options);
+                    return result.SpecialType == SpecialType.None ? result : result.AsNativeInteger();
+                }
+
                 // Before we do anything else, check if we need to do special retargeting
                 // for primitive type references encoded with enum values in metadata signatures.
                 if (options == RetargetOptions.RetargetPrimitiveTypesByTypeCode)
@@ -321,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                                 if (signatureIndex == 1 && attrData.CommonConstructorArguments.Length == 2)
                                 {
-                                    scope = attrData.CommonConstructorArguments[0].Value as string;
-                                    identifier = attrData.CommonConstructorArguments[1].Value as string;
+                                    scope = attrData.CommonConstructorArguments[0].ValueInternal as string;
+                                    identifier = attrData.CommonConstructorArguments[1].ValueInternal as string;
                                 }
 
                                 break;
@@ -447,19 +455,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public NamedTypeSymbol Retarget(NamedTypeSymbol type, RetargetOptions options)
             {
-                if (type.IsTupleType)
-                {
-                    var newUnderlyingType = Retarget(type.TupleUnderlyingType, options);
-                    if (newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypesWithAnnotations.Length))
-                    {
-                        return ((TupleTypeSymbol)type).WithUnderlyingType(newUnderlyingType);
-                    }
-                    else
-                    {
-                        return newUnderlyingType;
-                    }
-                }
-
                 NamedTypeSymbol originalDefinition = type.OriginalDefinition;
 
                 NamedTypeSymbol newDefinition = RetargetNamedTypeDefinition(originalDefinition, options);
@@ -557,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     TypeMap substitution = new TypeMap(newParameters.ToImmutableAndFree(), newArguments.ToImmutable());
 
-                    constructedType = substitution.SubstituteNamedType(newDefinition);
+                    constructedType = substitution.SubstituteNamedType(newDefinition).WithTupleDataFrom(type);
                 }
 
                 newArguments.Free();
@@ -638,11 +633,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     case SymbolKind.NamedType:
 
                         var namedType = (NamedTypeSymbol)symbol;
-                        if (namedType.IsTupleType)
-                        {
-                            namedType = namedType.TupleUnderlyingType;
-                        }
-
                         if ((object)symbol.OriginalDefinition.ContainingModule == (object)_retargetingModule.UnderlyingModule &&
                             namedType.IsExplicitDefinitionOfNoPiaLocalType)
                         {
@@ -700,9 +690,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 for (int i = 0; i < oldModifiers.Length; i++)
                 {
                     var oldModifier = oldModifiers[i];
-                    NamedTypeSymbol newModifier = Retarget((NamedTypeSymbol)oldModifier.Modifier, RetargetOptions.RetargetPrimitiveTypesByName); // should be retargeted by name
+                    NamedTypeSymbol oldModifierSymbol = ((CSharpCustomModifier)oldModifier).ModifierSymbol;
+                    NamedTypeSymbol newModifierSymbol = Retarget(oldModifierSymbol, RetargetOptions.RetargetPrimitiveTypesByName); // should be retargeted by name
 
-                    if (!newModifier.Equals(oldModifier.Modifier))
+                    if (!newModifierSymbol.Equals(oldModifierSymbol))
                     {
                         if (newModifiers == null)
                         {
@@ -711,8 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         }
 
                         newModifiers.Add(oldModifier.IsOptional ?
-                                            CSharpCustomModifier.CreateOptional(newModifier) :
-                                            CSharpCustomModifier.CreateRequired(newModifier));
+                                            CSharpCustomModifier.CreateOptional(newModifierSymbol) :
+                                            CSharpCustomModifier.CreateRequired(newModifierSymbol));
                     }
                     else if (newModifiers != null)
                     {
@@ -736,6 +727,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 return new PointerTypeSymbol(newPointed);
+            }
+
+            public FunctionPointerTypeSymbol Retarget(FunctionPointerTypeSymbol type)
+            {
+                var signature = type.Signature;
+                var newReturn = Retarget(signature.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                var newRefModifiers = RetargetModifiers(signature.RefCustomModifiers, out bool symbolModified);
+                symbolModified = symbolModified || !signature.ReturnTypeWithAnnotations.IsSameAs(newReturn);
+
+                var newParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+                ImmutableArray<ImmutableArray<CustomModifier>> newParamModifiers = default;
+
+                var paramCount = signature.ParameterCount;
+                if (paramCount > 0)
+                {
+                    var newParameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(paramCount);
+                    var newParameterCustomModifiersBuilder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(paramCount);
+                    bool parametersModified = false;
+
+                    foreach (var parameter in signature.Parameters)
+                    {
+                        var newParameterType = Retarget(parameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                        var newModifiers = RetargetModifiers(parameter.RefCustomModifiers, out bool customModifiersChanged);
+                        newParameterTypesBuilder.Add(newParameterType);
+                        newParameterCustomModifiersBuilder.Add(newModifiers);
+                        parametersModified = parametersModified || !parameter.TypeWithAnnotations.IsSameAs(newParameterType) || customModifiersChanged;
+                    }
+
+                    if (parametersModified)
+                    {
+                        newParameterTypes = newParameterTypesBuilder.ToImmutableAndFree();
+                        newParamModifiers = newParameterCustomModifiersBuilder.ToImmutableAndFree();
+                        symbolModified = true;
+                    }
+                    else
+                    {
+                        newParameterTypesBuilder.Free();
+                        newParameterCustomModifiersBuilder.Free();
+                        newParameterTypes = signature.ParameterTypesWithAnnotations;
+                    }
+                }
+
+                if (symbolModified)
+                {
+                    return type.SubstituteTypeSymbol(newReturn, newParameterTypes, newRefModifiers, newParamModifiers);
+                }
+                else
+                {
+                    return type;
+                }
             }
 
             public static ErrorTypeSymbol Retarget(ErrorTypeSymbol type)
@@ -804,8 +845,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 foreach (var ts in sequence)
                 {
-                    // In incorrect code, a type parameter constraint list can contain primitive types.
-                    Debug.Assert(ts.TypeKind == TypeKind.Error || ts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
                     result.Add(Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName));
                 }
 
@@ -951,6 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         IndexedTypeParameterSymbol.Take(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
+                        method.IsInitOnly,
                         translator.Retarget(method.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         translator.RetargetModifiers(method.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                         ImmutableArray<MethodSymbol>.Empty);
@@ -1148,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             private TypedConstant RetargetTypedConstant(TypedConstant oldConstant, ref bool typedConstantChanged)
             {
-                TypeSymbol oldConstantType = (TypeSymbol)oldConstant.Type;
+                TypeSymbol oldConstantType = (TypeSymbol)oldConstant.TypeInternal;
                 TypeSymbol newConstantType = (object)oldConstantType == null ?
                     null :
                     Retarget(oldConstantType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
@@ -1168,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 object newConstantValue;
-                object oldConstantValue = oldConstant.Value;
+                object oldConstantValue = oldConstant.ValueInternal;
                 if ((oldConstant.Kind == TypedConstantKind.Type) && (oldConstantValue != null))
                 {
                     newConstantValue = Retarget((TypeSymbol)oldConstantValue, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
@@ -1265,6 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol, RetargetOptions options)
+            {
+                return Retarget(symbol);
+            }
+
+            public override Symbol VisitFunctionPointerType(FunctionPointerTypeSymbol symbol, RetargetOptions argument)
             {
                 return Retarget(symbol);
             }

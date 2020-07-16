@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -9,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provides a description about a programmatic suppression of a <see cref="Diagnostic"/> by a <see cref="DiagnosticSuppressor"/>.
     /// </summary>
-    public sealed class SuppressionDescriptor : IEquatable<SuppressionDescriptor>
+    public sealed class SuppressionDescriptor : IEquatable<SuppressionDescriptor?>
     {
         /// <summary>
         /// An unique identifier for the suppression.
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             this.Justification = justification ?? throw new ArgumentNullException(nameof(justification));
         }
 
-        public bool Equals(SuppressionDescriptor other)
+        public bool Equals(SuppressionDescriptor? other)
         {
             if (ReferenceEquals(this, other))
             {
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis
                 this.Justification.Equals(other.Justification);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as SuppressionDescriptor);
         }

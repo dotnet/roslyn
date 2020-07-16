@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
@@ -23,7 +29,7 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = SignatureCallingConvention.CDecl,
+        CDecl = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
@@ -63,7 +69,51 @@ namespace Microsoft.Cci
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = SignatureAttributes.ExplicitThis
+        ExplicitThis = SignatureAttributes.ExplicitThis,
+    }
+
+    internal static class CallingConventionUtils
+    {
+        private const SignatureCallingConvention SignatureCallingConventionMask =
+            SignatureCallingConvention.Default
+            | SignatureCallingConvention.CDecl
+            | SignatureCallingConvention.StdCall
+            | SignatureCallingConvention.ThisCall
+            | SignatureCallingConvention.FastCall
+            | SignatureCallingConvention.VarArgs;
+
+        private const SignatureAttributes SignatureAttributesMask =
+            SignatureAttributes.Generic
+            | SignatureAttributes.Instance
+            | SignatureAttributes.ExplicitThis;
+
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        {
+            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
+            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
+            return callingConvention;
+        }
+
+        internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
+            => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
+
+        /// <summary>
+        /// Compares calling conventions, ignoring calling convention attributes.
+        /// </summary>
+        internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
+        {
+            Debug.Assert((compare & ~(CallingConvention)SignatureCallingConventionMask) == 0);
+            return ((original & (CallingConvention)SignatureCallingConventionMask)) == compare;
+        }
+
+        internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
+            => (convention & ~((CallingConvention)SignatureCallingConventionMask
+                               | (CallingConvention)SignatureAttributesMask))
+               != 0;
     }
 
     /// <summary>
@@ -85,7 +135,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method used to call the event handlers when the event occurs. May be null.
         /// </summary>
-        IMethodReference/*?*/ Caller { get; }
+        IMethodReference? Caller { get; }
 
         /// <summary>
         /// True if the event gets special treatment from the runtime.
@@ -118,7 +168,7 @@ namespace Microsoft.Cci
         /// The compile time value of the field. This value should be used directly in IL, rather than a reference to the field.
         /// If the field does not have a valid compile time value, Dummy.Constant is returned.
         /// </summary>
-        MetadataConstant GetCompileTimeValue(EmitContext context);
+        MetadataConstant? GetCompileTimeValue(EmitContext context);
 
         /// <summary>
         /// Mapped field data, or null if the field is not mapped.
@@ -166,7 +216,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Specifies how this field is marshalled when it is accessed from unmanaged code.
         /// </summary>
-        IMarshallingInformation MarshallingInformation
+        IMarshallingInformation? MarshallingInformation
         {
             get;
             // ^ requires this.IsMarshalledExplicitly;
@@ -204,10 +254,10 @@ namespace Microsoft.Cci
         /// <summary>
         /// The Field being referred to.
         /// </summary>
-        IFieldDefinition GetResolvedField(EmitContext context);
+        IFieldDefinition? GetResolvedField(EmitContext context);
 
 
-        ISpecializedFieldReference AsSpecializedFieldReference { get; }
+        ISpecializedFieldReference? AsSpecializedFieldReference { get; }
 
 
         /// <summary>
@@ -300,7 +350,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Optional serialized local signature.
         /// </summary>
-        byte[] Signature { get; }
+        byte[]? Signature { get; }
 
         /// <summary>
         /// Local id, or <see cref="LocalDebugId.None"/> if this is a local constant, short-lived temp variable, 
@@ -326,7 +376,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// True if the locals are initialized by zeroing the stack upon method entry.
         /// </summary>
-        bool LocalsAreZeroed { get; }
+        bool AreLocalsZeroed { get; }
+
+        /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        bool HasStackalloc { get; }
 
         /// <summary>
         /// The local variables of the method.
@@ -593,7 +648,7 @@ namespace Microsoft.Cci
         /// A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         /// Null if the parameter doesn't have default value.
         /// </summary>
-        MetadataConstant GetDefaultValue(EmitContext context);
+        MetadataConstant? GetDefaultValue(EmitContext context);
 
         /// <summary>
         /// True if the parameter has a default value that should be supplied as the argument value by a caller for which the argument value has not been explicitly specified.
@@ -627,7 +682,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Specifies how this parameter is marshalled when it is accessed from unmanaged code.
         /// </summary>
-        IMarshallingInformation MarshallingInformation
+        IMarshallingInformation? MarshallingInformation
         {
             get;
             // ^ requires this.IsMarshalledExplicitly;
@@ -657,7 +712,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A compile time constant value that provides the default value for the property. (Who uses this and why?)
         /// </summary>
-        MetadataConstant DefaultValue
+        MetadataConstant? DefaultValue
         {
             get;
             // ^ requires this.HasDefaultValue;
@@ -666,7 +721,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method used to get the value of this property. May be absent (null).
         /// </summary>
-        IMethodReference/*?*/ Getter { get; }
+        IMethodReference? Getter { get; }
 
         /// <summary>
         /// True if this property has a compile time constant associated with that serves as a default value for the property. (Who uses this and why?)
@@ -691,7 +746,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method used to set the value of this property. May be absent (null).
         /// </summary>
-        IMethodReference/*?*/ Setter { get; }
+        IMethodReference? Setter { get; }
     }
 
     /// <summary>
@@ -781,7 +836,8 @@ namespace Microsoft.Cci
         /// type of a generic type instance), then the unspecialized member refers to a member from the unspecialized containing type. (I.e. the unspecialized member always
         /// corresponds to a definition that is not obtained via specialization.)
         /// </summary>
-        IEventDefinition/*!*/ UnspecializedVersion
+        [NotNull]
+        IEventDefinition UnspecializedVersion
         {
             get;
         }
@@ -825,7 +881,8 @@ namespace Microsoft.Cci
         /// type of a generic type instance), then the unspecialized member refers to a member from the unspecialized containing type. (I.e. the unspecialized member always
         /// corresponds to a definition that is not obtained via specialization.)
         /// </summary>
-        IPropertyDefinition/*!*/ UnspecializedVersion
+        [NotNull]
+        IPropertyDefinition UnspecializedVersion
         {
             get;
         }
@@ -859,7 +916,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method being referred to.
         /// </summary>
-        IMethodDefinition GetResolvedMethod(EmitContext context);
+        IMethodDefinition? GetResolvedMethod(EmitContext context);
         // ^ ensures this is IMethodDefinition ==> result == this;
 
         /// <summary>
@@ -867,8 +924,8 @@ namespace Microsoft.Cci
         /// </summary>
         ImmutableArray<IParameterTypeInformation> ExtraParameters { get; }
 
-        IGenericMethodInstanceReference AsGenericMethodInstanceReference { get; }
-        ISpecializedMethodReference AsSpecializedMethodReference { get; }
+        IGenericMethodInstanceReference? AsGenericMethodInstanceReference { get; }
+        ISpecializedMethodReference? AsSpecializedMethodReference { get; }
     }
 
     /// <summary>

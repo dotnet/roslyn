@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -66,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 lastTokenAnnotation)
         End Sub
 
-        Protected Overrides Function UnderAsyncAnonymousMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
+        Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
             Dim current = token.Parent
 
             While current IsNot Nothing
@@ -137,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End If
 
-            Dim expression As ExpressionSyntax = Nothing
+            Dim expression As ExpressionSyntax
             If TypeOf node Is CollectionInitializerSyntax Then
                 expression = node.GetUnparenthesizedExpression()
                 Return semanticModel.GetTypeInfo(expression).ConvertedType
@@ -188,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             ' use FormattableString if conversion between String And FormattableString
-            If info.Type?.SpecialType = SpecialType.System_String AndAlso
+            If (info.Type?.SpecialType = SpecialType.System_String).GetValueOrDefault() AndAlso
                info.ConvertedType?.IsFormattableString() Then
 
                 Return info.ConvertedType
@@ -284,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             ' Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement))
             ' Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit))
             ' Return last.Parent.Parent
-            Return Contract.FailWithReturn(Of SyntaxNode)("No REPL yet")
+            throw ExceptionUtilities.Unreachable
         End Function
 
         Public Function IsUnderModuleBlock() As Boolean

@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -12,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Enumerates the elements of a <see cref="ChildSyntaxList" />.</summary>
         public struct Enumerator
         {
-            private SyntaxNode _node;
+            private SyntaxNode? _node;
             private int _count;
             private int _childIndex;
 
@@ -34,6 +39,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>Advances the enumerator to the next element of the <see cref="ChildSyntaxList" />.</summary>
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
+            // MemberNotNullWhen(true, nameof(_node)) https://github.com/dotnet/roslyn/issues/41964
             public bool MoveNext()
             {
                 var newIndex = _childIndex + 1;
@@ -52,6 +58,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
+                    Debug.Assert(_node is object);
                     return ItemInternal(_node, _childIndex);
                 }
             }
@@ -70,15 +77,17 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                current = ItemInternal(_node, _childIndex);
+                // node! can be removed when we enable MemberNotNull https://github.com/dotnet/roslyn/issues/41964
+                current = ItemInternal(_node!, _childIndex);
                 return true;
             }
 
-            internal SyntaxNode TryMoveNextAndGetCurrentAsNode()
+            internal SyntaxNode? TryMoveNextAndGetCurrentAsNode()
             {
                 while (MoveNext())
                 {
-                    var nodeValue = ItemInternalAsNode(_node, _childIndex);
+                    // node! can be removed when we enable MemberNotNull https://github.com/dotnet/roslyn/issues/41964
+                    var nodeValue = ItemInternalAsNode(_node!, _childIndex);
                     if (nodeValue != null)
                     {
                         return nodeValue;

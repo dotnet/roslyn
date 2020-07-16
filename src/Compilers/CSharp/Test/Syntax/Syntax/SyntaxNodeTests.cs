@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -494,7 +496,7 @@ a + b";
 
             // var node = t1.GetCompilationUnitRoot().Usings[0].GetTokens(new TextSpan(6, 3)).First();
             var node = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(6, 3)).First();
-            Assert.Equal(node.ToString(), "Goo");
+            Assert.Equal("Goo", node.ToString());
         }
 
         [Fact]
@@ -544,7 +546,7 @@ a + b";
             for (int i = 0; i < node.FullSpan.End; i++)
             {
                 var token = node.FindToken(i);
-                Assert.Equal(true, token.FullSpan.Contains(i));
+                Assert.True(token.FullSpan.Contains(i));
             }
         }
 
@@ -1517,8 +1519,8 @@ class A { }
 
             Assert.Equal(rootNode.FullSpan.Length, rootNode.ToFullString().Length);
             Assert.Equal(rootNode.Span.Length, rootNode.ToString().Length);
-            Assert.Equal(true, rootNode.ToString().Contains("/*END*/"));
-            Assert.Equal(false, rootNode.ToString().Contains("/*START*/"));
+            Assert.True(rootNode.ToString().Contains("/*END*/"));
+            Assert.False(rootNode.ToString().Contains("/*START*/"));
         }
 
         [WorkItem(536996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536996")]
@@ -1535,8 +1537,8 @@ namespace Microsoft.CSharp.Test
 
             Assert.Equal(rootNode.FullSpan.Length, rootNode.ToFullString().Length);
             Assert.Equal(rootNode.Span.Length, rootNode.ToString().Length);
-            Assert.Equal(true, rootNode.ToString().Contains("/*END*/"));
-            Assert.Equal(false, rootNode.ToString().Contains("/*START*/"));
+            Assert.True(rootNode.ToString().Contains("/*END*/"));
+            Assert.False(rootNode.ToString().Contains("/*START*/"));
         }
 
         [Fact]
@@ -3019,13 +3021,13 @@ class A { } #endregion";
             var s1 = "int goo(int a, int b, int c) {}";
             var tree = SyntaxFactory.ParseSyntaxTree(s1);
 
-            dynamic root = tree.GetCompilationUnitRoot();
-            MethodDeclarationSyntax method = root.Members[0];
+            var root = tree.GetCompilationUnitRoot();
+            var method = (LocalFunctionStatementSyntax)((GlobalStatementSyntax)root.Members[0]).Statement;
 
             var list = (SeparatedSyntaxList<ParameterSyntax>)method.ParameterList.Parameters;
 
-            Assert.Equal(((SyntaxToken)list.GetSeparator(0)).Kind(), SyntaxKind.CommaToken);
-            Assert.Equal(((SyntaxToken)list.GetSeparator(1)).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal(SyntaxKind.CommaToken, ((SyntaxToken)list.GetSeparator(0)).Kind());
+            Assert.Equal(SyntaxKind.CommaToken, ((SyntaxToken)list.GetSeparator(1)).Kind());
 
             foreach (var index in new int[] { -1, 2 })
             {
@@ -3044,21 +3046,21 @@ class A { } #endregion";
             var internalParameterList = (InternalSyntax.ParameterListSyntax)method.ParameterList.Green;
             var internalParameters = internalParameterList.Parameters;
 
-            Assert.Equal(internalParameters.SeparatorCount, 2);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(0))).Kind(), SyntaxKind.CommaToken);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(1))).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal(2, internalParameters.SeparatorCount);
+            Assert.Equal(SyntaxKind.CommaToken, (new SyntaxToken(internalParameters.GetSeparator(0))).Kind());
+            Assert.Equal(SyntaxKind.CommaToken, (new SyntaxToken(internalParameters.GetSeparator(1))).Kind());
 
-            Assert.Equal(internalParameters.Count, 3);
-            Assert.Equal(internalParameters[0].Identifier.ValueText, "a");
-            Assert.Equal(internalParameters[1].Identifier.ValueText, "b");
-            Assert.Equal(internalParameters[2].Identifier.ValueText, "c");
+            Assert.Equal(3, internalParameters.Count);
+            Assert.Equal("a", internalParameters[0].Identifier.ValueText);
+            Assert.Equal("b", internalParameters[1].Identifier.ValueText);
+            Assert.Equal("c", internalParameters[2].Identifier.ValueText);
         }
 
         [Fact]
         public void ThrowIfUnderlyingNodeIsNullForList()
         {
             var list = new SyntaxNodeOrTokenList();
-            Assert.Equal(list.Count, 0);
+            Assert.Equal(0, list.Count);
 
             foreach (var index in new int[] { -1, 0, 23 })
             {
@@ -3079,7 +3081,7 @@ class A { } #endregion";
         [Fact]
         public void GetDiagnosticsOnMissingToken()
         {
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(@"c1<t");
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(@"namespace n1 { c1<t");
             var token = syntaxTree.FindNodeOrTokenByKind(SyntaxKind.GreaterThanToken);
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
@@ -3113,19 +3115,6 @@ class Base<T>
             }
 
             // TODO: Please add meaningful checks once the above deadlock issue is fixed.
-        }
-
-        [WorkItem(541587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541587")]
-        [Fact]
-        public void GetDiagnosticsOnMissingToken3()
-        {
-            const string code = @"class c2 4";
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf('4'));
-            var diag = syntaxTree.GetDiagnostics(token).ToList();
-
-            Assert.True(token.IsMissing);
-            Assert.Equal(2, diag.Count);
         }
 
         [WorkItem(541648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541648")]
@@ -3454,101 +3443,101 @@ namespace HelloWorld
         {
             // token constructed using factory w/o specifying trivia (should have zero-width elastic trivia)
             var idToken = SyntaxFactory.Identifier("goo");
-            Assert.Equal(true, idToken.HasLeadingTrivia);
+            Assert.True(idToken.HasLeadingTrivia);
             Assert.Equal(1, idToken.LeadingTrivia.Count);
             Assert.Equal(0, idToken.LeadingTrivia.Span.Length); // zero-width elastic trivia
-            Assert.Equal(true, idToken.HasTrailingTrivia);
+            Assert.True(idToken.HasTrailingTrivia);
             Assert.Equal(1, idToken.TrailingTrivia.Count);
             Assert.Equal(0, idToken.TrailingTrivia.Span.Length); // zero-width elastic trivia
 
             // token constructed by parser w/o trivia
             idToken = SyntaxFactory.ParseToken("x");
-            Assert.Equal(false, idToken.HasLeadingTrivia);
+            Assert.False(idToken.HasLeadingTrivia);
             Assert.Equal(0, idToken.LeadingTrivia.Count);
-            Assert.Equal(false, idToken.HasTrailingTrivia);
+            Assert.False(idToken.HasTrailingTrivia);
             Assert.Equal(0, idToken.TrailingTrivia.Count);
 
             // token constructed by parser with trivia
             idToken = SyntaxFactory.ParseToken(" x  ");
-            Assert.Equal(true, idToken.HasLeadingTrivia);
+            Assert.True(idToken.HasLeadingTrivia);
             Assert.Equal(1, idToken.LeadingTrivia.Count);
             Assert.Equal(1, idToken.LeadingTrivia.Span.Length);
-            Assert.Equal(true, idToken.HasTrailingTrivia);
+            Assert.True(idToken.HasTrailingTrivia);
             Assert.Equal(1, idToken.TrailingTrivia.Count);
             Assert.Equal(2, idToken.TrailingTrivia.Span.Length);
 
             // node constructed using factory w/o specifying trivia
             SyntaxNode namedNode = SyntaxFactory.IdentifierName("goo");
-            Assert.Equal(true, namedNode.HasLeadingTrivia);
+            Assert.True(namedNode.HasLeadingTrivia);
             Assert.Equal(1, namedNode.GetLeadingTrivia().Count);
             Assert.Equal(0, namedNode.GetLeadingTrivia().Span.Length);  // zero-width elastic trivia
-            Assert.Equal(true, namedNode.HasTrailingTrivia);
+            Assert.True(namedNode.HasTrailingTrivia);
             Assert.Equal(1, namedNode.GetTrailingTrivia().Count);
             Assert.Equal(0, namedNode.GetTrailingTrivia().Span.Length);  // zero-width elastic trivia
 
             // node constructed by parse w/o trivia
             namedNode = SyntaxFactory.ParseExpression("goo");
-            Assert.Equal(false, namedNode.HasLeadingTrivia);
+            Assert.False(namedNode.HasLeadingTrivia);
             Assert.Equal(0, namedNode.GetLeadingTrivia().Count);
-            Assert.Equal(false, namedNode.HasTrailingTrivia);
+            Assert.False(namedNode.HasTrailingTrivia);
             Assert.Equal(0, namedNode.GetTrailingTrivia().Count);
 
             // node constructed by parse with trivia
             namedNode = SyntaxFactory.ParseExpression(" goo  ");
-            Assert.Equal(true, namedNode.HasLeadingTrivia);
+            Assert.True(namedNode.HasLeadingTrivia);
             Assert.Equal(1, namedNode.GetLeadingTrivia().Count);
             Assert.Equal(1, namedNode.GetLeadingTrivia().Span.Length);
-            Assert.Equal(true, namedNode.HasTrailingTrivia);
+            Assert.True(namedNode.HasTrailingTrivia);
             Assert.Equal(1, namedNode.GetTrailingTrivia().Count);
             Assert.Equal(2, namedNode.GetTrailingTrivia().Span.Length);
 
             // nodeOrToken with token constructed from factory w/o specifying trivia
             SyntaxNodeOrToken nodeOrToken = SyntaxFactory.Identifier("goo");
-            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.True(nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
-            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.True(nodeOrToken.HasTrailingTrivia);
             Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
 
             // nodeOrToken with node constructed from factory w/o specifying trivia
             nodeOrToken = SyntaxFactory.IdentifierName("goo");
-            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.True(nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
-            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.True(nodeOrToken.HasTrailingTrivia);
             Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
 
             // nodeOrToken with token parsed from factory w/o trivia
             nodeOrToken = SyntaxFactory.ParseToken("goo");
-            Assert.Equal(false, nodeOrToken.HasLeadingTrivia);
+            Assert.False(nodeOrToken.HasLeadingTrivia);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Count);
-            Assert.Equal(false, nodeOrToken.HasTrailingTrivia);
+            Assert.False(nodeOrToken.HasTrailingTrivia);
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Count);
 
             // nodeOrToken with node parsed from factory w/o trivia
             nodeOrToken = SyntaxFactory.ParseExpression("goo");
-            Assert.Equal(false, nodeOrToken.HasLeadingTrivia);
+            Assert.False(nodeOrToken.HasLeadingTrivia);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Count);
-            Assert.Equal(false, nodeOrToken.HasTrailingTrivia);
+            Assert.False(nodeOrToken.HasTrailingTrivia);
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Count);
 
             // nodeOrToken with token parsed from factory with trivia
             nodeOrToken = SyntaxFactory.ParseToken(" goo  ");
-            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.True(nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
-            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.True(nodeOrToken.HasTrailingTrivia);
             Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
             Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
 
             // nodeOrToken with node parsed from factory with trivia
             nodeOrToken = SyntaxFactory.ParseExpression(" goo  ");
-            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.True(nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
-            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.True(nodeOrToken.HasTrailingTrivia);
             Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
             Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
         }

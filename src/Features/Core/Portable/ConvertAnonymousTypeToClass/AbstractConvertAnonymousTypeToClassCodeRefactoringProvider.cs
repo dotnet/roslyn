@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -61,10 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToClassAsync(document, textSpan, c)));
+                c => ConvertToClassAsync(document, textSpan, c)),
+                anonymousObject.Span);
         }
 
-        private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
+        private static async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             // Gets a `TAnonymousObjectCreationExpressionSyntax` for current selection.
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             var editor = new SyntaxEditor(root, generator);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var containingMember = anonymousObject.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember) ?? anonymousObject;
+            var containingMember = anonymousObject.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? anonymousObject;
 
             // Next, go and update any references to these anonymous type properties to match
             // the new PascalCased name we've picked for the new properties that will go in
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 updatedDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task ReplacePropertyReferencesAsync(
+        private static async Task ReplacePropertyReferencesAsync(
             Document document, SyntaxEditor editor, SyntaxNode containingMember,
             ImmutableDictionary<IPropertySymbol, string> propertyMap, CancellationToken cancellationToken)
         {
@@ -170,8 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                     continue;
                 }
 
-                var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() as IPropertySymbol;
-                if (symbol == null)
+                if (!(semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() is IPropertySymbol symbol))
                 {
                     continue;
                 }
@@ -293,14 +295,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 document, namedTypeWithoutMembers,
                 readonlyProperties, cancellationToken).ConfigureAwait(false);
 
-            var members = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
             members.AddRange(properties);
             members.Add(constructor);
             members.Add(equalsMethod);
             members.Add(getHashCodeMethod);
 
-            var namedTypeSymbol = CreateNamedType(className, capturedTypeParameters, members.ToImmutableAndFree());
-            return namedTypeSymbol;
+            return CreateNamedType(className, capturedTypeParameters, members.ToImmutable());
         }
 
         private static INamedTypeSymbol CreateNamedType(

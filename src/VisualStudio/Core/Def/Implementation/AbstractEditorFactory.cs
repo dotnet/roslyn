@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.IO;
@@ -25,34 +29,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// <summary>
     /// The base class of both the Roslyn editor factories.
     /// </summary>
-    internal abstract partial class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
+    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
     {
         private readonly IComponentModel _componentModel;
-        private Microsoft.VisualStudio.OLE.Interop.IServiceProvider _oleServiceProvider;
+        private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
         private bool _encoding;
 
         protected AbstractEditorFactory(IComponentModel componentModel)
-        {
-            _componentModel = componentModel;
-        }
+            => _componentModel = componentModel;
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
 
         public void SetEncoding(bool value)
-        {
-            _encoding = value;
-        }
+            => _encoding = value;
 
         int IVsEditorFactory.Close()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int CreateEditorInstance(
             uint grfCreateDoc,
             string pszMkDocument,
-            string pszPhysicalView,
+            string? pszPhysicalView,
             IVsHierarchy vsHierarchy,
             uint itemid,
             IntPtr punkDocDataExisting,
@@ -68,11 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             pguidCmdUI = Guid.Empty;
             pgrfCDW = 0;
 
-            var physicalView = pszPhysicalView == null
-                ? "Code"
-                : pszPhysicalView;
-
-            IVsTextBuffer textBuffer = null;
+            var physicalView = pszPhysicalView ?? "Code";
+            IVsTextBuffer? textBuffer = null;
 
             // Is this document already open? If so, let's see if it's a IVsTextBuffer we should re-use. This allows us
             // to properly handle multiple windows open for the same document.
@@ -130,9 +125,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     // We must create the WinForms designer here
                     var loaderName = GetWinFormsLoaderName(vsHierarchy);
-
                     var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
                     var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
+                    if (designerLoader is null)
+                    {
+                        goto case "Code";
+                    }
 
                     try
                     {
@@ -173,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        private string? GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
         {
             const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
             const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
@@ -189,23 +187,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             try
             {
                 var frameworkName = new FrameworkName(targetFrameworkMoniker);
-
-                if (frameworkName.Identifier == ".NETCoreApp" &&
-                    frameworkName.Version?.Major >= 3)
+                if (frameworkName.Identifier == ".NETCoreApp" && frameworkName.Version?.Major >= 3)
                 {
                     return NewLoaderName;
                 }
             }
             catch
             {
-                // Fall back to the old loader name if there are any failures 
+                // Fall back to the old loader name if there are any failures
                 // while parsing the TFM.
             }
 
             return LoaderName;
         }
 
-        public int MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
+        public int MapLogicalView(ref Guid rguidLogicalView, out string? pbstrPhysicalView)
         {
             pbstrPhysicalView = null;
 
@@ -234,9 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsEditorFactoryNotify.NotifyDependentItemSaved(IVsHierarchy pHier, uint itemidParent, string pszMkDocumentParent, uint itemidDpendent, string pszMkDocumentDependent)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         int IVsEditorFactoryNotify.NotifyItemAdded(uint grfEFN, IVsHierarchy pHier, uint itemid, string pszMkDocument)
         {
@@ -255,9 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
@@ -267,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var workspace = _componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
-            ProjectId projectIdToAddTo = null;
+            ProjectId? projectIdToAddTo = null;
 
             foreach (var projectId in solution.ProjectIds)
             {
@@ -292,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var documentId = DocumentId.CreateNewId(projectIdToAddTo);
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
-            var addedDocument = forkedSolution.GetDocument(documentId);
+            var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
             var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
@@ -301,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);
+            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine)!;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)
@@ -319,11 +311,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             IOUtilities.PerformIO(() =>
             {
-                using (var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding))
-                {
-                    // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
-                    formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
-                }
+                using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding);
+                // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
+                formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
         }
     }

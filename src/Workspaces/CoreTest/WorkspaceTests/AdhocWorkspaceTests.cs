@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -166,7 +167,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(0, ws.CurrentSolution.Projects.Count());
 
             var result = ws.TryApplyChanges(newSolution);
-            Assert.Equal(result, true);
+            Assert.True(result);
 
             Assert.Equal(1, ws.CurrentSolution.Projects.Count());
             var proj = ws.CurrentSolution.Projects.First();
@@ -200,7 +201,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(0, newSolution.Projects.Count());
 
             var result = ws.TryApplyChanges(newSolution);
-            Assert.Equal(true, result);
+            Assert.True(result);
 
             Assert.Equal(0, ws.CurrentSolution.Projects.Count());
         }
@@ -223,20 +224,20 @@ language: LanguageNames.CSharp);
             using var ws = new AdhocWorkspace();
             ws.AddProject(projInfo);
             var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-            Assert.Equal(false, doc.TryGetText(out var currentText));
+            Assert.False(doc.TryGetText(out var currentText));
 
             ws.OpenDocument(docInfo.Id);
 
             doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-            Assert.Equal(true, doc.TryGetText(out currentText));
-            Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
+            Assert.True(doc.TryGetText(out currentText));
+            Assert.True(doc.TryGetTextVersion(out var currentVersion));
             Assert.Same(text, currentText);
             Assert.Equal(version, currentVersion);
 
             ws.CloseDocument(docInfo.Id);
 
             doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-            Assert.Equal(false, doc.TryGetText(out currentText));
+            Assert.False(doc.TryGetText(out currentText));
         }
 
         [Fact]
@@ -257,20 +258,20 @@ language: LanguageNames.CSharp);
             using var ws = new AdhocWorkspace();
             ws.AddProject(projInfo);
             var doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
-            Assert.Equal(false, doc.TryGetText(out var currentText));
+            Assert.False(doc.TryGetText(out var currentText));
 
             ws.OpenAdditionalDocument(docInfo.Id);
 
             doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
-            Assert.Equal(true, doc.TryGetText(out currentText));
-            Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
+            Assert.True(doc.TryGetText(out currentText));
+            Assert.True(doc.TryGetTextVersion(out var currentVersion));
             Assert.Same(text, currentText);
             Assert.Equal(version, currentVersion);
 
             ws.CloseAdditionalDocument(docInfo.Id);
 
             doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
-            Assert.Equal(false, doc.TryGetText(out currentText));
+            Assert.False(doc.TryGetText(out currentText));
         }
 
         [Fact]
@@ -297,20 +298,20 @@ language: LanguageNames.CSharp);
             {
                 ws.AddProject(projInfo);
                 var doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out var currentText));
+                Assert.False(doc.TryGetText(out var currentText));
 
                 ws.OpenAnalyzerConfigDocument(docInfo.Id);
 
                 doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
-                Assert.Equal(true, doc.TryGetText(out currentText));
-                Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
+                Assert.True(doc.TryGetText(out currentText));
+                Assert.True(doc.TryGetTextVersion(out var currentVersion));
                 Assert.Same(text, currentText);
                 Assert.Equal(version, currentVersion);
 
                 ws.CloseAnalyzerConfigDocument(docInfo.Id);
 
                 doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out currentText));
+                Assert.False(doc.TryGetText(out currentText));
             }
         }
 
@@ -351,13 +352,13 @@ language: LanguageNames.CSharp);
             using var ws = new AdhocWorkspace();
             ws.AddProject(projInfo);
             var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-            Assert.Equal(false, doc.TryGetText(out var currentText));
-            Assert.Equal(false, doc.TryGetTextVersion(out var currentVersion));
+            Assert.False(doc.TryGetText(out var currentText));
+            Assert.False(doc.TryGetTextVersion(out var currentVersion));
 
             // cause text to load and show that TryGet now works for text and version
             currentText = await doc.GetTextAsync();
-            Assert.Equal(true, doc.TryGetText(out currentText));
-            Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
+            Assert.True(doc.TryGetText(out currentText));
+            Assert.True(doc.TryGetTextVersion(out currentVersion));
             Assert.Equal(version, currentVersion);
 
             // change document
@@ -368,10 +369,10 @@ language: LanguageNames.CSharp);
             Assert.NotSame(doc, newDoc);
 
             // text is now unavailable since it must be constructed from tree
-            Assert.Equal(false, newDoc.TryGetText(out currentText));
+            Assert.False(newDoc.TryGetText(out currentText));
 
             // version is available because it is cached
-            Assert.Equal(true, newDoc.TryGetTextVersion(out currentVersion));
+            Assert.True(newDoc.TryGetTextVersion(out currentVersion));
 
             // access it the hard way
             var actualVersion = await newDoc.GetTextVersionAsync();
@@ -380,7 +381,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
 
             // accessing text version did not cause text to be constructed.
-            Assert.Equal(false, newDoc.TryGetText(out currentText));
+            Assert.False(newDoc.TryGetText(out currentText));
 
             // now access text directly (force it to be constructed)
             var actualText = await newDoc.GetTextAsync();
@@ -390,10 +391,11 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
+        private static AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
         {
             var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
-            ws.Options = ws.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
+            ws.TryApplyChanges(ws.CurrentSolution.WithOptions(ws.CurrentSolution.Options
+                .WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return ws;
         }
 
@@ -405,7 +407,7 @@ language: LanguageNames.CSharp);
             await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
         }
 
-        private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
+        private static async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
         {
             var pid = ProjectId.CreateNewId();
             var text = SourceText.From("public class C { }");
@@ -473,9 +475,7 @@ language: LanguageNames.CSharp);
             }
 
             public void SetParseOptions(ProjectId id, ParseOptions options)
-            {
-                base.OnParseOptionsChanged(id, options);
-            }
+                => base.OnParseOptionsChanged(id, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -484,7 +484,7 @@ language: LanguageNames.CSharp);
             using var ws = new AdhocWorkspace();
             var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
             var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-            Assert.Equal(originalDoc.Name, "TestDocument");
+            Assert.Equal("TestDocument", originalDoc.Name);
 
             var newName = "ChangedName";
             var changedDoc = originalDoc.WithName(newName);
@@ -614,7 +614,7 @@ language: LanguageNames.CSharp);
             var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
 
             var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-            Assert.Equal(originalDoc.Name, "TestDocument");
+            Assert.Equal("TestDocument", originalDoc.Name);
             Assert.Equal(0, originalDoc.Folders.Count);
             Assert.Null(originalDoc.FilePath);
 
@@ -644,7 +644,7 @@ language: LanguageNames.CSharp);
             using var ws = new AdhocWorkspace();
             var service = ws.Services.GetService<IDocumentTextDifferencingService>();
             Assert.NotNull(service);
-            Assert.Equal(service.GetType(), typeof(DefaultDocumentTextDifferencingService));
+            Assert.Equal(typeof(DefaultDocumentTextDifferencingService), service.GetType());
         }
     }
 }

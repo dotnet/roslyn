@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -7,24 +13,27 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Internal.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(VisualStudioProjectFactory))]
     internal sealed class VisualStudioProjectFactory
     {
+        private const string SolutionContextName = "Solution";
+        private const string SolutionSessionIdPropertyName = "SolutionSessionID";
+
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         [ImportingConstructor]
-        // TODO: remove the AllowDefault = true on HostDiagnosticUpdateSource by making it a proper mock
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectFactory(
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
-            [ImportMany]IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
-            [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
             _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
@@ -32,9 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
-        {
-            return CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
-        }
+            => CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
@@ -45,15 +52,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitialized();
 
             var id = ProjectId.CreateNewId(projectSystemName);
-            var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
+            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
             // We will use the project system name as the default display name of the project
-            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, displayName: projectSystemName, language, directoryNameOpt);
+            var project = new VisualStudioProject(
+                _visualStudioWorkspaceImpl,
+                _dynamicFileInfoProviders,
+                _hostDiagnosticUpdateSource,
+                id,
+                displayName: projectSystemName,
+                language,
+                assemblyName: assemblyName,
+                compilationOptions: creationInfo.CompilationOptions,
+                filePath: creationInfo.FilePath,
+                parseOptions: creationInfo.ParseOptions);
 
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
-
-            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
             _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
@@ -67,13 +82,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language: language,
                         filePath: creationInfo.FilePath,
                         compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions);
+                        parseOptions: creationInfo.ParseOptions)
+                    .WithTelemetryId(creationInfo.ProjectGuid);
 
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
                 if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
                     // Fetch the current solution path. Since we're on the UI thread right now, we can do that.
-                    string solutionFilePath = null;
+                    string? solutionFilePath = null;
                     var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
                     if (solution != null)
                     {
@@ -84,33 +100,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                     }
 
+                    var solutionSessionId = GetSolutionSessionId();
+
                     w.OnSolutionAdded(
                         SolutionInfo.Create(
                             SolutionId.CreateNewId(solutionFilePath),
                             VersionStamp.Create(),
                             solutionFilePath,
-                            projects: new[] { projectInfo }));
-
-                    // set working folder for the persistent service
-                    var persistenceService = w.Services.GetRequiredService<IPersistentStorageLocationService>() as VisualStudioPersistentStorageLocationService;
-                    persistenceService?.UpdateForVisualStudioWorkspace(w);
+                            projects: new[] { projectInfo },
+                            analyzerReferences: w.CurrentSolution.AnalyzerReferences)
+                        .WithTelemetryId(solutionSessionId));
                 }
                 else
                 {
                     w.OnProjectAdded(projectInfo);
                 }
+
+                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
             });
 
-            // We do all these sets after the w.OnProjectAdded, as the setting of these properties is going to try to modify the workspace
-            // again. Those modifications will all implicitly do nothing, since the workspace already has the values from above.
-            // We could pass these all through the constructor (but that gets verbose), or have some other control to ignore these,
-            // but that seems like overkill.
-            project.AssemblyName = assemblyName;
-            project.CompilationOptions = creationInfo.CompilationOptions;
-            project.FilePath = creationInfo.FilePath;
-            project.ParseOptions = creationInfo.ParseOptions;
-
             return project;
+
+            static Guid GetSolutionSessionId()
+            {
+                try
+                {
+                    var solutionContext = TelemetryHelper.DataModelTelemetrySession.GetContext(SolutionContextName);
+                    var sessionIdProperty = solutionContext is object
+                        ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
+                        : "";
+                    _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
+                    return solutionSessionId;
+                }
+                catch (TypeInitializationException)
+                {
+                    // The TelemetryHelper cannot be constructed during unittests.
+                    return default;
+                }
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -18,21 +20,21 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     [UseExportProvider]
-    public class CSharpFormatterTestsBase : CoreFormatterTestsBase
+    public class CSharpFormatterTestsBase : CSharpFormattingEngineTestBase
     {
+        public CSharpFormatterTestsBase(ITestOutputHelper output) : base(output) { }
+
         protected const string HtmlMarkup = @"<html>
     <body>
         <%{|S1:|}%>
     </body>
 </html>";
         protected const int BaseIndentationOfNugget = 8;
-
-        internal override string GetLanguageName()
-            => LanguageNames.CSharp;
 
         protected static async Task<int> GetSmartTokenFormatterIndentationWorkerAsync(
             TestWorkspace workspace,
@@ -83,39 +85,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         private static void ApplyChanges(ITextBuffer buffer, IList<TextChange> changes)
         {
-            using (var edit = buffer.CreateEdit())
+            using var edit = buffer.CreateEdit();
+            foreach (var change in changes)
             {
-                foreach (var change in changes)
-                {
-                    edit.Replace(change.Span.ToSpan(), change.NewText);
-                }
-
-                edit.Apply();
+                edit.Replace(change.Span.ToSpan(), change.NewText);
             }
+
+            edit.Apply();
         }
 
-        protected async Task<int> GetSmartTokenFormatterIndentationAsync(
+        protected static async Task<int> GetSmartTokenFormatterIndentationAsync(
             string code,
             int indentationLine,
             char ch,
+            bool useTabs,
             int? baseIndentation = null,
             TextSpan span = default)
         {
             // create tree service
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
+
+            if (baseIndentation.HasValue)
             {
-                if (baseIndentation.HasValue)
-                {
-                    var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
-                                as TestFormattingRuleFactoryServiceFactory.Factory;
+                var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
+                            as TestFormattingRuleFactoryServiceFactory.Factory;
 
-                    factory.BaseIndentation = baseIndentation.Value;
-                    factory.TextSpan = span;
-                }
-
-                var buffer = workspace.Documents.First().GetTextBuffer();
-                return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
+                factory.BaseIndentation = baseIndentation.Value;
+                factory.TextSpan = span;
             }
+
+            var buffer = workspace.Documents.First().GetTextBuffer();
+            return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
         }
     }
 }

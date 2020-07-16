@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         AbstractChangeNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpChangeNamespaceService()
         {
         }
@@ -67,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
         protected override string GetDeclaredNamespace(SyntaxNode container)
         {
-            if (container is CompilationUnitSyntax compilationUnit)
+            if (container is CompilationUnitSyntax)
             {
                 return string.Empty;
             }
@@ -96,26 +103,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         }
 
         /// <summary>
-        /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the namespce to be changed.
+        /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the namespace to be changed.
         /// If this reference is the right side of a qualified name, the new node returned would be the entire qualified name. Depends on 
         /// whether <paramref name="newNamespaceParts"/> is provided, the name in the new node might be qualified with this new namespace instead.
         /// </summary>
-        /// <param name="reference">A reference to a type declared inside the namespce to be changed, which is calculated based on results from 
+        /// <param name="reference">A reference to a type declared inside the namespace to be changed, which is calculated based on results from 
         /// `SymbolFinder.FindReferencesAsync`.</param>
         /// <param name="newNamespaceParts">If specified, and the reference is qualified with namespace, the namespace part of original reference 
         /// will be replaced with given namespace in the new node.</param>
-        /// <param name="old">The node to be replaced. This might be an ancestor of original reference.</param>
-        /// <param name="new">The replacement node.</param>
+        /// <param name="oldNode">The node to be replaced. This might be an ancestor of original reference.</param>
+        /// <param name="newNode">The replacement node.</param>
         public override bool TryGetReplacementReferenceSyntax(
             SyntaxNode reference,
             ImmutableArray<string> newNamespaceParts,
             ISyntaxFactsService syntaxFacts,
-            out SyntaxNode old,
-            out SyntaxNode @new)
+            [NotNullWhen(returnValue: true)] out SyntaxNode? oldNode,
+            [NotNullWhen(returnValue: true)] out SyntaxNode? newNode)
         {
             if (!(reference is SimpleNameSyntax nameRef))
             {
-                old = @new = null;
+                oldNode = newNode = null;
                 return false;
             }
 
@@ -133,31 +140,42 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             // 4. When the namespace is specified and not "", i.e. we are moving referenced type to a different non-global 
             //    namespace. We need to replace the qualified reference with a new qualified reference (which is qualified 
             //    with new namespace.)
+            //
+            // Note that qualified type name can appear in QualifiedNameSyntax or MemberAccessSyntax, so we need to handle both cases.
 
             if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
             {
-                old = nameRef.Parent;
-                var aliasQualifier = GetAliasQualifierOpt(old);
+                RoslynDebug.Assert(nameRef.Parent is object);
+                oldNode = nameRef.Parent;
+                var aliasQualifier = GetAliasQualifier(oldNode);
 
-                if (IsGlobalNamespace(newNamespaceParts))
+                if (!TryGetGlobalQualifiedName(newNamespaceParts, nameRef, aliasQualifier, out newNode))
                 {
-                    // If new namespace is "", then name will be declared in global namespace.
-                    // We will replace qualified reference with simple name qualified with alias (global if it's not alias qualified)
-                    var aliasNode = aliasQualifier?.ToIdentifierName() ?? SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
-                    @new = SyntaxFactory.AliasQualifiedName(aliasNode, nameRef.WithoutTrivia());
-                }
-                else
-                {
-                    var qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
-                    @new = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia());
+                    var qualifiedNamespaceName = CreateNamespaceAsQualifiedName(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
+                    newNode = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia());
                 }
 
-                // We might lose some trivia associated with children of `outerMostNode`.  
-                @new = @new.WithTriviaFrom(old);
+                // We might lose some trivia associated with children of `oldNode`.  
+                newNode = newNode.WithTriviaFrom(oldNode);
                 return true;
             }
+            else if (syntaxFacts.IsNameOfMemberAccessExpression(nameRef))
+            {
+                RoslynDebug.Assert(nameRef.Parent is object);
+                oldNode = nameRef.Parent;
+                var aliasQualifier = GetAliasQualifier(oldNode);
 
-            if (nameRef.Parent is NameMemberCrefSyntax crefName && crefName.Parent is QualifiedCrefSyntax qualifiedCref)
+                if (!TryGetGlobalQualifiedName(newNamespaceParts, nameRef, aliasQualifier, out newNode))
+                {
+                    var memberAccessNamespaceName = CreateNamespaceAsMemberAccess(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
+                    newNode = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, memberAccessNamespaceName, nameRef.WithoutTrivia());
+                }
+
+                // We might lose some trivia associated with children of `oldNode`.  
+                newNode = newNode.WithTriviaFrom(oldNode);
+                return true;
+            }
+            else if (nameRef.Parent is NameMemberCrefSyntax crefName && crefName.Parent is QualifiedCrefSyntax qualifiedCref)
             {
                 // This is the case where the reference is the right most part of a qualified name in `cref`.
                 // for example, `<see cref="Foo.Baz.Bar"/>` and `<see cref="SomeAlias::Foo.Baz.Bar"/>`. 
@@ -166,25 +184,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 // same way we handle non cref references, for example, `<see cref="SomeAlias::Foo"/>` and `<see cref="Foo"/>`.
 
                 var container = qualifiedCref.Container;
-                var aliasQualifier = GetAliasQualifierOpt(container);
+                var aliasQualifier = GetAliasQualifier(container);
 
-                if (IsGlobalNamespace(newNamespaceParts))
+                if (TryGetGlobalQualifiedName(newNamespaceParts, nameRef, aliasQualifier, out newNode))
                 {
-                    // If new namespace is "", then name will be declared in global namespace.
                     // We will replace entire `QualifiedCrefSyntax` with a `TypeCrefSyntax`, 
                     // which is a alias qualified simple name, similar to the regular case above.
-
-                    old = qualifiedCref;
-                    var aliasNode = aliasQualifier?.ToIdentifierName() ?? SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
-                    var aliasQualifiedNode = SyntaxFactory.AliasQualifiedName(aliasNode, nameRef.WithoutTrivia());
-                    @new = SyntaxFactory.TypeCref(aliasQualifiedNode);
+                    oldNode = qualifiedCref;
+                    newNode = SyntaxFactory.TypeCref((AliasQualifiedNameSyntax)newNode!);
                 }
                 else
                 {
                     // if the new namespace is not global, then we just need to change the container in `QualifiedCrefSyntax`,
                     // which is just a regular namespace node, no cref node involve here.
-                    old = container;
-                    @new = CreateNameSyntax(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
+                    oldNode = container;
+                    newNode = CreateNamespaceAsQualifiedName(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
                 }
 
                 return true;
@@ -192,7 +206,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
             // Simple name reference, nothing to be done. 
             // The name will be resolved by adding proper import.
-            old = @new = nameRef;
+            oldNode = newNode = nameRef;
+            return false;
+        }
+
+        private static bool TryGetGlobalQualifiedName(
+            ImmutableArray<string> newNamespaceParts,
+            SimpleNameSyntax nameNode,
+            string? aliasQualifier,
+            [NotNullWhen(returnValue: true)] out SyntaxNode? newNode)
+        {
+            if (IsGlobalNamespace(newNamespaceParts))
+            {
+                // If new namespace is "", then name will be declared in global namespace.
+                // We will replace qualified reference with simple name qualified with alias (global if it's not alias qualified)
+                var aliasNode = aliasQualifier?.ToIdentifierName() ?? SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
+                newNode = SyntaxFactory.AliasQualifiedName(aliasNode, nameNode.WithoutTrivia());
+                return true;
+            }
+
+            newNode = null;
             return false;
         }
 
@@ -232,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 return root.ReplaceNode(
                     namespaceDecl,
                     namespaceDecl.WithName(
-                        CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
+                        CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                         .WithTriviaFrom(namespaceDecl.Name).WithAdditionalAnnotations(WarningAnnotation))
                         .WithoutAnnotations(ContainerAnnotation));      // Make sure to remove the annotation we added
             }
@@ -248,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             var eofToken = root.EndOfFileToken
                 .WithAdditionalAnnotations(WarningAnnotation);
 
-            // Try to preserve trivia from original namesapce declaration.
+            // Try to preserve trivia from original namespace declaration.
             // If there's any member inside the declaration, we attach them to the 
             // first and last member, otherwise, simply attach all to the EOF token.
             if (members.Count > 0)
@@ -291,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
 
             var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
-                name: CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
+                name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                         .WithAdditionalAnnotations(WarningAnnotation),
                 externs: default,
                 usings: default,
@@ -312,10 +345,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// - If a compilation unit (i.e. <paramref name="span"/> is empty), there must be no namespace declaration
         ///   inside (i.e. all members are declared in global namespace)
         /// </summary>
-        protected override async Task<SyntaxNode> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode?> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            SyntaxNode container = null;
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(syntaxRoot);
+            var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
+            SyntaxNode? container = null;
 
             // Empty span means that user wants to move all types declared in the document to a new namespace.
             // This action is only supported when everything in the document is declared in global namespace,
@@ -333,6 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             {
                 // Otherwise, the span should contain a namespace declaration node, which must be the only one
                 // in the entire syntax spine to enable the change namespace operation.
+                if (!compilationUnit.Span.Contains(span))
+                {
+                    return null;
+                }
+
                 var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
 
                 var namespaceDecl = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().SingleOrDefault();
@@ -369,27 +409,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 .OfType<NamespaceDeclarationSyntax>().Any();
         }
 
-        private static bool IsGlobalNamespace(ImmutableArray<string> parts)
-            => parts.Length == 1 && parts[0].Length == 0;
-
-        private static string GetAliasQualifierOpt(SyntaxNode name)
+        private static string? GetAliasQualifier(SyntaxNode? name)
         {
             while (true)
             {
-                switch (name.Kind())
+                switch (name)
                 {
-                    case SyntaxKind.QualifiedName:
-                        name = ((QualifiedNameSyntax)name).Left;
+                    case QualifiedNameSyntax qualifiedNameNode:
+                        name = qualifiedNameNode.Left;
                         continue;
-                    case SyntaxKind.AliasQualifiedName:
-                        return ((AliasQualifiedNameSyntax)name).Alias.Identifier.ValueText;
+                    case MemberAccessExpressionSyntax memberAccessNode:
+                        name = memberAccessNode.Expression;
+                        continue;
+                    case AliasQualifiedNameSyntax aliasQualifiedNameNode:
+                        return aliasQualifiedNameNode.Alias.Identifier.ValueText;
                 }
 
                 return null;
             }
         }
 
-        private static NameSyntax CreateNameSyntax(ImmutableArray<string> namespaceParts, string aliasQualifier, int index)
+        private static NameSyntax CreateNamespaceAsQualifiedName(ImmutableArray<string> namespaceParts, string? aliasQualifier, int index)
         {
             var part = namespaceParts[index].EscapeIdentifier();
             Debug.Assert(part.Length > 0);
@@ -398,12 +438,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
             if (index == 0)
             {
-                return aliasQualifier == null ? (NameSyntax)namePiece : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
+                return aliasQualifier == null
+                     ? (NameSyntax)namePiece
+                     : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
             }
-            else
+
+            return SyntaxFactory.QualifiedName(CreateNamespaceAsQualifiedName(namespaceParts, aliasQualifier, index - 1), namePiece);
+        }
+
+        private static ExpressionSyntax CreateNamespaceAsMemberAccess(ImmutableArray<string> namespaceParts, string? aliasQualifier, int index)
+        {
+            var part = namespaceParts[index].EscapeIdentifier();
+            Debug.Assert(part.Length > 0);
+
+            var namePiece = SyntaxFactory.IdentifierName(part);
+
+            if (index == 0)
             {
-                return SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, aliasQualifier, index - 1), namePiece);
+                return aliasQualifier == null
+                     ? (NameSyntax)namePiece
+                     : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
             }
+
+            return SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                CreateNamespaceAsMemberAccess(namespaceParts, aliasQualifier, index - 1),
+                namePiece);
         }
 
         /// <summary>

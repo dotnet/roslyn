@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -22,6 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpOrganizeIconIdString = "9420a4b2-b48b-449d-a4c0-335d6e864b82";
         public const string CSharpLibraryIdString = "58F1BAD0-2288-45b9-AC3A-D56398F7781D";
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
+
+        /// <summary>
+        /// <see cref="UIContext"/> that indicates <see cref="VisualStudioWorkspace"/> contains a project that supports Edit and Continue.
+        /// </summary>
+        public const string EncCapableProjectExistsInWorkspaceUIContextString = "0C89AE24-6D19-474C-A3AA-DC3B66FDBB5F";
+
+        /// <summary>
+        /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
+        /// </summary>
+        public const string CSharpProjectExistsInWorkspaceUIContextString = "CA719A03-D55C-48F9-85DE-D934346E7F70";
+        public static readonly Guid CSharpProjectExistsInWorkspaceUIContext = new Guid(CSharpProjectExistsInWorkspaceUIContextString);
 
         public const string CSharpProjectRootIdString = "C7FEDB89-B36D-4a62-93F4-DC7A95999921";
 
@@ -48,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpOptionPageCodeStyleIdString = "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F";
         public const string CSharpOptionPageFormattingGeneralIdString = "DA0446DD-55BA-401F-A364-7D3238412AE4";
         public const string CSharpOptionPageFormattingIndentationIdString = "5E21D017-6D2A-4114-A1F1-C923F001CBBB";
-        public const string CSharpOptionPageFormattingNewLinesIdString = "607D8062-68D1-41E4-9A35-B5E7F14D0481";
+        public const string CSharpOptionPageFormattingNewLinesIdString = "EADC6AD3-91D4-3CC8-BE96-3CDE7D3080F0";
         public const string CSharpOptionPageFormattingSpacingIdString = "234FB566-73DD-4612-8DE4-29031FF27052";
         public const string CSharpOptionPageFormattingWrappingIdString = "8E334D9C-B7DC-4CF3-B7B7-014B831FE76B";
 
@@ -67,6 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string VisualBasicDebuggerLanguageIdString = "3a12d0b8-c26c-11d0-b442-00a0244a1dd2";
         public const string VisualBasicLibraryIdString = "414AC972-9829-4b6a-A8D7-A08152FEB8AA";
         public const string VisualBasicOptionPageCodeStyleIdString = "10C168E1-3470-448A-A1AC-73D6BC070750";
+
+        /// <summary>
+        /// A <see cref="UIContext"/> that is set if there is a Visual Basic project in the <see cref="VisualStudioWorkspace"/>.
+        /// </summary>
+        public const string VisualBasicProjectExistsInWorkspaceUIContextString = "EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275";
+        public static readonly Guid VisualBasicProjectExistsInWorkspaceUIContext = new Guid(VisualBasicProjectExistsInWorkspaceUIContextString);
 
         public static readonly Guid VisualBasicPackageId = new Guid(VisualBasicPackageIdString);
         public static readonly Guid VisualBasicCompilerServiceId = new Guid(VisualBasicCompilerServiceIdString);

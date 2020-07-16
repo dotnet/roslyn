@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -15,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// </summary>
         private class LazyToolTip : ForegroundThreadAffinitizedObject
         {
-            private readonly IThreadingContext _threadingContext;
             private readonly Func<DisposableToolTip> _createToolTip;
             private readonly FrameworkElement _element;
 
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 Func<DisposableToolTip> createToolTip)
                 : base(threadingContext, assertIsForeground: true)
             {
-                _threadingContext = threadingContext;
                 _element = element;
                 _createToolTip = createToolTip;
 
@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             }
 
             public static void AttachTo(FrameworkElement element, IThreadingContext threadingContext, Func<DisposableToolTip> createToolTip)
-            {
-                new LazyToolTip(threadingContext, element, createToolTip);
-            }
+                => new LazyToolTip(threadingContext, element, createToolTip);
 
             private void OnToolTipOpening(object sender, ToolTipEventArgs e)
             {

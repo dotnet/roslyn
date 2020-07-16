@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -114,7 +116,7 @@ unsafe public struct DevDivBugs70194
         {
             var testObject = GetCodeVariable("A", "intB");
 
-            Assert.Equal(null, testObject.InitExpression);
+            Assert.Null(testObject.InitExpression);
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -132,7 +134,7 @@ unsafe public struct DevDivBugs70194
         {
             var testObject = GetCodeVariable("DevDivBugs70194", "buffer");
 
-            Assert.Equal(null, testObject.InitExpression);
+            Assert.Null(testObject.InitExpression);
         }
 
         [ConditionalWpfFact(typeof(x86))]

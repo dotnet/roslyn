@@ -1,16 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -243,10 +245,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+
             options ??= workspace.Options;
             rules ??= GetDefaultFormattingRules(workspace, node.Language);
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            return languageFormatter.Format(node, spans, options, rules, cancellationToken);
+            var shouldUseFormattingSpanCollapse = options.GetOption(FormattingOptions.AllowDisjointSpanMerging);
+            return languageFormatter.Format(node, spans, shouldUseFormattingSpanCollapse, options.AsAnalyzerConfigOptions(optionService, node.Language), rules, cancellationToken);
         }
 
         /// <summary>
@@ -292,73 +297,21 @@ namespace Microsoft.CodeAnalysis.Formatting
                 : formattingResult.GetTextChanges(cancellationToken);
         }
 
-        private static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
+        /// <summary>
+        /// Organizes the imports in the document.
+        /// </summary>
+        /// <param name="document">The document to organize.</param>
+        /// <param name="cancellationToken">The cancellation token that the operation will observe.</param>
+        /// <returns>The document with organized imports. If the language does not support organizing imports, or if no changes were made, this method returns <paramref name="document"/>.</returns>
+        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
         {
-            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
+            var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
+            if (organizeImportsService is null)
             {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                yield return GetSpan(firstToken, lastToken);
-            }
-        }
-
-        private static TextSpan GetSpan(SyntaxToken firstToken, SyntaxToken lastToken)
-        {
-            var previousToken = firstToken.GetPreviousToken();
-            var nextToken = lastToken.GetNextToken();
-
-            if (previousToken.RawKind != 0)
-            {
-                firstToken = previousToken;
+                return Task.FromResult(document);
             }
 
-            if (nextToken.RawKind != 0)
-            {
-                lastToken = nextToken;
-            }
-
-            return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-        }
-
-        private static IEnumerable<TextSpan> GetElasticSpans(SyntaxNode root)
-        {
-            var tokens = root.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
-            return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
-        }
-
-        private static TextSpan GetElasticSpan(SyntaxToken token)
-        {
-            return GetSpan(token, token);
-        }
-
-        private static IEnumerable<TextSpan> AggregateSpans(IEnumerable<TextSpan> spans)
-        {
-            var aggregateSpans = new List<TextSpan>();
-
-            var last = default(TextSpan);
-            foreach (var span in spans)
-            {
-                if (last == default)
-                {
-                    last = span;
-                }
-                else if (span.IntersectsWith(last))
-                {
-                    last = TextSpan.FromBounds(last.Start, span.End);
-                }
-                else
-                {
-                    aggregateSpans.Add(last);
-                    last = span;
-                }
-            }
-
-            if (last != default)
-            {
-                aggregateSpans.Add(last);
-            }
-
-            return aggregateSpans;
+            return organizeImportsService.OrganizeImportsAsync(document, cancellationToken);
         }
     }
 }

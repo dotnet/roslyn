@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
 #define NDP4_AUTO_VERSION_ROLLFORWARD
 
 using System;
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                         && this.PublicKeyToken.SequenceEqual(other.PublicKeyToken);
                 }
 
-                public override bool Equals(object obj)
+                public override bool Equals(object? obj)
                 {
                     return obj is Key && Equals((Key)obj);
                 }
@@ -112,14 +115,14 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<byte> newPublicKeyToken,
                 AssemblyVersion newVersion)
             {
-                List<Value> values;
+                List<Value>? values;
                 var key = new Key(name, publicKeyToken);
                 if (!TryGetValue(key, out values))
                 {
                     Add(key, values = new List<Value>());
                 }
 
-                values.Add(new Value(versionLow, default(AssemblyVersion), newName, newPublicKeyToken, newVersion, isPortable: false));
+                values.Add(new Value(versionLow, versionHigh: default, newName, newPublicKeyToken, newVersion, isPortable: false));
             }
 
             public void Add(
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                 AssemblyVersion newVersion,
                 bool isPortable)
             {
-                List<Value> values;
+                List<Value>? values;
                 var key = new Key(name, publicKeyToken);
                 if (!TryGetValue(key, out values))
                 {
@@ -144,10 +147,10 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryGetValue(AssemblyIdentity identity, out Value value)
             {
-                List<Value> values;
+                List<Value>? values;
                 if (!TryGetValue(new Key(identity.Name, identity.PublicKeyToken), out values))
                 {
-                    value = default(Value);
+                    value = default;
                     return false;
                 }
 
@@ -169,7 +172,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                value = default(Value);
+                value = default;
                 return false;
             }
         }

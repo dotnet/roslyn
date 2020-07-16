@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -618,17 +622,27 @@ partial void F(dynamic d)
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsArrayName()
+        [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [CombinatorialData]
+        public async Task DynamicAsArrayName(bool script, TestHost testHost)
         {
-            await TestAsync(
+            var code =
 @"int[] dynamic = {
     1
-};",
+};";
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                parseOptions,
+                testHost,
                 Keyword("int"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Field("dynamic"),
+                script ? Field("dynamic") : Local("dynamic"),
                 Operators.Equals,
                 Punctuation.OpenCurly,
                 Number("1"),

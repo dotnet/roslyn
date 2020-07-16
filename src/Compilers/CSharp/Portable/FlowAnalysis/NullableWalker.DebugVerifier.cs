@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 using System.Collections.Generic;
@@ -17,16 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class DebugVerifier : BoundTreeWalker
         {
             private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
-            private readonly ImmutableDictionary<BoundCall, MethodSymbol> _updatedMethodSymbols;
-            private readonly SnapshotManager _snapshotManager;
+            private readonly SnapshotManager? _snapshotManager;
             private readonly HashSet<BoundExpression> _visitedExpressions = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<BoundCall, MethodSymbol> updatedMethodSymbols, SnapshotManager snapshotManager)
+            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, SnapshotManager? snapshotManager)
             {
                 _analyzedNullabilityMap = analyzedNullabilityMap;
                 _snapshotManager = snapshotManager;
-                _updatedMethodSymbols = updatedMethodSymbols;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -34,10 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<BoundCall, MethodSymbol> updatedMethodSymbols, SnapshotManager snapshotManagerOpt, BoundNode node)
+            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, SnapshotManager? snapshotManagerOpt, BoundNode node)
             {
-                var verifier = new DebugVerifier(analyzedNullabilityMap, updatedMethodSymbols, snapshotManagerOpt);
+                var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManagerOpt);
                 verifier.Visit(node);
+                snapshotManagerOpt?.VerifyUpdatedSymbols();
+
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
                 Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
             }
@@ -71,12 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }
                 return base.Visit(node);
-            }
-
-            public override BoundNode? VisitCall(BoundCall node)
-            {
-                Debug.Assert(_updatedMethodSymbols.ContainsKey(node), $"Did not find updated method symbol for {node} `{node.Syntax}`.");
-                return base.VisitCall(node);
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -119,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
             {
                 Visit(node.IterationVariableType);
+                Visit(node.AwaitOpt);
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
@@ -143,6 +140,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/33441 dynamic collection initializers aren't being handled correctly
                 VerifyExpression(node, overrideSkippedExpression: true);
                 return null;
+            }
+
+            public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
+            {
+                // We're not correctly visiting the right side of object creation initializers when
+                // the symbol is null (such as for dynamic)
+                // https://github.com/dotnet/roslyn/issues/45088
+                if (node.Left is BoundObjectInitializerMember { MemberSymbol: null })
+                {
+                    VerifyExpression(node);
+                    Visit(node.Left);
+                    return null;
+                }
+
+                return base.VisitAssignmentOperator(node);
             }
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
@@ -187,6 +199,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ignore any dimensions
                 VerifyExpression(node);
                 Visit(node.BoundContainingTypeOpt);
+                return null;
+            }
+
+            public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+            {
+                this.Visit(node.Pattern);
+                // If the constant value of a when clause is true, it can be skipped by the dag
+                // generator as an optimization. In that case, it's a value type and will be set
+                // as not nullable in the output.
+                if (node.WhenClause?.ConstantValue != ConstantValue.True)
+                {
+                    this.Visit(node.WhenClause);
+                }
+                this.Visit(node.Value);
+                return null;
+            }
+
+            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+            {
+                // We're not handling nopia object creations correctly
+                // https://github.com/dotnet/roslyn/issues/45082
+                if (node.InitializerExpressionOpt is object)
+                {
+                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
+                }
                 return null;
             }
         }

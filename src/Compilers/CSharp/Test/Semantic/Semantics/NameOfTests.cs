@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -293,7 +295,7 @@ class Test<T>
                 // (28,20): error CS0103: The name 'List2' does not exist in the current context
                 //         s = nameof(List2<>.Add);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List2<>").WithArguments("List2").WithLocation(28, 20),
-                // (31,20): error CS8149: An alias-qualified name is not an expression.
+                // (31,20): error CS8083: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
                 // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
@@ -305,7 +307,7 @@ class Test<T>
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
-                // (35,20): error CS8150: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // (35,20): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
                 //         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "System.Linq.Enumerable.Select<int, int>").WithLocation(35, 20),
                 // (43,13): error CS0103: The name 'nameof' does not exist in the current context
@@ -842,9 +844,9 @@ public class Program
 }";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (14,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
-                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(14, 22)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -996,9 +998,9 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (16,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
-                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(16, 20)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(16, 22)
                 );
         }
 

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -88,26 +91,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return toExpressionBodyRefactorings.AddRange(toBlockBodyRefactorings);
         }
 
-        private async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        private static async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
             Document document, TextSpan span, ExpressionBodyPreference option, CancellationToken cancellationToken)
         {
-            if (span.Length > 0)
-            {
-                return ImmutableArray<CodeAction>.Empty;
-            }
-
-            var position = span.Start;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var lambdaNode = root.FindToken(position).Parent.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+            var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             if (lambdaNode == null)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
             if (CanOfferUseExpressionBody(option, lambdaNode))
             {
                 result.Add(new MyCodeAction(
@@ -125,10 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                         document, root, lambdaNode, c)));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

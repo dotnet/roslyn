@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesService
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RemoteCodeLensReferencesService()
         {
         }
@@ -33,16 +37,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     return null;
                 }
 
-                var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient == null)
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    // remote host is not running. this can happen if remote host is disabled.
-                    return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(solution, documentId, syntaxNode, maxSearchResults, cancellationToken).ConfigureAwait(false);
+                    return await client.RunRemoteAsync<ReferenceCount>(
+                        WellKnownServiceHubService.CodeAnalysis,
+                        nameof(IRemoteCodeLensReferencesService.GetReferenceCountAsync),
+                        solution,
+                        new object[] { documentId, syntaxNode.Span, maxSearchResults },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
-                return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<ReferenceCount>(
-                    solution, nameof(IRemoteCodeLensReferencesService.GetReferenceCountAsync),
-                    new object[] { documentId, syntaxNode.Span, maxSearchResults }, cancellationToken).ConfigureAwait(false);
+                return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(solution, documentId, syntaxNode, maxSearchResults, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -58,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 }
 
                 // map spans to right locations using SpanMapper for documents such as cshtml and etc
-                return await FixUpDescriptors(solution, descriptors, cancellationToken).ConfigureAwait(false);
+                return await FixUpDescriptorsAsync(solution, descriptors, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -72,20 +79,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     return null;
                 }
 
-                var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient == null)
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    // remote host is not running. this can happen if remote host is disabled.
-                    return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                    return await client.RunRemoteAsync<IEnumerable<ReferenceMethodDescriptor>>(
+                        WellKnownServiceHubService.CodeAnalysis,
+                        nameof(IRemoteCodeLensReferencesService.FindReferenceMethodsAsync),
+                        solution,
+                        new object[] { documentId, syntaxNode.Span },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
-                return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<IEnumerable<ReferenceMethodDescriptor>>(
-                    solution, nameof(IRemoteCodeLensReferencesService.FindReferenceMethodsAsync),
-                    new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
+                return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        public async Task<string> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeLens_GetFullyQualifiedName, cancellationToken))
@@ -95,20 +105,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     return null;
                 }
 
-                var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient == null)
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    // remote host is not running. this can happen if remote host is disabled.
-                    return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                    return await client.RunRemoteAsync<string>(
+                        WellKnownServiceHubService.CodeAnalysis,
+                        nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedNameAsync),
+                        solution,
+                        new object[] { documentId, syntaxNode.Span },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
-                return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<string>(
-                    solution, nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedName),
-                    new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
+                return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private static async Task<IEnumerable<ReferenceLocationDescriptor>> FixUpDescriptors(
+        private static async Task<IEnumerable<ReferenceLocationDescriptor>> FixUpDescriptorsAsync(
             Solution solution, IEnumerable<ReferenceLocationDescriptor> descriptors, CancellationToken cancellationToken)
         {
             var list = new List<ReferenceLocationDescriptor>();
@@ -146,8 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var referenceExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
                 var tooltipExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.Tooltip, cancellationToken).ConfigureAwait(false);
 
-                var reference = GetReferenceInfo(referenceExcerpt, descriptor);
-                var referenceTexts = GetReferenceTexts(referenceExcerpt, tooltipExcerpt, descriptor);
+                var (text, start, length) = GetReferenceInfo(referenceExcerpt, descriptor);
+                var (before1, before2, after1, after2) = GetReferenceTexts(referenceExcerpt, tooltipExcerpt, descriptor);
 
                 list.Add(new ReferenceLocationDescriptor(
                     descriptor.LongDescription,
@@ -160,13 +173,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     descriptor.ProjectGuid,
                     descriptor.DocumentGuid,
                     result.FilePath,
-                    reference.text,
-                    reference.start,
-                    reference.length,
-                    referenceTexts.before1,
-                    referenceTexts.before2,
-                    referenceTexts.after1,
-                    referenceTexts.after2));
+                    text,
+                    start,
+                    length,
+                    before1,
+                    before2,
+                    after1,
+                    after2));
             }
 
             return list;
@@ -221,16 +234,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return null;
             }
 
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (remoteHostClient == null)
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                // remote host is not running. this can happen if remote host is disabled.
-                return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                return await client.RunRemoteAsync<IEnumerable<ReferenceLocationDescriptor>>(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteCodeLensReferencesService.FindReferenceLocationsAsync),
+                    solution,
+                    new object[] { documentId, syntaxNode.Span },
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<IEnumerable<ReferenceLocationDescriptor>>(
-                solution, nameof(IRemoteCodeLensReferencesService.FindReferenceLocationsAsync),
-                new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
+            // remote host is not running. this can happen if remote host is disabled.
+            return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
         }
     }
 }

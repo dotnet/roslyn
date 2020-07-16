@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -26,6 +29,308 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeNullableAttributeBasedOnInterfacesToEmit(bool useImageReferences)
+        {
+            Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
+
+            var lib1_source = @"
+using System.Threading.Tasks;
+#nullable enable
+
+public interface I2<T, TResult>
+{
+    Task<TResult> ExecuteAsync(T parameter);
+}
+
+public interface I1<T> : I2<T, object>
+{
+}
+";
+            var lib1_comp = CreateCompilation(lib1_source);
+            lib1_comp.VerifyDiagnostics();
+
+            var lib2_source = @"
+#nullable disable
+public interface I0 : I1<string>
+{
+}";
+            var lib2_comp = CreateCompilation(lib2_source, references: new[] { getReference(lib1_comp) });
+            lib2_comp.VerifyDiagnostics();
+
+            var imc1 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("I0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                imc1.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                imc1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            var client_source = @"
+public class C
+{
+    public void M(I0 imc)
+    {
+        imc.ExecuteAsync("""");
+    }
+}";
+            var client_comp = CreateCompilation(client_source, references: new[] { getReference(lib1_comp), getReference(lib2_comp) });
+            client_comp.VerifyDiagnostics();
+
+            var imc2 = (TypeSymbol)client_comp.GlobalNamespace.GetMember("I0");
+            // Note: it is expected that the symbol shows different Interfaces in PE vs. compilation reference
+            AssertEx.SetEqual(
+                useImageReferences
+                    ? new[] { "I1<System.String>", "I2<System.String, System.Object!>" }
+                    : new[] { "I1<System.String>" },
+                imc2.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                imc2.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeNullableAttributeBasedOnInterfacesToEmit_NotOnAllInterfaces(bool useImageReferences)
+        {
+            Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
+
+            var lib1_source = @"
+#nullable enable
+
+public interface I2<T, TResult>
+{
+}
+
+public interface I1<T> : I2<T, object>
+{
+}
+";
+            var lib1_comp = CreateCompilation(lib1_source);
+            lib1_comp.VerifyDiagnostics();
+
+            var lib2_source = @"
+#nullable disable
+
+public class C0 : I1<string>
+{
+}";
+            var lib2_comp = CreateCompilation(lib2_source, references: new[] { getReference(lib1_comp) });
+            lib2_comp.VerifyDiagnostics();
+
+            var lib2_c0 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("C0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                lib2_c0.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                lib2_c0.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            CompileAndVerify(lib2_comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C0");
+                var interfaceHandles = typeDef.GetInterfaceImplementations();
+
+                var interfaceImpl1 = reader.GetInterfaceImplementation(interfaceHandles.First());
+                Assert.Equal("TypeSpecification:I1`1{String}", reader.Dump(interfaceImpl1.Interface));
+                AssertAttributes(reader, interfaceImpl1.GetCustomAttributes());
+
+                var interfaceImpl2 = reader.GetInterfaceImplementation(interfaceHandles.Last());
+                Assert.Equal("TypeSpecification:I2`2{String, Object}", reader.Dump(interfaceImpl2.Interface));
+                AssertAttributes(reader, interfaceImpl2.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
+
+                assertType(reader, exists: true, "NullableAttribute");
+            });
+
+            var lib3_source = @"
+#nullable disable
+
+public class C1 : C0 
+{
+}";
+            var lib3_comp = CreateCompilation(lib3_source, references: new[] { getReference(lib1_comp), getReference(lib2_comp) });
+            lib3_comp.VerifyDiagnostics();
+
+            var lib3_c0 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("C0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                lib3_c0.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                lib3_c0.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            CompileAndVerify(lib3_comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C1");
+                var interfaceHandles = typeDef.GetInterfaceImplementations();
+                Assert.True(interfaceHandles.IsEmpty());
+
+                assertType(reader, exists: false, "NullableAttribute");
+            });
+
+            void assertType(MetadataReader reader, bool exists, string name)
+            {
+                if (exists)
+                {
+                    _ = reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name));
+                }
+                else
+                {
+                    Assert.False(reader.TypeDefinitions.Any(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(bool useImageReferences)
+        {
+            Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
+
+            var valueTuple_source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}";
+
+            var valueTuple_comp = CreateCompilationWithMscorlib40(valueTuple_source);
+            valueTuple_comp.VerifyDiagnostics();
+
+            var tupleElementNamesAttribute_source = @"
+
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}";
+            var tupleElementNamesAttribute_comp = CreateCompilationWithMscorlib40(tupleElementNamesAttribute_source);
+            tupleElementNamesAttribute_comp.VerifyDiagnostics();
+
+            var lib1_source = @"
+using System.Threading.Tasks;
+
+public interface I2<T, TResult>
+{
+    Task<TResult> ExecuteAsync(T parameter);
+}
+
+public interface I1<T> : I2<T, (object a, object b)>
+{
+}
+";
+            var lib1_comp = CreateCompilationWithMscorlib40(lib1_source, references: new[] { getReference(valueTuple_comp), getReference(tupleElementNamesAttribute_comp) });
+            lib1_comp.VerifyDiagnostics();
+
+            var lib2_source = @"
+public interface I0 : I1<string>
+{
+}";
+            var lib2_comp = CreateCompilationWithMscorlib40(lib2_source, references: new[] { getReference(lib1_comp), getReference(valueTuple_comp) }); // missing TupleElementNamesAttribute
+            lib2_comp.VerifyDiagnostics(
+                // (2,18): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public interface I0 : I1<string>
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "I0").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(2, 18)
+                );
+            lib2_comp.VerifyEmitDiagnostics(
+                // (2,18): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public interface I0 : I1<string>
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "I0").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(2, 18)
+                );
+
+            var imc1 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("I0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                imc1.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, (System.Object a, System.Object b)>" },
+                imc1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+        }
+
+        [Fact, WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_BaseAndDirectInterface()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute() { } // Note: bad signature
+    }
+}
+
+public interface I<T> { }
+
+public class Base<T> { }
+
+public class C1 : I<(object a, object b)> { }
+
+public class C2 : Base<(object a, object b)> { }
+";
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics(
+                // (34,14): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public class C1 : I<(object a, object b)> { }
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "C1").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(34, 14),
+                // (34,21): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public class C1 : I<(object a, object b)> { }
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(object a, object b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(34, 21),
+                // (36,24): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public class C2 : Base<(object a, object b)> { }
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(object a, object b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(36, 24)
                 );
         }
 
@@ -152,6 +457,57 @@ class C
                 // (10,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     static void F(object? x, object?[] y) { }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?[] y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30));
+        }
+
+        [Fact]
+        public void ExplicitAttribute_ReferencedInSource()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    internal class NullableAttribute : System.Attribute
+    {
+        internal NullableAttribute(byte b) { }
+    }
+}";
+            var source =
+@"#pragma warning disable 169
+using System.Runtime.CompilerServices;
+[assembly: Nullable(0)]
+[module: Nullable(0)]
+[Nullable(0)]
+class Program
+{
+    [Nullable(0)]object F;
+    [Nullable(0)]static object M1() => throw null;
+    [return: Nullable(0)]static object M2() => throw null;
+    static void M3([Nullable(0)]object arg) { }
+}";
+
+            // C#7
+            var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
+            verifyDiagnostics(comp);
+
+            // C#8
+            comp = CreateCompilation(new[] { sourceAttribute, source });
+            verifyDiagnostics(comp);
+
+            static void verifyDiagnostics(CSharpCompilation comp)
+            {
+                comp.VerifyDiagnostics(
+                    // (5,2): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    // [Nullable(0)]
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(5, 2),
+                    // (8,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    //     [Nullable(0)]object F;
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(8, 6),
+                    // (10,14): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    //     [return: Nullable(0)]static object M2() => throw null;
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(10, 14),
+                    // (11,21): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    //     static void M3([Nullable(0)]object arg) { }
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(11, 21));
+            }
         }
 
         [Fact]
@@ -1729,6 +2085,37 @@ public class Program
         [Nullable({ 0, 2 })] System.Object?[] o
     System.IAsyncResult BeginInvoke(System.Object?[] o, System.AsyncCallback callback, System.Object @object)
         [Nullable({ 0, 2 })] System.Object?[] o
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_NestedEnum()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public enum E
+    {
+        A,
+        B
+    }
+    public object F1;
+    public object F2;
+    public object F3;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    System.Object! F1
+    System.Object! F2
+    System.Object! F3
+    Program()
+    [NullableContext(0)] Program.E
+        A
+        B
+        E()
 ";
             AssertNullableAttributes(comp, expected);
         }
@@ -3521,8 +3908,8 @@ public class Program
         }
 
         private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormat.
-            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
-            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
+            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         private static void VerifyBytes(TypeWithAnnotations type, byte[] expectedPreviously, byte[] expectedNow, string expectedDisplay)
         {

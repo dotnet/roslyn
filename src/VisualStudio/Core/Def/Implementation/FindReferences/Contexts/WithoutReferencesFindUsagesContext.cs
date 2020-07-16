@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -23,13 +26,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
-                : base(presenter, findReferencesWindow, customColumns)
+                ImmutableArray<ITableColumnDefinition> customColumns,
+                bool includeContainingTypeAndMemberColumns,
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
             // We should never be called in a context where we get references.
             protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
+                => throw new InvalidOperationException();
+
+            // We should never be called in a context where we get references.
+            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
@@ -40,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
 
-                var entries = ArrayBuilder<Entry>.GetInstance();
+                using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
                 if (definition.SourceSpans.Length == 1)
                 {
@@ -51,6 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     var entry = await TryCreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
                 }
+                else if (definition.SourceSpans.Length == 0)
+                {
+                    // No source spans means metadata references.
+                    // Display it for Go to Base and try to navigate to metadata.
+                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket));
+                }
                 else
                 {
                     // If we have multiple spans (i.e. for partial types), then create a 
@@ -60,7 +75,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
                         var entry = await TryCreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, customColumnsDataOpt: null).ConfigureAwait(false);
+                            definitionBucket,
+                            sourceSpan,
+                            HighlightSpanKind.Definition,
+                            symbolUsageInfo: SymbolUsageInfo.None,
+                            additionalProperties: definition.DisplayableProperties)
+                                .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
                 }
@@ -75,8 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     NotifyChange();
                 }
-
-                entries.Free();
             }
 
             private async Task<Entry> TryCreateEntryAsync(

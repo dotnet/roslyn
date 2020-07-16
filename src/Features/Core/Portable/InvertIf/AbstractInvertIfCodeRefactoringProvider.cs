@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -37,8 +39,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var (document, _, cancellationToken) = context;
 
             var ifNode = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
             if (ifNode == null)
@@ -51,8 +52,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => InvertIfAsync(root, document, ifNode, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => InvertIfAsync(document, ifNode, c)),
+                ifNode.Span);
         }
 
         private InvertIfStyle GetInvertIfStyle(
@@ -236,16 +239,14 @@ namespace Microsoft.CodeAnalysis.InvertIf
         }
 
         private bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
-        {
-            return subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
-        }
+            => subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
 
         private async Task<Document> InvertIfAsync(
-            SyntaxNode root,
             Document document,
             TIfStatementSyntax ifNode,
             CancellationToken cancellationToken)
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var invertIfStyle = GetInvertIfStyle(ifNode, semanticModel, out var subsequentSingleExitPointOpt);
@@ -258,6 +259,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     invertIfStyle,
                     subsequentSingleExitPointOpt,
                     negatedExpression: generator.Negate(
+                        generator.SyntaxGeneratorInternal,
                         GetCondition(ifNode),
                         semanticModel,
                         cancellationToken)));
@@ -305,8 +307,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            Debug.Assert(subsequentStatementRanges.Length > 0);
-            return ifNode.Parent == subsequentStatementRanges[0].Parent;
+            return subsequentStatementRanges.Length == 1 &&
+                   ifNode.Parent == subsequentStatementRanges[0].Parent;
         }
 
         private int GetNearmostParentJumpStatementRawKind(SyntaxNode ifNode)
@@ -351,16 +353,14 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         private ImmutableArray<StatementRange> GetSubsequentStatementRanges(TIfStatementSyntax ifNode)
         {
-            var builder = ArrayBuilder<StatementRange>.GetInstance();
+            using var _ = ArrayBuilder<StatementRange>.GetInstance(out var builder);
 
             TStatementSyntax innerStatement = ifNode;
             foreach (var node in ifNode.Ancestors())
             {
                 var nextStatement = GetNextStatement(innerStatement);
                 if (nextStatement != null && IsStatementContainer(node))
-                {
                     builder.Add(new StatementRange(nextStatement, GetStatements(node).Last()));
-                }
 
                 if (!CanControlFlowOut(node))
                 {
@@ -370,12 +370,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 }
 
                 if (IsExecutableStatement(node))
-                {
                     innerStatement = (TStatementSyntax)node;
-                }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         protected abstract string GetTitle();

@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.GenerateFromMembers;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,14 +22,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GenerateOverridesCodeRefactoringProvider() : this(null)
         {
         }
 
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         public GenerateOverridesCodeRefactoringProvider(IPickMembersService pickMembersService)
-        {
-            _pickMembersService_forTestingPurposes = pickMembersService;
-        }
+            => _pickMembersService_forTestingPurposes = pickMembersService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -36,8 +40,8 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out _) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -45,8 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                semanticModel, root, textSpan.Start, cancellationToken);
+            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
 
             var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
             if (overridableMembers.Length == 0)
@@ -54,8 +57,10 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 return;
             }
 
-            context.RegisterRefactoring(new GenerateOverridesWithDialogCodeAction(
-                this, document, textSpan, containingType, overridableMembers));
+            context.RegisterRefactoring(
+                new GenerateOverridesWithDialogCodeAction(
+                    this, document, textSpan, containingType, overridableMembers),
+                typeDeclaration.Span);
         }
     }
 }

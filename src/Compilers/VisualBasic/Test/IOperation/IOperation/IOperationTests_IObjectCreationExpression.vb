@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1195,6 +1197,59 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectCreationCollectionInitializerBoxingConversion()
+            Dim source = <![CDATA[
+Imports System.Collections
+Imports System.Runtime.CompilerServices
+Structure S
+    Implements IEnumerable
+    Private Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return Nothing
+    End Function
+End Structure
+Module Program
+    <Extension>
+    Sub Add(x As Object, y As Integer)
+    End Sub
+    Sub Main()
+        Dim s = New S() From { 1, 2 }'BIND:"New S() From { 1, 2 }"
+    End Sub
+End Module]]>.Value
+            Dim expectedDiagnostics = String.Empty
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'New S() From { 1, 2 }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: S) (Syntax: 'From { 1, 2 }')
+      Initializers(2):
+          IInvocationOperation ( Sub System.Object.Add(y As System.Int32)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
+            Instance Receiver: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'New S() From { 1, 2 }')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: 'New S() From { 1, 2 }')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IInvocationOperation ( Sub System.Object.Add(y As System.Int32)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '2')
+            Instance Receiver: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'New S() From { 1, 2 }')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: 'New S() From { 1, 2 }')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>

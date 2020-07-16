@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -208,7 +210,7 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestBeforeInWhitespace1()
+        public async Task TestNotBeforePrecedingComment()
         {
             var testText = @"
 class C
@@ -216,6 +218,43 @@ class C
     void M()
     {
         [||]//Test comment
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_OnSameLine()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+[||]    {|result:C LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_OnPreviousLine()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [||]
         {|result:C LocalFunction(C c)
         {
             return null;
@@ -223,6 +262,26 @@ class C
     }
 }";
             await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_NotOnMultipleLinesPrior()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [||]
+
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
         [Fact]
@@ -513,6 +572,80 @@ class C
 
         #endregion
 
+        #region IsUnderselected
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionOnSemicolon()
+        {
+            var testText = @"
+class Program
+{
+    static void Main()
+    {
+        {|result:Main()|}[|;|]
+    }
+}";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionBug1()
+        {
+            var testText = @"
+class Program
+{
+    public static void Method()
+    {
+        //[|>
+        var str = {|result:"" <|] aaa""|};
+    }
+}";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionBug2()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        Console.WriteLine(""Hello world"");[|
+        {|result:Console.WriteLine(new |]C())|};
+        }
+    }";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselection()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        bool a = {|result:[|true || false || true|]|};
+    }";
+            await TestNotUnderselectedAsync<BinaryExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselection2()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        bool a = true || [|false || true|] || true;
+    }";
+            await TestUnderselectedAsync<BinaryExpressionSyntax>(testText);
+        }
+        #endregion
+
         #region Attributes
         [Fact]
         [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
@@ -525,6 +658,49 @@ public class Class1
     [][||]
 }";
             await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        public async Task TestIncompleteAttribute()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:void foo([[||]bar) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        public async Task TestIncompleteAttribute2()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:void foo([[||]Class1 arg1) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
+        public async Task TestEmptyParameter()
+        {
+            var testText = @"
+using System;
+public class TestAttribute : Attribute { }
+public class Class1
+{
+    static void foo({|result:[Test][||]
+|}    {
+
+    }
+}";
+            await TestAsync<ParameterSyntax>(testText);
         }
 
         [Fact]
@@ -863,6 +1039,38 @@ class C
     }
 }";
             await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        var [|a = {|result:new object()|}|];
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator2()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        {|result:var [|a = new object()|];|}
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
         }
 
         [Fact]

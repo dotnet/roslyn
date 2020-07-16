@@ -1,13 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -18,9 +21,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestCreation()
         {
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage);
+            var source = new SimpleAssetSource(new Dictionary<Checksum, object>());
+            storage.Initialize(source);
 
-            var stored = storage.AssetSource;
+            var stored = storage.GetAssetSource();
             Assert.Equal(source, stored);
         }
 
@@ -34,7 +38,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(storage.TryAddAsset(checksum, data));
 
-            Assert.True(storage.TryGetAsset(checksum, out object stored));
+            Assert.True(storage.TryGetAsset(checksum, out object _));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -51,7 +55,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 await Task.Delay(10);
 
-                if (!storage.TryGetAsset(checksum, out object stored))
+                if (!storage.TryGetAsset(checksum, out object _))
                 {
                     // asset is deleted
                     return;

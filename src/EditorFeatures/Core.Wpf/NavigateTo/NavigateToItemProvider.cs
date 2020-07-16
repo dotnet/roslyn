@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -92,14 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         }
 
         public void StartSearch(INavigateToCallback callback, string searchValue)
-        {
-            StartSearch(callback, searchValue, KindsProvided);
-        }
+            => StartSearch(callback, searchValue, KindsProvided);
 
         public void StartSearch(INavigateToCallback callback, string searchValue, INavigateToFilterParameters filter)
-        {
-            StartSearch(callback, searchValue, filter.Kinds.ToImmutableHashSet(StringComparer.Ordinal));
-        }
+            => StartSearch(callback, searchValue, filter.Kinds.ToImmutableHashSet(StringComparer.Ordinal));
 
         private void StartSearch(INavigateToCallback callback, string searchValue, IImmutableSet<string> kinds)
         {
@@ -157,9 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly INavigateToSearchService _navigateToSearchService;
 
             public ShimNavigateToSearchService(INavigateToSearchService navigateToSearchService)
-            {
-                _navigateToSearchService = navigateToSearchService;
-            }
+                => _navigateToSearchService = navigateToSearchService;
 
             public IImmutableSet<string> KindsProvided => ImmutableHashSet.Create<string>(StringComparer.Ordinal);
 

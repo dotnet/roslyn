@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +19,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
     {
         private partial class GenerateVariableCodeAction : CodeAction
         {
-            private readonly TService _service;
             private readonly State _state;
             private readonly bool _generateProperty;
             private readonly bool _isReadonly;
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly string _equivalenceKey;
 
             public GenerateVariableCodeAction(
-                TService service,
                 SemanticDocument document,
                 State state,
                 bool generateProperty,
@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool isConstant,
                 RefKind refKind)
             {
-                _service = service;
                 _semanticDocument = document;
                 _state = state;
                 _generateProperty = generateProperty;
@@ -48,8 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var solution = _semanticDocument.Project.Solution;
-                var syntaxTree = _semanticDocument.SyntaxTree;
-                var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
+                var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
                 var otions = new CodeGenerationOptions(
@@ -59,10 +57,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 if (_generateProperty)
                 {
-                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state), cancellationToken);
+                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state));
                     var setAccessor = _isReadonly || _refKind != RefKind.None
                         ? null
-                        : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
+                        : CreateAccessor(DetermineMinimalAccessibility(_state));
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
@@ -96,29 +94,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private IMethodSymbol CreateAccessor(
-                Accessibility accessibility, CancellationToken cancellationToken)
+            private IMethodSymbol CreateAccessor(Accessibility accessibility)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     attributes: default,
                     accessibility: accessibility,
-                    statements: GenerateStatements(cancellationToken));
+                    statements: GenerateStatements());
             }
 
-            private ImmutableArray<SyntaxNode> GenerateStatements(
-                CancellationToken cancellationToken)
+            private ImmutableArray<SyntaxNode> GenerateStatements()
             {
                 var syntaxFactory = _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
-                    syntaxFactory, _semanticDocument, "System.NotImplementedException", cancellationToken);
+                    syntaxFactory, _semanticDocument, "System.NotImplementedException");
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)
                     : default;
             }
 
-            private Accessibility DetermineMaximalAccessibility(State state)
+            private static Accessibility DetermineMaximalAccessibility(State state)
             {
                 if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface)
                 {
@@ -192,7 +188,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private bool DerivesFrom(State state, INamedTypeSymbol containingType)
+            private static bool DerivesFrom(State state, INamedTypeSymbol containingType)
             {
                 return containingType.GetBaseTypes().Select(t => t.OriginalDefinition)
                                                     .Contains(state.TypeToGenerateIn);

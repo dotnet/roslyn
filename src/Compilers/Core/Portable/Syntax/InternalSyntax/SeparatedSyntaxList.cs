@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -20,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             for (int i = 0; i < list.Count; i++)
             {
-                var item = list[i];
+                var item = list.GetRequiredItem(i);
                 if ((i & 1) == 0)
                 {
                     Debug.Assert(!item.IsToken, "even elements of a separated list must be nodes");
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        internal GreenNode Node => _list.Node;
+        internal GreenNode? Node => _list.Node;
 
         public int Count
         {
@@ -50,11 +54,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public TNode this[int index]
+        public TNode? this[int index]
         {
             get
             {
-                return (TNode)_list[index << 1];
+                return (TNode?)_list[index << 1];
             }
         }
 
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns></returns>
-        public GreenNode GetSeparator(int index)
+        public GreenNode? GetSeparator(int index)
         {
             return _list[(index << 1) + 1];
         }
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _list == other._list;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return (obj is SeparatedSyntaxList<TNode>) && Equals((SeparatedSyntaxList<TNode>)obj);
         }
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 TNode[] array = new TNode[count];
                 for (int i = 0; i < count; i++)
                 {
-                    array[i] = this[i];
+                    array[i] = this[i]!;
                 }
                 return array;
             }

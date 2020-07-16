@@ -1,16 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
-
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">partial</ApplyNgenOptimization>
+    <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
+    
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Common</PackageId>
@@ -19,25 +20,8 @@
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
   </PropertyGroup>
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-      <Pack>false</Pack>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-      <Pack>false</Pack>
-    </Content>
-  </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\DesktopShim.cs" />
-    <Compile Update="CodeAnalysisResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CodeAnalysisResources.resx</DependentUpon>
-    </Compile>
+    <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>
   <ItemGroup>
     <!--
@@ -48,14 +32,16 @@
       will import everything but content files from Microsoft.CodeAnalysis.Analyzers, specifically, analyzers.
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" PrivateAssets="ContentFiles" />
-
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Need to include the PerformanceSensitiveAttribute definition in source build, since we can't get it from the analyzer package. -->
+    <Compile Remove="InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildFromSource)' != 'true'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp" />
@@ -105,11 +91,7 @@
     <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="CodeAnalysisResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CodeAnalysisResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="CodeAnalysisResources.resx" GenerateSource="true" />
     <EmbeddedResource Include="Resources\default.win32manifest" />
   </ItemGroup>
   <ItemGroup>

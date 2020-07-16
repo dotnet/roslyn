@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -105,16 +107,15 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningTask(compilation));
             method = (MethodSymbol)testData.GetMethodData("C.G<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsGenericTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningGenericTask(compilation));
             verifier.VerifyIL("C.F()",
 @"{
-  // Code size       52 (0x34)
+  // Code size       49 (0x31)
   .maxstack  2
-  .locals init (C.<F>d__0 V_0,
-                MyTaskMethodBuilder V_1)
+  .locals init (C.<F>d__0 V_0)
   IL_0000:  newobj     ""C.<F>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -124,43 +125,38 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
   IL_0012:  ldc.i4.m1
   IL_0013:  stfld      ""int C.<F>d__0.<>1__state""
   IL_0018:  ldloc.0
-  IL_0019:  ldfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""void MyTaskMethodBuilder.Start<C.<F>d__0>(ref C.<F>d__0)""
-  IL_0028:  ldloc.0
-  IL_0029:  ldflda     ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
-  IL_002e:  call       ""MyTask MyTaskMethodBuilder.Task.get""
-  IL_0033:  ret
+  IL_0019:  ldflda     ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""void MyTaskMethodBuilder.Start<C.<F>d__0>(ref C.<F>d__0)""
+  IL_0025:  ldloc.0
+  IL_0026:  ldflda     ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
+  IL_002b:  call       ""MyTask MyTaskMethodBuilder.Task.get""
+  IL_0030:  ret
 }");
             verifier.VerifyIL("C.G<T>(T)",
 @"{
-  // Code size       59 (0x3b)
+  // Code size       56 (0x38)
   .maxstack  2
-  .locals init (C.<G>d__1<T> V_0,
-                MyTaskMethodBuilder<T> V_1)
+  .locals init (C.<G>d__1<T> V_0)
   IL_0000:  newobj     ""C.<G>d__1<T>..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldarg.0
-  IL_0008:  stfld      ""T C.<G>d__1<T>.t""
-  IL_000d:  ldloc.0
-  IL_000e:  call       ""MyTaskMethodBuilder<T> MyTaskMethodBuilder<T>.Create()""
-  IL_0013:  stfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
+  IL_0007:  call       ""MyTaskMethodBuilder<T> MyTaskMethodBuilder<T>.Create()""
+  IL_000c:  stfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  stfld      ""T C.<G>d__1<T>.t""
   IL_0018:  ldloc.0
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int C.<G>d__1<T>.<>1__state""
   IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void MyTaskMethodBuilder<T>.Start<C.<G>d__1<T>>(ref C.<G>d__1<T>)""
-  IL_002f:  ldloc.0
-  IL_0030:  ldflda     ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
-  IL_0035:  call       ""MyTask<T> MyTaskMethodBuilder<T>.Task.get""
-  IL_003a:  ret
+  IL_0020:  ldflda     ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void MyTaskMethodBuilder<T>.Start<C.<G>d__1<T>>(ref C.<G>d__1<T>)""
+  IL_002c:  ldloc.0
+  IL_002d:  ldflda     ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
+  IL_0032:  call       ""MyTask<T> MyTaskMethodBuilder<T>.Task.get""
+  IL_0037:  ret
 }");
         }
 
@@ -256,11 +252,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningTask(compilation));
             Assert.Equal("C.MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.G()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsGenericTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningGenericTask(compilation));
             Assert.Equal("C.MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
@@ -337,11 +333,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_0()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningTask(compilation));
             Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_1()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsGenericTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningGenericTask(compilation));
             Assert.Equal("MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
@@ -416,11 +412,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.<M>g__F|0_0()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningTask(compilation));
             Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<M>g__G|0_1<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsGenericTaskReturningAsync(compilation));
+            Assert.True(method.IsAsyncReturningGenericTask(compilation));
             Assert.Equal("MyTask<T>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
@@ -1373,6 +1369,47 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 // (15,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(B.F(async () => null))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.F(async () => null)").WithLocation(15, 4));
+        }
+
+        [Fact, WorkItem(37712, "https://github.com/dotnet/roslyn/issues/37712")]
+        public void TaskLikeWithRefStructValue()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+ref struct MyAwaitable
+{
+    public MyAwaiter GetAwaiter() => new MyAwaiter();
+}
+struct MyAwaiter : System.Runtime.CompilerServices.INotifyCompletion
+{
+    public bool IsCompleted => true;
+    public MyResult GetResult() => new MyResult();
+    public void OnCompleted(Action continuation) { }
+}
+ref struct MyResult
+{
+}
+class Program
+{
+    public static async Task Main()
+    {
+        M(await new MyAwaitable());
+    }
+    public static void M(MyResult r)
+    {
+        Console.WriteLine(3);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "3");
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "3");
         }
     }
 }

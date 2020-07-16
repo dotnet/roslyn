@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -328,7 +330,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = obj.P
                         ~
                                                 </expected>)
@@ -357,7 +359,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = TestRef.P
                             ~
                                                 </expected>)
@@ -387,7 +389,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = obj.P
                         ~
                                                 </expected>)
@@ -415,7 +417,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = obj.P
                         ~
                                                 </expected>)
@@ -445,7 +447,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(ByRef p As Integer)' is of an unsupported type.
         Dim value = obj(p)
                     ~~~
                                                 </expected>)
@@ -474,7 +476,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(ByRef p As Integer)' is of an unsupported type.
         Dim value = obj(p)
                     ~~~
                                                 </expected>)
@@ -504,7 +506,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(p As Integer)' is of an unsupported type.
         Dim value = obj(0)
                     ~~~
                                                 </expected>)
@@ -532,7 +534,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(p As Integer)' is of an unsupported type.
         Dim value = obj(0)
                     ~~~
                                                 </expected>)
@@ -562,7 +564,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(p As Integer)' is of an unsupported type.
         Dim value = obj(0)
                     ~~~
                                                 </expected>)

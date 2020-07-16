@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -41,22 +43,39 @@ namespace Microsoft.CodeAnalysis.Emit
         public virtual MetadataReaderProvider OpenAssemblyMetadata(bool prefetch)
         {
             var peStream = OpenAssemblyStreamChecked();
-            if (peStream != null)
+            if (peStream == null)
             {
-                PEHeaders peHeaders;
-                using (var peReader = new PEReader(peStream, PEStreamOptions.LeaveOpen))
-                {
-                    peHeaders = peReader.PEHeaders;
-                }
-
-                peStream.Position = peHeaders.MetadataStartOffset;
-                return MetadataReaderProvider.FromMetadataStream(
-                    peStream,
-                    prefetch ? MetadataStreamOptions.PrefetchMetadata : MetadataStreamOptions.Default,
-                    size: peHeaders.MetadataSize);
+                return null;
             }
 
-            return null;
+            PEHeaders peHeaders;
+            using (var peReader = new PEReader(peStream, PEStreamOptions.LeaveOpen))
+            {
+                peHeaders = peReader.PEHeaders;
+            }
+
+            peStream.Position = peHeaders.MetadataStartOffset;
+            return MetadataReaderProvider.FromMetadataStream(
+                peStream,
+                prefetch ? MetadataStreamOptions.PrefetchMetadata : MetadataStreamOptions.Default,
+                size: peHeaders.MetadataSize);
+        }
+
+        /// <summary>
+        /// Reads MVID of the output assembly. Overridable for test mocking.
+        /// Returns <see cref="Guid.Empty"/> if the assembly is not available.
+        /// </summary>
+        internal virtual Guid ReadAssemblyModuleVersionId()
+        {
+            using var metadataProvider = OpenAssemblyMetadata(prefetch: false);
+            if (metadataProvider == null)
+            {
+                return Guid.Empty;
+            }
+
+            var metadataReader = metadataProvider.GetMetadataReader();
+            var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+            return metadataReader.GetGuid(mvidHandle);
         }
 
         /// <summary>
@@ -75,15 +94,17 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </remarks>
         public virtual DebugInformationReaderProvider OpenPdb()
         {
-            var stream = OpenPdbStreamChecked();
-            if (stream != null)
+            var pdbStream = OpenPdbStreamChecked();
+            if (pdbStream != null)
             {
-                return DebugInformationReaderProvider.CreateFromStream(stream);
+                return DebugInformationReaderProvider.CreateFromStream(pdbStream);
             }
 
             // check for embedded PDB
-            using (var peReader = new PEReader(OpenAssemblyStreamChecked()))
+            var peStream = OpenAssemblyStreamChecked();
+            if (peStream != null)
             {
+                using var peReader = new PEReader(peStream);
                 var embeddedPdbEntry = peReader.ReadDebugDirectory().FirstOrDefault(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
                 if (embeddedPdbEntry.DataSize != 0)
                 {
@@ -94,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        private Stream ValidateStream(Stream stream, string methodName)
+        private static Stream ValidateStream(Stream stream, string methodName)
         {
             if (stream != null && (!stream.CanRead || !stream.CanSeek))
             {

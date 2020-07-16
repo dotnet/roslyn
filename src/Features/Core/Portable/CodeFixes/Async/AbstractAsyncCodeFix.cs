@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAsyncCodeFix : CodeFixProvider
     {
-        public override abstract FixAllProvider GetFixAllProvider();
+        public abstract override FixAllProvider GetFixAllProvider();
 
         protected abstract Task<CodeAction> GetCodeActionAsync(
             SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             }
         }
 
-        private bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
+        private static bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
         {
             node = null;
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
