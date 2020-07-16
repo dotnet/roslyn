@@ -31,12 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return Nothing
             End If
 
-            Dim invocableExpression = TryCast(argumentList.Parent, ExpressionSyntax)
-            If invocableExpression Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim symbol = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken).Symbol
+            Dim symbol = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol
             If symbol Is Nothing Then
                 Return Nothing
             End If
