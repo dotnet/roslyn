@@ -94,6 +94,38 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        public async Task NestedCall()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = Foo([||]typeof(System.String).Name);
+    }
+
+    void Foo(String typeName) {
+        return;
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = Foo([||]nameof(System.String));
+    }
+
+    void Foo(String typeName) {
+        return;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task NotOnVariableContainingType()
         {
             var text = @"using System;
