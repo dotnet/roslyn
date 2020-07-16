@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
-                    if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined())
+                    if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined() || ErrorCode.WRN_NubExprIsConstBool2.GetWarningVersion() <= this._compilation.Options.WarningVersion)
                     {
                         if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
                         {
