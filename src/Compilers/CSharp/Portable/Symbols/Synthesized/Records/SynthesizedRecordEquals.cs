@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly PropertySymbol _equalityContract;
 
         public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol equalityContract, int memberOffset, DiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, hasBody: true, memberOffset, diagnostics)
         {
             _equalityContract = equalityContract;
         }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
-                    if (!_equalityContract.Type.Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions))
+                    if (_equalityContract.IsStatic || !_equalityContract.Type.Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions))
                     {
                         // There is a signature mismatch, an error was reported elsewhere
                         F.CloseMethod(F.ThrowNull());

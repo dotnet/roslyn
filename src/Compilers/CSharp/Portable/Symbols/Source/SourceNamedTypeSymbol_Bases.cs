@@ -91,10 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            Location baseLocation = null;
+
             // you need to know all bases before you can ask this question... (asking this causes a cycle)
             if (this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
             {
-                var baseLocation = FindBaseRefSyntax(localBase);
+                baseLocation ??= FindBaseRefSyntax(localBase);
                 Debug.Assert(baseLocation != null);
 
                 // A generic type cannot derive from '{0}' because it is an attribute class
@@ -112,20 +114,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
 
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
             // Records can only inherit from other records or object
-            if (declaration.Kind == DeclarationKind.Record &&
-                localBase.SpecialType != SpecialType.System_Object &&
-                SynthesizedRecordClone.FindValidCloneMethod(localBase) is null)
+            if (declaration.Kind == DeclarationKind.Record)
             {
-                var baseLocation = FindBaseRefSyntax(localBase);
-                diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+                if (localBase.SpecialType != SpecialType.System_Object &&
+                    SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null)
+                {
+                    baseLocation ??= FindBaseRefSyntax(localBase);
+                    diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+                }
             }
-            else if (declaration.Kind != DeclarationKind.Record &&
-                     SynthesizedRecordClone.FindValidCloneMethod(localBase) is object)
+            else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is object)
             {
-                var baseLocation = FindBaseRefSyntax(localBase);
+                baseLocation ??= FindBaseRefSyntax(localBase);
                 diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
             }
+
+            diagnostics.Add(baseLocation ?? FindBaseRefSyntax(localBase), useSiteDiagnostics);
         }
 
         protected override void CheckInterfaces(DiagnosticBag diagnostics)
