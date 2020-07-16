@@ -176,5 +176,100 @@ class Test2
             await TestInRegularAndScriptAsync(input, expected);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task FixAllSolution()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Test1
+{
+    static void Main()
+    {
+        var typeName1 = {|FixAllInSolution:typeof(Test).Name|};
+        var typeName2 = typeof(Test).Name;
+        var typeName3 = typeof(Test).Name;
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class Test2
+{
+    static void Main()
+    {
+        var typeName1 = typeof(Test).Name;
+        var typeName2 = typeof(int).Name;
+        var typeName3 = typeof(System.String).Name;
+        var typeName4 = typeof(Double).Name;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Test3
+{
+    static void Main()
+    {
+        var typeName1 = typeof(Test).Name;
+        var typeName2 = typeof(int).Name;
+        var typeName3 = typeof(System.String).Name;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Test1
+{
+    static void Main()
+    {
+        var typeName1 = nameof(Test);
+        var typeName2 = nameof(Test);
+        var typeName3 = nameof(Test);
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class Test2
+{
+    static void Main()
+    {
+        var typeName1 = nameof(Test);
+        var typeName2 = nameof(Int32);
+        var typeName3 = nameof(String);
+        var typeName4 = nameof(Double);
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Test3
+{
+    static void Main()
+    {
+        var typeName1 = nameof(Test);
+        var typeName2 = nameof(System.Int32);
+        var typeName3 = nameof(System.String);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
     }
 }
