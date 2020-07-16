@@ -4,11 +4,8 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -36,13 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetSyntax().PrimaryConstructorBaseType;
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return false;
-            }
-        }
+        protected override bool AllowRefOrOut => false;
+
+        internal override bool IsExpressionBodied => false;
 
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {
