@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            var hostServices = FeaturesTestCompositions.Features.WithAdditionalParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
+            var hostServices = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
             using var workspace = new AdhocWorkspace(hostServices);
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 

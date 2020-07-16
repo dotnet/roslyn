@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(SnippetCompletionProvider);
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(MockSnippetInfoService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(MockSnippetInfoService));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsInEmptyFile()

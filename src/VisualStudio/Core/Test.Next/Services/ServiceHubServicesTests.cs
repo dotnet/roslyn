@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-             => new AdhocWorkspace(FeaturesTestCompositions.Features.WithAdditionalParts(additionalParts).GetHostServices());
+             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private static Solution WithChangedOptionsFromRemoteWorkspace(Solution solution)
             => solution.WithChangedOptionsFrom(RemoteWorkspace.Options);

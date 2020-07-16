@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.CallHierarchy
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -82,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Class
 
         Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim workspace = TestWorkspace.Create(markup, composition:=EditorTestCompositions.EditorFeatures.WithAdditionalParts(additionalTypes))
+            Dim workspace = TestWorkspace.Create(markup, composition:=EditorTestCompositions.EditorFeatures.AddParts(additionalTypes))
 
             Return New CallHierarchyTestState(workspace)
         End Function
@@ -105,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Sub
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim workspace = TestWorkspace.CreateCSharp(markup, composition:=EditorTestCompositions.EditorFeatures.WithAdditionalParts(additionalTypes))
+            Dim workspace = TestWorkspace.CreateCSharp(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
             Return New CallHierarchyTestState(workspace)
         End Function
 

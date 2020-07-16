@@ -7,33 +7,46 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition.Hosting;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    /// <summary>
+    /// Represents a MEF composition used for testing.
+    /// </summary>
     public sealed class TestComposition
     {
-        public readonly ImmutableHashSet<Assembly> Assemblies;
-        public readonly ImmutableHashSet<Type> Types;
+        public static readonly TestComposition Empty = new TestComposition(ImmutableHashSet<Assembly>.Empty, ImmutableHashSet<Type>.Empty, ImmutableHashSet<Type>.Empty);
 
-        private readonly bool _vsMef;
-        private readonly Lazy<ContainerConfiguration> _lazyContainerConfiguration;
+        /// <summary>
+        /// Assemblies to include in the composition.
+        /// </summary>
+        public readonly ImmutableHashSet<Assembly> Assemblies;
+
+        /// <summary>
+        /// Types to exclude from the composition.
+        /// All subtypes of types specified in <see cref="ExcludedPartTypes"/> and defined in <see cref="Assemblies"/> are excluded before <see cref="Parts"/> are added.
+        /// </summary>
+        public readonly ImmutableHashSet<Type> ExcludedPartTypes;
+
+        /// <summary>
+        /// Additional part types to add to the composition.
+        /// </summary>
+        public readonly ImmutableHashSet<Type> Parts;
+
         private readonly Lazy<IExportProviderFactory> _exportProviderFactory;
 
-        internal TestComposition(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> types, bool vsMef)
+        private TestComposition(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> parts, ImmutableHashSet<Type> excludedPartTypes)
         {
             Assemblies = assemblies;
-            Types = types;
+            Parts = parts;
+            ExcludedPartTypes = excludedPartTypes;
 
-            _vsMef = vsMef;
-            _lazyContainerConfiguration = new Lazy<ContainerConfiguration>(() => new ContainerConfiguration().WithAssemblies(Assemblies).WithParts(Types));
             _exportProviderFactory = new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(GetCatalog()));
         }
 
@@ -42,9 +55,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// depending on what layer the composition is for. Editor Features and VS layers use VS MEF composition while anything else uses System.Composition.
         /// </summary>
         public HostServices GetHostServices()
-            => _vsMef ? GetVisualStudioHostServices() : (HostServices)new MefHostServices(_lazyContainerConfiguration.Value.CreateContainer());
-
-        internal VisualStudioMefHostServices GetVisualStudioHostServices()
             => VisualStudioMefHostServices.Create(ExportProviderFactory.CreateExportProvider());
 
         /// <summary>
@@ -53,32 +63,58 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public IExportProviderFactory ExportProviderFactory => _exportProviderFactory.Value;
 
         private ComposableCatalog GetCatalog()
-            => ExportProviderCache.GetOrCreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithParts(Types);
+            => ExportProviderCache.GetOrCreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
 
-        public TestComposition WithAdditionalParts(params Type[]? types)
-            => WithAdditionalParts(Array.Empty<Assembly>(), types ?? Array.Empty<Type>(), _vsMef);
+        public TestComposition Add(TestComposition composition)
+            => WithAssemblies(composition.Assemblies).WithParts(composition.Parts).WithExcludedPartTypes(composition.ExcludedPartTypes);
 
-        public TestComposition WithAdditionalParts(IEnumerable<Assembly> assemblies, IEnumerable<Type> types, bool vsMef = false)
-        {
-            var newAssemblies = Assemblies;
-            foreach (var assembly in assemblies)
-            {
-                newAssemblies = newAssemblies.Add(assembly);
-            }
+        public TestComposition AddAssemblies(params Assembly[]? assemblies)
+            => AddAssemblies((IEnumerable<Assembly>?)assemblies);
 
-            var newTypes = Types;
-            foreach (var type in types)
-            {
-                newTypes = newTypes.Add(type);
-            }
+        public TestComposition AddAssemblies(IEnumerable<Assembly>? assemblies)
+            => WithAssemblies(Assemblies.Union(assemblies ?? Array.Empty<Assembly>());
 
-            if (newAssemblies == Assemblies && newTypes == Types && _vsMef == vsMef)
-            {
-                return this;
-            }
+        public TestComposition AddParts(IEnumerable<Type>? types)
+            => WithParts(Parts.Union(types ?? Array.Empty<Type>()));
 
-            return new TestComposition(newAssemblies, newTypes, vsMef);
-        }
+        public TestComposition AddParts(params Type[]? types)
+            => AddParts((IEnumerable<Type>?)types);
+
+        public TestComposition AddExcludedParts(IEnumerable<Type>? types)
+            => WithExcludedPartTypes(Parts.Union(types ?? Array.Empty<Type>()));
+
+        public TestComposition AddExcludedParts(params Type[]? types)
+            => AddExcludedParts((IEnumerable<Type>?)types);
+
+        public TestComposition Remove(TestComposition composition)
+            => WithAssemblies(composition.Assemblies).WithParts(composition.Parts).WithExcludedPartTypes(composition.ExcludedPartTypes);
+
+        public TestComposition RemoveAssemblies(params Assembly[]? assemblies)
+            => RemoveAssemblies((IEnumerable<Assembly>?)assemblies);
+
+        public TestComposition RemoveAssemblies(IEnumerable<Assembly>? assemblies)
+            => WithAssemblies(Assemblies.Except(assemblies ?? Array.Empty<Assembly>()));
+
+        public TestComposition RemoveParts(IEnumerable<Type>? types)
+            => WithParts(Parts.Except(types ?? Array.Empty<Type>()));
+
+        public TestComposition RemoveParts(params Type[]? types)
+            => RemoveParts((IEnumerable<Type>?)types);
+
+        public TestComposition RemoveExcludedParts(IEnumerable<Type>? types)
+            => WithExcludedPartTypes(Parts.Except(types ?? Array.Empty<Type>()));
+
+        public TestComposition RemoveExcludedParts(params Type[]? types)
+            => RemoveExcludedParts((IEnumerable<Type>?)types);
+
+        public TestComposition WithAssemblies(ImmutableHashSet<Assembly> assemblies)
+            => (assemblies == Assemblies) ? this : new TestComposition(assemblies, Parts, ExcludedPartTypes);
+
+        public TestComposition WithParts(ImmutableHashSet<Type> parts)
+            => (parts == Parts) ? this : new TestComposition(Assemblies, parts, ExcludedPartTypes);
+
+        public TestComposition WithExcludedPartTypes(ImmutableHashSet<Type> excludedPartTypes)
+            => (excludedPartTypes == ExcludedPartTypes) ? this : new TestComposition(Assemblies, Parts, excludedPartTypes);
 
         /// <summary>
         /// Use for VS MEF composition troubleshooting.

@@ -1021,7 +1021,8 @@ class D
         </Document>
     </Project>
 </Workspace>
-", exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+", composition: EditorTestCompositions.EditorFeatures);
+
             _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
             _aggregator = new NavigateToTestAggregator(_provider);
 

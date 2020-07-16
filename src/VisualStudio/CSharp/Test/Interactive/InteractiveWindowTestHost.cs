@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
 
@@ -16,16 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         internal readonly IInteractiveWindow Window;
         internal readonly TestInteractiveEvaluator Evaluator;
 
-        private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
-
-        internal static readonly IExportProviderFactory ExportProviderFactory = EditorTestCompositions.EditorFeaturesInteractiveWindow.ExportProviderFactory;
-
-        internal InteractiveWindowTestHost(ExportProvider exportProvider)
+        internal InteractiveWindowTestHost(IInteractiveWindowFactoryService interactiveWindowFactory)
         {
-            _exportProvider = exportProvider.AsExportProvider();
-
             Evaluator = new TestInteractiveEvaluator();
-            Window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
+            Window = interactiveWindowFactory.CreateWindow(Evaluator);
             Window.InitializeAsync().Wait();
         }
 

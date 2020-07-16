@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public partial class AdhocWorkspaceTests : TestBase
     {
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.WithAdditionalParts(additionalParts).GetHostServices());
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private static AdhocWorkspace CreateWorkspaceWithRecoverableSyntaxTrees()
         {

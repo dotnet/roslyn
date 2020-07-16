@@ -520,9 +520,7 @@ namespace A
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
         private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
-            var exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic).CreateExportProvider();
-
-            using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: FeaturesTestCompositions.Features);
 
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options

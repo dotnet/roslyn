@@ -36,14 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private readonly DisposableTextView? _createdTextView;
         private readonly ITextBuffer _subjectBuffer;
 
-        public AbstractCommandHandlerTestState(
-            XElement workspaceElement,
-            ComposableCatalog extraParts,
-            string? workspaceKind = null)
-            : this(workspaceElement, GetExportProvider(excludedTypes: null, extraParts), workspaceKind)
-        {
-        }
-
         /// <summary>
         /// This can use input files with an (optionally) annotated span 'Selection' and a cursor position ($$),
         /// and use it to create a selected span in the TextView.
@@ -66,27 +58,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// </summary>
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
-            ExportProvider exportProvider,
-            string? workspaceKind,
+            TestComposition composition,
+            string? workspaceKind = null,
             bool makeSeparateBufferForCursor = false,
             ImmutableArray<string> roles = default)
         {
-            this.Workspace = TestWorkspace.CreateWorkspace(
+            Workspace = TestWorkspace.CreateWorkspace(
                 workspaceElement,
-                exportProvider: exportProvider,
+                composition: composition,
                 workspaceKind: workspaceKind);
 
             if (makeSeparateBufferForCursor)
             {
                 var languageName = Workspace.Projects.First().Language;
                 var contentType = Workspace.Services.GetLanguageServices(languageName).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType();
-                _createdTextView = EditorFactory.CreateView(exportProvider, contentType, roles);
+                _createdTextView = EditorFactory.CreateView(Workspace.ExportProvider, contentType, roles);
                 _textView = _createdTextView.TextView;
                 _subjectBuffer = _textView.TextBuffer;
             }
             else
             {
-                var cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
+                var cursorDocument = Workspace.Documents.First(d => d.CursorPosition.HasValue);
                 _textView = cursorDocument.GetTextView();
                 _subjectBuffer = cursorDocument.GetTextBuffer();
 
@@ -140,22 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public T GetService<T>()
             => Workspace.GetService<T>();
-
-        internal static ExportProvider GetExportProvider(IList<Type>? excludedTypes, ComposableCatalog extraParts)
-        {
-            excludedTypes = excludedTypes ?? Type.EmptyTypes;
-
-            if (excludedTypes.Count == 0 && (extraParts == null || extraParts.Parts.Count == 0))
-            {
-                return TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
-            }
-
-            var baseCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
-
-            var filteredCatalog = baseCatalog.WithoutPartsOfTypes(excludedTypes);
-
-            return ExportProviderCache.GetOrCreateExportProviderFactory(filteredCatalog.WithParts(extraParts)).CreateExportProvider();
-        }
 
         public virtual ITextView TextView
         {

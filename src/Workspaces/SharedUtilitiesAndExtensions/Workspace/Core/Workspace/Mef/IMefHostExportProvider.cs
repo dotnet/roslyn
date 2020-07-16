@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
@@ -11,5 +12,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     {
         IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>();
         IEnumerable<Lazy<TExtension>> GetExports<TExtension>();
+    }
+
+    internal static class IMefHostExportProviderExtensions
+    {
+        public static TExtension GetExportedValue<TExtension>(this IMefHostExportProvider provider)
+            => provider.GetExports<TExtension>().Single().Value;
     }
 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
     internal class ExtractInterfaceTestState : IDisposable
     {
-        public static readonly TestComposition Composition = EditorTestCompositions.EditorFeatures.WithAdditionalParts(
+        public static readonly TestComposition Composition = EditorTestCompositions.EditorFeatures.AddParts(
             typeof(TestExtractInterfaceOptionsService));
 
         private readonly TestHostDocument _testDocument;
@@ -30,10 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             var workspace = languageName == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, compilationOptions: compilationOptions);
+                ? TestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: (CSharpCompilationOptions)compilationOptions)
+                : TestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions);
             return new ExtractInterfaceTestState(workspace);
         }
 

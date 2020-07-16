@@ -35,12 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     [UseExportProvider]
     public abstract class AbstractNavigateToTests
     {
-        private static readonly Lazy<IExportProviderFactory> s_exportProviderFactory =
-            new Lazy<IExportProviderFactory>(() =>
-            {
-                var catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(DocumentTrackingServiceFactory));
-                return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            });
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingServiceFactory));
 
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
@@ -122,11 +117,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             XElement workspaceElement,
             Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
-            var exportProvider = s_exportProviderFactory.Value.CreateExportProvider();
-            var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
+            var exportProvider = s_composition.ExportProviderFactory.CreateExportProvider();
+
+            // must be set before the workspace is created since the constructor accesses IDocumentTrackingService
+            var documentTrackingServiceFactory = exportProvider.GetExportedValue<TestDocumentTrackingServiceFactory>();
             documentTrackingServiceFactory.FactoryMethod = createTrackingService;
 
             var workspace = TestWorkspace.Create(workspaceElement, exportProvider: exportProvider);
+
             InitializeWorkspace(workspace);
             return workspace;
         }
@@ -135,11 +133,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             string content,
             Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
-            var exportProvider = s_exportProviderFactory.Value.CreateExportProvider();
-            var documentTrackingServiceFactory = exportProvider.GetExportedValue<DocumentTrackingServiceFactory>();
+            var exportProvider = s_composition.ExportProviderFactory.CreateExportProvider();
+
+            // must be set before the workspace is created since the constructor accesses IDocumentTrackingService
+            var documentTrackingServiceFactory = exportProvider.GetExportedValue<TestDocumentTrackingServiceFactory>();
             documentTrackingServiceFactory.FactoryMethod = createTrackingService;
 
             var workspace = CreateWorkspace(content, exportProvider);
+
             InitializeWorkspace(workspace);
             return workspace;
         }
@@ -259,11 +260,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host)]
         [Shared]
         [PartNotDiscoverable]
-        public sealed class DocumentTrackingServiceFactory : IWorkspaceServiceFactory
+        public sealed class TestDocumentTrackingServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public DocumentTrackingServiceFactory()
+            public TestDocumentTrackingServiceFactory()
                 => FactoryMethod = null;
 
             internal Func<HostWorkspaceServices, IDocumentTrackingService> FactoryMethod

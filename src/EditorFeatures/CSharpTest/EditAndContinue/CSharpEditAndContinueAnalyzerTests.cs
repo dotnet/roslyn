@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class CSharpEditAndContinueAnalyzerTests
     {
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithAdditionalParts(
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
             typeof(TestActiveStatementSpanTrackerFactory));
 
         #region Helpers

@@ -21,27 +21,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
     [UseExportProvider]
     public abstract class AbstractKeywordHighlighterTests
     {
-        private static readonly Dictionary<Type, IExportProviderFactory> _specificHighlighterExportProviderFactories = new Dictionary<Type, IExportProviderFactory>();
-        private ExportProvider _exportProvider;
+        private static readonly Dictionary<Type, TestComposition> s_compositions = new Dictionary<Type, TestComposition>();
+        private TestComposition _composition;
 
-        protected ExportProvider ExportProvider
+        protected TestComposition Composition
         {
             get
             {
-                return _exportProvider ??= GetExportProvider(this);
-
-                static ExportProvider GetExportProvider(AbstractKeywordHighlighterTests self)
+                if (_composition == null)
                 {
-                    IExportProviderFactory factory;
-                    lock (_specificHighlighterExportProviderFactories)
+                    lock (s_compositions)
                     {
-                        factory = _specificHighlighterExportProviderFactories.GetOrAdd(
-                            self.GetType(),
-                            type => ExportProviderCache.GetOrCreateExportProviderFactory(self.GetExportCatalog()));
+                        _composition = s_compositions.GetOrAdd(
+                            GetHighlighterType(),
+                            type => EditorTestCompositions.EditorFeatures.AddExcludedParts(typeof(IHighlighter)).AddParts(type));
                     }
-
-                    return factory.CreateExportProvider();
                 }
+
+                return _composition;
             }
         }
 
@@ -49,15 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
         protected abstract IEnumerable<ParseOptions> GetOptions();
         protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
 
-        protected virtual ComposableCatalog GetExportCatalog()
-        {
-            var catalogWithoutCompletion = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IHighlighter));
-            var catalog = catalogWithoutCompletion.WithPart(GetHighlighterType());
-            return catalog;
-        }
-
-        protected async Task TestAsync(
-            string code)
+        protected async Task TestAsync(string code)
         {
             foreach (var option in GetOptions())
             {

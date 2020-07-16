@@ -5,18 +5,13 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Xunit;
@@ -36,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
             _testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue || d.SelectedSpans.Any());
             TargetDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
 
-            // TODO: use mock INotificationService https://github.com/dotnet/roslyn/issues/46045
             var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
             var callback = new Action<string, string, NotificationSeverity>((message, title, severity) => NotificationMessage = message);
             notificationService.NotificationCallback = callback;

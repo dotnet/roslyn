@@ -224,7 +224,7 @@ End Class</text>
         </Document>
     </Project>
 </Workspace>,
-exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
+            composition:=EditorTestCompositions.EditorFeatures.AddExcludedParts(GetType(CommitConnectionListener)))
         End Function
     End Class
 End Namespace

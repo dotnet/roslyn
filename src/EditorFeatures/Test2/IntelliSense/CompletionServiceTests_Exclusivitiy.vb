@@ -28,11 +28,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Project>
             </Workspace>
 
-            Dim exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
                 GetType(CompletionItemNonExclusiveCompletionProvider),
                 GetType(CompletionItemExclusiveCompletionProvider),
-                GetType(CompletionItemExclusive2CompletionProvider))).CreateExportProvider()
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
+                GetType(CompletionItemExclusive2CompletionProvider))
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace)
 

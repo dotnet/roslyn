@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class FindReferencesTests : TestBase
     {
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.WithAdditionalParts(additionalParts).GetHostServices());
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
         {

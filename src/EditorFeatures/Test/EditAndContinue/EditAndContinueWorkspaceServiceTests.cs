@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public sealed class EditAndContinueWorkspaceServiceTests : TestBase
     {
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithAdditionalParts(
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
             typeof(TestActiveStatementSpanTrackerFactory));
 
         private static readonly ActiveStatementProvider s_noActiveStatements =
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [Fact]
         public async Task RunMode_ProjectThatDoesNotSupportEnC()
         {
-            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.WithAdditionalParts(
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(
                 typeof(DummyLanguageService),
                 typeof(TestActiveStatementSpanTrackerFactory)));
 
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [Fact]
         public async Task BreakMode_ProjectThatDoesNotSupportEnC()
         {
-            var composition = FeaturesTestCompositions.Features.WithAdditionalParts(
+            var composition = FeaturesTestCompositions.Features.AddParts(
                 typeof(DummyLanguageService),
                 typeof(TestActiveStatementSpanTrackerFactory));
 
@@ -2507,7 +2507,7 @@ class C1
         [Fact]
         public async Task ActiveStatements_ForeignDocument()
         {
-            var composition = FeaturesTestCompositions.Features.WithAdditionalParts(
+            var composition = FeaturesTestCompositions.Features.AddParts(
                 typeof(DummyLanguageService),
                 typeof(TestActiveStatementSpanTrackerFactory));
 

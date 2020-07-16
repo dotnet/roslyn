@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     public partial class WorkspaceTests : TestBase
     {
         private static TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-            => new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, composition: null, workspaceKind, disablePartialSolutions);
+            => new TestWorkspace(exportProvider: null, EditorTestCompositions.EditorFeatures, workspaceKind, disablePartialSolutions);
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
@@ -1135,7 +1135,7 @@ class D { }
     </Project>
 </Workspace>";
 
-            using var workspace = TestWorkspace.Create(input, exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic, openDocuments: true);
+            using var workspace = TestWorkspace.Create(input, composition: EditorTestCompositions.EditorFeatures, openDocuments: true);
             var eventArgs = new List<WorkspaceChangeEventArgs>();
 
             workspace.WorkspaceChanged += (s, e) =>

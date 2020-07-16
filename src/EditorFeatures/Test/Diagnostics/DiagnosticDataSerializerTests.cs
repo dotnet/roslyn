@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Document()
         {
-            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.WithAdditionalParts(
-                typeof(PersistentStorageServiceFactory)));
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestPersistentStorageServiceFactory)));
 
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Project()
         {
-            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.WithAdditionalParts(
-                typeof(PersistentStorageServiceFactory)));
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestPersistentStorageServiceFactory)));
 
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
@@ -275,12 +275,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HelpLink, item2.HelpLink);
         }
 
-        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), WorkspaceKind.Host), Shared]
-        public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
+        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), WorkspaceKind.Host), PartNotDiscoverable, Shared]
+        public class TestPersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public PersistentStorageServiceFactory()
+            public TestPersistentStorageServiceFactory()
             {
             }
 

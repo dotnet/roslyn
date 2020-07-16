@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class SyntaxReferenceTests : TestBase
     {
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.WithAdditionalParts(additionalParts).GetHostServices());
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
         {

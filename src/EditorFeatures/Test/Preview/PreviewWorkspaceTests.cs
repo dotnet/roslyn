@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewDiagnostic()
         {
-            var hostServices = EditorTestCompositions.EditorFeatures.GetVisualStudioHostServices();
+            var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
 
-            var diagnosticService = (IDiagnosticUpdateSource)hostServices.GetExports<IDiagnosticAnalyzerService>().Single().Value;
+            var diagnosticService = (IDiagnosticUpdateSource)((IMefHostExportProvider)hostServices).GetExports<IDiagnosticAnalyzerService>().Single().Value;
             RoslynDebug.AssertNotNull(diagnosticService);
 
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();

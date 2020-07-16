@@ -55,12 +55,9 @@ class {|Definition:C1|}
     </Project>
 </Workspace>
 
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
-                .WithParts(GetType(MockServiceProvider))) _
-                .CreateExportProvider()
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(MockServiceProvider))
 
-            Using workspace = TestWorkspace.Create(input, exportProvider:=exportProvider, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
                 Dim context = presenter.StartSearch("test", supportsReferences:=True)

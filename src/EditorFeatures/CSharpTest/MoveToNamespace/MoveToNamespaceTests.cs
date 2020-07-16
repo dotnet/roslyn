@@ -21,15 +21,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
-        private static readonly IExportProviderFactory ExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestMoveToNamespaceOptionsService)));
+        private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features.AddParts(
+            typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
+
+        private static readonly TestComposition s_composition = s_compositionWithoutOptions.AddParts(
+            typeof(TestMoveToNamespaceOptionsService));
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => CreateWorkspaceFromFile(initialMarkup, parameters, ExportProviderFactory);
+            => CreateWorkspaceFromFile(initialMarkup, parameters, s_composition);
 
-        protected static TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, IExportProviderFactory exportProviderFactory)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: exportProviderFactory.CreateExportProvider());
+        protected static TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, TestComposition composition)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, composition: composition);
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -37,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 
         public static IEnumerable<object[]> SupportedKeywords => new[]
         {
-            new []{"class" },
-            new []{"enum" },
-            new []{"interface"}
+            new[] {"class" },
+            new[] {"enum" },
+            new[] {"interface"}
         };
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
@@ -1114,10 +1116,7 @@ class MyClass
 }
 }";
 
-            var exportProviderWithoutOptionsService = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IMoveToNamespaceOptionsService)));
-
-            using var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService);
+            using var workspace = CreateWorkspaceFromFile(code, new TestParameters(), s_compositionWithoutOptions);
             using var testState = new TestState(workspace);
             Assert.Null(testState.TestMoveToNamespaceOptionsService);
 
@@ -1269,7 +1268,7 @@ namespace B
     {
     }
 }";
-            using var workspace = TestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), exportProvider: ExportProviderFactory.CreateExportProvider());
+            using var workspace = TestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
 
             // Set the target namespace to "B"
             var testDocument = workspace.Projects.Single(p => p.Name == "Proj1").Documents.Single();

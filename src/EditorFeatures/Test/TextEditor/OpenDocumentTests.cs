@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -23,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             // We want to assert that if the open document is linked into multiple projects, we
             // update all documents at the same time with the changed text. Otherwise things will get
             // out of sync.
-            var hostServices = EditorTestCompositions.EditorFeatures.GetVisualStudioHostServices();
+            var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
 
             using var workspace = new AdhocWorkspace(hostServices);
-            var textBufferFactoryService = hostServices.GetExports<ITextBufferFactoryService>().Single().Value;
+            var textBufferFactoryService = ((IMefHostExportProvider)hostServices).GetExports<ITextBufferFactoryService>().Single().Value;
             var buffer = textBufferFactoryService.CreateTextBuffer("Hello", textBufferFactoryService.TextContentType);
             var sourceTextContainer = buffer.AsTextContainer();
 

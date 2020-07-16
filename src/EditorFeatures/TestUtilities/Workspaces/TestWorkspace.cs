@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Contract.ThrowIfTrue(exportProvider != null && composition != null);
 
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
-            this.ExportProvider = composition?.ExportProviderFactory.CreateExportProvider() ?? exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
             this.AdditionalDocuments = new List<TestHostDocument>();
@@ -99,9 +99,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             RegisterDocumentOptionProviders(ExportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
 
+        internal static TestComposition GetComposition(TestComposition? composition)
+            => composition ?? EditorTestCompositions.EditorFeatures;
+
         private static HostServices GetHostServices(ExportProvider? exportProvider = null, TestComposition? composition = null)
-           => (composition != null) ? composition.GetHostServices() :
-              VisualStudioMefHostServices.Create(exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+           => (exportProvider != null) ? VisualStudioMefHostServices.Create(exportProvider) : GetComposition(composition).GetHostServices();
 
         protected internal override bool PartialSemanticsEnabled
         {

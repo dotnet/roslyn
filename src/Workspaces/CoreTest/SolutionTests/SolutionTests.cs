@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private static Workspace CreateWorkspace(Type[]? additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.WithAdditionalParts(additionalParts).GetHostServices());
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
         {
@@ -2359,7 +2359,7 @@ End Class";
         [Fact]
         public void TestWorkspaceLanguageServiceOverride()
         {
-            var hostServices = FeaturesTestCompositions.Features.WithAdditionalParts(new[]
+            var hostServices = FeaturesTestCompositions.Features.AddParts(new[]
             {
                 typeof(TestLanguageServiceA),
                 typeof(TestLanguageServiceB),

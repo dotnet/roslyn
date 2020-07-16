@@ -166,27 +166,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private static readonly Dictionary<Type, IExportProviderFactory> _specificCompletionExportProviderFactories = new Dictionary<Type, IExportProviderFactory>();
-        private ExportProvider _exportProvider = null;
+        private static readonly Dictionary<Type, TestComposition> s_compositions = new Dictionary<Type, TestComposition>();
+        private ExportProvider _exportProvider;
 
         protected ExportProvider ExportProvider
         {
             get
             {
-                return _exportProvider ??= GetExportProvider(this);
-
-                static ExportProvider GetExportProvider(AbstractCompletionProviderTests<TWorkspaceFixture> self)
+                if (_exportProvider == null)
                 {
-                    IExportProviderFactory factory;
-                    lock (_specificCompletionExportProviderFactories)
+                    TestComposition composition;
+                    lock (s_compositions)
                     {
-                        factory = _specificCompletionExportProviderFactories.GetOrAdd(
-                            self.GetType(),
-                            type => ExportProviderCache.GetOrCreateExportProviderFactory(self.GetExportCatalog()));
+                        composition = s_compositions.GetOrAdd(GetType(), type => GetComposition());
                     }
 
-                    return factory.CreateExportProvider();
+                    _exportProvider = composition.ExportProviderFactory.CreateExportProvider();
                 }
+
+                return _exportProvider;
             }
         }
 
@@ -196,12 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             mockExperimentService.SetExperimentOption(experimentName, enabled);
         }
 
-        protected virtual ComposableCatalog GetExportCatalog()
-        {
-            var catalogWithoutCompletion = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(CompletionProvider));
-            var catalog = catalogWithoutCompletion.WithPart(GetCompletionProviderType());
-            return catalog;
-        }
+        protected virtual TestComposition GetComposition()
+            => EditorTestCompositions.EditorFeatures.AddExcludedParts(typeof(CompletionProvider)).AddParts(GetCompletionProviderType());
 
         private static bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {

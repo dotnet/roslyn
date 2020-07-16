@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             TestParameters? testParameters = null,
             string targetNamespace = null,
             bool optionCancelled = false,
-            IReadOnlyDictionary<string, string> expectedSymbolChanges = null
-            )
+            IReadOnlyDictionary<string, string> expectedSymbolChanges = null)
         {
             testParameters ??= new TestParameters();
 
