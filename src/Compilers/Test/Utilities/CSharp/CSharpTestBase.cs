@@ -1506,6 +1506,11 @@ namespace System.Runtime.CompilerServices
             return attributes.Select(a => a.ToString());
         }
 
+        internal static IEnumerable<string> GetAttributeStrings(IEnumerable<CSharpAttributeData> attributes)
+        {
+            return attributes.Select(a => a.ToString());
+        }
+
         #endregion
 
         #region Documentation Comments
