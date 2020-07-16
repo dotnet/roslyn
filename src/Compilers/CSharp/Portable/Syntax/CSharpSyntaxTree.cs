@@ -308,6 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
+        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
             CSharpParseOptions? options = null,
@@ -377,6 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
+        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
         public static SyntaxTree ParseText(
             string text,
             CSharpParseOptions? options = null,
@@ -392,6 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
+        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
         public static SyntaxTree ParseText(
             SourceText text,
             CSharpParseOptions? options = null,
@@ -836,6 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead")]
         public static SyntaxTree ParseText(
             SourceText text,
             CSharpParseOptions? options,
@@ -846,6 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead")]
         public static SyntaxTree ParseText(
             string text,
             CSharpParseOptions? options,
@@ -857,6 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead")]
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
             CSharpParseOptions? options,
