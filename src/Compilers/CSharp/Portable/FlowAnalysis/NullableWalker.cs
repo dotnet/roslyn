@@ -5440,7 +5440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.Type);
             }
 
-            UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState)
+            static UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState)
             {
                 return expr.UnboundLambda.WithNullableState(expr.UnboundLambda.Data.Binder, variableState);
             }

@@ -785,12 +785,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Reading from a variable of a type parameter (that could be substituted with a nullable type), but which
             // cannot itself be annotated (because it isn't known to be a reference type), may yield a null value
             // even though the type parameter isn't annotated.
-            var state = Type.IsPossiblyNullableReferenceTypeTypeParameter() ?
-                (NullableAnnotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, NullableAnnotation.NotAnnotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull }) :
-                (Type.IsNullableTypeOrTypeParameter() ?
-                    NullableFlowState.MaybeNull :
-                    NullableAnnotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull });
-            return TypeWithState.Create(Type, state);
+            return TypeWithState.Create(Type, getFlowState(Type, NullableAnnotation));
+
+            static NullableFlowState getFlowState(TypeSymbol type, NullableAnnotation annotation)
+            {
+                if (type.IsPossiblyNullableReferenceTypeTypeParameter())
+                {
+                    return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, NullableAnnotation.NotAnnotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull };
+                }
+                if (type.IsTypeParameterDisallowingAnnotation())
+                {
+                    return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, _ => NullableFlowState.NotNull };
+                }
+                if (type.IsNullableTypeOrTypeParameter())
+                {
+                    return NullableFlowState.MaybeNull;
+                }
+                return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull };
+            }
         }
 
         /// <summary>
