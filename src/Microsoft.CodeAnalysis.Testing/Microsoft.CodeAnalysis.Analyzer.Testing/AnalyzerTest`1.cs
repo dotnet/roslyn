@@ -1249,12 +1249,21 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </returns>
         protected abstract IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers();
 
-        private sealed class LexicographicComparer : IComparer<IEnumerable<object?>>
+        private sealed class LexicographicComparer : IComparer<IEnumerable<object?>?>
         {
             public static LexicographicComparer Instance { get; } = new LexicographicComparer();
 
-            public int Compare(IEnumerable<object?> x, IEnumerable<object?> y)
+            public int Compare(IEnumerable<object?>? x, IEnumerable<object?>? y)
             {
+                if (x is null)
+                {
+                    return y is null ? 0 : -1;
+                }
+                else if (y is null)
+                {
+                    return 1;
+                }
+
                 using var xe = x.GetEnumerator();
                 using var ye = y.GetEnumerator();
 

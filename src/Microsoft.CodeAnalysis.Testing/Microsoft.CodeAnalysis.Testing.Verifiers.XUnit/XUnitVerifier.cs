@@ -171,8 +171,11 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
                 }
 
                 // From System.Tuple
+                //
+                // The suppression is required due to an invalid contract in IEqualityComparer<T>
+                // https://github.com/dotnet/runtime/issues/30998
                 return obj
-                    .Select(item => _itemEqualityComparer.GetHashCode(item))
+                    .Select(item => _itemEqualityComparer.GetHashCode(item!))
                     .Aggregate(
                         0,
                         (aggHash, nextHash) => ((aggHash << 5) + aggHash) ^ nextHash);
