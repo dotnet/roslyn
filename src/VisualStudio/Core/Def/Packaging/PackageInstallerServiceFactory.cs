@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -57,12 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        private IVsPackage _nugetPackageManager;
+        private IVsPackage? _nugetPackageManager;
 
         // We keep track of what types of changes we've seen so we can then determine what to
         // refresh on the UI thread.  If we hear about project changes, we only refresh that
         // project.  If we hear about a solution level change, we'll refresh all projects.
-        private AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId changedProject)> _workQueue;
+        private AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>? _workQueue;
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
             new ConcurrentDictionary<ProjectId, ProjectState>();
@@ -76,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// Task uses to compute the set of package sources on demand when asked the first time.  The value will be
         /// computed and cached in the task.  When this value changes, the task will simply be cleared out.
         /// </summary>
-        private Task<ImmutableArray<PackageSource>> _packageSourcesTask;
+        private Task<ImmutableArray<PackageSource>>? _packageSourcesTask;
 
         private Shell.IAsyncServiceProvider AsyncServiceProvider => (Shell.IAsyncServiceProvider)_serviceProvider;
 
@@ -103,6 +106,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
         }
+
+        public event EventHandler? PackageSourcesChanged;
 
         public ImmutableArray<PackageSource> TryGetPackageSources()
         {
@@ -149,8 +154,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return ImmutableArray<PackageSource>.Empty;
         }
 
-        public event EventHandler PackageSourcesChanged;
-
         private bool IsEnabled
         {
             get
@@ -185,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            _workQueue = new AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId changedProject)>(
+            _workQueue = new AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>(
                 TimeSpan.FromSeconds(1),
                 ProcessWorkQueueAsync,
                 this.DisposalToken);
@@ -205,6 +208,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
+
+            Contract.ThrowIfNull(_workQueue, "We should only be called after EnableService is called");
 
             // Kick off an initial set of work that will analyze the entire solution.
             _workQueue.AddWork((solutionChanged: true, changedProject: null));
@@ -304,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return false;
         }
 
-        private static string GetStatusBarText(string packageName, string installedVersion)
+        private static string GetStatusBarText(string packageName, string? installedVersion)
             => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
@@ -343,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return false;
         }
 
-        private string GetInstalledVersion(string packageName, EnvDTE.Project dteProject)
+        private string? GetInstalledVersion(string packageName, EnvDTE.Project dteProject)
         {
             this.AssertIsForeground();
 
@@ -365,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             ThisCanBeCalledOnAnyThread();
 
             var solutionChanged = false;
-            ProjectId changedProject = null;
+            ProjectId? changedProject = null;
             switch (e.Kind)
             {
                 default:
@@ -388,13 +393,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     break;
             }
 
+            Contract.ThrowIfNull(_workQueue, "We should only register for events after having create the WorkQueue");
             _workQueue.AddWork((solutionChanged, changedProject));
         }
 
         private async Task ProcessWorkQueueAsync(
-            ImmutableArray<(bool solutionChanged, ProjectId changedProject)> workQueue, CancellationToken cancellationToken)
+            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
+
+            Contract.ThrowIfNull(_workQueue, "How could we be processing a workqueue change without a workqueue?");
 
             // If we've been disconnected, then there's no point proceeding.
             if (_workspace == null || !IsEnabled)
@@ -427,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private void AddProjectsToProcess(
-            ImmutableArray<(bool solutionChanged, ProjectId changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
+            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -441,7 +449,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             else
             {
-                projectsToProcess.AddRange(workQueue.Select(t => t.changedProject));
+                projectsToProcess.AddRange(workQueue.Select(t => t.changedProject).WhereNotNull());
             }
         }
 
@@ -487,11 +495,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
 
                 var installedPackages = new MultiDictionary<string, string>();
-                var isEnabled = installedPackagesResult?.Status == InstalledPackageResultStatus.Successful;
-                if (isEnabled)
+                if (installedPackagesResult?.Status == InstalledPackageResultStatus.Successful)
                 {
                     foreach (var installedPackage in installedPackagesResult.Packages)
                     {
+                        // The '.RequestedRange' is what the user has in their project file, and what we want to
+                        // generally preserve when recommending in another project.  However, it may not always be
+                        // available due to limitations in the INuGetProjectService.  So we fall-back to the actual
+                        // resolve '.Version' so that we still have something viable to offer the user.
                         var version = installedPackage.RequestedRange ?? installedPackage.Version;
                         installedPackages.Add(installedPackage.Id, version);
                     }
@@ -582,7 +593,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public bool CanShowManagePackagesDialog()
             => TryGetOrLoadNuGetPackageManager(out _);
 
-        private bool TryGetOrLoadNuGetPackageManager(out IVsPackage nugetPackageManager)
+        private bool TryGetOrLoadNuGetPackageManager([NotNullWhen(true)] out IVsPackage? nugetPackageManager)
         {
             this.AssertIsForeground();
 
