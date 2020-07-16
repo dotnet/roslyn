@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -38,12 +39,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly IClassificationFormatMap _formatMap;
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hint;
+        private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
+            _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
             _textView = textView;
             _buffer = buffer;
             _tagAggregator = tagAggregator;
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
+            _threadAffinitizedObject.AssertIsForeground();
             if (_format != null)
             {
                 _format = null;
@@ -76,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             get
             {
+                _threadAffinitizedObject.AssertIsForeground();
                 _format ??= _formatMap.GetTextProperties(_hint);
-
                 return _format;
             }
         }

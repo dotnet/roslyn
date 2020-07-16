@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -26,17 +27,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
+        public readonly IThreadingContext ThreadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineParameterNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
-                                                      IClassificationFormatMapService classificationFormatMapService,
-                                                      IClassificationTypeRegistryService classificationTypeRegistryService)
+                                                       IClassificationFormatMapService classificationFormatMapService,
+                                                       IClassificationTypeRegistryService classificationTypeRegistryService,
+                                                       IThreadingContext threadingContext)
         {
             _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;
             this.ClassificationTypeRegistryService = classificationTypeRegistryService;
+            this.ThreadingContext = threadingContext;
         }
+
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
