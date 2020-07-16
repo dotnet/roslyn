@@ -78,6 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// </summary>
         private Task<ImmutableArray<PackageSource>> _packageSourcesTask;
 
+        private Shell.IAsyncServiceProvider AsyncServiceProvider => (Shell.IAsyncServiceProvider)_serviceProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
@@ -398,17 +400,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (_workspace == null || !IsEnabled)
                 return;
 
-            // Figure out the entire set of projects to process.
-            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToProcess);
+            var serviceContainer = (IBrokeredServiceContainer)await this.AsyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
+            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1).ConfigureAwait(false);
 
-            var solution = _workspace.CurrentSolution;
-            AddProjectsToProcess(workQueue, solution, projectsToProcess);
-
-            // And Process them one at a time.
-            foreach (var projectId in projectsToProcess)
+            using (nugetService as IDisposable)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                await ProcessProjectChangeAsync(solution, projectId, cancellationToken).ConfigureAwait(false);
+                // If we didn't get a nuget service, there's nothing we can do in terms of querying the solution for
+                // nuget info.
+                if (nugetService == null)
+                    return;
+
+                // Figure out the entire set of projects to process.
+                using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToProcess);
+
+                var solution = _workspace.CurrentSolution;
+                AddProjectsToProcess(workQueue, solution, projectsToProcess);
+
+                // And Process them one at a time.
+                foreach (var projectId in projectsToProcess)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await ProcessProjectChangeAsync(nugetService, solution, projectId, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
@@ -431,7 +445,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private async Task ProcessProjectChangeAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
+        private async Task ProcessProjectChangeAsync(
+            INuGetProjectService nugetService,
+            Solution solution,
+            ProjectId projectId,
+            CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -462,10 +480,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Don't have a DTE project for this project ID.  not something we can query NuGet for.
                 return;
             }
-
-            var serviceContainer = _serviceProvider.GetService<IBrokeredServiceContainer, SVsBrokeredServiceContainer>();
-            var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
-            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1).ConfigureAwait(false);
 
             try
             {
