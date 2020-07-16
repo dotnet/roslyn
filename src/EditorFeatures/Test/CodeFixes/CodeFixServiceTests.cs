@@ -139,14 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         [Fact]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds()
         {
-            await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
+            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
         {
-            await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
         }
 
@@ -160,17 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 new MockFixer(),
                 new MockAnalyzerReference.MockDiagnosticAnalyzer(),
                 throwExceptionInFixerCreation: true);
-
-        private static async Task GetDefaultFixesAsync(CodeFixProvider codefix)
-        {
-            var tuple = ServiceSetup(codefix);
-            using var workspace = tuple.workspace;
-
-            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
-            var fixes = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeConfigurationFixes: true, cancellationToken: CancellationToken.None);
-            Assert.True(((TestErrorLogger)tuple.errorLogger).Messages.Count == 1);
-            Assert.True(((TestErrorLogger)tuple.errorLogger).Messages.TryGetValue(codefix.GetType().Name, out var message));
-        }
 
         private static Task<ImmutableArray<CodeFixCollection>> GetAddedFixesWithExceptionValidationAsync(CodeFixProvider codefix)
             => GetAddedFixesAsync(codefix, diagnosticAnalyzer: new MockAnalyzerReference.MockDiagnosticAnalyzer(), exception: true);

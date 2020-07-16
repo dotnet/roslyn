@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return _lazyFixerPriorityMap.TryGetValue(document.Project.Language, out fixersPriorityMap);
         }
 
-        private static bool TryGetWorkspaceFixer(
+        private bool TryGetWorkspaceFixer(
             Lazy<CodeFixProvider, CodeChangeProviderMetadata> lazyFixer,
             Workspace workspace,
             bool showInfoBarOnException,
@@ -318,6 +318,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             WorkspacesResources.Show_Stack_Trace,
                             InfoBarUI.UIKind.HyperLink,
                             () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+
+                    foreach (var errorLogger in _errorLoggers)
+                    {
+                        errorLogger.Value.LogException(this, ex);
+                    }
                 }
 
                 fixer = null;
@@ -883,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private static ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(
+        private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(
             Dictionary<LanguageKind, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguage,
             Workspace workspace)
         {
