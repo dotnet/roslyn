@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 if (s_defaultHost == null)
                 {
-                    var host = MefHostServices.Create(MefHostServices.DefaultAssemblies);
+                    var host = Create(DefaultAssemblies);
                     Interlocked.CompareExchange(ref s_defaultHost, host, null);
                 }
 

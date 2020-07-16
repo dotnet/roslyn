@@ -1185,7 +1185,7 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProviderFactory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(workspaceXml, composition:=ExtractInterfaceTestState.Composition)
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = Await testState.ExtractViaCommandAsync()
                 Assert.True(result.Succeeded)

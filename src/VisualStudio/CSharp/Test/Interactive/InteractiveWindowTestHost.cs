@@ -5,11 +5,9 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -20,16 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
 
-        internal static readonly IExportProviderFactory ExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-            ExportProviderCache.GetOrCreateAssemblyCatalog(
-                new[]
-                {
-                    typeof(TestWaitIndicator).Assembly,
-                    typeof(TestInteractiveEvaluator).Assembly,
-                    typeof(IInteractiveWindow).Assembly
-                })
-                .WithParts(TestExportProvider.GetCSharpAndVisualBasicAssemblyCatalog())
-                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog()));
+        internal static readonly IExportProviderFactory ExportProviderFactory = EditorTestCompositions.EditorFeaturesInteractiveWindow.ExportProviderFactory;
 
         internal InteractiveWindowTestHost(ExportProvider exportProvider)
         {

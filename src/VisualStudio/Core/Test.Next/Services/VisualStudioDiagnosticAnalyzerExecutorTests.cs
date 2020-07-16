@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
@@ -264,9 +265,11 @@ End Class";
 
         private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
+            var composition = EditorTestCompositions.EditorFeatures;
+
             var workspace = (language == LanguageNames.CSharp) ?
-                TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider()) :
-                TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider());
+                TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
+                TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)

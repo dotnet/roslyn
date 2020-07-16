@@ -30,25 +30,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
             => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
 
-        public static IExportProviderFactory ExportProviderFactoryWithCSharpAndVisualBasic
-            => s_lazyExportProviderFactoryWithCSharpAndVisualBasic.Value;
-
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
-            => ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+            => s_lazyExportProviderFactoryWithCSharpAndVisualBasic.Value.CreateExportProvider();
 
         private static readonly Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
                         .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog())
                         .WithDefaultFakes());
 
-        private static readonly Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
-            new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
-
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
             => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
-
-        public static IExportProviderFactory MinimumExportProviderFactoryWithCSharpAndVisualBasic
-            => s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic.Value;
 
         private static Type[] GetNeutralAndCSharpAndVisualBasicTypes()
         {

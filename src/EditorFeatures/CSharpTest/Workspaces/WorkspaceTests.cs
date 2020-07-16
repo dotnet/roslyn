@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     public partial class WorkspaceTests : TestBase
     {
         private static TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-            => new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind, disablePartialSolutions);
+            => new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, composition: null, workspaceKind, disablePartialSolutions);
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {

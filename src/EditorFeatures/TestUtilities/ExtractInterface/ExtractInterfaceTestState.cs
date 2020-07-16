@@ -7,19 +7,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.ExtractInterface;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
     internal class ExtractInterfaceTestState : IDisposable
     {
+        public static readonly TestComposition Composition = EditorTestCompositions.EditorFeatures.WithAdditionalParts(
+            typeof(TestExtractInterfaceOptionsService));
+
         private readonly TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document ExtractFromDocument { get; }
@@ -52,13 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             ExtractFromDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
             ExtractInterfaceService = ExtractFromDocument.GetLanguageService<AbstractExtractInterfaceService>();
         }
-
-        public static readonly IExportProviderFactory ExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestExtractInterfaceOptionsService))
-                    .WithPart(typeof(CSharpExtractInterfaceService))
-                    .WithPart(typeof(VisualBasicExtractInterfaceService)));
 
         public TestExtractInterfaceOptionsService TestExtractInterfaceOptionsService
         {

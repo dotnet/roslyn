@@ -90,12 +90,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Func<Solution, Solution> adjustSolution = null,
                 CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
             {
-                var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer.Factory)).WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
+                var composition = FeaturesTestCompositions.Features.WithAdditionalParts(
+                    typeof(DummyLanguageService),
+                    typeof(TestActiveStatementSpanTrackerFactory));
 
-                var exportProvider = exportProviderFactory.CreateExportProvider();
-
-                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider, openDocuments: true);
+                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), composition: composition, openDocuments: true);
 
                 if (adjustSolution != null)
                 {

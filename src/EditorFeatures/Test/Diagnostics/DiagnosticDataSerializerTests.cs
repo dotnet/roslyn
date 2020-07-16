@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Document()
         {
-            using var workspace = new TestWorkspace(EditorServicesUtil.ExportProvider, workspaceKind: "DiagnosticDataSerializerTest");
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.WithAdditionalParts(
+                typeof(PersistentStorageServiceFactory)));
+
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
             var diagnostics = new[]
@@ -107,7 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Project()
         {
-            using var workspace = new TestWorkspace(EditorServicesUtil.ExportProvider, workspaceKind: "DiagnosticDataSerializerTest");
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.WithAdditionalParts(
+                typeof(PersistentStorageServiceFactory)));
+
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
             var diagnostics = new[]
@@ -271,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HelpLink, item2.HelpLink);
         }
 
-        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), "DiagnosticDataSerializerTest"), Shared]
+        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), WorkspaceKind.Host), Shared]
         public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]

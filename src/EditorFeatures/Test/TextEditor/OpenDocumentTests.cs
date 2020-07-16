@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             // We want to assert that if the open document is linked into multiple projects, we
             // update all documents at the same time with the changed text. Otherwise things will get
             // out of sync.
-            var exportProvider = TestExportProvider.MinimumExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+            var hostServices = EditorTestCompositions.EditorFeatures.GetVisualStudioHostServices();
 
-            using var workspace = new AdhocWorkspace();
-            var textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
+            using var workspace = new AdhocWorkspace(hostServices);
+            var textBufferFactoryService = hostServices.GetExports<ITextBufferFactoryService>().Single().Value;
             var buffer = textBufferFactoryService.CreateTextBuffer("Hello", textBufferFactoryService.TextContentType);
             var sourceTextContainer = buffer.AsTextContainer();
 

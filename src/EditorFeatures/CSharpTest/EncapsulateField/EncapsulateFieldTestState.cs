@@ -30,19 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
 
-        private static readonly IExportProviderFactory s_exportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                    typeof(CSharpEncapsulateFieldService),
-                    typeof(EditorNotificationServiceFactory),
-                    typeof(DefaultTextBufferSupportsFeatureService)));
-
         public EncapsulateFieldTestState(TestWorkspace workspace)
         {
             Workspace = workspace;
             _testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue || d.SelectedSpans.Any());
             TargetDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
 
+            // TODO: use mock INotificationService https://github.com/dotnet/roslyn/issues/46045
             var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
             var callback = new Action<string, string, NotificationSeverity>((message, title, severity) => NotificationMessage = message);
             notificationService.NotificationCallback = callback;
@@ -50,11 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 
         public static EncapsulateFieldTestState Create(string markup)
         {
-            var exportProvider = s_exportProviderFactory.CreateExportProvider();
-            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
+            var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement)));
+
             return new EncapsulateFieldTestState(workspace);
         }
 

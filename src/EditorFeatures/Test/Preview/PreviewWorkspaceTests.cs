@@ -124,27 +124,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewServices()
         {
-            using var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider));
+            using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            Assert.True(service is PreviewSolutionCrawlerRegistrationServiceFactory.Service);
+            Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
             var persistentService = previewWorkspace.Services.GetRequiredService<IPersistentStorageService>();
 
             using var storage = persistentService.GetStorage(previewWorkspace.CurrentSolution);
-            Assert.True(storage is NoOpPersistentStorage);
+            Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
         [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewDiagnostic()
         {
-            var diagnosticService = EditorServicesUtil.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IDiagnosticUpdateSource;
+            var hostServices = EditorTestCompositions.EditorFeatures.GetVisualStudioHostServices();
+
+            var diagnosticService = (IDiagnosticUpdateSource)hostServices.GetExports<IDiagnosticAnalyzerService>().Single().Value;
             RoslynDebug.AssertNotNull(diagnosticService);
 
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
 
-            using var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider));
+            using var previewWorkspace = new PreviewWorkspace(hostServices);
 
             var solution = previewWorkspace.CurrentSolution
                 .WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) })
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
             using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
             //// preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 

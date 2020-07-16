@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -53,16 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
 
-        public TestWorkspace()
-            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
+        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Test)
         {
-        }
+            Contract.ThrowIfTrue(exportProvider != null && composition != null);
 
-        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Test)
-        {
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
-            this.ExportProvider = exportProvider;
+            this.ExportProvider = composition?.ExportProviderFactory.CreateExportProvider() ?? exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
             this.AdditionalDocuments = new List<TestHostDocument>();
@@ -96,10 +94,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundParser = new BackgroundParser(this);
             _backgroundParser.Start();
 
-            _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
+            _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
 
-            RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
+            RegisterDocumentOptionProviders(ExportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
+
+        private static HostServices GetHostServices(ExportProvider? exportProvider = null, TestComposition? composition = null)
+           => (composition != null) ? composition.GetHostServices() :
+              VisualStudioMefHostServices.Create(exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
 
         protected internal override bool PartialSemanticsEnabled
         {

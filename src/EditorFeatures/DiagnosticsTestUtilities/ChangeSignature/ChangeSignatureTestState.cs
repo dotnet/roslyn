@@ -9,20 +9,19 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.ChangeSignature;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
     internal sealed class ChangeSignatureTestState : IDisposable
     {
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithAdditionalParts(typeof(TestChangeSignatureOptionsService));
+
         private readonly TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document InvocationDocument { get; }
@@ -32,11 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null)
         {
-            var exportProvider = s_exportProviderFactory.CreateExportProvider();
-
             var workspace = languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
-                  : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                  ? TestWorkspace.CreateCSharp(markup, composition: s_composition, parseOptions: (CSharpParseOptions)parseOptions)
+                  : TestWorkspace.CreateVisualBasic(markup, composition: s_composition, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return new ChangeSignatureTestState(workspace);
         }
@@ -96,19 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
             throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(((CannotChangeSignatureAnalyzedContext)context).CannotChangeSignatureReason.ToString());
         }
-
-        private static readonly IExportProviderFactory s_exportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestChangeSignatureOptionsService))
-                    .WithPart(typeof(CSharpChangeSignatureService))
-                    .WithPart(typeof(VisualBasicChangeSignatureService))
-                    .WithPart(typeof(CodeAnalysis.CSharp.Editing.CSharpImportAdder))
-                    .WithPart(typeof(CodeAnalysis.VisualBasic.Editing.VisualBasicImportAdder))
-                    .WithPart(typeof(CodeAnalysis.CSharp.AddImports.CSharpAddImportsService))
-                    .WithPart(typeof(CodeAnalysis.VisualBasic.AddImports.VisualBasicAddImportsService))
-                    .WithPart(typeof(CodeAnalysis.CSharp.Recommendations.CSharpRecommendationService))
-                    .WithPart(typeof(CodeAnalysis.VisualBasic.Recommendations.VisualBasicRecommendationService)));
 
         public void Dispose()
         {

@@ -23,12 +23,6 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     Public Class CallHierarchyTestState
-        Private Shared ReadOnly DefaultCatalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic _
-                .WithPart(GetType(CallHierarchyProvider)) _
-                .WithPart(GetType(DefaultSymbolMappingService)) _
-                .WithPart(GetType(EditorNotificationServiceFactory))
-        Private Shared ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(DefaultCatalog)
-
         Private ReadOnly _commandHandler As CallHierarchyCommandHandler
         Private ReadOnly _presenter As MockCallHierarchyPresenter
         Friend ReadOnly Workspace As TestWorkspace
@@ -88,10 +82,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Class
 
         Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim exportProvider = CreateExportProvider(additionalTypes)
-            Dim Workspace = TestWorkspace.Create(markup, exportProvider:=exportProvider)
+            Dim workspace = TestWorkspace.Create(markup, composition:=EditorTestCompositions.EditorFeatures.WithAdditionalParts(additionalTypes))
 
-            Return New CallHierarchyTestState(Workspace)
+            Return New CallHierarchyTestState(workspace)
         End Function
 
         Private Sub New(workspace As TestWorkspace)
@@ -111,18 +104,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             _commandHandler = New CallHierarchyCommandHandler(threadingContext, {_presenter}, provider)
         End Sub
 
-        Private Shared Function CreateExportProvider(additionalTypes As IEnumerable(Of Type)) As ExportProvider
-            If Not additionalTypes.Any Then
-                Return ExportProviderFactory.CreateExportProvider()
-            End If
-
-            Dim catalog = DefaultCatalog.WithParts(additionalTypes)
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()
-        End Function
-
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim exportProvider = CreateExportProvider(additionalTypes)
-            Dim workspace = TestWorkspace.CreateCSharp(markup, exportProvider:=exportProvider)
+            Dim workspace = TestWorkspace.CreateCSharp(markup, composition:=EditorTestCompositions.EditorFeatures.WithAdditionalParts(additionalTypes))
             Return New CallHierarchyTestState(workspace)
         End Function
 

@@ -244,8 +244,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private static TOptionProvider GetOptionProvider<TOptionProvider>()
             where TOptionProvider : IOptionProvider
         {
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(TestHost.Catalog);
-            return factory.CreateExportProvider().GetExportedValues<IOptionProvider>().OfType<TOptionProvider>().FirstOrDefault();
+            var composition = FeaturesTestCompositions.Features.WithAdditionalParts(
+                typeof(TestOptionsServiceFactory));
+
+            return composition.ExportProviderFactory.CreateExportProvider().GetExportedValues<IOptionProvider>().OfType<TOptionProvider>().FirstOrDefault();
         }
 
         [Fact]

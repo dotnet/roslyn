@@ -56,22 +56,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => RuntimeHelpers.GetHashCode(this);
         }
 
-        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null)
-            => Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider);
+        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null, TestComposition composition = null)
+            => Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider, composition);
 
         public static TestWorkspace CreateWorkspace(
             XElement workspaceElement,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string workspaceKind = null)
         {
-            return Create(workspaceElement, openDocuments, exportProvider, workspaceKind);
+            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind);
         }
 
         internal static TestWorkspace Create(
             XElement workspaceElement,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string workspaceKind = null,
             IDocumentServiceProvider documentServiceProvider = null,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
@@ -81,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 throw new ArgumentException();
             }
 
-            exportProvider ??= TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
-
-            var workspace = new TestWorkspace(exportProvider, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
+            var workspace = new TestWorkspace(exportProvider, composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var project = CreateProject(
                     workspaceElement,
                     projectElement,
-                    exportProvider,
+                    workspace.ExportProvider,
                     workspace,
                     documentServiceProvider,
                     ref projectIdentifier,
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            var submissions = CreateSubmissions(workspace, workspaceElement.Elements(SubmissionElementName), exportProvider);
+            var submissions = CreateSubmissions(workspace, workspaceElement.Elements(SubmissionElementName), workspace.ExportProvider);
 
             foreach (var submission in submissions)
             {
@@ -730,9 +730,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     ? SourceCodeKind.Regular
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
-
-            var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
-            var contentType = contentTypeLanguageService.GetDefaultContentType();
 
             TestFileMarkupParser.GetPositionAndSpans(markupCode,
                 out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);

@@ -48,9 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                         .ToArray();
         }
 
-        public static ComposableCatalog GetEditorAssemblyCatalog()
-        {
-            var assemblies = new[]
+        public static Assembly[] GetEditorAssemblies()
+            => new[]
             {
                 // EDITOR
 
@@ -86,6 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // Microsoft.VisualStudio.Text.Internal
                 typeof(Microsoft.VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly,
             };
+
+        public static ComposableCatalog GetEditorAssemblyCatalog()
+        {
+            var assemblies = GetEditorAssemblies();
 
             // Consider removing the internal service from the output: https://github.com/dotnet/roslyn/issues/30249
             return ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver())

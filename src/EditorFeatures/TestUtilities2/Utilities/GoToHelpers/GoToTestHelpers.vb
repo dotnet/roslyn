@@ -13,6 +13,11 @@ Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Module GoToTestHelpers
+        Public ReadOnly Composition As TestComposition = EditorTestCompositions.EditorFeatures.WithAdditionalParts(
+                        GetType(MockDocumentNavigationServiceFactory),
+                        GetType(MockSymbolNavigationServiceFactory))
+
+        ' TODO:
         Public ReadOnly Catalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                         GetType(MockDocumentNavigationServiceFactory),
                         GetType(MockSymbolNavigationServiceFactory),
@@ -21,8 +26,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                         GetType(VisualBasicGoToDefinitionSymbolService),
                         GetType(CSharpGeneratedCodeRecognitionService),
                         GetType(VisualBasicGeneratedCodeRecognitionService))
-
-        Public ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(Catalog)
     End Module
 
     Friend Structure FilePathAndSpan

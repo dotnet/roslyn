@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             if (excludedTypes.Count == 0 && (extraParts == null || extraParts.Parts.Count == 0))
             {
-                return TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+                return TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             }
 
             var baseCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
