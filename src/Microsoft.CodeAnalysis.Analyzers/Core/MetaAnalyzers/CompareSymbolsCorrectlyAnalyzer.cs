@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (symbolEqualityComparerType != null)
                 {
-
                     var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericDictionary2));
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericHashSet1));
