@@ -65,6 +65,12 @@ namespace Analyzer.Utilities
                         return;
                     }
 
+                    if (_allowExcludedSymbolNames &&
+                        method.IsConfiguredToSkipAnalysis(operationBlockAnalysisContext.Options, SupportedDiagnostics[0], operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
+                    {
+                        return;
+                    }
+
                     foreach (var operation in operationBlockAnalysisContext.OperationBlocks)
                     {
                         var walker = new DisallowGeneralCatchUnlessRethrowWalker(IsDisallowedCatchType, _shouldCheckLambdas);
@@ -72,10 +78,7 @@ namespace Analyzer.Utilities
 
                         foreach (var catchClause in walker.CatchClausesForDisallowedTypesWithoutRethrow)
                         {
-                            if (!IsExcludedSymbol(catchClause.Syntax.SyntaxTree))
-                            {
-                                operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
-                            }
+                            operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
                         }
                     }
 
@@ -83,19 +86,6 @@ namespace Analyzer.Utilities
                         disallowedCatchTypes.Contains(type) ||
                         IsConfiguredDisallowedExceptionType(type, method, compilationStartAnalysisContext.Compilation,
                             compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
-
-                    bool IsExcludedSymbol(SyntaxTree tree)
-                    {
-                        if (!_allowExcludedSymbolNames)
-                        {
-                            return false;
-                        }
-
-                        var excludedSymbols = operationBlockAnalysisContext.Options.GetExcludedSymbolNamesWithValueOption(SupportedDiagnostics[0], tree,
-                            operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken);
-
-                        return excludedSymbols.Contains(method);
-                    }
                 });
             });
         }
