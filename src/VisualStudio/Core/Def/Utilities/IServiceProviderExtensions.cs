@@ -9,6 +9,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
     internal static class IServiceProviderExtensions
     {
+        /// <inheritdoc cref="Shell.ServiceExtensions.GetService{TService, TInterface}(IServiceProvider, bool)"/>
+        public static TInterface GetService<TService, TInterface>(this IServiceProvider sp)
+        {
+            var service = (TInterface)sp.GetService(typeof(TService));
+            Debug.Assert(service != null);
+            return service;
+        }
+
         /// <summary>
         /// Returns the specified interface from the service. This is useful when the service and interface differ
         /// </summary>
