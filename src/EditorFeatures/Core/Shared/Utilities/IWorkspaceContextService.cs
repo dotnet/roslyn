@@ -19,33 +19,27 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         bool IsCloudEnvironmentClient();
     }
 
+    [ExportWorkspaceService(typeof(IWorkspaceContextService), ServiceLayer.Default), Shared]
     internal sealed class DefaultWorkspaceContextService : IWorkspaceContextService
-    {
-        public bool IsCloudEnvironmentClient() => false;
-    }
-
-    internal sealed class CloudEnvironmentWorkspaceContextService : IWorkspaceContextService
-    {
-        public bool IsCloudEnvironmentClient() => true;
-    }
-
-    [ExportWorkspaceServiceFactory(typeof(IWorkspaceContextService), ServiceLayer.Editor), Shared]
-    internal sealed class VisualStudioWorkspaceContextServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceContextServiceFactory()
+        public DefaultWorkspaceContextService()
         {
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            if (workspaceServices.Workspace.Kind == WorkspaceKind.CloudEnvironmentClientWorkspace)
-            {
-                return new CloudEnvironmentWorkspaceContextService();
-            }
+        public bool IsCloudEnvironmentClient() => false;
+    }
 
-            return new DefaultWorkspaceContextService();
+    [ExportWorkspaceService(typeof(IWorkspaceContextService), WorkspaceKind.CloudEnvironmentClientWorkspace), Shared]
+    internal sealed class CloudEnvironmentWorkspaceContextService : IWorkspaceContextService
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CloudEnvironmentWorkspaceContextService()
+        {
         }
+
+        public bool IsCloudEnvironmentClient() => true;
     }
 }

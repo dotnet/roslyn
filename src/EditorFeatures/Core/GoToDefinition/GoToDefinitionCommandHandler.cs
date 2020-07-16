@@ -5,6 +5,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
             // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
             // This can be removed once typescript implements LSP support for goto def.
-            if (service != null && document.Project.Solution.Workspace.Kind != WorkspaceKind.CloudEnvironmentClientWorkspace)
+            var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            if (service != null && !workspaceContextService.IsCloudEnvironmentClient())
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))

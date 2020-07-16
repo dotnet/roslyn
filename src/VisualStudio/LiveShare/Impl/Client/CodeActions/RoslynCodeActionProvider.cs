@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
         {
             // This provider is exported for all workspaces - so limit it to just our workspace.
             var (document, span, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.CloudEnvironmentClientWorkspace)
+            var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            if (!workspaceContextService.IsCloudEnvironmentClient())
             {
                 return;
             }
