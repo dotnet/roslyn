@@ -105,5 +105,76 @@ class Test
 
             await TestInRegularAndScriptAsync(input, expected);
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task FixAllProject()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Test1
+{
+    static void Main()
+    {
+        var typeName1 = {|FixAllInProject:typeof(Test).Name|};
+        var typeName2 = typeof(Test).Name;
+        var typeName3 = typeof(Test).Name;
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class Test2
+{
+    static void Main()
+    {
+        var typeName1 = typeof(Test).Name;
+        var typeName2 = typeof(int).Name;
+        var typeName3 = typeof(System.String).Name;
+        var typeName4 = typeof(Double).Name;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Test1
+{
+    static void Main()
+    {
+        var typeName1 = nameof(Test);
+        var typeName2 = nameof(Test);
+        var typeName3 = nameof(Test);
+    }
+}
+        </Document>
+        <Document>
+using System;
+
+class Test2
+{
+    static void Main()
+    {
+        var typeName1 = nameof(Test);
+        var typeName2 = nameof(Int32);
+        var typeName3 = nameof(String);
+        var typeName4 = nameof(Double);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
     }
 }
