@@ -1482,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private ConditionalOperation GenerateNullCheckForParameter(IParameterSymbol parameter, SyntaxNode syntax, SemanticModel semanticModel)
         {
             Debug.Assert(parameter.Language == LanguageNames.CSharp);
-            Optional<object> constantValue = default(Optional<object>);
+            ConstantValue constantValue = null;
             var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue, isImplicit: true);
             var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     isImplicit: true);
             }
 
-            var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), parameter.Name, isImplicit: true);
+            var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), ConstantValue.Create(parameter.Name), isImplicit: true);
             var argumentNullExceptionMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
             var argumentNullExceptionType = argumentNullExceptionMethod?.ContainingType;
 

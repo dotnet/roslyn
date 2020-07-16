@@ -7743,6 +7743,8 @@ Del d = delegate(int k!) { /* ... */ };", options: TestOptions.RegularPreview);
                 }
                 N(SyntaxKind.SemicolonToken);
             }
+        }
+
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList1()
         {

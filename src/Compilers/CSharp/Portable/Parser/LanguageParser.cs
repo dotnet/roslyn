@@ -6902,7 +6902,7 @@ done:;
                 var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
                 var missingTypes = _pool.AllocateSeparated<ParameterSyntax>();
                 var missingTypeName = CreateMissingIdentifierName();
-                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), @default: null);
+                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), exclamationToken: null, @default: null);
                 missingTypes.Add(missingType);
                 // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
                 // we don't know for sure that the expression isn't a relational with something else.
@@ -6928,7 +6928,7 @@ done:;
                         ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
 
                         var parameterType = ParseTypeOrVoid();
-                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), @default: null));
+                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), exclamationToken: null, @default: null));
 
                         if (skipBadFunctionPointerParameterListTokens() == PostSkipAction.Abort)
                         {
@@ -10392,26 +10392,6 @@ tryAgain:
                 tokenIndex++;
             }
 
-            if (precedence <= Precedence.Lambda)
-            {
-                SyntaxKind token1 = this.PeekToken(1).Kind;
-                if (token1 == SyntaxKind.EqualsGreaterThanToken)
-                {
-                    return true;
-                }
-
-                if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
-                {
-                    return true;
-                }
-
-                // Broken case but error will be added in lambda function.
-                if (token1 == SyntaxKind.ExclamationEqualsToken && this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
-                {
-                    return true;
-                }
-            }
-
             return this.PeekToken(tokenIndex).Kind == SyntaxKind.DelegateKeyword;
         }
 
@@ -11238,6 +11218,22 @@ tryAgain:
             if (precedence > Precedence.Lambda)
             {
                 return false;
+            }
+
+            SyntaxKind token1 = this.PeekToken(1).Kind;
+            if (token1 == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+            if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+
+            // Broken case but error will be added in lambda function.
+            if (token1 == SyntaxKind.ExclamationEqualsToken && this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
+            {
+                return true;
             }
 
             // If we start with `static` or `async static` then just jump past those and do the
