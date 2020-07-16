@@ -115,9 +115,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             object? obj = bag[parameterName];
             // If the switch isn't set, don't add it to the command line.
-            if (obj != null)
+            if (obj is decimal value)
             {
-                decimal value = (decimal)obj;
                 AppendSwitchIfNotNull(switchName, value.ToString(CultureInfo.InvariantCulture));
             }
         }
