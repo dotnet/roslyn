@@ -13,9 +13,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
 
         Protected Overrides Function IsValidTypeofAction(context As OperationAnalysisContext) As Boolean
             Dim node As SyntaxNode
-            node = context.Operation.Syntax
+            Dim compilation As Compilation
+            Dim isValidLanguage As Boolean
 
-            Return (node.GetType() Is GetType(GetTypeExpressionSyntax)) And (node.Parent.GetType() Is GetType(MemberAccessExpressionSyntax))
+            node = context.Operation.Syntax
+            compilation = context.Compilation
+            isValidLanguage = DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
+
+            Return isValidLanguage And
+                (node.GetType() Is GetType(GetTypeExpressionSyntax)) And
+                (node.Parent.GetType() Is GetType(MemberAccessExpressionSyntax))
         End Function
     End Class
 End Namespace
