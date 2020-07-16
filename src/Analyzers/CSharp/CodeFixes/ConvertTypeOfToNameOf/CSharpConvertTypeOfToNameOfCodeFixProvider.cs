@@ -31,9 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
                 {
                     return model.GetSymbolInfo(typeOfExpresison.Type).Symbol.GetSymbolType();
                 }
-
-                return null;
             }
+            
             return null;
         }
     }
