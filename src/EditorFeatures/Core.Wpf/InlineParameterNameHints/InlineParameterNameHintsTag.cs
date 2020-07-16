@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             var block = new TextBlock
             {
                 Text = text + ":",
-                HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontStyle = FontStyles.Normal,
                 FontFamily = format.Typeface.FontFamily,
@@ -55,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Background = format.BackgroundBrush,
-                BorderBrush = format.BackgroundBrush,
-                BorderThickness = new Thickness(1),
+                Padding = new Thickness(1),
                 Margin = new Thickness(0, 0, 5, 0),
                 Height = lineHeight - (0.25 * lineHeight),
                 CornerRadius = new CornerRadius(2),
