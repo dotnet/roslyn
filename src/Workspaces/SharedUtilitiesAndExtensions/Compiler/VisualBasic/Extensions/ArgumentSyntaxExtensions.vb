@@ -31,7 +31,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return Nothing
             End If
 
-            Dim symbol = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol
+            ' Get the symbol if it is not Nothing or if there is a singular candidate symbol
+            Dim symbolInfo = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken)
+            Dim symbol = symbolInfo.Symbol
+
+            If symbol Is Nothing AndAlso symbolInfo.CandidateSymbols.Length = 1 Then
+                symbol = symbolInfo.CandidateSymbols.Item(0)
+            End If
+
             If symbol Is Nothing Then
                 Return Nothing
             End If
