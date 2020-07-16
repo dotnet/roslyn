@@ -339,7 +339,7 @@
     <value>Upgrade MSBuildWorkspace</value>
   </data>
   <data name="CompareSymbolsCorrectlyDescription" xml:space="preserve">
-    <value>Symbols should be compared for equality, not identity.</value>
+    <value>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</value>
   </data>
   <data name="CompareSymbolsCorrectlyMessage" xml:space="preserve">
     <value>Compare symbols correctly</value>
@@ -520,5 +520,8 @@
   </data>
   <data name="DefineDiagnosticDescriptionCorrectlyTitle" xml:space="preserve">
     <value>Define diagnostic description correctly</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyDescriptionGetHashCode" xml:space="preserve">
+    <value>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</value>
   </data>
 </root>
