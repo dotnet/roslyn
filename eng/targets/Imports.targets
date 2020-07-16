@@ -79,6 +79,14 @@
 
     <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
+
+    <!-- 
+      Work around for bug in .NET5 P6. This can be removed when moving to P7 or later
+        Original bug: https://github.com/dotnet/sdk/issues/11862
+        Roslyn bug tracking removal: https://github.com/dotnet/roslyn/issues/46182 
+    -->
+    <RepositoryUrl></RepositoryUrl>
+    <PublishRepositoryUrl>false</PublishRepositoryUrl>
   </PropertyGroup>
 
   <!-- 
