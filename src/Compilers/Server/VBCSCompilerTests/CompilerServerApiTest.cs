@@ -512,7 +512,7 @@ class Hello
                     }
 
                     cancellationToken.WaitHandle.WaitOne();
-                    return new RejectedBuildResponse();
+                    return new RejectedBuildResponse("");
                 };
 
                 var list = new List<Task<BuildResponse>>();

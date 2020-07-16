@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         }
 
         // Internal for testing purposes only.
-        internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
+        internal static bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
             => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
 
-        internal bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
+        internal static bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
             => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
 
-        internal bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        internal static bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
         {
             string errorMessage = null;
 

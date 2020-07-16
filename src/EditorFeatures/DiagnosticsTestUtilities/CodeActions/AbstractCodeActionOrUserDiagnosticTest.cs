@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Remote.Testing;
 
 #if CODE_STYLE
 using System.Diagnostics;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public struct TestParameters
         {
             internal readonly OptionsCollection options;
-            internal readonly bool runProviderOutOfProc;
+            internal readonly TestHost testHost;
             internal readonly object fixProviderData;
             internal readonly ParseOptions parseOptions;
             internal readonly CompilationOptions compilationOptions;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 bool retainNonFixableDiagnostics = false,
                 bool includeDiagnosticsOutsideSelection = false,
                 string title = null,
-                bool runProviderOutOfProc = false)
+                TestHost testHost = TestHost.InProcess)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
                 this.includeDiagnosticsOutsideSelection = includeDiagnosticsOutsideSelection;
                 this.title = title;
-                this.runProviderOutOfProc = runProviderOutOfProc;
+                this.testHost = testHost;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return;
         }
 
-        private void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, OptionsCollection options)
+        private static void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, OptionsCollection options)
         {
             Debug.Assert(options != null);
             var analyzerConfigText = GenerateAnalyzerConfigText(options);
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
 
-        private TestParameters WithRegularOptions(TestParameters parameters)
+        private static TestParameters WithRegularOptions(TestParameters parameters)
             => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
 
         private TestParameters WithScriptOptions(TestParameters parameters)
@@ -484,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 warningSpans, navigationSpans, expectedChangedDocumentId: null);
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
+        protected static async Task<Tuple<Solution, Solution>> TestOperationsAsync(
             TestWorkspace workspace,
             string expectedText,
             ImmutableArray<CodeActionOperation> operations,
@@ -649,7 +650,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return await action.GetOperationsAsync(CancellationToken.None);
         }
 
-        protected Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
+        protected static Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
             TestWorkspace workspace,
             IEnumerable<CodeActionOperation> operations)
         {

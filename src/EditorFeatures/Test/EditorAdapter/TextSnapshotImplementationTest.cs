@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
     [UseExportProvider]
     public class TextSnapshotImplementationTest
     {
-        private Tuple<ITextSnapshot, SourceText> Create(params string[] lines)
+        private static Tuple<ITextSnapshot, SourceText> Create(params string[] lines)
         {
             var buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, lines);
             var text = buffer.CurrentSnapshot.AsText();

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
             expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             Assert.True(expectedLines.Length % 2 == 0);
             var expectedMap = new Dictionary<string, string>();
-            for (int i = 0; i < expectedLines.Length; i += 2)
+            for (var i = 0; i < expectedLines.Length; i += 2)
             {
                 expectedMap.Add(expectedLines[i].Trim(), expectedLines[i + 1].Trim());
             }

@@ -1043,12 +1043,12 @@ namespace System.Runtime.CompilerServices
             if (RuntimeUtilities.IsCoreClrRuntime)
             {
                 allReferences = TargetFrameworkUtil.NetStandard20References;
-                allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
+                allReferences = allReferences.Concat(new[] { SystemThreadingTasksExtensions.NetStandard20Lib });
             }
             else
             {
                 allReferences = TargetFrameworkUtil.Mscorlib461ExtendedReferences;
-                allReferences = allReferences.Concat(new[] { Net461.SystemThreadingTasks, ValueTask.SystemThreadingTasksExtensions });
+                allReferences = allReferences.Concat(new[] { Net461.SystemThreadingTasks, SystemThreadingTasksExtensions.PortableLib });
             }
 
             if (references != null)
@@ -1502,6 +1502,11 @@ namespace System.Runtime.CompilerServices
         }
 
         internal static IEnumerable<string> GetAttributeStrings(ImmutableArray<CSharpAttributeData> attributes)
+        {
+            return attributes.Select(a => a.ToString());
+        }
+
+        internal static IEnumerable<string> GetAttributeStrings(IEnumerable<CSharpAttributeData> attributes)
         {
             return attributes.Select(a => a.ToString());
         }

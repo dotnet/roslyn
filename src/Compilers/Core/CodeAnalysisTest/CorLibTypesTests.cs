@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var comp = CSharp.CSharpCompilation.Create(
                 "c",
                 options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                references: new[] { TestReferences.NetCoreApp30.SystemRuntimeRef });
+                references: new[] { TestMetadata.NetCoreApp31.SystemRuntime });
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
             {

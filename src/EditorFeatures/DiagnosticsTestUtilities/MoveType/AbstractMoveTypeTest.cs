@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 {
     public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
     {
-        private string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
-        private string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
+        private readonly string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
+        private readonly string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MoveTypeCodeRefactoringProvider();

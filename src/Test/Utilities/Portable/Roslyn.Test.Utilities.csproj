@@ -92,8 +92,11 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="$(MicrosoftNETFrameworkReferenceAssembliesnet40Version)" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net20" Version="$(MicrosoftNETFrameworkReferenceAssembliesnet20Version)" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.NET.Build.Extensions" Version="$(MicrosoftNETBuildExtensionsVersion)" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.NETCore.App.Ref" Version="$(MicrosoftNETCoreAppRefVersion)" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="$(jnm2ReferenceAssembliesnet35Version)" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <Import Project="Generated.targets" />

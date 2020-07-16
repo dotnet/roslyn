@@ -185,12 +185,12 @@
       "vsBranch": "master",
       "vsMajorVersion": 16
     },
-    "features/dotnetFormat": {
+    "features/UsedAssemblyReferences": {
       "nugetKind": [ "Shipping", "NonShipping" ],
-      "version": "3.3.*",
+      "version": "3.8.*",
       "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dotnetFormat" ],
+      "channels": [ "UsedAssemblyReferences" ],
       "vsBranch": "master",
       "vsMajorVersion": 16
     },
