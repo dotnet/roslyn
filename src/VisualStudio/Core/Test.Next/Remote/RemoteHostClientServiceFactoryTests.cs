@@ -8,11 +8,15 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Execution;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -25,7 +29,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
-            var exportProvider = TestHostServices.CreateMinimalExportProvider();
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(ServiceTestExportProvider.CreateAssemblyCatalog()
+                    .WithParts(typeof(InProcRemoteHostClientProvider.Factory), typeof(CSharpOptionsSerializationService)))
+                .CreateExportProvider();
+
             using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
 
             var options = workspace.CurrentSolution.Options
@@ -42,8 +50,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // make sure client is ready
             using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            // add solution
+            // add solution, change document
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
+            var project = workspace.AddProject("proj", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
+            workspace.ApplyTextChanges(document.Id, new[] { new TextChange(new TextSpan(0, 1), "abc") }, CancellationToken.None);
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
