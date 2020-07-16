@@ -24,11 +24,17 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                        nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
-        
+
+        protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
+
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterOperationAction(AnalyzeAction, OperationKind.TypeOf);
         }
+
         protected void AnalyzeAction(OperationAnalysisContext context)
         {
             if (!IsValidTypeofAction(context) || !IsValidOperation(context.Operation))
@@ -48,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             context.ReportDiagnostic(diagnostic);
 
         }
+
         private static bool IsValidOperation(IOperation operation)
         {
             // Cast to a typeof operation & check parent is a property reference and member access
@@ -64,18 +71,14 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                 return false;
             }
 
-            // If it's a generic type, do not offer the fix because nameof(T) and typeof(T).name are not 
-            // semantically equivalent, typeof().Name includes information about the actual type used 
-            // by the generic while nameof loses this information during the standard identifier transformation
+            // If it's a generic type, do not offer the fix because nameof(T) and typeof(T).Name are not 
+            // semantically equivalent, the resulting string is formatted differently, where typeof(T).Name
+            // return "T`1" and nameof just returns "T"
             if (typeofOperation.TypeOperand is IErrorTypeSymbol)
             {
                 return false;
             }
             return typeofOperation.TypeOperand is INamedTypeSymbol namedType && !namedType.IsGenericType;
         }
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
     }
 }
