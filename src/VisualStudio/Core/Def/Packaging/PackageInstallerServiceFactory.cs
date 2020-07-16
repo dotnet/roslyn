@@ -477,7 +477,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var projectGuid = _workspace.GetProjectGuid(projectId);
             if (projectGuid == Guid.Empty)
             {
-                // Don't have a DTE project for this project ID.  not something we can query NuGet for.
+                // Don't have a guid for this project ID.  not something we can query NuGet for.
                 return;
             }
 
