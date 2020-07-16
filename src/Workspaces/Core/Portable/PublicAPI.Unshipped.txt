@@ -2,15 +2,7 @@
 *REMOVED*override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 *REMOVED*static Microsoft.CodeAnalysis.SolutionInfo.Create(Microsoft.CodeAnalysis.SolutionId id, Microsoft.CodeAnalysis.VersionStamp version, string filePath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectInfo> projects = null) -> Microsoft.CodeAnalysis.SolutionInfo
 *REMOVED*static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindDerivedClassesAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol>>
-abstract Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.GetDescription(System.Globalization.CultureInfo culture = null) -> string
-Microsoft.CodeAnalysis.ApplyChangesKind.AddSolutionAnalyzerReference = 20 -> Microsoft.CodeAnalysis.ApplyChangesKind
-Microsoft.CodeAnalysis.ApplyChangesKind.RemoveSolutionAnalyzerReference = 21 -> Microsoft.CodeAnalysis.ApplyChangesKind
 Microsoft.CodeAnalysis.ApplyChangesKind.ChangeProjectInfo = 22 -> Microsoft.CodeAnalysis.ApplyChangesKind
-Microsoft.CodeAnalysis.CompilationOutputInfo
-Microsoft.CodeAnalysis.CompilationOutputInfo.AssemblyPath.get -> string
-Microsoft.CodeAnalysis.CompilationOutputInfo.Equals(Microsoft.CodeAnalysis.CompilationOutputInfo other) -> bool
-Microsoft.CodeAnalysis.CompilationOutputInfo.WithAssemblyPath(string path) -> Microsoft.CodeAnalysis.CompilationOutputInfo
-Microsoft.CodeAnalysis.Project.CompilationOutputInfo.get -> Microsoft.CodeAnalysis.CompilationOutputInfo
 Microsoft.CodeAnalysis.Project.DefaultNamespace.get -> string
 Microsoft.CodeAnalysis.Project.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.ProjectInfo.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.ProjectInfo
