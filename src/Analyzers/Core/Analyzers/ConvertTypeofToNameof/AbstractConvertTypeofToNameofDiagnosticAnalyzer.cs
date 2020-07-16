@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                        nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
+        
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterOperationAction(AnalyzeAction, OperationKind.TypeOf);
