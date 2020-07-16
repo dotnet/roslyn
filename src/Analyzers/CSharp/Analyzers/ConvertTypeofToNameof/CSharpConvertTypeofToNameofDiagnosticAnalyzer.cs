@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         {
             var node = context.Operation.Syntax;
             var syntaxTree = node.SyntaxTree;
-
             // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
             {

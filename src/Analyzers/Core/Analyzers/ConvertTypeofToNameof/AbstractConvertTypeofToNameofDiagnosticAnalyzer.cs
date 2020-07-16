@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                 return;
             }
             var location = parent.GetLocation();
-            var diagnostic = DiagnosticHelper.Create(Descriptor, location, ReportDiagnostic.Hidden, additionalLocations: null, properties: null, messageArgs: null);
+            var diagnostic = Diagnostic.Create(Descriptor, location);
             context.ReportDiagnostic(diagnostic);
 
         }
@@ -66,13 +66,14 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             // If it's a generic type, do not offer the fix because nameof(T) and typeof(T).name are not 
             // semantically equivalent, typeof().Name includes information about the actual type used 
             // by the generic while nameof loses this information during the standard identifier transformation
-            if (!(typeofOperation.TypeOperand is INamedTypeSymbol namedType) || namedType.IsGenericType)
+            if (typeofOperation.TypeOperand is IErrorTypeSymbol)
             {
                 return false;
             }
-            return true;
+            return typeofOperation.TypeOperand is INamedTypeSymbol namedType && !namedType.IsGenericType;
         }
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
     }
