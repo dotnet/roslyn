@@ -44,12 +44,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public Task<Solution> GetSolutionAsync(JObject solutionInfo, CancellationToken cancellationToken)
-        {
-            var reader = solutionInfo.CreateReader();
-            var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance } });
-            var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
-
-            return CreateSolutionService(pinnedSolutionInfo).GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
-        }
+            => GetSolutionImplAsync(solutionInfo, cancellationToken);
     }
 }
