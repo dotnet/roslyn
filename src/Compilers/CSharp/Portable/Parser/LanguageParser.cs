@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsSwitchSectionStart when this.IsPossibleSwitchSection():
                     case TerminatorState.IsEndOfTypeParameterList when this.IsEndOfTypeParameterList():
                     case TerminatorState.IsEndOfMethodSignature when this.IsEndOfMethodSignature():
-                    case TerminatorState.IsEndOfTypeSignature when this.IsEndOfRecordSignature():
+                    case TerminatorState.IsEndOfTypeSignature when this.IsEndOfTypeSignature():
                     case TerminatorState.IsEndOfNameInExplicitInterface when this.IsEndOfNameInExplicitInterface():
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
@@ -3052,7 +3052,7 @@ parse_member_name:;
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
-        private bool IsEndOfRecordSignature()
+        private bool IsEndOfTypeSignature()
         {
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
