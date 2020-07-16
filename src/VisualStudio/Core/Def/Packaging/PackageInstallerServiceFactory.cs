@@ -413,8 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private void AddProjectsToProcess(
-            ImmutableArray<(bool solutionChanged, ProjectId changedProject)> workQueue, Solution solution,
-            HashSet<ProjectId> projectsToProcess)
+            ImmutableArray<(bool solutionChanged, ProjectId changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
         {
             ThisCanBeCalledOnAnyThread();
 
