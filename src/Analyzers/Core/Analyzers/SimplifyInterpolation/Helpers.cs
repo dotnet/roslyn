@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     return;
                 }
 
-                if (invocation.Arguments.Length == 0)
+                if (invocation.Arguments.Length == 0 &&
+                    (invocation.TargetMethod.ContainingType.SpecialType == SpecialType.System_Object ||
+                    invocation.TargetMethod.OverriddenMethod?.ContainingType.SpecialType == SpecialType.System_Object))
                 {
                     // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
                     // Just remove entirely.

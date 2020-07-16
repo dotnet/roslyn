@@ -935,5 +935,16 @@ ref struct RefStruct
     public override string ToString() => ""A"";
 }");
         }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task ShadowedToString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public new string ToString() => ""Shadow"";
+    static string M(C c) => $""{c[||].ToString()}"";
+}");
+        }
     }
 }
