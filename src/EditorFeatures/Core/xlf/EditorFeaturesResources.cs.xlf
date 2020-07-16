@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
         <source>Rename symbol's _file</source>
-        <target state="new">Rename symbol's _file</target>
+        <target state="translated">Přejmenovat _soubor symbolu</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
