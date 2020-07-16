@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 {
     public partial class ConvertTypeOfToNameOfTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpConvertTypeOfToNameOfDiagnosticAnalyzer(), new CSharpConvertTypeOfToNameOfCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task BasicType()
         {
             var text = @"
@@ -41,7 +41,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task ClassLibraryType()
         {
             var text = @"
@@ -65,7 +65,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task ClassLibraryTypeWithUsing()
         {
             var text = @"
@@ -93,7 +93,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task NotOnVariableContainingType()
         {
             var text = @"using System;
@@ -110,7 +110,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task PrimitiveType()
         {
             var text = @"class Test
@@ -132,7 +132,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task PrimitiveTypeWithUsing()
         {
             var text = @"using System;
@@ -158,7 +158,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task NotOnGenericType()
         {
             var text = @"class Test<T>
@@ -172,7 +172,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task NotOnSimilarStatements()
         {
             var text = @"class Test
@@ -188,7 +188,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task NotOnGenericClass()
         {
             var text = @"class Test

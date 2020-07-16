@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 {
     public partial class ConvertTypeOfToNameOfTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task FixAllDocumentBasic()
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task FixAllDocumentVariedSingleLine()
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task FixAllDocumentVariedWithUsing()
         {
@@ -103,7 +103,7 @@ class Test
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task FixAllProject()
         {
@@ -173,7 +173,7 @@ class Test2
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task FixAllSolution()
         {
