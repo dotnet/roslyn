@@ -53,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly SVsServiceProvider _serviceProvider;
+        private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
         private readonly Lazy<IVsPackageInstallerServices> _packageInstallerServices;
@@ -81,14 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// </summary>
         private Task<ImmutableArray<PackageSource>>? _packageSourcesTask;
 
-        private Shell.IAsyncServiceProvider AsyncServiceProvider => (Shell.IAsyncServiceProvider)_serviceProvider;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
+            SAsyncServiceProvider asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices> packageInstallerServices,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2> packageInstaller,
@@ -100,6 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
+            _asyncServiceProvider = (Shell.IAsyncServiceProvider)asyncServiceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _packageInstallerServices = packageInstallerServices;
             _packageInstaller = packageInstaller;
@@ -408,8 +409,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (_workspace == null || !IsEnabled)
                 return;
 
-            var serviceContainer = (IBrokeredServiceContainer)await this.AsyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
-            var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
+            var serviceContainer = (IBrokeredServiceContainer)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
+            if (serviceBroker == null)
+                return;
+
             var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             using (nugetService as IDisposable)
