@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
-            SAsyncServiceProvider asyncServiceProvider,
+            [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices> packageInstallerServices,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2> packageInstaller,
@@ -99,8 +99,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
+
             _serviceProvider = serviceProvider;
+            // MEFv2 doesn't support type based contract for Import above and for this particular contract
+            // (SAsyncServiceProvider) actual type cast doesn't work. (https://github.com/microsoft/vs-mef/issues/138)
+            // workaround by getting the service as object and cast to actual interface
             _asyncServiceProvider = (Shell.IAsyncServiceProvider)asyncServiceProvider;
+
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _packageInstallerServices = packageInstallerServices;
             _packageInstaller = packageInstaller;
