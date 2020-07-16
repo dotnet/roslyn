@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             this.ThreadingContext = threadingContext;
         }
 
-
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
             var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
