@@ -26,8 +26,9 @@
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
-      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="" />
-      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Desktop" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Desktop64" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Core64" />
       <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.FileName)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
     </ItemGroup>
 

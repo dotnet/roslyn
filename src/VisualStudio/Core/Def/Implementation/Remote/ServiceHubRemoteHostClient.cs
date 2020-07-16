@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            var descriptor = new ServiceDescriptor(serviceName.ToString(is64bit)) { HostGroup = hostGroup };
+            var descriptor = new ServiceDescriptor(serviceName.ToString(RemoteHostPlatform.Core64)) { HostGroup = hostGroup };
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);

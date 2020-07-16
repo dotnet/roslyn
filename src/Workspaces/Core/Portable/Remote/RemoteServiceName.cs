@@ -44,26 +44,29 @@ namespace Microsoft.CodeAnalysis.Remote
             CustomServiceName = customServiceName;
         }
 
-        public string ToString(bool isRemoteHost64Bit)
-        {
+        public string ToString(RemoteHostPlatform remoteHostPlatform)
+        {            
             const string Suffix64 = "64";
+
+            var (suffix, isRemoteHost64Bit) = remoteHostPlatform switch
+            {
+                RemoteHostPlatform.Desktop32 => ("Desktop", false),
+                RemoteHostPlatform.Desktop64 => ("Desktop64", true),
+                RemoteHostPlatform.Core64 => ("Core64", true),
+
+                _ => throw ExceptionUtilities.UnexpectedValue(remoteHostPlatform),
+            };
+
 
             return CustomServiceName ?? (WellKnownService, isRemoteHost64Bit) switch
             {
-                (WellKnownServiceHubService.RemoteHost, false) => Prefix + nameof(WellKnownServiceHubService.RemoteHost),
-                (WellKnownServiceHubService.RemoteHost, true) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64,
-                (WellKnownServiceHubService.CodeAnalysis, false) => Prefix + nameof(WellKnownServiceHubService.CodeAnalysis),
-                (WellKnownServiceHubService.CodeAnalysis, true) => Prefix + nameof(WellKnownServiceHubService.CodeAnalysis) + Suffix64,
-                (WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, false) => Prefix + nameof(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine),
-                (WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, true) => Prefix + nameof(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine) + Suffix64,
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService),
-                (WellKnownServiceHubService.RemoteDesignerAttributeService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService) + Suffix64,
-                (WellKnownServiceHubService.RemoteProjectTelemetryService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService),
-                (WellKnownServiceHubService.RemoteProjectTelemetryService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService) + Suffix64,
-                (WellKnownServiceHubService.RemoteTodoCommentsService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService),
-                (WellKnownServiceHubService.RemoteTodoCommentsService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService) + Suffix64,
-                (WellKnownServiceHubService.LanguageServer, false) => Prefix + nameof(WellKnownServiceHubService.LanguageServer),
-                (WellKnownServiceHubService.LanguageServer, true) => Prefix + nameof(WellKnownServiceHubService.LanguageServer) + Suffix64,
+                (WellKnownServiceHubService.RemoteHost, _) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + suffix,
+                (WellKnownServiceHubService.CodeAnalysis, _) => Prefix + nameof(WellKnownServiceHubService.CodeAnalysis) + suffix,
+                (WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, _) => Prefix + nameof(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine) + suffix,
+                (WellKnownServiceHubService.RemoteDesignerAttributeService, _) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService) + suffix,
+                (WellKnownServiceHubService.RemoteProjectTelemetryService, _) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService) + suffix,
+                (WellKnownServiceHubService.RemoteTodoCommentsService, _) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService) + suffix,
+                (WellKnownServiceHubService.LanguageServer, _) => Prefix + nameof(WellKnownServiceHubService.LanguageServer) + suffix,
 
                 (WellKnownServiceHubService.IntelliCode, false) => IntelliCodeServiceName,
                 (WellKnownServiceHubService.IntelliCode, true) => IntelliCodeServiceName + Suffix64,
@@ -97,5 +100,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static implicit operator RemoteServiceName(WellKnownServiceHubService wellKnownService)
             => new RemoteServiceName(wellKnownService);
+    }
+
+    internal enum RemoteHostPlatform
+    {
+        Desktop32,
+        Desktop64,
+        Core64
     }
 }

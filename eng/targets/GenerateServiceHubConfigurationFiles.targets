@@ -21,18 +21,19 @@
 
   <Target Name="CalculateServiceHubConfigurationFiles">
     <ItemGroup>
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Desktop" HostSuffix=".x86" HostIdSuffix="32" RuntimePrefix="desktop" SubPath=""/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Desktop64" HostSuffix="" HostIdSuffix=""  RuntimePrefix="desktop" SubPath=""/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64" HostSuffix="" HostIdSuffix=""  RuntimePrefix="core" SubPath="ServiceHubCore\\"/>
 
       <_JsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
         <Content>
           <![CDATA[{
-  "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
+  "host": "%(_ServicesWithBitness.RuntimePrefix)Clr%(_ServicesWithBitness.HostSuffix)",
   "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
   "hostGroupAllowed": true,
   "serviceOverride": true, 
   "entryPoint": {
-    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))%(_ServicesWithBitness.SubPath)Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
     "fullClassName": "%(_ServicesWithBitness.ClassName)",
     "appBasePath": "%VSAPPIDDIR%",
     "configPath": "%PkgDefApplicationConfigFile%"
