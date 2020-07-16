@@ -252,7 +252,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingCancellationToken = "System.Threading.CancellationToken";
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
-        public const string SystemThreadingTasksTasks = "System.Threading.Tasks.Task`1";
+        public const string SystemThreadingTasksTask1 = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksTaskFactory = "System.Threading.Tasks.TaskFactory";
         public const string SystemThreadingTasksTaskScheduler = "System.Threading.Tasks.TaskScheduler";
