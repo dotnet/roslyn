@@ -39,6 +39,11 @@
         <target state="translated">El elemento hintName del archivo de código fuente agregado debe ser único en un generador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">El id. de diagnóstico "{0}" suprimido no coincide con el id. "{1}" que se puede suprimir para el descriptor de supresión dado.</target>

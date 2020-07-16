@@ -39,6 +39,11 @@
         <target state="translated">添加的源文件的 hintName 在生成器中必须唯一。</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">对于给定的禁止显示描述符，禁止显示的诊断 ID“{0}”与可禁止显示的 ID“{1}”不匹配。</target>

@@ -229,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private void HandleCompletedTimeoutTask()
         {
+            CompilerServerLogger.Log("Timeout triggered. Shutting down server.");
             _diagnosticListener.KeepAliveReached();
             _listenCancellationTokenSource.Cancel();
             _timeoutTask = null;
@@ -298,10 +299,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     case CompletionReason.ClientDisconnect:
                         // Have to assume the worst here which is user pressing Ctrl+C at the command line and
                         // hence wanting all compilation to end.
+                        CompilerServerLogger.Log("Unexpected client disconnect. Shutting down server");
                         shutdown = true;
                         break;
                     case CompletionReason.ClientException:
                     case CompletionReason.ClientShutdownRequest:
+                        CompilerServerLogger.Log($"Unexpected client completion: {connectionData.CompletionReason}. Shutting down server");
                         shutdown = true;
                         break;
                     default:

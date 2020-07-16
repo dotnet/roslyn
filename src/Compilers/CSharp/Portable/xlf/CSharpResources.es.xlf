@@ -7240,8 +7240,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">No se encontró ninguna implementación del patrón de consulta para el tipo de origen '{0}'. No se encontró '{1}'. ¿Falta alguna referencia a 'System.Core.dll' o alguna directiva using para 'System.Linq'?</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">No se encontró ninguna implementación del patrón de consulta para el tipo de origen '{0}'. No se encontró '{1}'. ¿Falta alguna referencia a 'System.Core.dll' o alguna directiva using para 'System.Linq'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">

@@ -7240,8 +7240,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">Nie można znaleźć implementacji wzorca zapytania dla typu źródłowego „{0}”. Nie znaleziono elementu „{1}”. Być może brakuje odwołania do biblioteki „System.Core.dll” lub użycia dyrektywy dla przestrzeni nazw „System.Linq”.</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">Nie można znaleźć implementacji wzorca zapytania dla typu źródłowego „{0}”. Nie znaleziono elementu „{1}”. Być może brakuje odwołania do biblioteki „System.Core.dll” lub użycia dyrektywy dla przestrzeni nazw „System.Linq”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">
