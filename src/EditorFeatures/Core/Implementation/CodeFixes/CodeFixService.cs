@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private bool TryGetWorkspaceFixer(
             Lazy<CodeFixProvider, CodeChangeProviderMetadata> lazyFixer,
             Workspace workspace,
-            bool showInfoBarOnException,
+            bool logExceptionWithInfoBar,
             [NotNullWhen(returnValue: true)] out CodeFixProvider? fixer)
         {
             try
@@ -304,8 +304,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             catch (Exception ex)
             {
                 // Gracefully handle exceptions in creating fixer instance.
-                // Show info bar for exception, if needed.
-                if (showInfoBarOnException)
+                // Log exception and show info bar, if needed.
+                if (logExceptionWithInfoBar)
                 {
                     var errorReportingService = workspace.Services.GetRequiredService<IErrorReportingService>();
                     var message = lazyFixer.Metadata.Name != null
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     foreach (var lazyFixer in languageKindAndFixers.Value)
                     {
-                        if (!TryGetWorkspaceFixer(lazyFixer, workspace, showInfoBarOnException: true, out var fixer))
+                        if (!TryGetWorkspaceFixer(lazyFixer, workspace, logExceptionWithInfoBar: true, out var fixer))
                         {
                             continue;
                         }
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var lazyFixers = ExtensionOrderer.Order(languageAndFixers.Value);
                     for (var i = 0; i < lazyFixers.Count; i++)
                     {
-                        if (!TryGetWorkspaceFixer(lazyFixers[i], workspace, showInfoBarOnException: false, out var fixer))
+                        if (!TryGetWorkspaceFixer(lazyFixers[i], workspace, logExceptionWithInfoBar: false, out var fixer))
                         {
                             continue;
                         }
