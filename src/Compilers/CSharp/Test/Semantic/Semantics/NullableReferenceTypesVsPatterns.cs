@@ -1939,8 +1939,8 @@ class Test
 
     void Test5(int i, I<string> x, I<object>? y)
     {
-        _ = i switch { 1 => x, _ => y }/*T:<null>!*//*CT:!*/; // 1
-        _ = i switch { 1 => y, _ => x }/*T:<null>!*//*CT:!*/; // 2
+        _ = i switch { 1 => x, _ => y }/*T:<null>?*//*CT:!*/; // 1
+        _ = i switch { 1 => y, _ => x }/*T:<null>?*//*CT:!*/; // 2
     }
 
     void Test6(int i, I<string> x, I<string?> y)
@@ -1969,10 +1969,10 @@ public interface IOut<out T> { }
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (33,15): error CS8506: No best type was found for the switch expression.
-                //         _ = i switch { 1 => x, _ => y }/*T:<null>!*//*CT:!*/; // 1
+                //         _ = i switch { 1 => x, _ => y }/*T:<null>?*//*CT:!*/; // 1
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(33, 15),
                 // (34,15): error CS8506: No best type was found for the switch expression.
-                //         _ = i switch { 1 => y, _ => x }/*T:<null>!*//*CT:!*/; // 2
+                //         _ = i switch { 1 => y, _ => x }/*T:<null>?*//*CT:!*/; // 2
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(34, 15),
                 // (39,37): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => x, _ => y }/*T:I<string!>!*/; // 3
