@@ -66,6 +66,7 @@
       TODO: add OptimizeAssemblies="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"
     -->
     <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
+    <ExpectedDependency Include="NuGet.VisualStudio.Contracts"/>
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences;GetAssemblyVersion">
