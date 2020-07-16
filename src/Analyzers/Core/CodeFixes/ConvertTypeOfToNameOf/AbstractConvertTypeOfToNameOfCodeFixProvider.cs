@@ -58,9 +58,6 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             }
         }
 
-        /// <Summary>
-        ///  Method gets the ITypeSymbol of the node
-        /// </Summary>
         protected abstract ITypeSymbol GetSymbolType(SyntaxNode node, SemanticModel model);
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
