@@ -249,8 +249,14 @@ namespace System.Runtime.CompilerServices
                 var checkMetadata = hasReturnConversion(method.ReturnType, overriddenMethod.ReturnType);
                 if (checkMetadata)
                 {
-                    Assert.Equal(isCovariant | requiresMethodimpl, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
-                    Assert.Equal(isCovariant | requiresMethodimpl, method.RequiresExplicitOverride(out _)); // implies the presence of a methodimpl
+                    requiresMethodimpl = isCovariant | requiresMethodimpl;
+                    Assert.Equal(requiresMethodimpl, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
+                    Assert.Equal(requiresMethodimpl, method.RequiresExplicitOverride(out _));
+                    if (method.OriginalDefinition is PEMethodSymbol originalMethod &&
+                        comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
+                    {
+                        Assert.Equal(requiresMethodimpl, originalMethod.HasAttribute(attrConstructor));
+                    }
                 }
                 switch (member)
                 {
@@ -283,8 +289,14 @@ namespace System.Runtime.CompilerServices
                     var checkMetadata = hasReturnConversion(property.Type, overriddenProperty.Type);
                     if (checkMetadata)
                     {
-                        Assert.Equal(isCovariant, getMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
-                        Assert.Equal(isCovariant, getMethod.RequiresExplicitOverride(out _)); // implies the presence of a methodimpl
+                        requiresMethodimpl = isCovariant | requiresMethodimpl;
+                        Assert.Equal(requiresMethodimpl, getMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
+                        Assert.Equal(requiresMethodimpl, getMethod.RequiresExplicitOverride(out _)); // implies the presence of a methodimpl
+                        if (getMethod.OriginalDefinition is PEMethodSymbol originalMethod &&
+                            comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
+                        {
+                            Assert.Equal(requiresMethodimpl, originalMethod.HasAttribute(attrConstructor));
+                        }
                     }
                 }
                 if (property.SetMethod is MethodSymbol setMethod && overriddenProperty.SetMethod is MethodSymbol overriddenSetMethod)
@@ -2973,6 +2985,46 @@ public class Derived : Mid
                 // virtual slot unification that the runtime does.
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
                 VerifyOverride(comp, "Mid.M", "System.Object Mid.M()", "System.Object Base.M()");
+            }
+        }
+
+        [Fact]
+        public void LegacyMethodimplRequirements_01()
+        {
+            var source = @"
+public class A
+{
+    public virtual string get_P() => null;
+}
+
+public class B : A
+{
+    public virtual string P => null;
+}
+
+public class C : B
+{
+    public override string get_P() => null;
+}
+
+public class D : C
+{
+    public override string P => null;
+}
+";
+            var assignments = "";
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+                );
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyOverride(comp, "C.get_P", "System.String C.get_P()", "System.String A.get_P()", requiresMethodimpl: true);
+                VerifyOverride(comp, "D.P", "System.String D.P { get; }", "System.String B.P { get; }", requiresMethodimpl: true);
+                VerifyOverride(comp, "D.get_P", "System.String D.P.get", "System.String B.P.get", requiresMethodimpl: true);
             }
         }
 
