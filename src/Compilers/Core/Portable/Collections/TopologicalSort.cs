@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Process the ready set. Output a node, and decrement the predecessor count of its successors.
-            var resultBuilder = ImmutableArray.CreateBuilder<TNode>();
+            var resultBuilder = ArrayBuilder<TNode>.GetInstance();
             while (ready.Count != 0)
             {
                 var node = ready.Pop();
@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis
             result = hadCycle ? ImmutableArray<TNode>.Empty : resultBuilder.ToImmutable();
             predecessorCounts.Free();
             ready.Free();
+            resultBuilder.Free();
             return !hadCycle;
         }
 

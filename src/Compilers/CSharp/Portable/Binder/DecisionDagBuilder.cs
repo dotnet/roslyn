@@ -817,13 +817,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!wasAcyclic)
             {
                 // If the dag contains a cycle, return a short-circuit dag instead.
+                decisionDag.RootNode.Dag = defaultDecision;
 
                 // Since we intended the set of DagState nodes to be acyclic by construction, we do not know how
                 // this can happen, but since it does occasionally happen we need to recover gracefully to avoid
                 // crashing the compiler.  See also https://github.com/dotnet/roslyn/issues/45946
                 // If you figure out how it occurs, please modify the DagState construction process to avoid that.
-
-                decisionDag.RootNode.Dag = defaultDecision;
+                Debug.Assert(wasAcyclic); // force failure in debug builds
                 return;
             }
 
@@ -1353,7 +1353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns>True if the graph was acyclic.</returns>
             public bool TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> result)
             {
-                // 
                 return TopologicalSort.TryIterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this.RootNode), Successor, out result);
             }
 
