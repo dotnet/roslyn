@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
             // Make sure that the syntax that we're looking at is actually a typeof expression and that
             // the parent syntax is a member access expression otherwise the syntax is not the kind of
             // expression that we want to analyze
-            return (node is TypeOfExpressionSyntax && node.Parent is MemberAccessExpressionSyntax);
-
+            return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax _ };
         }
     }
 }
