@@ -1798,7 +1798,8 @@ tryAgain:
 
             static bool abort(LanguageParser parser)
             {
-                return parser.IsCurrentTokenWhereOfConstraintClause() || parser.IsTerminator();
+                return parser.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword
+                    || parser.IsTerminator();
             }
         }
 
@@ -1843,11 +1844,7 @@ tryAgain:
                     int lastTokenPosition = -1;
                     while (IsMakingProgress(ref lastTokenPosition))
                     {
-
-                        if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
-                            || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword  // TODO2 why are we using a different check on 'where' here?
-                            || abort(this)
-                            )
+                        if (abort(this))
                         {
                             break;
                         }
@@ -1888,9 +1885,11 @@ tryAgain:
                     expected);
             }
 
-            static bool abort(LanguageParser p)
+            static bool abort(LanguageParser parser)
             {
-                return p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator();
+                return parser.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword
+                    || parser.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken // ex: 'void localFunction<T>() where T : class => ...'
+                    || parser.IsTerminator();
             }
         }
 
