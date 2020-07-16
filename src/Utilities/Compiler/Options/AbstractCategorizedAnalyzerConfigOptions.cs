@@ -100,7 +100,6 @@ namespace Analyzer.Utilities
                     TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue) ||
                     TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue))
                 {
-
                     return (true, optionValue);
                 }
             }

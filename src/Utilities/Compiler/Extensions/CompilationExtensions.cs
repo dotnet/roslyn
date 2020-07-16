@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -68,8 +69,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         internal static bool IsWebProject(this Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            var usingMicrosoftNETSdkWeb = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation, cancellationToken);
-            return usingMicrosoftNETSdkWeb != null && bool.TryParse(usingMicrosoftNETSdkWeb, out var result) && result;
+            var propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation, cancellationToken);
+            return string.Equals(propertyValue?.Trim(), "true", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
