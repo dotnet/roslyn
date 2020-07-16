@@ -7263,8 +7263,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">Non è stata trovata un'implementazione del modello di query per il tipo di origine '{0}'. '{1}' non è presente. Probabilmente manca un riferimento a 'System.Core.dll' o una direttiva using per 'System.Linq'.</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">Non è stata trovata un'implementazione del modello di query per il tipo di origine '{0}'. '{1}' non è presente. Probabilmente manca un riferimento a 'System.Core.dll' o una direttiva using per 'System.Linq'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">
