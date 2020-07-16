@@ -512,6 +512,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         // generally preserve when recommending in another project.  However, it may not always be
                         // available due to limitations in the INuGetProjectService.  So we fall-back to the actual
                         // resolve '.Version' so that we still have something viable to offer the user.
+                        //
+                        // https://github.com/NuGet/Home/issues/9745 tracks fixing this on the NuGet side.
                         var version = installedPackage.RequestedRange ?? installedPackage.Version;
                         installedPackages.Add(installedPackage.Id, version);
                     }
