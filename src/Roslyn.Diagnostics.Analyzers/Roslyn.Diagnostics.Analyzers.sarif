@@ -169,44 +169,6 @@
               "Telemetry"
             ]
           }
-        },
-        "RS0044": {
-          "id": "RS0044",
-          "shortDescription": "Create test accessor",
-          "fullDescription": "This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.",
-          "defaultLevel": "hidden",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "CreateTestAccessor",
-            "languages": [
-              "C#",
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry",
-              "NotConfigurable"
-            ]
-          }
-        },
-        "RS0045": {
-          "id": "RS0045",
-          "shortDescription": "Expose member for testing",
-          "fullDescription": "Expose member for testing.",
-          "defaultLevel": "hidden",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "ExposeMemberForTesting",
-            "languages": [
-              "C#",
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry",
-              "NotConfigurable"
-            ]
-          }
         }
       }
     },
