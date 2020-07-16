@@ -1005,6 +1005,7 @@ oneMoreTime:
                 while (exceptionSource.Kind == BoundKind.Sequence)
                 {
                     var seq = (BoundSequence)exceptionSource;
+                    Debug.Assert(seq.Locals.IsDefaultOrEmpty);
                     EmitSideEffects(seq);
                     exceptionSource = seq.Value;
                 }
@@ -1053,6 +1054,12 @@ oneMoreTime:
             else
             {
                 _builder.EmitOpCode(ILOpCode.Pop);
+            }
+
+            if (catchBlock.ExceptionFilterPrologueOpt != null)
+            {
+                Debug.Assert(_builder.IsStackEmpty);
+                EmitStatements(catchBlock.ExceptionFilterPrologueOpt.Statements);
             }
 
             // Emit the actual filter expression, if we have one, and normalize

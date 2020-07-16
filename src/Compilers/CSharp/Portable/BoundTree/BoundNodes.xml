@@ -1165,6 +1165,7 @@
 
     <Field Name="ExceptionTypeOpt" Type="TypeSymbol?"/>
     
+    <Field Name="ExceptionFilterPrologueOpt" Type="BoundStatementList?"/>
     <Field Name="ExceptionFilterOpt" Type="BoundExpression?"/>
     <Field Name="Body" Type="BoundBlock"/>
     <Field Name="IsSynthesizedAsyncCatchAll" Type="bool" />

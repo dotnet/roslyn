@@ -1697,6 +1697,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitLvalue(catchBlock.ExceptionSourceOpt);
             }
 
+            if (catchBlock.ExceptionFilterPrologueOpt is { })
+            {
+                VisitStatementList(catchBlock.ExceptionFilterPrologueOpt);
+            }
+
             if (catchBlock.ExceptionFilterOpt != null)
             {
                 VisitCondition(catchBlock.ExceptionFilterOpt);
