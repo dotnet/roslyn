@@ -1424,7 +1424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case NullableFlowState.NotNull:
                     return false;
                 case NullableFlowState.MaybeNull:
-                    if (type.Type.IsTypeParameterDisallowingAnnotation()) // PROTOTYPE: Skip check in /langversion:preview?
+                    // https://github.com/dotnet/roslyn/issues/46044: Skip the following check if /langversion > 8?
+                    if (type.Type.IsTypeParameterDisallowingAnnotation())
                     {
                         return false;
                     }
@@ -1483,7 +1484,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (useLegacyWarnings)
             {
-                if (isMaybeDefaultValue(valueType)) // PROTOTYPE: Skip check in /langversion:preview?
+                // https://github.com/dotnet/roslyn/issues/46044: Skip the following check if /langversion > 8?
+                if (isMaybeDefaultValue(valueType))
                 {
                     // No W warning reported assigning or casting [MaybeNull]T value to T
                     // because there is no syntax for declaring the target type as [MaybeNull]T.
@@ -8786,7 +8788,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 extensionMethodThisArgument: true);
         }
 
-        // PROTOTYPE: Test the various uses of this method with T and T?.
         private static bool IsNullabilityMismatch(TypeWithAnnotations type1, TypeWithAnnotations type2)
         {
             // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
@@ -8795,7 +8796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
 
-        // PROTOTYPE: Test the various uses of this method with T and T?.
         private static bool IsNullabilityMismatch(TypeSymbol type1, TypeSymbol type2)
         {
             // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
