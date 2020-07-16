@@ -43,15 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task FixAllDocumentVaried()
+        public async Task FixAllDocumentVariedSingleLine()
         {
             var input = @"class Test
 {
     static void Main()
     {
-        var typeName1 = {|FixAllInDocument:typeof(Test).Name|};
-        var typeName2 = typeof(int).Name;
-        var typeName3 = typeof(System.String).Name;
+        var typeName1 = {|FixAllInDocument:typeof(Test).Name|}; var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
     }
 }
 ";
@@ -60,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
 {
     static void Main()
     {
-        var typeName1 = nameof(Test);
-        var typeName2 = nameof(System.Int32);
-        var typeName3 = nameof(System.String);
+        var typeName1 = nameof(Test); var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
     }
 }
 ";
@@ -216,9 +212,7 @@ class Test3
 {
     static void Main()
     {
-        var typeName1 = typeof(Test).Name;
-        var typeName2 = typeof(int).Name;
-        var typeName3 = typeof(System.String).Name;
+        var typeName1 = typeof(Test).Name; var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
     }
 }
         </Document>
@@ -260,9 +254,7 @@ class Test3
 {
     static void Main()
     {
-        var typeName1 = nameof(Test);
-        var typeName2 = nameof(System.Int32);
-        var typeName3 = nameof(System.String);
+        var typeName1 = nameof(Test); var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
     }
 }
         </Document>
