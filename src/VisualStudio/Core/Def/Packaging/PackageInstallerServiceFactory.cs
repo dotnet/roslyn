@@ -402,7 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             var serviceContainer = (IBrokeredServiceContainer)await this.AsyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
             var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
-            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1).ConfigureAwait(false);
+            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             using (nugetService as IDisposable)
             {
@@ -453,34 +453,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            // Remove anything we have associated with this project.
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var projectState);
-
             var project = solution.GetProject(projectId);
-            if (project == null)
-            {
-                // Project was removed.  Nothing needs to be done.
-                return;
-            }
 
             // We really only need to know the NuGet status for managed language projects.
             // Also, the NuGet APIs may throw on some projects that don't implement the 
             // full set of DTE APIs they expect.  So we filter down to just C# and VB here
             // as we know these languages are safe to build up this index for.
-            if (project.Language != LanguageNames.CSharp &&
-                project.Language != LanguageNames.VisualBasic)
+            if (project?.Language == LanguageNames.CSharp ||
+                project?.Language == LanguageNames.VisualBasic)
             {
-                return;
+                var projectGuid = _workspace.GetProjectGuid(projectId);
+                if (projectGuid != Guid.Empty)
+                {
+                    _projectToInstalledPackageAndVersion[projectId] = await GetCurrentProjectStateAsync(
+                        nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
+                    return;
+                }
             }
 
-            // Project was changed in some way.  Let's go find the set of installed packages for it.
-            var projectGuid = _workspace.GetProjectGuid(projectId);
-            if (projectGuid == Guid.Empty)
-            {
-                // Don't have a guid for this project ID.  not something we can query NuGet for.
-                return;
-            }
+            // For anything else, clear out the data we've stored as this project is gone, not the right language, or
+            // isn't something we can get nuget information for.
+            _projectToInstalledPackageAndVersion.TryRemove(projectId, out _);
+        }
 
+        private static async Task<ProjectState> GetCurrentProjectStateAsync(
+            INuGetProjectService nugetService,
+            Guid projectGuid,
+            CancellationToken cancellationToken)
+        {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -497,15 +497,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     }
                 }
 
-                _projectToInstalledPackageAndVersion[projectId] = new ProjectState(isEnabled: true, installedPackages);
+                return new ProjectState(isEnabled: true, installedPackages);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                _projectToInstalledPackageAndVersion[projectId] = new ProjectState(isEnabled: false, new MultiDictionary<string, string>());
-            }
-            finally
-            {
-                (nugetService as IDisposable)?.Dispose();
+                return new ProjectState(isEnabled: false, new MultiDictionary<string, string>());
             }
         }
 
