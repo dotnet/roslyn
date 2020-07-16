@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         /// <Summary>
         ///  Method converts typeof(...).Name to nameof(...)
         /// </Summary>
-        public void ConvertTypeOfToNameOf(SyntaxEditor editor,
-                                                      SyntaxNode nodeToReplace,
-                                                      SemanticModel semanticModel)
+        public void ConvertTypeOfToNameOf(SyntaxEditor editor, SyntaxNode nodeToReplace, SemanticModel semanticModel)
         {
             var symbolType = GetSymbolType(nodeToReplace, semanticModel);
 
