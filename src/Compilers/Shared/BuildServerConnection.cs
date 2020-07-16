@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CreateServerFunc createServerFunc,
             CancellationToken cancellationToken)
         {
-            if (pipeName == null)
+            if (pipeName is null)
             {
-                return new RejectedBuildResponse();
+                throw new ArgumentException(nameof(pipeName));
             }
 
             if (buildPaths.TempDirectory == null)
             {
-                return new RejectedBuildResponse();
+                throw new ArgumentException(nameof(buildPaths));
             }
 
             // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
@@ -132,21 +132,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var pipeTask = tryConnectToServer(pipeName, buildPaths, timeoutOverride, createServerFunc, cancellationToken);
             if (pipeTask is null)
             {
-                return new RejectedBuildResponse();
+                return new RejectedBuildResponse("Failed to connect to server");
             }
             else
             {
                 var pipe = await pipeTask.ConfigureAwait(false);
                 if (pipe is null)
                 {
-                    return new RejectedBuildResponse();
+                    return new RejectedBuildResponse("Failed to connect to server");
                 }
                 else
                 {
                     var request = BuildRequest.Create(language,
                                                       buildPaths.WorkingDirectory,
                                                       buildPaths.TempDirectory,
-                                                      BuildProtocolConstants.GetCommitHash(),
+                                                      BuildProtocolConstants.GetCommitHash() ?? "",
                                                       arguments,
                                                       keepAlive,
                                                       libEnvVariable);
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 catch (Exception e)
                 {
                     LogException(e, "Error writing build request.");
-                    return new RejectedBuildResponse();
+                    return new RejectedBuildResponse($"Error writing build request: {e.Message}");
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
@@ -283,13 +283,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     catch (Exception e)
                     {
                         LogException(e, "Error reading response");
-                        response = new RejectedBuildResponse();
+                        response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
                 }
                 else
                 {
-                    Log("Server disconnect");
-                    response = new RejectedBuildResponse();
+                    Log("Client disconnect");
+                    response = new RejectedBuildResponse($"Client disconnected");
                 }
 
                 // Cancel whatever task is still around

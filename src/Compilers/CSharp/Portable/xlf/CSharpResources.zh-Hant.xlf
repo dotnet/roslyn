@@ -7243,8 +7243,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">找不到來源類型 '{0}' 的查詢模式實作。找不到 '{1}'。是否遺漏了 'System.Core.dll' 的參考或 'System.Linq' 的 using 指示詞?</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">找不到來源類型 '{0}' 的查詢模式實作。找不到 '{1}'。是否遺漏了 'System.Core.dll' 的參考或 'System.Linq' 的 using 指示詞?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">
