@@ -273,9 +273,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereWhereWhere()
+        public async Task TestAfterWhereWhereWhere()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"public class Goo<T> : System.Object where where where $$
 {
 }");

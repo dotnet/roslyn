@@ -905,6 +905,145 @@ abstract record D
         }
 
         [Fact]
+        public void TestWhereWhere()
+        {
+            UsingTree("public class Goo<T> : System.Object where where { }",
+                // (1,49): error CS1003: Syntax error, ':' expected
+                // public class Goo<T> : System.Object where where { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":", "{").WithLocation(1, 49),
+                // (1,49): error CS1031: Type expected
+                // public class Goo<T> : System.Object where where { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 49)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "System");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Object");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "where");
+                        }
+                        M(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestWhereWhereWhere()
+        {
+            UsingTree("public class Goo<T> : System.Object where where where { }",
+                // (1,49): error CS1003: Syntax error, ':' expected
+                // public class Goo<T> : System.Object where where where { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(":", "").WithLocation(1, 49)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "System");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Object");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "where");
+                        }
+                        M(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void WithParsingLangVer()
         {
             var text = @"
