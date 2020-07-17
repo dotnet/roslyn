@@ -10,5 +10,6 @@ namespace Analyzer.Utilities
         public const string TargetFramework = nameof(TargetFramework);
         public const string TargetPlatformMinVersion = nameof(TargetPlatformMinVersion);
         public const string UsingMicrosoftNETSdkWeb = nameof(UsingMicrosoftNETSdkWeb);
+        public const string ProjectTypeGuids = nameof(ProjectTypeGuids);
     }
 }
