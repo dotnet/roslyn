@@ -675,15 +675,15 @@ abstract record D
         [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
         public void AbstractMethod_ConstraintsAndSemiColon()
         {
-            UsingTree("abstract class C { abstract void M<T>() where T : class; }");
+            UsingTree("abstract record R { abstract void M<T>() where T : class; }");
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.ClassDeclaration);
+                N(SyntaxKind.RecordDeclaration);
                 {
                     N(SyntaxKind.AbstractKeyword);
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
