@@ -132,6 +132,7 @@ Class C
     Sub Goo()
         dim f as Func(of Task) =
             Function() Task.FromResult(1)
+
     End Sub
 End Class")
         End Function
@@ -155,6 +156,7 @@ Class C
     Sub Goo()
         dim f as Func(of Task(Of Integer)) =
             Function() Task.FromResult(1)
+
     End Sub
 End Class")
         End Function
