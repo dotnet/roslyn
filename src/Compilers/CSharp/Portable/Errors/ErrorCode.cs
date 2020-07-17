@@ -1820,13 +1820,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
-        ERR_8813 = 8813, // used by features/module-initializers
-
-        ERR_8814 = 8814, // used by features/module-initializers
-
-        ERR_8815 = 8815, // used by features/module-initializers
-
-        ERR_8816 = 8816, // used by features/module-initializers
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8815,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
 
         ERR_PartialMethodReturnTypeDifference = 8817,
         ERR_PartialMethodRefReturnDifference = 8818,
@@ -1837,6 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
 
+        ERR_BadWarningVersion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
