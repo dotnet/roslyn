@@ -938,7 +938,7 @@ class C<T> where T : struct
                 // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Please use language version 'preview' or greater to use annotations with type parameters not known to be reference or value types, or consider adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version 'preview' or greater is used. Consider changing the language version, or  adding a 'class', 'struct', or type constraint.
                 //     T? F3;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
 
@@ -948,7 +948,7 @@ class C<T> where T : struct
                 // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Please use language version 'preview' or greater to use annotations with type parameters not known to be reference or value types, or consider adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version 'preview' or greater is used. Consider changing the language version, or  adding a 'class', 'struct', or type constraint.
                 //     T? F3;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
 
