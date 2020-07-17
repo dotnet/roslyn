@@ -105,7 +105,7 @@ End Module")
         {
 #if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
-            File.WriteAllBytes(filePath, TestResources.NetFX.netstandard20.netstandard);
+            File.WriteAllBytes(filePath, TestMetadata.ResourcesNetStandard20.netstandard);
             arguments.Add("/nostdlib");
             arguments.Add("/r:netstandard.dll");
 #endif
@@ -1195,8 +1195,8 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task AssemblyIdentityComparer1()
         {
-            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(TestResources.NetFX.v2_0_50727.mscorlib);
-            _tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(TestResources.NetFX.v4_0_21006.mscorlib);
+            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(TestMetadata.ResourcesNet20.mscorlib);
+            _tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(TestMetadata.ResourcesNet40.mscorlib);
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =

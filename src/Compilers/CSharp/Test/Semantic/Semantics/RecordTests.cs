@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -335,7 +336,7 @@ record C(int X, int Y)
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -683,8 +684,6 @@ record C(int X)
         var c = new C(0);
         c = c with { };
     }
-
-    public C Clone() => null;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
@@ -721,7 +720,7 @@ Block[B0] - Entry
                   Left:
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                   Right:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -784,8 +783,8 @@ record C : B
 record B
 {
     public int X { get; }
-    public virtual B Clone() => null;
 }
+
 record C : B
 {
     public new int X { get; init; }
@@ -843,6 +842,9 @@ record C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (4,19): error CS8859: Members named 'Clone' are disallowed in records.
+                //     public string Clone() => null;
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(4, 19)
             );
         }
 
@@ -850,9 +852,9 @@ record C(int X)
         public void WithExpr11()
         {
             var src = @"
+
 record C(int X)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0);
@@ -874,7 +876,6 @@ record C(int X)
 using System;
 record C(int X)
 {
-    public C Clone() => new C(this.X);
     public static void Main()
     {
         var c = new C(0);
@@ -894,7 +895,7 @@ record C(int X)
   IL_0006:  dup
   IL_0007:  callvirt   ""int C.X.get""
   IL_000c:  call       ""void System.Console.WriteLine(int)""
-  IL_0011:  callvirt   ""C C.<>Clone()""
+  IL_0011:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0016:  dup
   IL_0017:  ldc.i4.5
   IL_0018:  callvirt   ""void C.X.init""
@@ -909,9 +910,9 @@ record C(int X)
         {
             var src = @"
 using System;
+
 record C(int X, int Y)
 {
-    public C Clone() => new C(X, Y);
     public override string ToString() => X + "" "" + Y;
     public static void Main()
     {
@@ -932,7 +933,7 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.<>Clone()""
+  IL_000d:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
@@ -946,9 +947,9 @@ record C(int X, int Y)
         {
             var src = @"
 using System;
+
 record C(int X, int Y)
 {
-    public C Clone() => new C(this.X, this.Y);
     public override string ToString() => X + "" "" + Y;
     public static void Main()
     {
@@ -972,13 +973,13 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.<>Clone()""
+  IL_000d:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  dup
   IL_001a:  call       ""void System.Console.WriteLine(object)""
-  IL_001f:  callvirt   ""C C.<>Clone()""
+  IL_001f:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0024:  dup
   IL_0025:  ldc.i4.2
   IL_0026:  callvirt   ""void C.Y.init""
@@ -991,9 +992,9 @@ record C(int X, int Y)
         public void WithExpr15()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -1012,9 +1013,9 @@ record C(int X, int Y)
         public void WithExpr16()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -1201,6 +1202,471 @@ record C(int X)
             );
         }
 
+        [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
+        public void Clone_DisallowedInSource()
+        {
+            var src = @"
+record C1(string Clone); // 1
+record C2
+{
+    string Clone; // 2
+}
+record C3
+{
+    string Clone { get; set; } // 3
+}
+record C4
+{
+    data string Clone; // 4 not yet supported
+}
+record C5
+{
+    void Clone() { } // 5
+    void Clone(int i) { } // 6
+}
+record C6
+{
+    class Clone { } // 7
+}
+record C7
+{
+    delegate void Clone(); // 8
+}
+record C8
+{
+    event System.Action Clone;  // 9
+}
+record Clone
+{
+    Clone(int i) => throw null;
+}
+record C9 : System.ICloneable
+{
+    object System.ICloneable.Clone() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,18): error CS8859: Members named 'Clone' are disallowed in records.
+                // record C1(string Clone); // 1
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(2, 18),
+                // (5,12): error CS8859: Members named 'Clone' are disallowed in records.
+                //     string Clone; // 2
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(5, 12),
+                // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
+                //     string Clone { get; set; } // 3
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
+                // (13,10): error CS1519: Invalid token 'string' in class, struct, or interface member declaration
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),
+                // (13,17): error CS8859: Members named 'Clone' are disallowed in records.
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(13, 17),
+                // (17,10): error CS8859: Members named 'Clone' are disallowed in records.
+                //     void Clone() { } // 5
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(17, 10),
+                // (18,10): error CS8859: Members named 'Clone' are disallowed in records.
+                //     void Clone(int i) { } // 6
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(18, 10),
+                // (22,11): error CS8859: Members named 'Clone' are disallowed in records.
+                //     class Clone { } // 7
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(22, 11),
+                // (26,19): error CS8859: Members named 'Clone' are disallowed in records.
+                //     delegate void Clone(); // 8
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(26, 19),
+                // (30,25): error CS8859: Members named 'Clone' are disallowed in records.
+                //     event System.Action Clone;  // 9
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25)
+                );
+        }
+
+        [Fact]
+        public void Clone_LoadedFromMetadata()
+        {
+            // IL for ' public record Base(int i);' with a 'void Clone()' method added
+            var il = @"
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+    implements class [mscorlib]System.IEquatable`1<class Base>
+{
+    .field private initonly int32 '<i>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+
+    .method public hidebysig specialname newslot virtual instance class Base '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void Base::.ctor(class Base)
+        IL_0006: ret
+    }
+
+    .method family hidebysig specialname newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldtoken Base
+        IL_0005: call class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor ( int32 i ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<i>k__BackingField'
+        IL_0007: ldarg.0
+        IL_0008: call instance void [mscorlib]System.Object::.ctor()
+        IL_000d: ret
+    }
+
+    .method public hidebysig specialname instance int32 get_i () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::'<i>k__BackingField'
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_i ( int32 'value' ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<i>k__BackingField'
+        IL_0007: ret
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<class [mscorlib]System.Type>::get_Default()
+        IL_0005: ldarg.0
+        IL_0006: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_000b: callvirt instance int32 class [mscorlib]System.Collections.Generic.EqualityComparer`1<class [mscorlib]System.Type>::GetHashCode(!0)
+        IL_0010: ldc.i4 -1521134295
+        IL_0015: mul
+        IL_0016: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::get_Default()
+        IL_001b: ldarg.0
+        IL_001c: ldfld int32 Base::'<i>k__BackingField'
+        IL_0021: callvirt instance int32 class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::GetHashCode(!0)
+        IL_0026: add
+        IL_0027: ret
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object obj ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: isinst Base
+        IL_0007: callvirt instance bool Base::Equals(class Base)
+        IL_000c: ret
+    }
+
+    .method public newslot virtual instance bool Equals ( class Base '' ) cil managed
+    {
+        IL_0000: ldarg.1
+        IL_0001: brfalse.s IL_002d
+
+        IL_0003: ldarg.0
+        IL_0004: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_0009: ldarg.1
+        IL_000a: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_000f: call bool [mscorlib]System.Type::op_Equality(class [mscorlib]System.Type, class [mscorlib]System.Type)
+        IL_0014: brfalse.s IL_002d
+
+        IL_0016: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::get_Default()
+        IL_001b: ldarg.0
+        IL_001c: ldfld int32 Base::'<i>k__BackingField'
+        IL_0021: ldarg.1
+        IL_0022: ldfld int32 Base::'<i>k__BackingField'
+        IL_0027: callvirt instance bool class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::Equals(!0, !0)
+        IL_002c: ret
+
+        IL_002d: ldc.i4.0
+        IL_002e: ret
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class Base '' ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: ldfld int32 Base::'<i>k__BackingField'
+        IL_000d: stfld int32 Base::'<i>k__BackingField'
+        IL_0012: ret
+    }
+
+    .method public hidebysig instance void Deconstruct ( [out] int32& i ) cil managed
+    {
+        IL_0000: ldarg.1
+        IL_0001: ldarg.0
+        IL_0002: call instance int32 Base::get_i()
+        IL_0007: stind.i4
+        IL_0008: ret
+    }
+
+    .method public hidebysig instance void Clone () cil managed
+    {
+        IL_0000: ldstr ""RAN""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type Base::get_EqualityContract()
+    }
+
+    .property instance int32 i()
+    {
+        .get instance int32 Base::get_i()
+        .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) Base::set_i(int32)
+    }
+}
+
+.class public auto ansi abstract sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends [mscorlib]System.Object
+{
+}
+";
+            var src = @"
+record R(int i) : Base(i);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(1);
+        r.Clone();
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL(src, il, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+            // Note: we do load the Clone method from metadata
+        }
+
+        [Fact]
+        public void WithExpr24()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(ref C other) : this(-1)
+    {
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+
+            var clone = verifier.Compilation.GetMember("C." + WellKnownMemberNames.CloneMethodName);
+            Assert.Equal("<Clone>$", clone.Name);
+        }
+
+        [Fact]
+        public void WithExpr25()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(in C other) : this(-1)
+    {
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr26()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(out C other) : this(-1)
+    {
+        other = null;
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr27()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(ref C other) : this(-1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr28()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(in C other) : this(-1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr29()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(out C other) : this(-1)
+    {
+        other = null;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
         [Fact]
         public void AccessibilityOfBaseCtor_01()
         {
@@ -1358,9 +1824,9 @@ class C
         public void WithExprNoExpressionToPropertyTypeConversion()
         {
             var src = @"
+
 record C(int X)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0);
@@ -1405,9 +1871,9 @@ class D
         {
             var src = @"
 using System;
+
 record C(int X, int Y, int Z)
 {
-    public C Clone() => new C(X, Y, Z);
     public static void Main()
     {
         var c = new C(0, 1, 2);
@@ -1432,7 +1898,7 @@ X");
   IL_0001:  ldc.i4.1
   IL_0002:  ldc.i4.2
   IL_0003:  newobj     ""C..ctor(int, int, int)""
-  IL_0008:  callvirt   ""C C.<>Clone()""
+  IL_0008:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000d:  dup
   IL_000e:  ldstr      ""Y""
   IL_0013:  call       ""int C.W(string)""
@@ -1455,7 +1921,7 @@ X");
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ Y = W(""Y"" ...  = W(""X"") }')
       Initializers(2):
@@ -1489,7 +1955,7 @@ IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
-            var main = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Skip(1).First();
+            var main = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
             Assert.Equal("Main", main.Identifier.ToString());
             VerifyFlowGraph(comp, main, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -1535,7 +2001,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                   Value:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -1591,7 +2057,6 @@ Block[B3] - Exit
 using System;
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1606,7 +2071,7 @@ record C(long X)
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i8
   IL_0002:  newobj     ""C..ctor(long)""
-  IL_0007:  callvirt   ""C C.<>Clone()""
+  IL_0007:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000c:  dup
   IL_000d:  ldc.i4.s   11
   IL_000f:  conv.i8
@@ -1637,7 +2102,6 @@ struct S
 }
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1659,7 +2123,7 @@ conversion
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldc.i4.s   11
   IL_000b:  call       ""S..ctor(int)""
-  IL_0010:  callvirt   ""C C.<>Clone()""
+  IL_0010:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0015:  dup
   IL_0016:  ldloc.0
   IL_0017:  call       ""long S.op_Implicit(S)""
@@ -1690,7 +2154,6 @@ struct S
 }
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1717,9 +2180,9 @@ struct S
     }
     public static explicit operator long(S s) => s._i;
 }
+
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1742,14 +2205,13 @@ record C(long X)
 using System;
 record C(object X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
         Console.WriteLine((c with { X = ""abc"" }).X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: "abc");
+            CompileAndVerify(src, expectedOutput: "abc");
         }
 
         [Fact]
@@ -1794,7 +2256,7 @@ set
   IL_0005:  ldloca.s   V_0
   IL_0007:  ldc.i4.s   11
   IL_0009:  call       ""S..ctor(int)""
-  IL_000e:  callvirt   ""C C.<>Clone()""
+  IL_000e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0013:  dup
   IL_0014:  ldloc.0
   IL_0015:  call       ""int S.op_Implicit(S)""
@@ -1980,7 +2442,7 @@ record C(int X, string Y)
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { X = 2 }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ X = 2 }')
       Initializers(1):
@@ -2034,7 +2496,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { X = 2 }')
                   Value:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -2162,9 +2624,9 @@ Block[B3] - Exit
         public void WithBadExprArg()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -2208,7 +2670,7 @@ record C(int X, int Y)
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ 5 }')
       Initializers(1):
@@ -2221,7 +2683,7 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ')
       Initializers(0)");
@@ -2399,8 +2861,6 @@ record B(string X)
 #nullable enable
 record B(string? X)
 {
-    public B Clone() => new B(X);
-
     static void M1(B b, string s, bool flag)
     {
         if (flag) { b.X.ToString(); } // 1
@@ -2417,15 +2877,15 @@ record B(string? X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,21): warning CS8602: Dereference of a possibly null reference.
+                // (7,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
-                // (11,21): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(7, 21),
+                // (9,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 21),
-                // (16,21): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
+                // (14,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(16, 21));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(14, 21));
         }
 
         [Fact]
@@ -2464,8 +2924,6 @@ record B(int X)
 #nullable enable
 record B(string? X, string? Y)
 {
-    public B Clone() => new B(X, Y);
-
     static void M1(bool flag)
     {
         B b = new B(""hello"", null);
@@ -2485,15 +2943,15 @@ record B(string? X, string? Y)
             // https://github.com/dotnet/roslyn/issues/44763
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.X.ToString(); // shouldn't warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(12, 13),
-                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(10, 13),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.Y.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(13, 13),
-                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(11, 13),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.X.ToString(); // shouldn't warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(17, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(15, 9));
         }
 
         [Fact]
@@ -2538,8 +2996,6 @@ using System.Diagnostics.CodeAnalysis;
 
 record B([AllowNull] string X)
 {
-    public B Clone() => new B(X);
-
     static void M1(B b)
     {
         b.X.ToString();
@@ -2554,12 +3010,12 @@ record B([AllowNull] string X)
             // https://github.com/dotnet/roslyn/issues/44691
             var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (12,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // (10,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         b = b with { X = null }; // ok
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 26),
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 26),
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.X.ToString(); // ok
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 9));
         }
 
         [Fact]
@@ -2569,8 +3025,6 @@ record B([AllowNull] string X)
 #nullable enable
 record B(string? X, string? Y)
 {
-    public B Clone() => new B(X, Y);
-
     static void M1(B b1)
     {
         B b2 = b1 with { X = ""hello"" };
@@ -2589,18 +3043,18 @@ record B(string? X, string? Y)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         b1.X.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.X").WithLocation(13, 9),
-                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.X").WithLocation(11, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         b1.Y.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Y").WithLocation(14, 9),
-                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Y").WithLocation(12, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         b2.Y.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Y").WithLocation(16, 9),
-                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Y").WithLocation(14, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         b3.X.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(17, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(15, 9));
         }
 
         [Fact]
@@ -2878,7 +3332,7 @@ class D
   // Code size       33 (0x21)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  callvirt   ""C C.<>Clone()""
+  IL_0001:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0006:  dup
   IL_0007:  ldc.i4.5
   IL_0008:  callvirt   ""void C.X.set""
@@ -2902,8 +3356,6 @@ record C(int Y)
 {
     private readonly int[] _a = new[] { 0 };
     public ref int X => ref _a[0];
-
-    public C Clone() => new C(0);
 
     public static void Main()
     {
@@ -2930,7 +3382,7 @@ record C(int Y)
   IL_000f:  callvirt   ""ref int C.X.get""
   IL_0014:  ldind.i4
   IL_0015:  call       ""void System.Console.WriteLine(int)""
-  IL_001a:  callvirt   ""C C.<>Clone()""
+  IL_001a:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_001f:  dup
   IL_0020:  callvirt   ""ref int C.X.get""
   IL_0025:  ldc.i4.1
@@ -2956,8 +3408,6 @@ record C(int Y)
         set { }
     }
 
-    public C Clone() => new C(0);
-
     public static void Main()
     {
         var a = new[] { 0 };
@@ -2972,15 +3422,15 @@ record C(int Y)
                 // (9,9): error CS8147: Properties which return by reference cannot have set accessors
                 //         set { }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.X.set").WithLocation(9, 9),
-                // (17,32): error CS1525: Invalid expression term 'ref'
+                // (15,32): error CS1525: Invalid expression term 'ref'
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(17, 32),
-                // (17,32): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(15, 32),
+                // (15,32): error CS1073: Unexpected token 'ref'
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 32),
-                // (19,26): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(15, 32),
+                // (17,26): error CS1073: Unexpected token 'ref'
                 //         c = c with { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(19, 26)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 26)
             );
         }
 
@@ -3178,7 +3628,7 @@ class Program
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
-        [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_07()
         {
@@ -3196,19 +3646,22 @@ record B2(int X, int Y) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,8): error CS0534: 'B2' does not implement inherited abstract member 'A.X.get'
+                // (6,24): error CS0546: 'B1.X.init': cannot override because 'A.X' does not have an overridable set accessor
+                // abstract record B1(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "X").WithArguments("B1.X.init", "A.X").WithLocation(6, 24),
+                // (9,15): error CS0546: 'B2.X.init': cannot override because 'A.X' does not have an overridable set accessor
                 // record B2(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B2").WithArguments("B2", "A.X.get").WithLocation(9, 8));
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "X").WithArguments("B2.X.init", "A.X").WithLocation(9, 15));
 
-            AssertEx.Equal(new[] { "System.Type B1.EqualityContract { get; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
-            AssertEx.Equal(new[] { "System.Type B2.EqualityContract { get; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type B1.EqualityContract { get; }", "System.Int32 B1.X { get; init; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type B2.EqualityContract { get; }", "System.Int32 B2.X { get; init; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
 
             var b1Ctor = comp.GetTypeByMetadataName("B1")!.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("B1..ctor(System.Int32 X, System.Int32 Y)", b1Ctor.ToTestDisplayString());
             Assert.Equal(Accessibility.Protected, b1Ctor.DeclaredAccessibility);
         }
 
-        [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_08()
         {
@@ -3228,15 +3681,15 @@ record C(int X, int Y, int Z) : B
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,8): error CS0534: 'C' does not implement inherited abstract member 'B.Y.get'
+                // (11,14): error CS0546: 'C.X.init': cannot override because 'A.X' does not have an overridable set accessor
                 // record C(int X, int Y, int Z) : B
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "B.Y.get").WithLocation(11, 8),
-                // (11,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.get'
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "X").WithArguments("C.X.init", "A.X").WithLocation(11, 14),
+                // (11,21): error CS0546: 'C.Y.init': cannot override because 'B.Y' does not have an overridable set accessor
                 // record C(int X, int Y, int Z) : B
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.get").WithLocation(11, 8));
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "Y").WithArguments("C.Y.init", "B.Y").WithLocation(11, 21));
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", "System.Int32 C.X { get; init; }", "System.Int32 C.Y { get; init; }" }, actualMembers);
         }
 
         [Fact]
@@ -3254,7 +3707,7 @@ record C(int X, int Y, int Z) : B
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -3765,7 +4218,7 @@ record C(object P)
 
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Object P, System.Object Q)",
@@ -3788,7 +4241,7 @@ record C(object P)
 
             expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Object P)",
@@ -3968,6 +4421,12 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
+                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
                 // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
@@ -4027,6 +4486,12 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
+                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
                 // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
@@ -4102,6 +4567,12 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS0115: 'C.EqualityContract': no suitable method found to override
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.EqualityContract").WithLocation(1, 8),
+                // (1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
                 // (1,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(object P, object Q, object R)").WithArguments("b", "B.B(B)").WithLocation(1, 9),
@@ -4117,6 +4588,1304 @@ End Class
                 "System.Object C.R { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_32()
+        {
+            var source =
+@"record A
+{
+    public virtual object P1 { get; }
+    public virtual object P2 { get; set; }
+    public virtual object P3 { get; protected init; }
+    public virtual object P4 { protected get; init; }
+    public virtual object P5 { init { } }
+    public virtual object P6 { set { } }
+    public static object P7 { get; set; }
+}
+record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,61): error CS8866: Record member 'A.P5' must be a readable instance property of type 'object' to match positional parameter 'P5'.
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P5").WithArguments("A.P5", "object", "P5").WithLocation(11, 61),
+                // (11,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(11, 72),
+                // (11,83): error CS8866: Record member 'A.P7' must be a readable instance property of type 'object' to match positional parameter 'P7'.
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P7").WithArguments("A.P7", "object", "P7").WithLocation(11, 83));
+
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_33()
+        {
+            var source =
+@"abstract record A
+{
+    public abstract object P1 { get; }
+    public abstract object P2 { get; set; }
+    public abstract object P3 { get; protected init; }
+    public abstract object P4 { protected get; init; }
+    public abstract object P5 { init; }
+    public abstract object P6 { set; }
+}
+record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,8): error CS0534: 'B' does not implement inherited abstract member 'A.P6.set'
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P6.set").WithLocation(10, 8),
+                // (10,8): error CS0534: 'B' does not implement inherited abstract member 'A.P5.init'
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P5.init").WithLocation(10, 8),
+                // (10,17): error CS0546: 'B.P1.init': cannot override because 'A.P1' does not have an overridable set accessor
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "P1").WithArguments("B.P1.init", "A.P1").WithLocation(10, 17),
+                // (10,28): error CS8853: 'B.P2' must match by init-only of overridden member 'A.P2'
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "P2").WithArguments("B.P2", "A.P2").WithLocation(10, 28),
+                // (10,39): error CS0507: 'B.P3.init': cannot change access modifiers when overriding 'protected' inherited member 'A.P3.init'
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "P3").WithArguments("B.P3.init", "protected", "A.P3.init").WithLocation(10, 39),
+                // (10,50): error CS0507: 'B.P4.get': cannot change access modifiers when overriding 'protected' inherited member 'A.P4.get'
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "P4").WithArguments("B.P4.get", "protected", "A.P4.get").WithLocation(10, 50),
+                // (10,61): error CS8866: Record member 'A.P5' must be a readable instance property of type 'object' to match positional parameter 'P5'.
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P5").WithArguments("A.P5", "object", "P5").WithLocation(10, 61),
+                // (10,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(10, 72));
+
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type B.EqualityContract { get; }",
+                "System.Object B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P3 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_34()
+        {
+            var source =
+@"abstract record A
+{
+    public abstract object P1 { get; init; }
+    public virtual object P2 { get; init; }
+}
+record B(string P1, string P2) : A;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.get'
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.get").WithLocation(6, 8),
+                // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.init'
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.init").WithLocation(6, 8),
+                // (6,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'string' to match positional parameter 'P1'.
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "string", "P1").WithLocation(6, 17),
+                // (6,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'string' to match positional parameter 'P2'.
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "string", "P2").WithLocation(6, 28));
+
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_35()
+        {
+            var source =
+@"using static System.Console;
+abstract record A(object X, object Y)
+{
+    public abstract object X { get; }
+    public abstract object Y { get; init; }
+}
+record B(object X, object Y) : A(X, Y)
+{
+    public override object X { get; } = X;
+}
+class Program
+{
+    static void Main()
+    {
+        B b = new B(1, 2);
+        A a = b;
+        WriteLine((b.X, b.Y));
+        WriteLine((a.X, a.Y));
+        var (x, y) = b;
+        WriteLine((x, y));
+        (x, y) = a;
+        WriteLine((x, y));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type B.EqualityContract { get; }",
+                "System.Object B.Y { get; init; }",
+                "System.Object B.X { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"(1, 2)
+(1, 2)
+(1, 2)
+(1, 2)");
+            verifier.VerifyIL("A..ctor(object, object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("A..ctor(A)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("A.Deconstruct",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""object A.X.get""
+  IL_0007:  stind.ref
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  callvirt   ""object A.Y.get""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0015
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
+}");
+            verifier.VerifyIL("A.GetHashCode()",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<System.Type> System.Collections.Generic.EqualityComparer<System.Type>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000b:  callvirt   ""int System.Collections.Generic.EqualityComparer<System.Type>.GetHashCode(System.Type)""
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("B..ctor(object, object)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.2
+  IL_0002:  stfld      ""object B.<Y>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""object B.<X>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  ldarg.2
+  IL_0011:  call       ""A..ctor(object, object)""
+  IL_0016:  ret
+}");
+            verifier.VerifyIL("B..ctor(B)",
+@"{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""A..ctor(A)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object B.<Y>k__BackingField""
+  IL_000e:  stfld      ""object B.<Y>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object B.<X>k__BackingField""
+  IL_001a:  stfld      ""object B.<X>k__BackingField""
+  IL_001f:  ret
+}");
+            verifier.VerifyIL("B.Deconstruct",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""object A.X.get""
+  IL_0007:  stind.ref
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  callvirt   ""object A.Y.get""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("B.Equals(B)",
+@"{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  brfalse.s  IL_0038
+  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""object B.<Y>k__BackingField""
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object B.<Y>k__BackingField""
+  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_001f:  brfalse.s  IL_0038
+  IL_0021:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""object B.<X>k__BackingField""
+  IL_002c:  ldarg.1
+  IL_002d:  ldfld      ""object B.<X>k__BackingField""
+  IL_0032:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_0037:  ret
+  IL_0038:  ldc.i4.0
+  IL_0039:  ret
+}");
+            verifier.VerifyIL("B.GetHashCode()",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int A.GetHashCode()""
+  IL_0006:  ldc.i4     0xa5555529
+  IL_000b:  mul
+  IL_000c:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0011:  ldarg.0
+  IL_0012:  ldfld      ""object B.<Y>k__BackingField""
+  IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
+  IL_001c:  add
+  IL_001d:  ldc.i4     0xa5555529
+  IL_0022:  mul
+  IL_0023:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""object B.<X>k__BackingField""
+  IL_002e:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
+  IL_0033:  add
+  IL_0034:  ret
+}");
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_36()
+        {
+            var source =
+@"using static System.Console;
+abstract record A
+{
+    public abstract object X { get; init; }
+}
+abstract record B : A
+{
+    public abstract object Y { get; init; }
+}
+record C(object X, object Y) : B;
+class Program
+{
+    static void Main()
+    {
+        C c = new C(1, 2);
+        B b = c;
+        A a = c;
+        WriteLine((c.X, c.Y));
+        WriteLine((b.X, b.Y));
+        WriteLine(a.X);
+        var (x, y) = c;
+        WriteLine((x, y));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C.EqualityContract { get; }",
+                "System.Object C.X { get; init; }",
+                "System.Object C.Y { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"(1, 2)
+(1, 2)
+1
+(1, 2)");
+            verifier.VerifyIL("A..ctor()",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("A..ctor(A)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0015
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
+}");
+            verifier.VerifyIL("A.GetHashCode()",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<System.Type> System.Collections.Generic.EqualityComparer<System.Type>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000b:  callvirt   ""int System.Collections.Generic.EqualityComparer<System.Type>.GetHashCode(System.Type)""
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("B..ctor()",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""A..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("B..ctor(B)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""A..ctor(A)""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("B.Equals(B)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("B.GetHashCode()",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int A.GetHashCode()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("C..ctor(object, object)",
+@"{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""object C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""object C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""B..ctor()""
+  IL_0014:  ret
+}");
+            verifier.VerifyIL("C..ctor(C)",
+@"{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<X>k__BackingField""
+  IL_000e:  stfld      ""object C.<X>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<Y>k__BackingField""
+  IL_001a:  stfld      ""object C.<Y>k__BackingField""
+  IL_001f:  ret
+}");
+            verifier.VerifyIL("C.Deconstruct",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""object A.X.get""
+  IL_0007:  stind.ref
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  callvirt   ""object B.Y.get""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool B.Equals(B)""
+  IL_0007:  brfalse.s  IL_0038
+  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""object C.<X>k__BackingField""
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<X>k__BackingField""
+  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_001f:  brfalse.s  IL_0038
+  IL_0021:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""object C.<Y>k__BackingField""
+  IL_002c:  ldarg.1
+  IL_002d:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0032:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_0037:  ret
+  IL_0038:  ldc.i4.0
+  IL_0039:  ret
+}");
+            verifier.VerifyIL("C.GetHashCode()",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int B.GetHashCode()""
+  IL_0006:  ldc.i4     0xa5555529
+  IL_000b:  mul
+  IL_000c:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0011:  ldarg.0
+  IL_0012:  ldfld      ""object C.<X>k__BackingField""
+  IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
+  IL_001c:  add
+  IL_001d:  ldc.i4     0xa5555529
+  IL_0022:  mul
+  IL_0023:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""object C.<Y>k__BackingField""
+  IL_002e:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
+  IL_0033:  add
+  IL_0034:  ret
+}");
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_37()
+        {
+            var source =
+@"using static System.Console;
+abstract record A(object X, object Y)
+{
+    public abstract object X { get; init; }
+    public virtual object Y { get; init; }
+}
+abstract record B(object X, object Y) : A(X, Y)
+{
+    public override abstract object X { get; init; }
+    public override abstract object Y { get; init; }
+}
+record C(object X, object Y) : B(X, Y);
+class Program
+{
+    static void Main()
+    {
+        C c = new C(1, 2);
+        B b = c;
+        A a = c;
+        WriteLine((c.X, c.Y));
+        WriteLine((b.X, b.Y));
+        WriteLine((a.X, a.Y));
+        var (x, y) = c;
+        WriteLine((x, y));
+        (x, y) = b;
+        WriteLine((x, y));
+        (x, y) = a;
+        WriteLine((x, y));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C.EqualityContract { get; }",
+                "System.Object C.X { get; init; }",
+                "System.Object C.Y { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"(1, 2)
+(1, 2)
+(1, 2)
+(1, 2)
+(1, 2)
+(1, 2)");
+            verifier.VerifyIL("A..ctor(object, object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("A..ctor(A)",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""object A.<Y>k__BackingField""
+  IL_000d:  stfld      ""object A.<Y>k__BackingField""
+  IL_0012:  ret
+}");
+            verifier.VerifyIL("A.Deconstruct",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""object A.X.get""
+  IL_0007:  stind.ref
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  callvirt   ""object A.Y.get""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_002d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_002d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""object A.<Y>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""object A.<Y>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_002c:  ret
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
+}");
+            verifier.VerifyIL("A.GetHashCode()",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  3
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<System.Type> System.Collections.Generic.EqualityComparer<System.Type>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000b:  callvirt   ""int System.Collections.Generic.EqualityComparer<System.Type>.GetHashCode(System.Type)""
+  IL_0010:  ldc.i4     0xa5555529
+  IL_0015:  mul
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""object A.<Y>k__BackingField""
+  IL_0021:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
+  IL_0026:  add
+  IL_0027:  ret
+}");
+            verifier.VerifyIL("B..ctor(object, object)",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldarg.2
+  IL_0003:  call       ""A..ctor(object, object)""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("B..ctor(B)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""A..ctor(A)""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("B.Deconstruct",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""object A.X.get""
+  IL_0007:  stind.ref
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  callvirt   ""object A.Y.get""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("B.Equals(B)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("B.GetHashCode()",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int A.GetHashCode()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("C..ctor(object, object)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""object C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""object C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  ldarg.2
+  IL_0011:  call       ""B..ctor(object, object)""
+  IL_0016:  ret
+}");
+            verifier.VerifyIL("C..ctor(C)",
+@"{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<X>k__BackingField""
+  IL_000e:  stfld      ""object C.<X>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<Y>k__BackingField""
+  IL_001a:  stfld      ""object C.<Y>k__BackingField""
+  IL_001f:  ret
+}");
+            verifier.VerifyIL("C.Deconstruct",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""object A.X.get""
+  IL_0007:  stind.ref
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  callvirt   ""object A.Y.get""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool B.Equals(B)""
+  IL_0007:  brfalse.s  IL_0038
+  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""object C.<X>k__BackingField""
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<X>k__BackingField""
+  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_001f:  brfalse.s  IL_0038
+  IL_0021:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""object C.<Y>k__BackingField""
+  IL_002c:  ldarg.1
+  IL_002d:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0032:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_0037:  ret
+  IL_0038:  ldc.i4.0
+  IL_0039:  ret
+}");
+            verifier.VerifyIL("C.GetHashCode()",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int B.GetHashCode()""
+  IL_0006:  ldc.i4     0xa5555529
+  IL_000b:  mul
+  IL_000c:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0011:  ldarg.0
+  IL_0012:  ldfld      ""object C.<X>k__BackingField""
+  IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
+  IL_001c:  add
+  IL_001d:  ldc.i4     0xa5555529
+  IL_0022:  mul
+  IL_0023:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""object C.<Y>k__BackingField""
+  IL_002e:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
+  IL_0033:  add
+  IL_0034:  ret
+}");
+        }
+
+        // Member in intermediate base that hides abstract property. Not supported.
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_38()
+        {
+            var source =
+@"using static System.Console;
+abstract record A
+{
+    public abstract object X { get; init; }
+    public abstract object Y { get; init; }
+}
+abstract record B : A
+{
+    public new void X() { }
+    public new struct Y { }
+}
+record C(object X, object Y) : B;
+class Program
+{
+    static void Main()
+    {
+        C c = new C(1, 2);
+        A a = c;
+        WriteLine((a.X, a.Y));
+        var (x, y) = c;
+        WriteLine((x, y));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (9,21): error CS0533: 'B.X()' hides inherited abstract member 'A.X'
+                //     public new void X() { }
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "X").WithArguments("B.X()", "A.X").WithLocation(9, 21),
+                // (10,23): error CS0533: 'B.Y' hides inherited abstract member 'A.Y'
+                //     public new struct Y { }
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "Y").WithArguments("B.Y", "A.Y").WithLocation(10, 23),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.init'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.init").WithLocation(12, 8),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.init'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.init").WithLocation(12, 8),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.get'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.get").WithLocation(12, 8),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.get'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.get").WithLocation(12, 8),
+                // (12,17): error CS8866: Record member 'B.X' must be a readable instance property of type 'object' to match positional parameter 'X'.
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "object", "X").WithLocation(12, 17),
+                // (12,27): error CS8866: Record member 'B.Y' must be a readable instance property of type 'object' to match positional parameter 'Y'.
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "object", "Y").WithLocation(12, 27));
+
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", }, GetProperties(comp, "C").ToTestDisplayStrings());
+        }
+
+        // Member in intermediate base that hides abstract property. Not supported.
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_39()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type A::get_EqualityContract()
+  }
+  .property instance object P()
+  {
+    .get instance object A::get_P()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object)
+  }
+  .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+  .method public abstract virtual instance object get_P() { }
+  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object 'value') { }
+
+  .method public newslot virtual  
+      instance bool Equals (
+          class A ''
+      ) cil managed 
+  {
+      .maxstack 8
+
+      IL_0000: ldnull
+      IL_0001: throw
+  } // end of method A::Equals
+}
+.class public abstract B extends A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void A::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class B A_1) { ldnull throw }
+  .method public hidebysig specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type B::get_EqualityContract()
+  }
+  .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+  .method public hidebysig instance object P() { ldnull ret }
+
+  .method public newslot virtual  
+      instance bool Equals (
+          class B ''
+      ) cil managed 
+  {
+      .maxstack 8
+
+      IL_0000: ldnull
+      IL_0001: throw
+  } // end of method B::Equals
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"record CA(object P) : A;
+record CB(object P) : B;
+";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0534: 'CB' does not implement inherited abstract member 'A.P.get'
+                // record CB(object P) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "CB").WithArguments("CB", "A.P.get").WithLocation(2, 8),
+                // (2,8): error CS0534: 'CB' does not implement inherited abstract member 'A.P.init'
+                // record CB(object P) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "CB").WithArguments("CB", "A.P.init").WithLocation(2, 8),
+                // (2,18): error CS8866: Record member 'B.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
+                // record CB(object P) : B;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("B.P", "object", "P").WithLocation(2, 18));
+
+            AssertEx.Equal(new[] { "System.Type CA.EqualityContract { get; }", "System.Object CA.P { get; init; }" }, GetProperties(comp, "CA").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type CB.EqualityContract { get; }" }, GetProperties(comp, "CB").ToTestDisplayStrings());
+        }
+
+        // Accessor names that do not match the property name.
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_40()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type A::GetProperty1()
+  }
+  .property instance object P()
+  {
+    .get instance object A::GetProperty2()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::SetProperty2(object)
+  }
+  .method family virtual instance class [mscorlib]System.Type GetProperty1() { ldnull ret }
+  .method public abstract virtual instance object GetProperty2() { }
+  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) SetProperty2(object 'value') { }
+
+  .method public newslot virtual  
+      instance bool Equals (
+          class A ''
+      ) cil managed 
+  {
+      .maxstack 8
+
+      IL_0000: ldnull
+      IL_0001: throw
+  } // end of method A::Equals
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using static System.Console;
+record B(object P) : A
+{
+    static void Main()
+    {
+        B b = new B(3);
+        WriteLine(b.P);
+        WriteLine(((A)b).P);
+        b = new B(1) { P = 2 };
+        WriteLine(b.P);
+        WriteLine(b.EqualityContract.Name);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+3
+2
+B");
+
+            var actualMembers = GetProperties(comp, "B");
+            Assert.Equal(2, actualMembers.Length);
+            VerifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", "GetProperty1", null);
+            VerifyProperty(actualMembers[1], "System.Object B.P { get; init; }", "GetProperty2", "SetProperty2");
+        }
+
+        // Accessor names that do not match the property name and are not valid C# names.
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_41()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type A::'EqualityContract<>get'()
+  }
+  .property instance object P()
+  {
+    .get instance object A::'P<>get'()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::'P<>set'(object)
+  }
+  .method family virtual instance class [mscorlib]System.Type 'EqualityContract<>get'() { ldnull ret }
+  .method public abstract virtual instance object 'P<>get'() { }
+  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) 'P<>set'(object 'value') { }
+
+  .method public newslot virtual  
+      instance bool Equals (
+          class A ''
+      ) cil managed 
+  {
+      .maxstack 8
+
+      IL_0000: ldnull
+      IL_0001: throw
+  } // end of method A::Equals
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using static System.Console;
+record B(object P) : A
+{
+    static void Main()
+    {
+        B b = new B(3);
+        WriteLine(b.P);
+        WriteLine(((A)b).P);
+        b = new B(1) { P = 2 };
+        WriteLine(b.P);
+        WriteLine(b.EqualityContract.Name);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+3
+2
+B");
+
+            var actualMembers = GetProperties(comp, "B");
+            Assert.Equal(2, actualMembers.Length);
+            VerifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", "EqualityContract<>get", null);
+            VerifyProperty(actualMembers[1], "System.Object B.P { get; init; }", "P<>get", "P<>set");
+        }
+
+        private static void VerifyProperty(Symbol symbol, string propertyDescription, string? getterName, string? setterName)
+        {
+            var property = (PropertySymbol)symbol;
+            Assert.Equal(propertyDescription, symbol.ToTestDisplayString());
+            VerifyAccessor(property.GetMethod, getterName);
+            VerifyAccessor(property.SetMethod, setterName);
+        }
+
+        private static void VerifyAccessor(MethodSymbol? accessor, string? name)
+        {
+            Assert.Equal(name, accessor?.Name);
+            if (accessor is object)
+            {
+                Assert.True(accessor.HasSpecialName);
+                foreach (var parameter in accessor.Parameters)
+                {
+                    Assert.Same(accessor, parameter.ContainingSymbol);
+                }
+            }
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_42()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
+  .property instance class [mscorlib]System.Type modopt(int32) EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type modopt(int32) A::get_EqualityContract()
+  }
+  .property instance object modopt(uint16) P()
+  {
+    .get instance object modopt(uint16) A::get_P()
+    .set instance void modopt(uint8) modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object modopt(uint16))
+  }
+  .method family virtual instance class [mscorlib]System.Type modopt(int32) get_EqualityContract() { ldnull ret }
+  .method public abstract virtual instance object modopt(uint16) get_P() { }
+  .method public abstract virtual instance void modopt(uint8) modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object modopt(uint16) 'value') { }
+
+  .method public newslot virtual  
+      instance bool Equals (
+          class A ''
+      ) cil managed 
+  {
+      .maxstack 8
+
+      IL_0000: ldnull
+      IL_0001: throw
+  } // end of method A::Equals
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using static System.Console;
+record B(object P) : A
+{
+    static void Main()
+    {
+        B b = new B(3);
+        WriteLine(b.P);
+        WriteLine(((A)b).P);
+        b = new B(1) { P = 2 };
+        WriteLine(b.P);
+        WriteLine(b.EqualityContract.Name);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+3
+2
+B");
+
+            var actualMembers = GetProperties(comp, "B");
+            Assert.Equal(2, actualMembers.Length);
+
+            var property = (PropertySymbol)actualMembers[0];
+            Assert.Equal("System.Type modopt(System.Int32) B.EqualityContract { get; }", property.ToTestDisplayString());
+            verifyReturnType(property.GetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Int32)));
+
+            property = (PropertySymbol)actualMembers[1];
+            Assert.Equal("System.Object modopt(System.UInt16) B.P { get; init; }", property.ToTestDisplayString());
+            verifyReturnType(property.GetMethod,
+                CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
+            verifyReturnType(property.SetMethod,
+                CSharpCustomModifier.CreateRequired(comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit)),
+                CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Byte)));
+            verifyParameterType(property.SetMethod,
+                CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
+
+            static void verifyReturnType(MethodSymbol method, params CustomModifier[] expectedModifiers)
+            {
+                var returnType = method.ReturnTypeWithAnnotations;
+                Assert.True(method.OverriddenMethod.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+                AssertEx.Equal(expectedModifiers, returnType.CustomModifiers);
+            }
+
+            static void verifyParameterType(MethodSymbol method, params CustomModifier[] expectedModifiers)
+            {
+                var parameterType = method.Parameters[0].TypeWithAnnotations;
+                Assert.True(method.OverriddenMethod.Parameters[0].TypeWithAnnotations.Equals(parameterType, TypeCompareKind.ConsiderEverything));
+                AssertEx.Equal(expectedModifiers, parameterType.CustomModifiers);
+            }
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_43()
+        {
+            var source =
+@"#nullable enable
+record A
+{
+    protected virtual System.Type? EqualityContract => null;
+}
+record B : A
+{
+    static void Main()
+    {
+        var b = new B();
+        _ = b.EqualityContract.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            Assert.Equal("System.Type! B.EqualityContract { get; }", GetProperties(comp, "B").Single().ToTestDisplayString(includeNonNullable: true));
+        }
+
+        // No EqualityContract property on base.
+        [Fact]
+        public void Inheritance_44()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { ldnull throw }
+  .property instance object P()
+  {
+    .get instance object A::get_P()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object)
+  }
+  .method public instance object get_P() { ldnull ret }
+  .method public instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object 'value') { ret }
+
+  .method public newslot virtual  
+      instance bool Equals (
+          class A ''
+      ) cil managed 
+  {
+      .maxstack 8
+
+      IL_0000: ldnull
+      IL_0001: throw
+  } // end of method A::Equals
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"record B : A;
+";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B : A;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8));
+
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -5029,7 +6798,7 @@ public record C(object P1, object P2) : B(3, 4)
             var ilSource = @"
 .class public auto ansi beforefieldinit B extends [mscorlib]System.Object
 {
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -5104,7 +6873,7 @@ public record C : B
             var ilSource = @"
 .class public auto ansi beforefieldinit B extends [mscorlib]System.Object
 {
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -5173,7 +6942,7 @@ public record C : B {
 {
     INJECT
 
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldarg.0
         IL_0001: newobj instance void B::.ctor(class B)
@@ -5185,6 +6954,24 @@ public record C : B {
         IL_0000: ldarg.0
         IL_0001: call instance void [mscorlib]System.Object::.ctor()
         IL_0006: ret
+    }
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class B ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
     }
 }
 ";
@@ -5342,7 +7129,7 @@ THROW
         IL_000a:  ret
     }
 
-    .method public hidebysig specialname newslot virtual instance class B`1<!T> '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B`1<!T> '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldarg.0
         IL_0001: newobj instance void class B`1<!T>::.ctor(class B`1<!0>)
@@ -5360,6 +7147,13 @@ THROW
     {
         IL_0000: ldnull
         IL_0001: throw
+    }
+
+    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B`1::get_EqualityContract()
     }
 }
 ";
@@ -6647,6 +8441,9 @@ record B(int X, int Y) : A
                 // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public sealed override bool Equals(object other) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
+                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
+                //     public sealed override int GetHashCode() => 0;
+                Diagnostic(ErrorCode.ERR_SealedGetHashCodeInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
                 // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                 // record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
@@ -6655,7 +8452,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -6706,7 +8503,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -6729,7 +8526,7 @@ record B(int X, int Y) : A
         }
 
         [Fact]
-        public void Overrides_03()
+        public void ObjectEquals_01()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -6737,13 +8534,13 @@ record B(int X, int Y) : A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public final hidebysig virtual 
         instance bool Equals (
@@ -6795,13 +8592,27 @@ record B(int X, int Y) : A
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(2, 15)
@@ -6809,7 +8620,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Overrides_04()
+        public void ObjectEquals_02()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -6817,13 +8628,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig virtual 
         instance bool Equals (
@@ -6875,21 +8686,35 @@ public record B : A {
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (2,15): error CS8869: 'B.Equals(object?)' does not override the method from 'object'.
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8869: 'B.Equals(object?)' does not override expected method from 'object'.
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.Equals(object?)").WithLocation(2, 15)
                 );
         }
 
         [Fact]
-        public void Overrides_05()
+        public void ObjectEquals_03()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -6897,13 +8722,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig 
         instance bool Equals (
@@ -6955,13 +8780,27 @@ public record B : A {
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is not marked virtual, abstract, or override
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(2, 15)
@@ -6969,7 +8808,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Overrides_06()
+        public void ObjectEquals_04()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -6977,13 +8816,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig virtual 
         instance int32 Equals (
@@ -7035,16 +8874,3440 @@ public record B : A {
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'B.Equals(object?)': return type must be 'int' to match overridden member 'A.Equals(object)'
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "B").WithArguments("B.Equals(object?)", "A.Equals(object)", "int").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void ObjectEquals_05()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual int Equals(object other) => default;
+        public virtual int GetHashCode() => default;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+    }
+}
+";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"
+public record A {
+}
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0508: 'A.Equals(object?)': return type must be 'int' to match overridden member 'object.Equals(object)'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "A").WithArguments("A.Equals(object?)", "object.Equals(object)", "int").WithLocation(2, 15),
+
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.GetTypeFromHandle'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+}").WithArguments("System.Type", "GetTypeFromHandle").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.GetHashCode'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "GetHashCode").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.op_Equality'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+}").WithArguments("System.Type", "op_Equality").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source1 = @"
+public record B : A {
+}";
+            var source2 = @"
+public record B : A {
+    public override int GetHashCode() => 0;
+}";
+            var source3 = @"
+public record C : B {
+}
+";
+            var source4 = @"
+public record C : B {
+    public override int GetHashCode() => 0;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source1, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15),
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15)
+                );
+
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
+                //     public override int GetHashCode() => 0;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
+                );
+
+            comp = CreateCompilationWithIL(new[] { source1 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15),
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (4,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record C : B {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(4, 15)
+                );
+
+            comp = CreateCompilationWithIL(new[] { source1 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15),
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (4,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record C : B {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(4, 15)
+                );
+
+            comp = CreateCompilationWithIL(new[] { source2 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
+                //     public override int GetHashCode() => 0;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25),
+                // (5,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record C : B {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(5, 15)
+                );
+
+            comp = CreateCompilationWithIL(new[] { source2 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
+                //     public override int GetHashCode() => 0;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25),
+                // (5,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record C : B {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot hidebysig  
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source1 = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source1, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(2, 15),
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15)
+                );
+
+            var source2 = @"
+public record B : A {
+    public override int GetHashCode() => throw null;
+}";
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (3,25): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
+                //     public override int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(3, 25)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_03()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot hidebysig virtual 
+        instance bool GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0508: 'B.GetHashCode()': return type must be 'bool' to match overridden member 'A.GetHashCode()'
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(2, 15),
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15)
+                );
+
+            var source2 = @"
+public record B : A {
+    public override int GetHashCode() => throw null;
+}";
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (3,25): error CS0508: 'B.GetHashCode()': return type must be 'bool' to match overridden member 'A.GetHashCode()'
+                //     public override int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(3, 25)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_04()
+        {
+            var source =
+@"record A
+{
+    public override bool GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,26): error CS0508: 'A.GetHashCode()': return type must be 'int' to match overridden member 'object.GetHashCode()'
+                //     public override bool GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode").WithArguments("A.GetHashCode()", "object.GetHashCode()", "int").WithLocation(3, 26)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_05()
+        {
+            var source =
+@"record A
+{
+    public new int GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): warning CS0659: 'A' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // record A
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "A").WithArguments("A").WithLocation(1, 8),
+                // (3,20): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
+                //     public new int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 20)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_06()
+        {
+            var source =
+@"record A
+{
+    public static new int GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): warning CS0659: 'A' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // record A
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "A").WithArguments("A").WithLocation(1, 8),
+                // (3,27): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
+                //     public static new int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 27)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_07()
+        {
+            var source =
+@"record A
+{
+    public new int GetHashCode => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,20): error CS0102: The type 'A' already contains a definition for 'GetHashCode'
+                //     public new int GetHashCode => throw null;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "GetHashCode").WithArguments("A", "GetHashCode").WithLocation(3, 20)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_08()
+        {
+            var source =
+@"record A
+{
+    public new void GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): warning CS0659: 'A' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // record A
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "A").WithArguments("A").WithLocation(1, 8),
+                // (3,21): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
+                //     public new void GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 21)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_09()
+        {
+            var source =
+@"record A
+{
+    public void GetHashCode(int x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            Assert.Equal("System.Int32 A.GetHashCode()", comp.GetMembers("A.GetHashCode").First().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_10()
+        {
+            var source =
+@"
+record A
+{
+    public sealed override int GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
+                //     public sealed override int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_SealedGetHashCodeInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_11()
+        {
+            var source =
+@"
+sealed record A
+{
+    public sealed override int GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_12()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public final hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(2, 15)
+                );
+
+            var source2 = @"
+public record B : A {
+    public override int GetHashCode() => throw null;
+}";
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (3,25): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                //     public override int GetHashCode() => throw null;
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(3, 25)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_13()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot hidebysig virtual 
+        instance class A GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source2 = @"
+public record B : A {
+    public override A GetHashCode() => default;
+}";
+            var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (3,23): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
+                //     public override A GetHashCode() => default;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_14()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot hidebysig virtual 
+        instance class A GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source2 = @"
+public record B : A {
+    public override B GetHashCode() => default;
+}";
+            var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
+                // (3,23): error CS0508: 'B.GetHashCode()': return type must be 'A' to match overridden member 'A.GetHashCode()'
+                //     public override B GetHashCode() => default;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "A").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_15()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual Something GetHashCode() => default;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+    }
+}
+
+public class Something
+{
+}
+";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"
+public record A {
+    public override Something GetHashCode() => default;
+}
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (3,31): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
+                //     public override Something GetHashCode() => default;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 31),
+
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.GetTypeFromHandle'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+    public override Something GetHashCode() => default;
+}").WithArguments("System.Type", "GetTypeFromHandle").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.op_Equality'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+    public override Something GetHashCode() => default;
+}").WithArguments("System.Type", "op_Equality").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_16()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual bool GetHashCode() => default;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+    }
+}
+";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"
+public record A {
+    public override bool GetHashCode() => default;
+}
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (3,26): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
+                //     public override bool GetHashCode() => default;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 26),
+
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.GetTypeFromHandle'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+    public override bool GetHashCode() => default;
+}").WithArguments("System.Type", "GetTypeFromHandle").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.op_Equality'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+    public override bool GetHashCode() => default;
+}").WithArguments("System.Type", "op_Equality").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ObjectGetHashCode_17()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual bool GetHashCode() => default;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+    }
+}
+";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"
+public record A {
+}
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0508: 'A.GetHashCode()': return type must be 'bool' to match overridden member 'object.GetHashCode()'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "A").WithArguments("A.GetHashCode()", "object.GetHashCode()", "bool").WithLocation(2, 15),
+
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.GetTypeFromHandle'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+}").WithArguments("System.Type", "GetTypeFromHandle").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.GetHashCode'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "GetHashCode").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.op_Equality'
+                // public record A {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"public record A {
+}").WithArguments("System.Type", "op_Equality").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void BaseEquals_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void BaseEquals_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot final virtual  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void BaseEquals_03()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance int32 Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0508: 'B.Equals(A?)': return type must be 'int' to match overridden member 'A.Equals(A)'
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "B").WithArguments("B.Equals(A?)", "A.Equals(A)", "int").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void BaseEquals_04()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class B ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+
+.class public auto ansi beforefieldinit B
+    extends A
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public final virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class B ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method B::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+} // end of class B
+
+";
+            var source = @"
+public record C : B {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8871: 'C.Equals(B?)' does not override expected method from 'B'.
+                // public record C : B {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEquals, "C").WithArguments("C.Equals(B?)", "B").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void BaseEquals_05()
+        {
+            var source =
+@"
+record A
+{
+}
+
+record B : A
+{
+    public override bool Equals(A x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,26): error CS0111: Type 'B' already defines a member called 'Equals' with the same parameter types
+                //     public override bool Equals(A x) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "B").WithLocation(8, 26)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_01()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public abstract bool Equals(A x);
+}
+record B : A
+{
+    public virtual bool Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        A a2 = new B();
+
+        System.Console.WriteLine(a1.Equals(a2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.Equals(B)
+False
+");
+        }
+
+        [Fact]
+        public void RecordEquals_02()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public abstract bool Equals(B x);
+}
+record B : A
+{
+    public override bool Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.Equals(B)
+False
+");
+            var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
+            Assert.False(recordEquals.IsAbstract);
+            Assert.True(recordEquals.IsVirtual);
+            Assert.False(recordEquals.IsOverride);
+            Assert.False(recordEquals.IsSealed);
+            Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void RecordEquals_03()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public abstract bool Equals(B x);
+}
+record B : A
+{
+    public sealed override bool Equals(B other) => Report(""B.Equals(B)"");
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,33): error CS8872: 'B.Equals(B)' must allow overriding because the containing record is not sealed.
+                //     public sealed override bool Equals(B other) => Report("B.Equals(B)");
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("B.Equals(B)").WithLocation(9, 33)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_04()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public abstract bool Equals(B x);
+}
+sealed record B : A
+{
+    public sealed override bool Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.Equals(B)
+False
+");
+        }
+
+        [Fact]
+        public void RecordEquals_05()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public abstract bool Equals(B x);
+}
+abstract record B : A
+{
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (7,17): error CS0533: 'B.Equals(B?)' hides inherited abstract member 'A.Equals(B)'
+                // abstract record B : A
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "B").WithArguments("B.Equals(B?)", "A.Equals(B)").WithLocation(7, 17)
+                );
+
+            var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
+            Assert.False(recordEquals.IsAbstract);
+            Assert.True(recordEquals.IsVirtual);
+            Assert.False(recordEquals.IsOverride);
+            Assert.False(recordEquals.IsSealed);
+            Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("sealed ")]
+        public void RecordEquals_06(string modifiers)
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public abstract bool Equals(B x);
+}
+" + modifiers + @"
+record B : A
+{
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (8,8): error CS0534: 'B' does not implement inherited abstract member 'A.Equals(B)'
+                // record B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.Equals(B)").WithLocation(8, 8)
+                );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("sealed ")]
+        public void RecordEquals_07(string modifiers)
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public virtual bool Equals(B x) => Report(""A.Equals(B)"");
+}
+" + modifiers + @"
+record B : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+A.Equals(B)
+False
+True
+True
+");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("sealed ")]
+        public void RecordEquals_08(string modifiers)
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public abstract bool Equals(C x);
+}
+record B : A
+{
+    public override bool Equals(C x) => Report(""B.Equals(C)"");
+}
+" + modifiers + @"
+record C : B
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new C();
+        C c2 = new C();
+
+        System.Console.WriteLine(a1.Equals(c2));
+        System.Console.WriteLine(c2.Equals(a1));
+        System.Console.WriteLine(c2.Equals((C)a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.Equals(C)
+False
+True
+True
+");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("sealed ")]
+        public void RecordEquals_09(string modifiers)
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public bool Equals(B x) => Report(""A.Equals(B)"");
+}
+" + modifiers + @"
+record B : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+A.Equals(B)
+False
+True
+True
+");
+        }
+
+        [Theory]
+        [InlineData("protected")]
+        [InlineData("internal")]
+        [InlineData("private protected")]
+        [InlineData("internal protected")]
+        public void RecordEquals_10(string accessibility)
+        {
+            var source =
+$@"
+record A
+{{
+    { accessibility } virtual bool Equals(A x)
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
+                //     { accessibility } virtual bool Equals(A x)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
+                );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("private")]
+        public void RecordEquals_11(string accessibility)
+        {
+            var source =
+$@"
+record A
+{{
+    { accessibility } virtual bool Equals(A x)
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,...): error CS0621: 'A.Equals(A)': virtual or abstract members cannot be private
+                //      virtual bool Equals(A x)
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length),
+                // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
+                //     { accessibility } virtual bool Equals(A x)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 19 + accessibility.Length)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_12()
+        {
+            var source =
+@"
+record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    public virtual bool Equals(B other) => Report(""A.Equals(B)"");
+}
+class B
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new A();
+        A a2 = new A();
+
+        System.Console.WriteLine(a1.Equals(a2));
+        System.Console.WriteLine(a1.Equals((object)a2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+True
+True
+");
+            var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
+            Assert.False(recordEquals.IsAbstract);
+            Assert.True(recordEquals.IsVirtual);
+            Assert.False(recordEquals.IsOverride);
+            Assert.False(recordEquals.IsSealed);
+            Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void RecordEquals_13()
+        {
+            var source =
+@"
+record A
+{
+    public virtual int Equals(A other)
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
+                //     public virtual int Equals(A other)
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_14()
+        {
+            var source =
+@"
+record A
+{
+    public virtual bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.MakeTypeMissing(SpecialType.System_Boolean);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
+                // (4,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     public virtual bool Equals(A other)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 20)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_15()
+        {
+            var source =
+@"
+record A
+{
+    public virtual Boolean Equals(A other)
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): error CS0246: The type or namespace name 'Boolean' could not be found (are you missing a using directive or an assembly reference?)
+                //     public virtual Boolean Equals(A other)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Boolean").WithArguments("Boolean").WithLocation(4, 20)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_16()
+        {
+            var source =
+@"
+abstract record A
+{
+}
+record B : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+True
+True
+");
+            var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
+            Assert.False(recordEquals.IsAbstract);
+            Assert.True(recordEquals.IsVirtual);
+            Assert.False(recordEquals.IsOverride);
+            Assert.False(recordEquals.IsSealed);
+            Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void RecordEquals_17()
+        {
+            var source =
+@"
+abstract record A
+{
+}
+sealed record B : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+True
+True
+");
+            var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
+            Assert.False(recordEquals.IsAbstract);
+            Assert.False(recordEquals.IsVirtual);
+            Assert.False(recordEquals.IsOverride);
+            Assert.False(recordEquals.IsSealed);
+            Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void RecordEquals_18()
+        {
+            var source =
+@"
+sealed record A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new A();
+        A a2 = new A();
+
+        System.Console.WriteLine(a1.Equals(a2));
+        System.Console.WriteLine(a2.Equals(a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+True
+True
+");
+            var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
+            Assert.False(recordEquals.IsAbstract);
+            Assert.False(recordEquals.IsVirtual);
+            Assert.False(recordEquals.IsOverride);
+            Assert.False(recordEquals.IsSealed);
+            Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void EqualityContract_01()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+
+    protected abstract System.Type EqualityContract { get; }
+}
+record B : A
+{
+    protected override System.Type EqualityContract
+    {
+        get
+        {
+            Report(""B.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        A a2 = new B();
+
+        System.Console.WriteLine(a1.Equals(a2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.EqualityContract
+B.EqualityContract
+True
+");
+        }
+
+        [Fact]
+        public void EqualityContract_02()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    protected abstract System.Type EqualityContract { get; }
+}
+record B : A
+{
+    protected sealed override System.Type EqualityContract
+    {
+        get
+        {
+            Report(""B.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected sealed override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(9, 43)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_03()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+
+    protected abstract System.Type EqualityContract { get; }
+}
+sealed record B : A
+{
+    protected sealed override System.Type EqualityContract
+    {
+        get
+        {
+            Report(""B.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        A a2 = new B();
+
+        System.Console.WriteLine(a1.Equals(a2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.EqualityContract
+B.EqualityContract
+True
+");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("sealed ")]
+        public void EqualityContract_04(string modifiers)
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    protected virtual System.Type EqualityContract
+    {
+        get
+        {
+            Report(""A.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+" + modifiers + @"
+record B : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+True
+True
+True
+");
+            var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContract.DeclaredAccessibility);
+            Assert.False(equalityContract.IsAbstract);
+            Assert.False(equalityContract.IsVirtual);
+            Assert.True(equalityContract.IsOverride);
+            Assert.False(equalityContract.IsSealed);
+            Assert.True(equalityContract.IsImplicitlyDeclared);
+            Assert.Empty(equalityContract.DeclaringSyntaxReferences);
+
+            var equalityContractGet = equalityContract.GetMethod;
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.False(equalityContractGet.IsAbstract);
+            Assert.False(equalityContractGet.IsVirtual);
+            Assert.True(equalityContractGet.IsOverride);
+            Assert.False(equalityContractGet.IsSealed);
+            Assert.True(equalityContractGet.IsImplicitlyDeclared);
+            Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+        }
+
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("private protected")]
+        [InlineData("internal protected")]
+        public void EqualityContract_05(string accessibility)
+        {
+            var source =
+$@"
+record A
+{{
+    { accessibility } virtual System.Type EqualityContract
+        => throw null;
+}}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,...): error CS8875: Record member 'A.EqualityContract' must be protected.
+                //     { accessibility } virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NonProtectedAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 26 + accessibility.Length)
+                );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("private")]
+        public void EqualityContract_06(string accessibility)
+        {
+            var source =
+$@"
+record A
+{{
+    { accessibility } virtual System.Type EqualityContract
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,...): error CS0621: 'A.EqualityContract': virtual or abstract members cannot be private
+                //      { accessibility } virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 26 + accessibility.Length),
+                // (4,...): error CS8875: Record member 'A.EqualityContract' must be protected.
+                //      { accessibility } virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NonProtectedAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 26 + accessibility.Length)
+                );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("abstract ")]
+        [InlineData("sealed ")]
+        public void EqualityContract_07(string modifiers)
+        {
+            var source =
+@"
+record A
+{
+}
+" + modifiers + @"
+record B : A
+{
+    public void PrintEqualityContract() => System.Console.WriteLine(EqualityContract);
+}
+";
+
+            if (modifiers != "abstract ")
+            {
+                source +=
+@"
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+        b2.PrintEqualityContract();
+    }
+}";
+            }
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
+@"
+True
+True
+True
+B
+");
+            var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContract.DeclaredAccessibility);
+            Assert.False(equalityContract.IsAbstract);
+            Assert.False(equalityContract.IsVirtual);
+            Assert.True(equalityContract.IsOverride);
+            Assert.False(equalityContract.IsSealed);
+            Assert.True(equalityContract.IsImplicitlyDeclared);
+            Assert.Empty(equalityContract.DeclaringSyntaxReferences);
+
+            var equalityContractGet = equalityContract.GetMethod;
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.False(equalityContractGet.IsAbstract);
+            Assert.False(equalityContractGet.IsVirtual);
+            Assert.True(equalityContractGet.IsOverride);
+            Assert.False(equalityContractGet.IsSealed);
+            Assert.True(equalityContractGet.IsImplicitlyDeclared);
+            Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+
+            verifier.VerifyIL("B.EqualityContract.get", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""B""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("abstract ")]
+        [InlineData("sealed ")]
+        public void EqualityContract_08(string modifiers)
+        {
+            var source =
+modifiers + @"
+record B
+{
+    public void PrintEqualityContract() => System.Console.WriteLine(EqualityContract);
+}
+";
+
+            if (modifiers != "abstract ")
+            {
+                source +=
+@"
+class Program
+{
+    static void Main()
+    {
+        B a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+        b2.PrintEqualityContract();
+    }
+}";
+            }
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
+@"
+True
+True
+True
+B
+");
+            var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContract.DeclaredAccessibility);
+            Assert.False(equalityContract.IsAbstract);
+            Assert.Equal(modifiers != "sealed ", equalityContract.IsVirtual);
+            Assert.False(equalityContract.IsOverride);
+            Assert.False(equalityContract.IsSealed);
+            Assert.True(equalityContract.IsImplicitlyDeclared);
+            Assert.Empty(equalityContract.DeclaringSyntaxReferences);
+
+            var equalityContractGet = equalityContract.GetMethod;
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.False(equalityContractGet.IsAbstract);
+            Assert.Equal(modifiers != "sealed ", equalityContractGet.IsVirtual);
+            Assert.False(equalityContractGet.IsOverride);
+            Assert.False(equalityContractGet.IsSealed);
+            Assert.True(equalityContractGet.IsImplicitlyDeclared);
+            Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+
+            verifier.VerifyIL("B.EqualityContract.get", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""B""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EqualityContract_09()
+        {
+            var source =
+@"
+record A
+{
+    protected virtual int EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS8874: Record member 'A.EqualityContract' must return 'Type'.
+                //     protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("A.EqualityContract", "System.Type").WithLocation(4, 27)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_10()
+        {
+            var source =
+@"
+record A
+{
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.MakeTypeMissing(WellKnownType.System_Type);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.GetTypeFromHandle'
+                // record A
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record A
+{
+}").WithArguments("System.Type", "GetTypeFromHandle").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.op_Equality'
+                // record A
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record A
+{
+}").WithArguments("System.Type", "op_Equality").WithLocation(2, 1),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_11()
+        {
+            var source =
+@"
+record A
+{
+    protected virtual Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,23): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_12()
+        {
+            var source =
+@"
+record A
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record B
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record C
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+record D
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS8872: 'A.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 27),
+                // (10,27): warning CS0628: 'B.EqualityContract': new protected member declared in sealed class
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(10, 27),
+                // (11,12): warning CS0628: 'B.EqualityContract.get': new protected member declared in sealed class
+                //         => throw null;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("B.EqualityContract.get").WithLocation(11, 12),
+                // (16,35): warning CS0628: 'C.EqualityContract': new protected member declared in sealed class
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(16, 35),
+                // (17,12): error CS0549: 'C.EqualityContract.get' is a new virtual member in sealed class 'C'
+                //         => throw null;
+                Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("C.EqualityContract.get", "C").WithLocation(17, 12)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_13()
+        {
+            var source =
+@"
+record A
+{}
+
+record B : A
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record C : A
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record D : A
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+record E : A
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+record F : A
+{
+    protected override System.Type EqualityContract
+        => throw null;
+}
+
+record G : A
+{
+    protected sealed override System.Type EqualityContract
+        => throw null;
+}
+
+sealed record H : A
+{
+    protected sealed override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (7,27): error CS8876: 'B.EqualityContract' does not override expected property from 'A'.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("B.EqualityContract", "A").WithLocation(7, 27),
+                // (7,27): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(7, 27),
+                // (7,27): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(7, 27),
+                // (13,27): warning CS0628: 'C.EqualityContract': new protected member declared in sealed class
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(13, 27),
+                // (13,27): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(13, 27),
+                // (13,27): warning CS0114: 'C.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("C.EqualityContract", "A.EqualityContract").WithLocation(13, 27),
+                // (14,12): warning CS0628: 'C.EqualityContract.get': new protected member declared in sealed class
+                //         => throw null;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("C.EqualityContract.get").WithLocation(14, 12),
+                // (19,35): warning CS0628: 'D.EqualityContract': new protected member declared in sealed class
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("D.EqualityContract").WithLocation(19, 35),
+                // (19,35): error CS8876: 'D.EqualityContract' does not override expected property from 'A'.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("D.EqualityContract", "A").WithLocation(19, 35),
+                // (19,35): warning CS0114: 'D.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("D.EqualityContract", "A.EqualityContract").WithLocation(19, 35),
+                // (20,12): error CS0549: 'D.EqualityContract.get' is a new virtual member in sealed class 'D'
+                //         => throw null;
+                Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("D.EqualityContract.get", "D").WithLocation(20, 12),
+                // (25,35): error CS8876: 'E.EqualityContract' does not override expected property from 'A'.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("E.EqualityContract", "A").WithLocation(25, 35),
+                // (25,35): warning CS0114: 'E.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("E.EqualityContract", "A.EqualityContract").WithLocation(25, 35),
+                // (37,43): error CS8872: 'G.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected sealed override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("G.EqualityContract").WithLocation(37, 43)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_14()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}
+
+public record C : A {
+    new protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record D : A {
+    new protected virtual int EqualityContract
+        => throw null;
+}
+
+public record E : A {
+    new protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record F : A {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
+                // (6,39): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     new protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(6, 39),
+                // (11,31): error CS8874: Record member 'D.EqualityContract' must return 'Type'.
+                //     new protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("D.EqualityContract", "System.Type").WithLocation(11, 31),
+                // (16,27): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     new protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 27),
+                // (21,36): error CS0506: 'F.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "EqualityContract").WithArguments("F.EqualityContract", "A.EqualityContract").WithLocation(21, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_15()
+        {
+            var source =
+@"
+record A
+{
+    protected virtual int EqualityContract
+        => throw null;
+}
+
+record B : A
+{
+}
+
+record C : A
+{
+    protected override System.Type EqualityContract
+           => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS8874: Record member 'A.EqualityContract' must return 'Type'.
+                //     protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("A.EqualityContract", "System.Type").WithLocation(4, 27),
+                // (8,8): error CS1715: 'B.EqualityContract': type must be 'int' to match overridden member 'A.EqualityContract'
+                // record B : A
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "B").WithArguments("B.EqualityContract", "A.EqualityContract", "int").WithLocation(8, 8),
+                // (14,36): error CS1715: 'C.EqualityContract': type must be 'int' to match overridden member 'A.EqualityContract'
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "EqualityContract").WithArguments("C.EqualityContract", "A.EqualityContract", "int").WithLocation(14, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_16()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot final virtual
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}
+
+public record C : A {
+    new protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record D : A {
+    new protected virtual int EqualityContract
+        => throw null;
+}
+
+public record E : A {
+    new protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record F : A {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
+                // (6,39): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     new protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(6, 39),
+                // (11,31): error CS8874: Record member 'D.EqualityContract' must return 'Type'.
+                //     new protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("D.EqualityContract", "System.Type").WithLocation(11, 31),
+                // (16,27): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     new protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 27),
+                // (21,36): error CS0506: 'F.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "EqualityContract").WithArguments("F.EqualityContract", "A.EqualityContract").WithLocation(21, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_17()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}
+
+public record C : A {
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record D : A {
+    protected virtual int EqualityContract
+        => throw null;
+}
+
+public record E : A {
+    protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record F : A {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(2, 15),
+                // (6,35): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(6, 35),
+                // (11,27): error CS8874: Record member 'D.EqualityContract' must return 'Type'.
+                //     protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("D.EqualityContract", "System.Type").WithLocation(11, 27),
+                // (16,23): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 23),
+                // (21,36): error CS0115: 'F.EqualityContract': no suitable method found to override
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "EqualityContract").WithArguments("F.EqualityContract").WithLocation(21, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_18()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+
+.class public auto ansi beforefieldinit B
+    extends A
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public final virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class B ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method B::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class B ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method B::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class B
+
+";
+            var source = @"
+public record C : B {
+}
+
+public record D : B {
+    new protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record E : B {
+    new protected virtual int EqualityContract
+        => throw null;
+}
+
+public record F : B {
+    new protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record G : B {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8876: 'C.EqualityContract' does not override expected property from 'B'.
+                // public record C : B {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "C").WithArguments("C.EqualityContract", "B").WithLocation(2, 15),
+                // (6,39): error CS8876: 'D.EqualityContract' does not override expected property from 'B'.
+                //     new protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("D.EqualityContract", "B").WithLocation(6, 39),
+                // (11,31): error CS8874: Record member 'E.EqualityContract' must return 'Type'.
+                //     new protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("E.EqualityContract", "System.Type").WithLocation(11, 31),
+                // (16,27): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     new protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 27),
+                // (21,36): error CS8876: 'G.EqualityContract' does not override expected property from 'B'.
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("G.EqualityContract", "B").WithLocation(21, 36)
                 );
         }
 
@@ -7233,7 +12496,7 @@ class E
   IL_0007:  callvirt   ""void C.X.init""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
-  IL_000e:  callvirt   ""C C.<>Clone()""
+  IL_000e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0013:  dup
   IL_0014:  ldc.i4.2
   IL_0015:  callvirt   ""void C.X.init""
@@ -7249,7 +12512,7 @@ class E
   IL_0037:  callvirt   ""void C.X.init""
   IL_003c:  stloc.1
   IL_003d:  ldloc.1
-  IL_003e:  callvirt   ""C C.<>Clone()""
+  IL_003e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0043:  castclass  ""D""
   IL_0048:  dup
   IL_0049:  ldc.i4.2
@@ -7289,13 +12552,13 @@ class E
   IL_00b3:  ldloc.2
   IL_00b4:  stloc.s    V_4
   IL_00b6:  ldloc.3
-  IL_00b7:  callvirt   ""C C.<>Clone()""
+  IL_00b7:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_00bc:  dup
   IL_00bd:  ldc.i4.3
   IL_00be:  callvirt   ""void C.X.init""
   IL_00c3:  stloc.3
   IL_00c4:  ldloc.s    V_4
-  IL_00c6:  callvirt   ""C C.<>Clone()""
+  IL_00c6:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_00cb:  dup
   IL_00cc:  ldc.i4.4
   IL_00cd:  callvirt   ""void C.X.init""
@@ -8603,18 +13866,18 @@ True
 True");
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       20 (0x14)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0012
+  IL_0001:  brfalse.s  IL_0015
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  ceq
-  IL_0011:  ret
-  IL_0012:  ldc.i4.0
-  IL_0013:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
             verifier.VerifyIL("C.Equals(object)",
 @"{
@@ -8666,24 +13929,25 @@ False
 True");
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       42 (0x2a)
+  // Code size       47 (0x2f)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0028
+  IL_0001:  brfalse.s  IL_002d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0028
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int C._id""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int C._id""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  ret
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_002d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C._id""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int C._id""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  ret
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
 }");
             verifier.VerifyIL("C.GetHashCode()",
 @"{
@@ -8747,18 +14011,18 @@ True
 True");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       20 (0x14)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0012
+  IL_0001:  brfalse.s  IL_0015
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  ceq
-  IL_0011:  ret
-  IL_0012:  ldc.i4.0
-  IL_0013:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
             verifier.VerifyIL("B1.Equals(B1)",
 @"{
@@ -8845,24 +14109,25 @@ True
 True");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       42 (0x2a)
+  // Code size       47 (0x2f)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0028
+  IL_0001:  brfalse.s  IL_002d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0028
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int A.<P>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int A.<P>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  ret
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_002d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int A.<P>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int A.<P>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  ret
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
 }");
             verifier.VerifyIL("B1.Equals(B1)",
 @"{
@@ -8894,7 +14159,6 @@ record A;
 record B : A
 {
     protected override Type EqualityContract => typeof(A);
-    public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B b) => base.Equals((A)b);
 }
 record C : B;
@@ -8923,7 +14187,7 @@ class Program
 @"True
 True
 False
-True
+False
 True
 False
 False
@@ -8935,28 +14199,18 @@ True
 True");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       20 (0x14)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0012
+  IL_0001:  brfalse.s  IL_0015
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  ceq
-  IL_0011:  ret
-  IL_0012:  ldc.i4.0
-  IL_0013:  ret
-}");
-            verifier.VerifyIL("C.Equals(A)",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  isinst     ""C""
-  IL_0007:  callvirt   ""bool C.Equals(C)""
-  IL_000c:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
             verifier.VerifyIL("C.Equals(C)",
 @"{
@@ -9047,48 +14301,36 @@ True
 True");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       20 (0x14)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0012
+  IL_0001:  brfalse.s  IL_0015
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  ceq
-  IL_0011:  ret
-  IL_0012:  ldc.i4.0
-  IL_0013:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
             verifier.VerifyIL("B.Equals(A)",
 @"{
-  // Code size       13 (0xd)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  isinst     ""B""
-  IL_0007:  callvirt   ""bool B.Equals(B)""
-  IL_000c:  ret
-}");
-            verifier.VerifyIL("C.Equals(A)",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  isinst     ""C""
-  IL_0007:  callvirt   ""bool C.Equals(C)""
-  IL_000c:  ret
+  IL_0002:  callvirt   ""bool object.Equals(object)""
+  IL_0007:  ret
 }");
             verifier.VerifyIL("C.Equals(B)",
 @"{
-  // Code size       13 (0xd)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  isinst     ""C""
-  IL_0007:  callvirt   ""bool C.Equals(C)""
-  IL_000c:  ret
+  IL_0002:  callvirt   ""bool object.Equals(object)""
+  IL_0007:  ret
 }");
             verifier.VerifyIL("C.Equals(C)",
 @"{
@@ -9104,9 +14346,9 @@ True");
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
 
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.<>Clone"), isOverride: false);
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.<>Clone"), isOverride: true);
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.<>Clone"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A." + WellKnownMemberNames.CloneMethodName), isOverride: false);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B." + WellKnownMemberNames.CloneMethodName), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C." + WellKnownMemberNames.CloneMethodName), isOverride: true);
 
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
@@ -9114,7 +14356,15 @@ True");
 
             VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
             VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? obj)", true));
-            VerifyVirtualMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? obj)", true));
+            ImmutableArray<Symbol> cEquals = comp.GetMembers("C.Equals");
+            VerifyVirtualMethods(cEquals, ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(System.Object? obj)", true));
+
+            var baseEquals = cEquals[1];
+            Assert.Equal("System.Boolean C.Equals(B? )", baseEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, baseEquals.DeclaredAccessibility);
+            Assert.True(baseEquals.IsOverride);
+            Assert.True(baseEquals.IsSealed);
+            Assert.True(baseEquals.IsImplicitlyDeclared);
         }
 
         private static void VerifyVirtualMethod(MethodSymbol method, bool isOverride)
@@ -9156,7 +14406,6 @@ record B : A
     internal B(int X, int Y) : base(X) { this.Y = Y; }
     internal int Y { get; set; }
     protected override Type EqualityContract => typeof(A);
-    public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B b) => base.Equals((A)b);
 }
 record C(int X, int Y, int Z) : B
@@ -9200,16 +14449,16 @@ class Program
 @"True
 True
 False
-True
+False
 True
 False
 False
-False
-True
 False
 True
 False
 True
+False
+False
 True
 False
 False
@@ -9221,34 +14470,25 @@ True
 True");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       42 (0x2a)
+  // Code size       47 (0x2f)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0028
+  IL_0001:  brfalse.s  IL_002d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0028
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int A.<X>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int A.<X>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  ret
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
-}");
-            verifier.VerifyIL("C.Equals(A)",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  isinst     ""C""
-  IL_0007:  callvirt   ""bool C.Equals(C)""
-  IL_000c:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_002d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int A.<X>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int A.<X>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  ret
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
 }");
             // https://github.com/dotnet/roslyn/issues/44895: C.Equals() should compare B.Y.
             verifier.VerifyIL("C.Equals(C)",
@@ -9364,34 +14604,34 @@ True
 True");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       42 (0x2a)
+  // Code size       47 (0x2f)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0028
+  IL_0001:  brfalse.s  IL_002d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0028
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int A.<X>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int A.<X>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  ret
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_002d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int A.<X>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int A.<X>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  ret
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
 }");
             verifier.VerifyIL("B.Equals(A)",
 @"{
-  // Code size       13 (0xd)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  isinst     ""B""
-  IL_0007:  callvirt   ""bool B.Equals(B)""
-  IL_000c:  ret
+  IL_0002:  callvirt   ""bool object.Equals(object)""
+  IL_0007:  ret
 }");
             verifier.VerifyIL("B.Equals(B)",
 @"{
@@ -9411,25 +14651,14 @@ True");
   IL_0020:  ldc.i4.0
   IL_0021:  ret
 }");
-            verifier.VerifyIL("C.Equals(A)",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  isinst     ""C""
-  IL_0007:  callvirt   ""bool C.Equals(C)""
-  IL_000c:  ret
-}");
             verifier.VerifyIL("C.Equals(B)",
 @"{
-  // Code size       13 (0xd)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  isinst     ""C""
-  IL_0007:  callvirt   ""bool C.Equals(C)""
-  IL_000c:  ret
+  IL_0002:  callvirt   ""bool object.Equals(object)""
+  IL_0007:  ret
 }");
             verifier.VerifyIL("C.Equals(C)",
 @"{
@@ -9530,6 +14759,9 @@ record B : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (3,27): error CS8872: 'A.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected System.Type EqualityContract => typeof(A);
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(3, 27),
                 // (5,8): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
                 // record B : A;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(5, 8));
@@ -9548,6 +14780,9 @@ record C : B;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (4,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected sealed override System.Type EqualityContract => typeof(B);
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(4, 43),
                 // (6,8): error CS0239: 'C.EqualityContract': cannot override inherited member 'B.EqualityContract' because it is sealed
                 // record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
@@ -9555,7 +14790,7 @@ record C : B;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract { get; }",
                 "System.Type B.EqualityContract.get",
                 "System.Int32 B.GetHashCode()",
@@ -9614,7 +14849,6 @@ record B1 : A
     public B1(int p) { P = p; }
     public int P { get; set; }
     protected override Type EqualityContract => typeof(string);
-    public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B1 b) => base.Equals((A)b);
 }
 record B2 : A
@@ -9622,7 +14856,6 @@ record B2 : A
     public B2(int p) { P = p; }
     public int P { get; set; }
     protected override Type EqualityContract => typeof(string);
-    public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B2 b) => base.Equals((A)b);
 }
 class Program
@@ -9638,7 +14871,7 @@ class Program
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"True
-True
+False
 True");
         }
 
@@ -9650,11 +14883,9 @@ True");
 record A;
 record B1(int P) : A
 {
-    public override bool Equals(A other) => false;
 }
 record B2(int P) : A
 {
-    public override bool Equals(A other) => true;
 }
 class Program
 {
@@ -9678,14 +14909,14 @@ class Program
 False
 True
 False
-False
+True
 False
 True
-True");
+False");
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B1").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B1.<>Clone()",
+                "A B1." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B1.EqualityContract.get",
                 "System.Type B1.EqualityContract { get; }",
                 "B1..ctor(System.Int32 P)",
@@ -9693,9 +14924,9 @@ True");
                 "System.Int32 B1.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B1.P.init",
                 "System.Int32 B1.P { get; init; }",
-                "System.Boolean B1.Equals(A other)",
                 "System.Int32 B1.GetHashCode()",
                 "System.Boolean B1.Equals(System.Object? obj)",
+                "System.Boolean B1.Equals(A? )",
                 "System.Boolean B1.Equals(B1? )",
                 "B1..ctor(B1 )",
                 "void B1.Deconstruct(out System.Int32 P)"
@@ -9710,9 +14941,9 @@ True");
         {
             var sourceA = @"public record A;";
             var comp = CreateCompilation(sourceA);
+            var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
             VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
-            var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
 
             var sourceB = @"record B : A;";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
@@ -9753,28 +14984,27 @@ True
 True");
             verifier.VerifyIL("A<T>.Equals(A<T>)",
 @"{
-  // Code size       20 (0x14)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0012
+  IL_0001:  brfalse.s  IL_0015
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type A<T>.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type A<T>.EqualityContract.get""
-  IL_000f:  ceq
-  IL_0011:  ret
-  IL_0012:  ldc.i4.0
-  IL_0013:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
             verifier.VerifyIL("B.Equals(A<int>)",
 @"{
-  // Code size       13 (0xd)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  isinst     ""B""
-  IL_0007:  callvirt   ""bool B.Equals(B)""
-  IL_000c:  ret
+  IL_0002:  callvirt   ""bool object.Equals(object)""
+  IL_0007:  ret
 }");
             verifier.VerifyIL("B.Equals(B)",
 @"{
@@ -9928,7 +15158,6 @@ record A<T>
 }
 record B : A<object>
 {
-    public override bool Equals(A<object> other) => Report(""B.Equals(A<object>)"");
     public virtual bool Equals(B other) => Report(""B.Equals(B)"");
 }
 class Program
@@ -9950,11 +15179,11 @@ class Program
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"A<T>.Equals(A<T>)
-B.Equals(A<object>)
-B.Equals(A<object>)
+B.Equals(B)
+B.Equals(B)
 B.Equals(B)
 A<T>.Equals(A<T>)
-B.Equals(A<object>)
+B.Equals(B)
 B.Equals(B)");
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
@@ -9978,8 +15207,10 @@ record A<T> : IEquatable<A<T>>
 }
 record B : A<object>, IEquatable<A<object>>, IEquatable<B>
 {
-    public override bool Equals(A<object> other) => Report(""B.Equals(A<object>)"");
     public virtual bool Equals(B other) => Report(""B.Equals(B)"");
+}
+record C : A<object>, IEquatable<A<object>>, IEquatable<C>
+{
 }
 class Program
 {
@@ -10000,12 +15231,19 @@ class Program
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"A<T>.Equals(A<T>)
-B.Equals(A<object>)
-B.Equals(A<object>)
+B.Equals(B)
+B.Equals(B)
 B.Equals(B)
 A<T>.Equals(A<T>)
-B.Equals(A<object>)
-B.Equals(B)");
+B.Equals(B)
+B.Equals(B)",
+                symbolValidator: m =>
+                {
+                    var b = m.GlobalNamespace.GetTypeMember("B");
+                    Assert.Equal("B.Equals(B)", b.FindImplementationForInterfaceMember(b.InterfacesNoUseSiteDiagnostics()[1].GetMember("Equals")).ToDisplayString());
+                    var c = m.GlobalNamespace.GetTypeMember("C");
+                    Assert.Equal("C.Equals(C?)", c.FindImplementationForInterfaceMember(c.InterfacesNoUseSiteDiagnostics()[1].GetMember("Equals")).ToDisplayString());
+                });
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
@@ -10149,12 +15387,19 @@ record B : A<int>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A<T>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record B : A<int>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Type").WithLocation(2, 8)
+                );
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
@@ -10198,9 +15443,15 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(1, 8),
                 // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
@@ -10216,6 +15467,9 @@ record B : A<int>, System.IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, System.IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Type").WithLocation(2, 8),
                 // (2,27): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record B : A<int>, System.IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<B>").WithArguments("IEquatable<>", "System").WithLocation(2, 27));
@@ -10266,9 +15520,15 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
@@ -10284,6 +15544,9 @@ record B : A<int>, IEquatable<B>;
                 // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Type").WithLocation(3, 8),
                 // (3,20): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record B : A<int>, IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<B>").WithArguments("IEquatable<>").WithLocation(3, 20));
@@ -10335,6 +15598,9 @@ class Program
 }";
             comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
+                // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (1,8): error CS0535: 'A' does not implement interface member 'IEquatable<A>.Other()'
                 // record A;
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("A", "System.IEquatable<A>.Other()").WithLocation(1, 8));
@@ -10352,7 +15618,11 @@ class Program
             comp.VerifyDiagnostics(
                 // (1,8): error CS0737: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is not public.
                 // record A
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(1, 8),
+                // (3,27): error CS8873: Record member 'A.Equals(A)' must be public.
+                //     internal virtual bool Equals(A other) => false;
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(3, 27)
+                );
         }
 
         [Fact]
@@ -10368,6 +15638,9 @@ record B : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (3,17): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
+                //     public bool Equals(A other) => false;
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(3, 17),
                 // (5,8): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
                 // record B : A
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(5, 8));
@@ -10589,6 +15862,760 @@ record R(int P1, int* P2, delegate*<int> P3);";
 
             p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
             Assert.True(p.HasPointerType);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_RefOrOut()
+        {
+            var src = @"
+record R(ref int P1, out int P2);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,9): error CS0177: The out parameter 'P2' must be assigned to before control leaves the current method
+                // record R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int P1, out int P2)").WithArguments("P2").WithLocation(2, 9),
+                // (2,10): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(2, 10),
+                // (2,22): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(2, 22)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_RefOrOut_WithBase()
+        {
+            var src = @"
+record Base(int I);
+record R(ref int P1, out int P2) : Base(P2 = 1);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,10): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2) : Base(P2 = 1);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(3, 10),
+                // (3,22): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2) : Base(P2 = 1);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(3, 22)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_In()
+        {
+            var src = @"
+record R(in int P1);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(42);
+        int i = 43;
+        var r2 = new R(in i);
+        System.Console.Write((r.P1, r2.P1));
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.Skipped /* init-only */);
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R..ctor(in System.Int32 P1)",
+                "R..ctor(R )"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_This()
+        {
+            var src = @"
+record R(this int i);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,10): error CS0027: Keyword 'this' is not available in the current context
+                // record R(this int i);
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(2, 10)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_Params()
+        {
+            var src = @"
+record R(params int[] Array);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(42, 43);
+        var r2 = new R(new[] { 44, 45 });
+        System.Console.Write((r.Array[0], r.Array[1], r2.Array[0], r2.Array[1]));
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44, 45)", verify: Verification.Skipped /* init-only */);
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R..ctor(params System.Int32[] Array)",
+                "R..ctor(R )"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer()
+        {
+            var src = @"
+record R(int P = 1)
+{
+    public int P { get; init; } = 42;
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stfld      ""int R.<P>k__BackingField""
+  IL_0008:  ldarg.0
+  IL_0009:  call       ""object..ctor()""
+  IL_000e:  nop
+  IL_000f:  ret
+}");
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithoutInitializer()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public int P { get; init; }
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ret
+}");
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer_CopyingParameter()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public int P { get; init; } = P;
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int R.<P>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""object..ctor()""
+  IL_000d:  nop
+  IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_01()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1)
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_02()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1)
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_03()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public abstract int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_04()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+public record Test(
+    [method: A]
+    int P1)
+{
+    [method: A]
+    void M1() {}
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (8,6): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field, property, param'. All attributes in this block will be ignored.
+                //     [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "field, property, param").WithLocation(8, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_05()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public virtual int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                Assert.Null(@class.GetMember<PropertySymbol>("P1"));
+                Assert.Null(@class.GetMember<FieldSymbol>("<P1>k__BackingField"));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (27,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
+                // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [property: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_06()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                Assert.Null(@class.GetMember<PropertySymbol>("P1"));
+                Assert.Null(@class.GetMember<FieldSymbol>("<P1>k__BackingField"));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (27,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
+                // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [property: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_07()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public int P1 { get; init; }
+}
+
+public record Test(
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_08()
+        {
+            string source = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+record C<T>([property: NotNull] T? P1, T? P2) where T : class
+{
+    protected C(C<T> other)
+    {
+        T x = P1;
+        T y = P2;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y = P2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P2").WithLocation(10, 15)
+                );
         }
     }
 }

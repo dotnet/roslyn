@@ -3235,6 +3235,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadWarningLevel" xml:space="preserve">
     <value>Warning level must be in the range 0-4</value>
   </data>
+  <data name="ERR_BadWarningVersion" xml:space="preserve">
+    <value>Warning version must be greater than or equal to '0'.</value>
+  </data>
   <data name="ERR_BadDebugType" xml:space="preserve">
     <value>Invalid option '{0}' for /debug; must be 'portable', 'embedded', 'full' or 'pdbonly'</value>
   </data>
@@ -3299,7 +3302,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Consider explicitly specifying the type of the range variable '{2}'.</value>
   </data>
   <data name="ERR_QueryNoProviderStandard" xml:space="preserve">
-    <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</value>
+    <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</value>
   </data>
   <data name="ERR_QueryNoProvider" xml:space="preserve">
     <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.</value>
@@ -4617,7 +4620,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warnversion:&lt;n&gt;        Enable recently introduced warnings. Default '0'.
+                              To enable warnings introduced through this version, use '5'.
+                              Use '9999' to enable all current and future warning waves.
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -6058,6 +6063,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
   </data>
+  <data name="IDS_FeatureStaticAnonymousFunction" xml:space="preserve">
+    <value>static anonymous function</value>
+  </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to 'this' or 'base'.</value>
+  </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to '{0}'.</value>
+  </data>
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
   </data>
@@ -6278,6 +6292,36 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</value>
   </data>
   <data name="ERR_DoesNotOverrideMethodFromObject" xml:space="preserve">
-    <value>'{0}' does not override the method from 'object'.</value>
+    <value>'{0}' does not override expected method from 'object'.</value>
+  </data>
+  <data name="ERR_SealedGetHashCodeInRecord" xml:space="preserve">
+    <value>'{0}' cannot be sealed because containing record is not sealed.</value>
+  </data>
+  <data name="ERR_DoesNotOverrideBaseEquals" xml:space="preserve">
+    <value>'{0}' does not override expected method from '{1}'.</value>
+  </data>
+  <data name="WRN_ConstOutOfRangeChecked" xml:space="preserve">
+    <value>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="WRN_ConstOutOfRangeChecked_Title" xml:space="preserve">
+    <value>Constant value may overflow at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="ERR_CloneDisallowedInRecord" xml:space="preserve">
+    <value>Members named 'Clone' are disallowed in records.</value>
+  </data>
+  <data name="ERR_NotOverridableAPIInRecord" xml:space="preserve">
+    <value>'{0}' must allow overriding because the containing record is not sealed.</value>
+  </data>
+  <data name="ERR_NonPublicAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be public.</value>
+  </data>
+  <data name="ERR_SignatureMismatchInRecord" xml:space="preserve">
+    <value>Record member '{0}' must return '{1}'.</value>
+  </data>
+  <data name="ERR_NonProtectedAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be protected.</value>
+  </data>
+  <data name="ERR_DoesNotOverrideBaseEqualityContract" xml:space="preserve">
+    <value>'{0}' does not override expected property from '{1}'.</value>
   </data>
 </root>

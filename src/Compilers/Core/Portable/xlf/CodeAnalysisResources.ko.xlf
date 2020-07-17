@@ -39,6 +39,11 @@
         <target state="translated">추가된 소스 파일의 hintName은 생성기 내에서 고유해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">표시되지 않는 진단 ID '{0}'이(가) 지정된 비표시 설명자의 표시하지 않을 수 있는 ID '{1}'과(와) 일치하지 않습니다.</target>

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_block_comment;
 
-        internal async override Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
+        internal override async Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_ToggleBlockComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             /// Gets a list of block comments that intersect the span.
             /// Spans are intersecting if 1 location is the same between them (empty spans look at the start).
             /// </summary>
-            private ImmutableArray<TextSpan> GetIntersectingBlockComments(ImmutableArray<TextSpan> allBlockComments, TextSpan span)
+            private static ImmutableArray<TextSpan> GetIntersectingBlockComments(ImmutableArray<TextSpan> allBlockComments, TextSpan span)
                 => allBlockComments.WhereAsArray(blockCommentSpan => span.OverlapsWith(blockCommentSpan) || blockCommentSpan.Contains(span));
 
             /// <summary>

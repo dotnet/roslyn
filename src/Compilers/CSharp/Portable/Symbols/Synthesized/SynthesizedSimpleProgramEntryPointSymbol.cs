@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedSimpleProgramEntryPointSymbol : SourceMemberMethodSymbol
     {
-        internal const string UnspeakableName = "$Main";
-
         /// <summary>
         /// The corresponding <see cref="SingleTypeDeclaration"/>. 
         /// </summary>
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return UnspeakableName;
+                return WellKnownMemberNames.TopLevelStatementsEntryPointMethodName;
             }
         }
 
