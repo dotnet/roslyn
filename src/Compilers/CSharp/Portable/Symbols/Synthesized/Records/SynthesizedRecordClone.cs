@@ -56,9 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert((result & ~allowedModifiers) == 0);
+#if DEBUG
             Debug.Assert(modifiersAreValid(result));
+#endif 
             return result;
 
+#if DEBUG
             static bool modifiersAreValid(DeclarationModifiers modifiers)
             {
                 if ((modifiers & DeclarationModifiers.AccessibilityMask) != DeclarationModifiers.Public)
@@ -84,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                 }
             }
+#endif 
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
