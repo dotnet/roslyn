@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return false;
         }
 
-        protected override SyntaxNode GetInlineContent(SyntaxNode methodDeclarationSyntax)
+        protected override SyntaxNode ExtractExpressionFromMethodDeclaration(SyntaxNode methodDeclarationSyntax)
         {
             SyntaxNode? inlineSyntaxNode = null;
             if (methodDeclarationSyntax is MethodDeclarationSyntax declarationSyntax)
@@ -95,5 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 ThrowStatementSyntax throwExpressionSyntax => throwExpressionSyntax.Expression,
                 _ => null
             };
+
+        protected override SyntaxNode ReplaceParametersInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel)
+        {
+            return methodDeclarationSyntaxNode;
+        }
     }
 }

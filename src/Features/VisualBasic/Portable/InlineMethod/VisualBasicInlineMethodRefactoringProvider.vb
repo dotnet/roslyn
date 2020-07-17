@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return Nothing
         End Function
 
-        Protected Overrides Function GetInlineContent(methodDeclarationSyntax As SyntaxNode) As SyntaxNode
+        Protected Overrides Function ExtractExpressionFromMethodDeclaration(methodDeclarationSyntax As SyntaxNode) As SyntaxNode
             Dim methodStatementSyntaxNode = TryCast(methodDeclarationSyntax, MethodStatementSyntax)
             Dim inlineSyntaxNode As SyntaxNode = Nothing
             If methodStatementSyntaxNode IsNot Nothing Then

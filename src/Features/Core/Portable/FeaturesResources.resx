@@ -2783,4 +2783,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Make_class_abstract" xml:space="preserve">
     <value>Make class 'abstract'</value>
   </data>
+  <data name="Inline_0" xml:space="preserve">
+    <value>Inline '{0}'</value>
+  </data>
 </root>
