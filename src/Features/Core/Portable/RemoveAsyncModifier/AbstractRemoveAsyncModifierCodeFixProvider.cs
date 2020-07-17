@@ -125,11 +125,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     // body then we've done all we can
                     if (blockBodiedNode != null)
                     {
-                        blockBodiedNode = AddReturnStatement(editor, blockBodiedNode);
-
                         editor.ReplaceNode(replacementNode, blockBodiedNode);
 
-                        ChangeReturnStatements(blockBodiedNode, editor, methodSymbol.ReturnType, knownTypes);
+                        AddReturnStatement(editor, blockBodiedNode, methodSymbol.ReturnType, knownTypes);
                     }
                 }
                 else
@@ -149,10 +147,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     // need to add an explicit return
                     if (controlFlow == null || controlFlow.EndPointIsReachable)
                     {
-                        var newNode = AddReturnStatement(editor, replacementNode);
-                        editor.ReplaceNode(replacementNode, newNode);
-
-                        replacementNode = newNode;
+                        AddReturnStatement(editor, replacementNode, methodSymbol.ReturnType, knownTypes);
                     }
                 }
 
@@ -171,16 +166,26 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             return null;
         }
 
-        private static SyntaxNode AddReturnStatement(SyntaxEditor editor, SyntaxNode replacementNode)
+        private static void AddReturnStatement(SyntaxEditor editor, SyntaxNode replacementNode, ITypeSymbol returnType, KnownTypes knownTypes)
         {
             var generator = editor.Generator;
             var statements = generator.GetStatements(replacementNode).ToImmutableArray();
 
-            // Only need to add a plain "return;" statement, it will be updatedbelow
-            var newStatements = statements.Add(generator.ReturnStatement());
+            var returnStatement = GetReturnTaskCompletedTaskStatement(returnType, knownTypes, generator);
 
-            var newNode = generator.WithStatements(replacementNode, newStatements);
-            return newNode;
+            // We can't just use generator.WithStatements because that breaks nested functions in a Fix All scenario
+            // but we can't append if its an empty block (no statements), so we have to support both
+            if (statements.Any())
+            {
+                editor.InsertAfter(statements.Last(), returnStatement);
+            }
+            else
+            {
+                // Only need to add a plain "return;" statement, it will be updatedbelow
+                var newStatements = statements.Add(returnStatement);
+                var newNode = generator.WithStatements(replacementNode, newStatements);
+                editor.ReplaceNode(replacementNode, newNode);
+            }
         }
 
         private void ChangeReturnStatements(SyntaxNode node, SyntaxEditor editor, ITypeSymbol returnType, KnownTypes knownTypes)

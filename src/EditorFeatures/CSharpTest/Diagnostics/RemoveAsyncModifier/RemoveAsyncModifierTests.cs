@@ -563,14 +563,15 @@ class C
 {
     public void M1()
     {
-        Func<Task> foo = (Func<Task>)delegate {
+        Func<Task> foo = (Func<Task>)delegate
+        {
             if (System.DateTime.Now.Ticks > 0)
             {
-        return Task.CompletedTask;
-    }
+                return Task.CompletedTask;
+            }
 
-    return Task.CompletedTask;
-};
+            return Task.CompletedTask;
+        };
     }
 }");
         }
@@ -716,14 +717,15 @@ class C
 {
     public void M1()
     {
-        Func<int, Task> foo = x => {
+        Func<int, Task> foo = x =>
+        {
             if (System.DateTime.Now.Ticks > 0)
             {
-        return Task.CompletedTask;
-    }
+                return Task.CompletedTask;
+            }
 
-    return Task.CompletedTask;
-};
+            return Task.CompletedTask;
+        };
     }
 }");
         }
@@ -837,14 +839,15 @@ class C
 {
     public void M1()
     {
-        Func<Task> foo = () => {
+        Func<Task> foo = () =>
+        {
             if (System.DateTime.Now.Ticks > 0)
             {
-        return Task.CompletedTask;
-    }
+                return Task.CompletedTask;
+            }
 
-    return Task.CompletedTask;
-};
+            return Task.CompletedTask;
+        };
     }
 }");
         }
