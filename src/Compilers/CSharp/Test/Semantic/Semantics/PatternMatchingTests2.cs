@@ -2943,5 +2943,23 @@ class F
                 }
             }
         }
+
+        [Fact, WorkItem(45946, "https://github.com/dotnet/roslyn/issues/45946")]
+        public void VoidPattern_01()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        _ = is this.F(1);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS1525: Invalid expression term 'is'
+                //         _ = is this.F(1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(6, 13)
+                );
+        }
     }
 }
