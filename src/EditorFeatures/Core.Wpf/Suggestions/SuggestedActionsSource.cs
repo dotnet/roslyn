@@ -207,8 +207,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     Func<string, IDisposable?> addOperationScope =
                         description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesWpfResources.Gathering_Suggestions_0, description));
 
-                    var fixes = GetCodeFixes(supportsFeatureService, requestedActionCategories, workspace, document, range, addOperationScope, cancellationToken);
-                    var refactorings = GetRefactorings(supportsFeatureService, requestedActionCategories, workspace, document, selectionOpt, addOperationScope, cancellationToken);
+                    // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
+                    // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
+                    var fixes = GetCodeFixes(
+                        supportsFeatureService, requestedActionCategories, workspace,
+                        document, range, addOperationScope, cancellationToken);
+                    var refactorings = GetRefactorings(
+                        supportsFeatureService, requestedActionCategories, workspace,
+                        document, selectionOpt, addOperationScope, cancellationToken);
 
                     var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selectionOpt);
                     if (!filteredSets.HasValue)

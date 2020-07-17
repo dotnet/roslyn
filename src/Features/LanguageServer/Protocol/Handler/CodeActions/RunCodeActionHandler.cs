@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Runs a code action as a command on the server.
     /// This is done when a code action cannot be applied as a WorkspaceEdit on the LSP client.
     /// For example, all non-ApplyChangesOperations must be applied as a command.
-    /// TO-DO: Currently, any ApplyChangesOperation that adds a document must also be
+    /// TO-DO: Currently, any ApplyChangesOperation that adds or removes a document must also be
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
                     codeActions.Add(GenerateVSCodeAction(
                         request, GetNestedActionsFromActionSet(suggestedAction),
-                        GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName)));
+                        GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!)));
                 }
             }
 

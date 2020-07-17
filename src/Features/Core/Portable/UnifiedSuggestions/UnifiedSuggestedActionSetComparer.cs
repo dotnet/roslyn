@@ -8,10 +8,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
-    /// <summary>
-    /// Similar to SuggestedActionSetComparer, but in a location that can be used
-    /// by both local Roslyn and LSP.
-    /// </summary>
     internal class UnifiedSuggestedActionSetComparer : IComparer<UnifiedSuggestedActionSet>
     {
         private readonly TextSpan? _targetSpan;
