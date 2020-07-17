@@ -444,7 +444,7 @@
           "testCases": [
             "VSPE.OptProfTests.vs_asl_cs_scenario",
             "VSPE.OptProfTests.vs_asl_vb_scenario",
-            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwin",
             "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
             "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
             "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
@@ -489,7 +489,7 @@
           "testCases": [
             "VSPE.OptProfTests.vs_asl_cs_scenario",
             "VSPE.OptProfTests.vs_asl_vb_scenario",
-            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwin",
             "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
             "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
             "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
