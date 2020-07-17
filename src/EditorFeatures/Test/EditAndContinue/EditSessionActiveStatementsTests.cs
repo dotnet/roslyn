@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
             {
                 var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer.Factory)).WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
 
                 var exportProvider = exportProviderFactory.CreateExportProvider();
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var solution = Workspace.CurrentSolution;
 
-                var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
+                var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>(MockBehavior.Strict);
                 var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
                 var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider);
@@ -116,9 +116,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
-                var mockActiveStatementTrackingService = new TestActiveStatementSpanTracker();
+                Assert.IsType<TestActiveStatementSpanTracker>(Workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockActiveStatementTrackingService, mockDebuggeModuleProvider.Object);
+                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockDebuggeModuleProvider.Object);
             }
 
             public ImmutableArray<DocumentId> GetDocumentIds()

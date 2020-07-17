@@ -463,15 +463,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Public Overrides Function GetTargetTypeName(node As SyntaxNode) As String
+        Public Overrides Function GetReceiverTypeName(node As SyntaxNode) As String
             Dim funcDecl = CType(node, MethodBlockSyntax)
             Debug.Assert(IsExtensionMethod(funcDecl))
 
             Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
             Dim targetTypeName As String = Nothing
-            TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName)
+            Dim isArray As Boolean = False
 
-            Return targetTypeName
+            TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName, isArray)
+            Return CreateReceiverTypeString(targetTypeName, isArray)
         End Function
 
         Public Overrides Function TryGetAliasesFromUsingDirective(node As SyntaxNode, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean
@@ -488,8 +489,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
 #Disable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
                         If simpleImportsClause.Alias IsNot Nothing AndAlso
-                            TryGetSimpleTypeNameWorker(simpleImportsClause.Alias, Nothing, aliasName) AndAlso
-                            TryGetSimpleTypeNameWorker(simpleImportsClause, Nothing, name) Then
+                            TryGetSimpleTypeNameWorker(simpleImportsClause.Alias, Nothing, aliasName, Nothing) AndAlso
+                            TryGetSimpleTypeNameWorker(simpleImportsClause, Nothing, name, Nothing) Then
 #Enable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
 
                             builder.Add((aliasName, name))
@@ -505,12 +506,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return False
         End Function
 
-        Private Shared Function TryGetSimpleTypeNameWorker(node As SyntaxNode, typeParameterNames As ImmutableArray(Of String)?, ByRef simpleTypeName As String) As Boolean
+        Private Shared Function TryGetSimpleTypeNameWorker(node As SyntaxNode, typeParameterNames As ImmutableArray(Of String)?, ByRef simpleTypeName As String, ByRef isArray As Boolean) As Boolean
+
+            isArray = False
+
             If TypeOf node Is IdentifierNameSyntax Then
                 Dim identifierName = DirectCast(node, IdentifierNameSyntax)
                 Dim text = identifierName.Identifier.Text
                 simpleTypeName = If(typeParameterNames?.Contains(text), Nothing, text)
                 Return simpleTypeName IsNot Nothing
+
+            ElseIf TypeOf node Is ArrayTypeSyntax Then
+                isArray = True
+                Dim arrayType = DirectCast(node, ArrayTypeSyntax)
+                Return TryGetSimpleTypeNameWorker(arrayType.ElementType, typeParameterNames, simpleTypeName, Nothing)
 
             ElseIf TypeOf node Is GenericNameSyntax Then
                 Dim genericName = DirectCast(node, GenericNameSyntax)
@@ -523,14 +532,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 ' For an identifier to the right of a '.', it can't be a type parameter,
                 ' so we don't need to check for it further.
                 Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)
-                Return TryGetSimpleTypeNameWorker(qualifiedName.Right, Nothing, simpleTypeName)
+                Return TryGetSimpleTypeNameWorker(qualifiedName.Right, Nothing, simpleTypeName, Nothing)
 
             ElseIf TypeOf node Is NullableTypeSyntax Then
-                Return TryGetSimpleTypeNameWorker(DirectCast(node, NullableTypeSyntax).ElementType, typeParameterNames, simpleTypeName)
+                Return TryGetSimpleTypeNameWorker(DirectCast(node, NullableTypeSyntax).ElementType, typeParameterNames, simpleTypeName, isArray)
 
             ElseIf TypeOf node Is PredefinedTypeSyntax Then
                 simpleTypeName = GetSpecialTypeName(DirectCast(node, PredefinedTypeSyntax))
                 Return simpleTypeName IsNot Nothing
+
+            ElseIf TypeOf node Is TupleTypeSyntax Then
+                Dim tupleArity = DirectCast(node, TupleTypeSyntax).Elements.Count
+                simpleTypeName = CreateValueTupleTypeString(tupleArity)
+                Return True
             End If
 
             simpleTypeName = Nothing

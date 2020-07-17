@@ -34,10 +34,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     => _owner.Free(_queue, connection);
 
                 public bool TryAcquire(out JsonRpcConnection connection)
-                    => _queue.TryDequeue(out connection);
+                {
+                    if (_queue.TryDequeue(out connection))
+                    {
+                        connection.SetPoolReclamation(this);
+                        return true;
+                    }
+
+                    return false;
+                }
 
                 internal void DisposeConnections()
                 {
+                    // Use TryDequeue instead of TryAcquire to ensure disposal doesn't just return the collection to the
+                    // pool.
                     while (_queue.TryDequeue(out var connection))
                     {
                         connection.Dispose();

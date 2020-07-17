@@ -4715,7 +4715,7 @@ namespace ConsoleApplication24
             ERR_AnonMethGrpInForEach = 446,
             //ERR_AttrOnTypeArg = 447,      unused in Roslyn. The scenario for which this error exists should, and does generate a parse error.
             ERR_BadIncDecRetType = 448,
-            ERR_RefValBoundMustBeFirst = 449,
+            ERR_TypeConstraintsMustBeUniqueAndFirst = 449,
             ERR_RefValBoundWithClass = 450,
             ERR_NewBoundWithVal = 451,
             ERR_RefConstraintNotSatisfied = 452,

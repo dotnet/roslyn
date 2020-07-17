@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,23 +21,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
+            var receiver = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
             var receiverType = receiver.Type;
 
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-
             bool hasErrors = false;
 
             if (receiverType is null || receiverType.IsVoidType())
             {
-                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
+                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Expression.Location);
                 receiverType = CreateErrorType();
             }
 
             MethodSymbol? cloneMethod = null;
             if (!receiverType.IsErrorType())
             {
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnose: false,
                     ref useSiteDiagnostics);
 
-                // https://github.com/dotnet/roslyn/issues/44908 - Should handle hiding/overriding
                 if (lookupResult.IsMultiViable)
                 {
                     foreach (var symbol in lookupResult.Symbols)
@@ -70,16 +69,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeCompareKind.ConsiderEverything,
                         ref useSiteDiagnostics))
                 {
-                    useSiteDiagnostics = null;
                     hasErrors = true;
-                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Receiver.Location, receiverType);
+                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
                 }
+
+                diagnostics.Add(syntax.Expression, useSiteDiagnostics);
             }
 
             var initializer = BindInitializerExpression(
                 syntax.Initializer,
                 receiverType,
-                syntax.Receiver,
+                syntax.Expression,
                 diagnostics);
 
             // N.B. Since we only don't parse nested initializers in syntax there should be no extra

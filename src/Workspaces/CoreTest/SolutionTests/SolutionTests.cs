@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class SolutionTests : TestBase
     {
 #nullable enable
-        private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
+        private static readonly MetadataReference s_mscorlib = TestMetadata.Net451.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private static Solution CreateSolution()
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void WithProjectCompilationOutputFilePaths()
+        public void WithProjectCompilationOutputInfo()
         {
             var projectId = ProjectId.CreateNewId();
 
@@ -564,13 +564,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             SolutionTestHelpers.TestProperty(
                 solution,
-                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, value),
-                s => s.GetProject(projectId)!.CompilationOutputFilePaths,
-                new CompilationOutputFilePaths(path),
+                (s, value) => s.WithProjectCompilationOutputInfo(projectId, value),
+                s => s.GetProject(projectId)!.CompilationOutputInfo,
+                new CompilationOutputInfo(path),
                 defaultThrows: false);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputFilePaths(null!, new CompilationOutputFilePaths("x.dll")));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputFilePaths(ProjectId.CreateNewId(), new CompilationOutputFilePaths("x.dll")));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, new CompilationOutputInfo("x.dll")));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), new CompilationOutputInfo("x.dll")));
         }
 
         [Fact]
@@ -1459,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestAddMetadataReferencesAsync()
         {
-            var mefReference = TestReferences.NetFx.v4_0_30319.System_Core;
+            var mefReference = TestMetadata.Net451.SystemCore;
             var solution = CreateSolution();
             var project1 = ProjectId.CreateNewId();
             solution = solution.AddProject(project1, "goo", "goo.dll", LanguageNames.CSharp);
@@ -2882,7 +2882,7 @@ public class C : A {
             var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
             solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
-                .WithProjectMetadataReferences(projectId, new[] { TestReferences.NetFx.v4_0_30319.mscorlib })
+                .WithProjectMetadataReferences(projectId, new[] { TestMetadata.Net451.mscorlib })
                 .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
             var src = @"
 class C

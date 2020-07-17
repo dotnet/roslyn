@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeKind TypeKind => TypeKind.FunctionPointer;
         public override bool IsRefLikeType => false;
         public override bool IsReadOnly => false;
-        public override SymbolKind Kind => SymbolKind.FunctionPointer;
+        public override SymbolKind Kind => SymbolKind.FunctionPointerType;
         public override Symbol? ContainingSymbol => null;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
@@ -137,7 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
-            return Signature.GetUseSiteDiagnostic();
+            DiagnosticInfo? fromSignature = Signature.GetUseSiteDiagnostic();
+
+            if (fromSignature?.Code == (int)ErrorCode.ERR_BindToBogus && fromSignature.Arguments.AsSingleton() == (object)Signature)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+            }
+
+            return fromSignature;
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo? result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)

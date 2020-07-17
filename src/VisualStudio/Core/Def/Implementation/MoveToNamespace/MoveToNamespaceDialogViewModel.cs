@@ -2,33 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
+using System.Linq;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Imaging;
-using System;
-using Microsoft.CodeAnalysis.LanguageServices;
-using System.ComponentModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
-    class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
+    internal class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
     {
         private readonly ISyntaxFacts _syntaxFacts;
 
         public MoveToNamespaceDialogViewModel(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
-            ISyntaxFacts syntaxFacts)
+            ISyntaxFacts syntaxFacts,
+            ImmutableArray<string> namespaceHistory)
         {
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
-            NamespaceName = defaultNamespace;
-            AvailableNamespaces = availableNamespaces;
+            _namespaceName = defaultNamespace;
+            AvailableNamespaces = namespaceHistory.Select(n => new NamespaceItem(true, n))
+                .Concat(availableNamespaces.Except(namespaceHistory).Select(n => new NamespaceItem(false, n)))
+                .ToImmutableArray();
 
             PropertyChanged += MoveToNamespaceDialogViewModel_PropertyChanged;
         }
 
-        private void MoveToNamespaceDialogViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void MoveToNamespaceDialogViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
@@ -40,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
         public void OnNamespaceUpdated()
         {
-            var isNewNamespace = !AvailableNamespaces.Contains(NamespaceName);
+            var isNewNamespace = !AvailableNamespaces.Any(i => i.Namespace == NamespaceName);
             var isValidName = !isNewNamespace || IsValidNamespace(NamespaceName);
 
             if (isNewNamespace && isValidName)
@@ -91,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             set => SetProperty(ref _namespaceName, value);
         }
 
-        public ImmutableArray<string> AvailableNamespaces { get; }
+        public ImmutableArray<NamespaceItem> AvailableNamespaces { get; }
 
         private ImageMoniker _icon;
         public ImageMoniker Icon
@@ -100,8 +106,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             private set => SetProperty(ref _icon, value);
         }
 
-        private string _message;
-        public string Message
+        private string? _message;
+        public string? Message
         {
             get => _message;
             private set => SetProperty(ref _message, value);
@@ -121,12 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             private set => SetProperty(ref _canSubmit, value);
         }
 
-        public string Error => CanSubmit ? string.Empty : Message;
+        public string Error => CanSubmit ? string.Empty : Message ?? string.Empty;
 
         public string this[string columnName] =>
             columnName switch
             {
-                nameof(NamespaceName) => CanSubmit ? string.Empty : Message,
+                nameof(NamespaceName) => Error,
                 _ => string.Empty
             };
 

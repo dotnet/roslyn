@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ErrorCode.Void,
                 ErrorCode.Unknown,
                 ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
+
+                // The following error codes are reserved by feature branches
+                ErrorCode.ERR_8813,
+                ErrorCode.ERR_8814,
+                ErrorCode.ERR_8815,
+                ErrorCode.ERR_8816,
             };
             foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
             {
@@ -274,6 +280,7 @@ class X
                         case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
@@ -316,6 +323,7 @@ class X
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_ConstOutOfRangeChecked:
                         case ErrorCode.WRN_MemberNotNull:
                         case ErrorCode.WRN_MemberNotNullWhen:
                         case ErrorCode.WRN_MemberNotNullBadMember:
@@ -370,6 +378,7 @@ class X
                     ErrorCode.WRN_GeneratorFailedDuringGeneration,
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
+                    ErrorCode.WRN_ConstOutOfRangeChecked,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

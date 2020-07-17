@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 case SymbolKind.TypeParameter:
                     return Translate((TypeParameterSymbol)typeSymbol);
 
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     return Translate((FunctionPointerTypeSymbol)typeSymbol);
             }
 

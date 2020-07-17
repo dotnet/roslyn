@@ -79,7 +79,7 @@ record C(int x, string y)
                 Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 9)
             );
             var c = comp.GlobalNamespace.GetTypeMember("C");
-            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
             Assert.Equal(2, ctor.ParameterCount);
 
             var a = ctor.Parameters[0];
@@ -146,12 +146,13 @@ record C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var x = (SourceOrRecordPropertySymbol)c.GetProperty("x");
+            var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
+            Assert.False(x.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -162,26 +163,30 @@ record C(int x, string y)
             Assert.Equal(x, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             var getAccessor = x.GetMethod;
             Assert.Equal(x, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
             Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
             Assert.True(setAccessor.IsInitOnly);
 
-            var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
+            var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
+            Assert.False(y.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -192,14 +197,17 @@ record C(int x, string y)
             Assert.Equal(y, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             getAccessor = y.GetMethod;
             Assert.Equal(y, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
             Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
@@ -209,6 +217,41 @@ record C(int x, string y)
         [Fact]
         public void RecordEquals_01()
         {
+            var comp = CreateCompilation(@"
+record C(int X, int Y)
+{
+    public bool Equals(C c) => throw null;
+    public override bool Equals(object o) => false;
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,17): error CS8872: 'C.Equals(C)' must allow overriding because the containing record is not sealed.
+                //     public bool Equals(C c) => throw null;
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
+                // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
+                //     public override bool Equals(object o) => false;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
+                );
+
+            comp = CreateCompilation(@"
+record C
+{
+    public int Equals(object o) => throw null;
+}
+
+record D : C
+{
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,16): warning CS0114: 'C.Equals(object)' hides inherited member 'object.Equals(object)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public int Equals(object o) => throw null;
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Equals").WithArguments("C.Equals(object)", "object.Equals(object)").WithLocation(4, 16),
+                // (4,16): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
+                //     public int Equals(object o) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(4, 16)
+                );
+
             CompileAndVerify(@"
 using System;
 record C(int X, int Y)
@@ -218,8 +261,7 @@ record C(int X, int Y)
         object c = new C(0, 0);
         Console.WriteLine(c.Equals(c));
     }
-    public bool Equals(C c) => throw null;
-    public override bool Equals(object o) => false;
+    public virtual bool Equals(C c) => false;
 }", expectedOutput: "False");
         }
 
@@ -246,7 +288,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-record C(int X, int Y)
+sealed record C(int X, int Y)
 {
     public static void Main()
     {
@@ -318,31 +360,32 @@ False");
 }");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0040
+  IL_0001:  brfalse.s  IL_0045
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0040
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int C.<X>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int C.<X>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  brfalse.s  IL_0040
-  IL_0029:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0034:  ldarg.1
-  IL_0035:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_003f:  ret
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_0045
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C.<X>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int C.<X>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  brfalse.s  IL_0045
+  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0039:  ldarg.1
+  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0044:  ret
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
 }");
         }
 
@@ -411,38 +454,39 @@ True
 True");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       90 (0x5a)
+  // Code size       95 (0x5f)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0058
+  IL_0001:  brfalse.s  IL_005d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0058
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int C.<X>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int C.<X>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  brfalse.s  IL_0058
-  IL_0029:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0034:  ldarg.1
-  IL_0035:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_003f:  brfalse.s  IL_0058
-  IL_0041:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0046:  ldarg.0
-  IL_0047:  ldfld      ""int C.Z""
-  IL_004c:  ldarg.1
-  IL_004d:  ldfld      ""int C.Z""
-  IL_0052:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0057:  ret
-  IL_0058:  ldc.i4.0
-  IL_0059:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_005d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C.<X>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int C.<X>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  brfalse.s  IL_005d
+  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0039:  ldarg.1
+  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0044:  brfalse.s  IL_005d
+  IL_0046:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_004b:  ldarg.0
+  IL_004c:  ldfld      ""int C.Z""
+  IL_0051:  ldarg.1
+  IL_0052:  ldfld      ""int C.Z""
+  IL_0057:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_005c:  ret
+  IL_005d:  ldc.i4.0
+  IL_005e:  ret
 }");
         }
 
@@ -498,31 +542,32 @@ True
 True");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0040
+  IL_0001:  brfalse.s  IL_0045
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0040
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int C.<X>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int C.<X>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  brfalse.s  IL_0040
-  IL_0029:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0034:  ldarg.1
-  IL_0035:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_003f:  ret
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_0045
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C.<X>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int C.<X>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  brfalse.s  IL_0045
+  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0039:  ldarg.1
+  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0044:  ret
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
 }");
         }
 
@@ -554,31 +599,32 @@ True
 True");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0040
+  IL_0001:  brfalse.s  IL_0045
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0040
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int C.<X>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int C.<X>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  brfalse.s  IL_0040
-  IL_0029:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0034:  ldarg.1
-  IL_0035:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_003f:  ret
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_0045
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C.<X>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int C.<X>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  brfalse.s  IL_0045
+  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0039:  ldarg.1
+  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0044:  ret
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
 }");
         }
 
@@ -609,38 +655,39 @@ True
 True");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       90 (0x5a)
+  // Code size       95 (0x5f)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0058
+  IL_0001:  brfalse.s  IL_005d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0058
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int C.<X>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int C.<X>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  brfalse.s  IL_0058
-  IL_0029:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0034:  ldarg.1
-  IL_0035:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_003f:  brfalse.s  IL_0058
-  IL_0041:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
-  IL_0046:  ldarg.0
-  IL_0047:  ldfld      ""System.Action C.E""
-  IL_004c:  ldarg.1
-  IL_004d:  ldfld      ""System.Action C.E""
-  IL_0052:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
-  IL_0057:  ret
-  IL_0058:  ldc.i4.0
-  IL_0059:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_005d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C.<X>k__BackingField""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int C.<X>k__BackingField""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  brfalse.s  IL_005d
+  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0039:  ldarg.1
+  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0044:  brfalse.s  IL_005d
+  IL_0046:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
+  IL_004b:  ldarg.0
+  IL_004c:  ldfld      ""System.Action C.E""
+  IL_0051:  ldarg.1
+  IL_0052:  ldfld      ""System.Action C.E""
+  IL_0057:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
+  IL_005c:  ret
+  IL_005d:  ldc.i4.0
+  IL_005e:  ret
 }");
         }
 
@@ -694,7 +741,11 @@ True");
             var comp = CreateCompilation(@"
 record C(int x, int y)
 {
-    public C(C other) : this(other.x, other.y) { }
+    public C(C other)
+    {
+        x = other.x;
+        y = other.y;
+    }
 }");
             comp.VerifyDiagnostics();
 
@@ -704,7 +755,7 @@ record C(int x, int y)
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(c, clone.ReturnType);
 
-            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
@@ -720,17 +771,36 @@ record C(int x, int y)
 ");
             verifier.VerifyIL("C..ctor(C)", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  3
+  // Code size       31 (0x1f)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  callvirt   ""int C.x.get""
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
   IL_0007:  ldarg.1
-  IL_0008:  callvirt   ""int C.y.get""
-  IL_000d:  call       ""C..ctor(int, int)""
-  IL_0012:  ret
+  IL_0008:  callvirt   ""int C.x.get""
+  IL_000d:  call       ""void C.x.init""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  callvirt   ""int C.y.get""
+  IL_0019:  call       ""void C.y.init""
+  IL_001e:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void RecordClone2_0_WithThisInitializer()
+        {
+            var comp = CreateCompilation(@"
+record C(int x, int y)
+{
+    public C(C other) : this(other.x, other.y) { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,25): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C other) : this(other.x, other.y) { }
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithLocation(4, 25)
+                );
         }
 
         [Fact]
@@ -742,11 +812,7 @@ record C(int x, int y)
 {
     public C(C other) { }
 }");
-            comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
-                //     public C(C other) { }
-                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -758,11 +824,7 @@ record C(int x, int y)
 {
     public C(C other) : base() { }
 }");
-            comp.VerifyDiagnostics(
-                // (4,25): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
-                //     public C(C other) : base() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(4, 25)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -924,38 +986,39 @@ True");
 }");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       90 (0x5a)
+  // Code size       95 (0x5f)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0058
+  IL_0001:  brfalse.s  IL_005d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
   IL_0009:  ldarg.1
   IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0058
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int C.X""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int C.X""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  brfalse.s  IL_0058
-  IL_0029:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0034:  ldarg.1
-  IL_0035:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_003f:  brfalse.s  IL_0058
-  IL_0041:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
-  IL_0046:  ldarg.0
-  IL_0047:  ldfld      ""System.Action C.E""
-  IL_004c:  ldarg.1
-  IL_004d:  ldfld      ""System.Action C.E""
-  IL_0052:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
-  IL_0057:  ret
-  IL_0058:  ldc.i4.0
-  IL_0059:  ret
+  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0014:  brfalse.s  IL_005d
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C.X""
+  IL_0021:  ldarg.1
+  IL_0022:  ldfld      ""int C.X""
+  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002c:  brfalse.s  IL_005d
+  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0039:  ldarg.1
+  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0044:  brfalse.s  IL_005d
+  IL_0046:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
+  IL_004b:  ldarg.0
+  IL_004c:  ldfld      ""System.Action C.E""
+  IL_0051:  ldarg.1
+  IL_0052:  ldfld      ""System.Action C.E""
+  IL_0057:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
+  IL_005c:  ret
+  IL_005d:  ldc.i4.0
+  IL_005e:  ret
 }");
         }
 
@@ -993,7 +1056,7 @@ record C
 }");
             var members = comp.GlobalNamespace.GetTypeMember("C").GetMembers();
             AssertEx.Equal(new[] {
-                "C! C.<>Clone()",
+                "C! C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type! C.EqualityContract.get",
                 "System.Type! C.EqualityContract { get; }",
                 "System.Int32 C.<X>k__BackingField",
@@ -1005,7 +1068,7 @@ record C
                 "System.String! C.Y.get",
                 "void C.Y.init",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
                 "C.C(C! )",
                 "C.C()",
@@ -1196,6 +1259,15 @@ enum G : C { }";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (3,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
@@ -1209,7 +1281,7 @@ enum G : C { }";
                 // struct F : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(7, 12),
                 // (8,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
-                // enum G : C
+                // enum G : C { }
                 Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(8, 10)
             );
         }
@@ -1240,17 +1312,26 @@ enum H : C { }
             });
 
             comp2.VerifyDiagnostics(
+                // (3,8): error CS0115: 'E.EqualityContract': no suitable method found to override
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.EqualityContract").WithLocation(3, 8),
+                // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
                 // (4,15): error CS0527: Type 'C' in interface list is not an interface
-                // interface E : C { }
+                // interface F : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(4, 15),
                 // (5,12): error CS0527: Type 'C' in interface list is not an interface
-                // struct F : C { }
+                // struct G : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(5, 12),
                 // (6,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
-                // enum G : C
+                // enum H : C { }
                 Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(6, 10)
             );
         }
@@ -1348,7 +1429,7 @@ class C
             Assert.True(clone.IsAbstract);
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(0, clone.Arity);
-            Assert.Equal("R R.<>Clone()", clone.ToTestDisplayString());
+            Assert.Equal("R R." + WellKnownMemberNames.CloneMethodName + "()", clone.ToTestDisplayString());
 
             var r2 = comp.GlobalNamespace.GetTypeMember("R2");
             var clone2 = (MethodSymbol)r2.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1358,7 +1439,7 @@ class C
             Assert.Equal(0, clone2.ParameterCount);
             Assert.Equal(0, clone2.Arity);
             Assert.True(clone2.OverriddenMethod.Equals(clone, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R2.<>Clone()", clone2.ToTestDisplayString());
+            Assert.Equal("R R2." + WellKnownMemberNames.CloneMethodName + "()", clone2.ToTestDisplayString());
 
             var r3 = comp.GlobalNamespace.GetTypeMember("R3");
             var clone3 = (MethodSymbol)r3.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1368,7 +1449,7 @@ class C
             Assert.Equal(0, clone3.ParameterCount);
             Assert.Equal(0, clone3.Arity);
             Assert.True(clone3.OverriddenMethod.Equals(clone2, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R3.<>Clone()", clone3.ToTestDisplayString());
+            Assert.Equal("R R3." + WellKnownMemberNames.CloneMethodName + "()", clone3.ToTestDisplayString());
 
             var r4 = comp.GlobalNamespace.GetTypeMember("R4");
             var clone4 = (MethodSymbol)r4.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1378,7 +1459,7 @@ class C
             Assert.Equal(0, clone4.ParameterCount);
             Assert.Equal(0, clone4.Arity);
             Assert.True(clone4.OverriddenMethod.Equals(clone3, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R4.<>Clone()", clone4.ToTestDisplayString());
+            Assert.Equal("R R4." + WellKnownMemberNames.CloneMethodName + "()", clone4.ToTestDisplayString());
 
             var r5 = comp.GlobalNamespace.GetTypeMember("R5");
             var clone5 = (MethodSymbol)r5.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1388,7 +1469,7 @@ class C
             Assert.Equal(0, clone5.ParameterCount);
             Assert.Equal(0, clone5.Arity);
             Assert.True(clone5.OverriddenMethod.Equals(clone4, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R5.<>Clone()", clone5.ToTestDisplayString());
+            Assert.Equal("R R5." + WellKnownMemberNames.CloneMethodName + "()", clone5.ToTestDisplayString());
 
             var verifier = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             verifier.VerifyIL("C.Main", @"
@@ -1396,10 +1477,10 @@ class C
   // Code size       28 (0x1c)
   .maxstack  1
   IL_0000:  newobj     ""R3..ctor()""
-  IL_0005:  callvirt   ""R R.<>Clone()""
+  IL_0005:  callvirt   ""R R." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000a:  pop
   IL_000b:  newobj     ""R5..ctor()""
-  IL_0010:  callvirt   ""R R.<>Clone()""
+  IL_0010:  callvirt   ""R R." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0015:  castclass  ""R4""
   IL_001a:  pop
   IL_001b:  ret

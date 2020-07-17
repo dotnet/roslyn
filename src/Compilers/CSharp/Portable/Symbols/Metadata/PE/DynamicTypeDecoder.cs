@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.PointerType:
                     return TransformPointerType((PointerTypeSymbol)type);
 
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     return TransformFunctionPointerType((FunctionPointerTypeSymbol)type);
 
                 case SymbolKind.DynamicType:

@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "Hi!");
+            Assert.Same(entryPoint, comp.GetEntryPoint(default));
+            Assert.False(entryPoint.CanBeReferencedByName);
+            Assert.False(entryPoint.ContainingType.CanBeReferencedByName);
+            Assert.Equal("<Main>$", entryPoint.Name);
+            Assert.Equal("<Program>$", entryPoint.ContainingType.Name);
         }
 
         private static void AssertEntryPointParameter(SynthesizedSimpleProgramEntryPointSymbol entryPoint)
@@ -6050,13 +6055,13 @@ extern static void internalCallStatic();
                     var methodName = peReader.GetString(methodDef.Name);
                     var expectedFlags = methodName switch
                     {
-                        "<$Main>g__forwardRef|0_0" => MethodImplAttributes.ForwardRef,
-                        "<$Main>g__noInlining|0_1" => MethodImplAttributes.NoInlining,
-                        "<$Main>g__noOptimization|0_2" => MethodImplAttributes.NoOptimization,
-                        "<$Main>g__synchronized|0_3" => MethodImplAttributes.Synchronized,
-                        "<$Main>g__internalCallStatic|0_4" => MethodImplAttributes.InternalCall,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__forwardRef|0_0" => MethodImplAttributes.ForwardRef,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__noInlining|0_1" => MethodImplAttributes.NoInlining,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__noOptimization|0_2" => MethodImplAttributes.NoOptimization,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__synchronized|0_3" => MethodImplAttributes.Synchronized,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__internalCallStatic|0_4" => MethodImplAttributes.InternalCall,
                         ".ctor" => MethodImplAttributes.IL,
-                        "$Main" => MethodImplAttributes.IL,
+                        WellKnownMemberNames.TopLevelStatementsEntryPointMethodName => MethodImplAttributes.IL,
                         _ => throw TestExceptionUtilities.UnexpectedValue(methodName)
                     };
 
@@ -6105,12 +6110,12 @@ static extern void local1();
 
             void validate(ModuleSymbol module)
             {
-                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>(SimpleProgramNamedTypeSymbol.UnspeakableName);
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
                 Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(cClass.GetAttributes().As<CSharpAttributeData>()));
 
-                Assert.Empty(cClass.GetMethod(SynthesizedSimpleProgramEntryPointSymbol.UnspeakableName).GetAttributes());
+                Assert.Empty(cClass.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes());
 
-                var localFn1 = cClass.GetMethod("<$Main>g__local1|0_0");
+                var localFn1 = cClass.GetMethod("<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__local1|0_0");
 
                 Assert.Empty(localFn1.GetAttributes());
                 validateLocalFunction(localFn1);
@@ -6569,7 +6574,7 @@ class B : A
 
             private void Handle2(SymbolStartAnalysisContext context)
             {
-                Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, context.Symbol.ToTestDisplayString());
+                Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, context.Symbol.ToTestDisplayString());
                 Interlocked.Increment(ref FireCount3);
                 context.RegisterSymbolEndAction(Handle5);
 
@@ -6606,7 +6611,7 @@ class B : A
 
             private void Handle5(SymbolAnalysisContext context)
             {
-                Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, context.Symbol.ToTestDisplayString());
+                Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, context.Symbol.ToTestDisplayString());
                 Interlocked.Increment(ref FireCount8);
             }
         }
@@ -7253,7 +7258,7 @@ class C1
                     case "C1":
                         Interlocked.Increment(ref FireCount3);
                         break;
-                    case SimpleProgramNamedTypeSymbol.UnspeakableName:
+                    case WellKnownMemberNames.TopLevelStatementsEntryPointTypeName:
                         Interlocked.Increment(ref FireCount4);
                         break;
                     default:
@@ -7590,14 +7595,14 @@ return;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program.$Main",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program"" name=""$Main"" parameterNames=""args"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7611,6 +7616,11 @@ return;
   </methods>
 </symbols>", options: PdbValidationOptions.SkipConversionValidation);
             }
+        }
+
+        private static string EscapeForXML(string toEscape)
+        {
+            return toEscape.Replace("<", "&lt;").Replace(">", "&gt;");
         }
 
         [Fact]
@@ -7632,14 +7642,14 @@ return 10;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program.$Main",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program"" name=""$Main"" parameterNames=""args"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7679,16 +7689,16 @@ return;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program+<$Main>d__0.MoveNext",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "+<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">d__0.MoveNext",
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program+&lt;$Main&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""$Program+&lt;&gt;c"" methodName=""&lt;$Main&gt;b__0_0"" />
+        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""33"" offset=""76"" />
@@ -7709,8 +7719,8 @@ return;
       </sequencePoints>
       <asyncInfo>
         <catchHandler offset=""0xa9"" />
-        <kickoffMethod declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""$Program+&lt;$Main&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -7742,16 +7752,16 @@ return 11;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program+<$Main>d__0.MoveNext",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "+<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">d__0.MoveNext",
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program+&lt;$Main&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""$Program+&lt;&gt;c"" methodName=""&lt;$Main&gt;b__0_0"" />
+        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""20"" offset=""2"" />
@@ -7773,8 +7783,8 @@ return 11;
       </sequencePoints>
       <asyncInfo>
         <catchHandler offset=""0xac"" />
-        <kickoffMethod declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""$Program+&lt;$Main&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -8211,7 +8221,7 @@ System.Console.WriteLine(""Hi!"");
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
 @"
 {
   // Code size        2 (0x2)
@@ -8289,7 +8299,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
 @"
 {
   // Code size       20 (0x14)
@@ -8336,7 +8346,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithOverflowChecks(true), parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
 @"
 {
   // Code size       20 (0x14)

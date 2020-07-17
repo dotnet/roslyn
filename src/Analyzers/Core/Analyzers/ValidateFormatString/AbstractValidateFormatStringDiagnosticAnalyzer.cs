@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             }
 
             var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
-            return semanticModel.GetTypeInfo(expression).Type;
+            return semanticModel.GetTypeInfo(expression).ConvertedType;
         }
 
         protected SyntaxNode? TryGetArgument(

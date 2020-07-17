@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return ImmutableArray<RegexTrivia>.Empty;
             }
 
-            var result = ArrayBuilder<RegexTrivia>.GetInstance();
+            using var _ = ArrayBuilder<RegexTrivia>.GetInstance(out var result);
 
             while (Position < Text.Length)
             {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 break;
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         public RegexTrivia? ScanComment(RegexOptions options)

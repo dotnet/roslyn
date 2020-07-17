@@ -556,6 +556,9 @@
   <data name="InvalidTree" xml:space="preserve">
     <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
   </data>
+  <data name="InvalidAdditionalFile" xml:space="preserve">
+    <value>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</value>
+  </data>
   <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
     <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
   </data>
@@ -702,6 +705,6 @@
   </data>
   <data name="HintNameInvalidChar" xml:space="preserve">
     <value>The hintName contains an invalid character '{0}' at position {1}.</value>
-    <comment>{0}: the invalid character, {1} the position it occured at</comment>
+    <comment>{0}: the invalid character, {1} the position it occurred at</comment>
   </data>
 </root>
