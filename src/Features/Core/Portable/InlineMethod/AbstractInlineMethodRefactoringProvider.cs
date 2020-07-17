@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
@@ -33,6 +33,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// input parameters from <param name="methodInvocationSyntaxNode"/>
         /// </summary>
         protected abstract SyntaxNode ReplaceParametersInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel);
+
+        /// <summary>
+        /// Generate the 
+        /// </summary>
+        /// <param name="methodInvovation"></param>
+        /// <param name="semanticModel"></param>
+        /// <param name="variableDeclarations"></param>
+        /// <returns></returns>
+        protected abstract bool TryGetVariableDeclarationsForOutParameters(SyntaxNode methodInvovation, SemanticModel semanticModel, out ImmutableArray<SyntaxNode> variableDeclarations);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -83,7 +92,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
         }
 
-        private Task<Document> InlineMethodAsync(
+        private async Task<Document> InlineMethodAsync(
             Document document,
             SemanticModel semanticModel,
             SyntaxNode methodInvocationSyntaxNode,
@@ -91,6 +100,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             SyntaxNode methodDeclarationSyntaxNode,
             CancellationToken cancellationToken)
         {
+            var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
             // 1. Using the input parameter from caller to replace callee's parameter. Because this feature only supports
             // one line scenario now, there won't be any naming conflict.
             var methodDeclarationAfterParameterReplacement = ReplaceParametersInMethodDeclaration(methodDeclarationSyntaxNode, methodInvocationSyntaxNode, methodSymbol, semanticModel);
@@ -98,7 +109,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // 2. Extract the Expression from the statement.
             var methodStatement = ExtractExpressionFromMethodDeclaration(methodDeclarationAfterParameterReplacement);
 
-            return document.ReplaceNodeAsync(methodInvocationSyntaxNode, methodStatement, cancellationToken);
+            // 3. Generate local variables for out variables.
+            if (TryGetVariableDeclarationsForOutParameters(methodInvocationSyntaxNode, semanticModel, out var variableDeclarations))
+            {
+                documentEditor.InsertBefore(methodInvocationSyntaxNode, variableDeclarations);
+            }
+
+            documentEditor.ReplaceNode(methodInvocationSyntaxNode, methodStatement);
+            return documentEditor.GetChangedDocument();
         }
     }
 }

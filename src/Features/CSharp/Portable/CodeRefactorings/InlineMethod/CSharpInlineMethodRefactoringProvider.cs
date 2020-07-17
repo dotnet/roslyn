@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
@@ -99,6 +100,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override SyntaxNode ReplaceParametersInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel)
         {
             return methodDeclarationSyntaxNode;
+        }
+
+        protected override bool TryGetVariableDeclarationsForOutParameters(SyntaxNode methodInvovation, SemanticModel semanticModel, out ImmutableArray<SyntaxNode> variableDeclarations)
+        {
+            variableDeclarations = default;
+            if (methodInvovation is InvocationExpressionSyntax invocationExpressionSyntax)
+            {
+                var outParametersVariableDeclaration = invocationExpressionSyntax.ArgumentList.Arguments
+                    .Where(arg => arg.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword && arg.Expression is DeclarationExpressionSyntax)
+                    .ToImmutableArray();
+                if (outParametersVariableDeclaration.Any())
+                {
+                    variableDeclarations = outParametersVariableDeclaration
+                        .Select(outVariable => GenerateLocalDeclarationStatement((DeclarationExpressionSyntax)outVariable.Expression, semanticModel))
+                        .OfType<SyntaxNode>().ToImmutableArray();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement(
+            DeclarationExpressionSyntax declarationExpressionSyntax,
+            SemanticModel semanticModel)
+        {
+            var typeSyntax = declarationExpressionSyntax.Type;
+            if (typeSyntax.IsVar)
+            {
+                // TODO: cancellationToken
+                var convertedType = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
+                if (convertedType != null)
+                {
+                    typeSyntax = convertedType.GenerateTypeSyntax(allowVar: false);
+                }
+            }
+
+            return SyntaxFactory.LocalDeclarationStatement(
+                   SyntaxFactory.VariableDeclaration(
+                       typeSyntax, SyntaxFactory.SingletonSeparatedList(
+                           SyntaxFactory.VariableDeclarator(
+                               ((SingleVariableDesignationSyntax)declarationExpressionSyntax.Designation).Identifier))));
         }
     }
 }
