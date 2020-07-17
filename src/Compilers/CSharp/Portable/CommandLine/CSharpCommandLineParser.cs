@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool publicSign = false;
             string? sourceLink = null;
             string? ruleSetPath = null;
+            decimal warningVersion = 0m;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -905,6 +906,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             continue;
 
+                        case "warnversion":
+                            value = RemoveQuotesAndSlashes(value);
+                            decimal newWarningVersion;
+                            if (string.IsNullOrEmpty(value) ||
+                                !decimal.TryParse(value, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out newWarningVersion))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
+                            }
+                            else if (newWarningVersion < 0m)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningVersion, name);
+                            }
+                            else
+                            {
+                                warningVersion = newWarningVersion;
+                            }
+                            continue;
+
                         case "nowarn":
                             if (value == null)
                             {
@@ -1419,7 +1438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 warningLevel: warningLevel,
                 specificDiagnosticOptions: diagnosticOptions,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
-                publicSign: publicSign
+                publicSign: publicSign,
+                warningVersion: warningVersion
             );
 
             if (debugPlus)

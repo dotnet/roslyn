@@ -5210,6 +5210,49 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify();
         }
 
+        [Fact]
+        public void WarningVersion()
+        {
+            var parsedArgs = DefaultParse(new string[] { "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
+
+            parsedArgs = DefaultParse(new string[] { "/warnversion", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_SwitchNeedsNumber).WithArguments("warnversion").WithLocation(1, 1)
+                );
+            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
+
+            parsedArgs = DefaultParse(new string[] { "/warnversion:", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_SwitchNeedsNumber).WithArguments("warnversion").WithLocation(1, 1)
+                );
+            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
+
+            parsedArgs = DefaultParse(new string[] { "/warnversion:-1", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // Warning version must be greater than or equal to '0'.
+                Diagnostic(ErrorCode.ERR_BadWarningVersion).WithArguments("warnversion").WithLocation(1, 1)
+                );
+            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
+
+            parsedArgs = DefaultParse(new string[] { "/warnversion:0", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
+
+            parsedArgs = DefaultParse(new string[] { "/warnversion:5", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(5m, parsedArgs.CompilationOptions.WarningVersion);
+
+            parsedArgs = DefaultParse(new string[] { "/warnversion:5.1", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(5.1m, parsedArgs.CompilationOptions.WarningVersion);
+
+            parsedArgs = DefaultParse(new string[] { "/warnversion:9999", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(9999m, parsedArgs.CompilationOptions.WarningVersion);
+        }
+
         private static void AssertSpecificDiagnostics(int[] expectedCodes, ReportDiagnostic[] expectedOptions, CSharpCommandLineArguments args)
         {
             var actualOrdered = args.CompilationOptions.SpecificDiagnosticOptions.OrderBy(entry => entry.Key);
@@ -12617,6 +12660,61 @@ key3 = value3");
             Assert.Contains("b.txt(1,3): warning ID0001", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(srcDirectory.Path);
+        }
+
+        [Fact, WorkItem(45702, "https://github.com/dotnet/roslyn/issues/45702")]
+        public void TestWarningVersion()
+        {
+            string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
+class Program
+{
+    public static void Main() { }
+    public static void M(S s)
+    {
+        if (s == null) { }
+    }
+}
+struct S
+{
+    public static bool operator==(S s1, S s2) => false;
+    public static bool operator!=(S s1, S s2) => true;
+    public override bool Equals(object other) => false;
+    public override int GetHashCode() => 0;
+}
+").Path;
+
+            var baseDir = Path.GetDirectoryName(source);
+            var fileName = Path.GetFileName(source);
+            decimal requiredVersion = ErrorCode.WRN_NubExprIsConstBool2.GetWarningVersion();
+            Assert.Equal(5m, requiredVersion);
+
+            foreach (decimal level in new[] { -1m, 0m, 4m, 4.9m, 5m, 5.0m, 5.1m, 9999m })
+            {
+                var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+                int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", FormattableString.Invariant($"/warnversion:{level}"), source.ToString() }).Run(outWriter);
+
+                if (level < 0)
+                {
+                    Assert.Equal(1, exitCode);
+                    Assert.Equal(
+                        "error CS8848: Warning version must be greater than or equal to '0'.",
+                        outWriter.ToString().Trim());
+                }
+                else if (level >= requiredVersion)
+                {
+                    Assert.Equal(0, exitCode);
+                    Assert.Equal(
+                        $@"{fileName}(7,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'S?'",
+                        outWriter.ToString().Trim());
+                }
+                else
+                {
+                    Assert.Equal(0, exitCode);
+                    Assert.Equal("", outWriter.ToString().Trim());
+                }
+
+                CleanupAllGeneratedFiles(source);
+            }
         }
     }
 
