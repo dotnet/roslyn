@@ -68,12 +68,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public string[] AnalyzerIds;
 
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public DiagnosticArguments()
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        {
-        }
-
         public DiagnosticArguments(
             bool isHighPriority,
             bool reportSuppressedDiagnostics,
