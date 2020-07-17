@@ -22,17 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         {
         }
 
-        protected override ITypeSymbol? GetSymbolType(SyntaxNode node, SemanticModel model)
+        protected override ITypeSymbol? GetSymbolType(SemanticModel model, SyntaxNode node)
         {
-            if (node is MemberAccessExpressionSyntax memberAccess)
+            if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression})
             {
-                var expression = memberAccess.Expression;
-                if (expression is TypeOfExpressionSyntax typeOfExpresison)
-                {
-                    return model.GetSymbolInfo(typeOfExpresison.Type).Symbol.GetSymbolType();
-                }
+                return model.GetSymbolInfo(typeOfExpression.Type).Symbol.GetSymbolType();
             }
-            
             return null;
         }
     }

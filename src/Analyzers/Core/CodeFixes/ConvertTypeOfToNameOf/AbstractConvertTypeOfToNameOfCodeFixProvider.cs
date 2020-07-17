@@ -46,17 +46,13 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         /// </Summary>
         public void ConvertTypeOfToNameOf(SyntaxEditor editor, SyntaxNode nodeToReplace, SemanticModel semanticModel)
         {
-            var symbolType = GetSymbolType(nodeToReplace, semanticModel);
-
-            if (symbolType != null)
-            {
-                var typeExpression = editor.Generator.TypeExpression(symbolType);
-                var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
-                editor.ReplaceNode(nodeToReplace, nameOfSyntax);
-            }
+            var symbolType = GetSymbolType(semanticModel, nodeToReplace);
+            var typeExpression = editor.Generator.TypeExpression(symbolType);
+            var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
+            editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
-        protected abstract ITypeSymbol GetSymbolType(SyntaxNode node, SemanticModel model);
+        protected abstract ITypeSymbol GetSymbolType(SemanticModel model, SyntaxNode node);
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

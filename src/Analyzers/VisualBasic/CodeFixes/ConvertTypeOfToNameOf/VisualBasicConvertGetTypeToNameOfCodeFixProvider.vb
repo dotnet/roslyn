@@ -13,23 +13,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf)>
-    Friend Class VisualBasicConvertTypeOfToNameOfCodeFixProvider
+    Friend Class VisualBasicConvertGetTypeToNameOfCodeFixProvider
         Inherits AbstractConvertTypeOfToNameOfCodeFixProvider
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
-        Protected Overrides Function GetSymbolType(node As SyntaxNode, semanticModel As SemanticModel) As ITypeSymbol
-            If node.GetType() Is GetType(MemberAccessExpressionSyntax) Then
-                Dim expression = DirectCast(node, MemberAccessExpressionSyntax).Expression
-                If expression.GetType() Is GetType(TypeOfExpressionSyntax) Then
-                    Dim type = DirectCast(expression, TypeOfExpressionSyntax).Type
-                    Return semanticModel.GetSymbolInfo(type).Symbol.GetSymbolType()
-                End If
-                Return Nothing
-            End If
-            Return Nothing
+        Protected Overrides Function GetSymbolType(semanticModel As SemanticModel, node As SyntaxNode) As ITypeSymbol
+            Dim expression = DirectCast(node, MemberAccessExpressionSyntax).Expression
+            Dim type = DirectCast(expression, GetTypeExpressionSyntax).Type
+            Return semanticModel.GetSymbolInfo(type).Symbol.GetSymbolType()
         End Function
     End Class
 End Namespace
