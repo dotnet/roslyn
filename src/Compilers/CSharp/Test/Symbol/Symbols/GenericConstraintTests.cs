@@ -5632,13 +5632,10 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public virtual T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),
-                // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Please use language version 'preview' or greater to use annotations with unconstrained type parameters, or consider adding a 'class', 'struct', or type constraint.
-                //     public virtual T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(4, 20),
                 // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public override T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
