@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,9 +19,8 @@ using KnownTypes = Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMet
 
 namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 {
-    internal abstract class AbstractRemoveAsyncModifierCodeFixProvider<TReturnStatementSyntax, TExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractRemoveAsyncModifierCodeFixProvider<TReturnStatementSyntax> : SyntaxEditorBasedCodeFixProvider
         where TReturnStatementSyntax : SyntaxNode
-        where TExpressionSyntax : SyntaxNode
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 

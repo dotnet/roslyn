@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider
 Imports Microsoft.CodeAnalysis.RemoveAsyncModifier
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveAsyncModifier), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.MakeMethodSynchronous)>
     Friend Class VisualBasicRemoveAsyncModifierCodeFixProvider
-        Inherits AbstractRemoveAsyncModifierCodeFixProvider(Of ReturnStatementSyntax, ExpressionSyntax)
+        Inherits AbstractRemoveAsyncModifierCodeFixProvider(Of ReturnStatementSyntax)
 
         Private Const BC42356 As String = NameOf(BC42356) ' This async method lacks 'Await' operators and so will run synchronously.
 
