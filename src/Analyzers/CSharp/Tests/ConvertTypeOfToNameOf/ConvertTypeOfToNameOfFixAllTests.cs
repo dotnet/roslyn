@@ -115,9 +115,9 @@ class Test1
 {
     static void Main()
     {
-        var typeName1 = {|FixAllInProject:typeof(Test).Name|};
-        var typeName2 = typeof(Test).Name;
-        var typeName3 = typeof(Test).Name;
+        var typeName1 = {|FixAllInProject:typeof(Test1).Name|};
+        var typeName2 = typeof(Test1).Name;
+        var typeName3 = typeof(Test1).Name;
     }
 }
         </Document>
@@ -128,7 +128,7 @@ class Test2
 {
     static void Main()
     {
-        var typeName1 = typeof(Test).Name;
+        var typeName1 = typeof(Test1).Name;
         var typeName2 = typeof(int).Name;
         var typeName3 = typeof(System.String).Name;
         var typeName4 = typeof(Double).Name;
@@ -146,9 +146,9 @@ class Test1
 {
     static void Main()
     {
-        var typeName1 = nameof(Test);
-        var typeName2 = nameof(Test);
-        var typeName3 = nameof(Test);
+        var typeName1 = nameof(Test1);
+        var typeName2 = nameof(Test1);
+        var typeName3 = nameof(Test1);
     }
 }
         </Document>
@@ -159,7 +159,7 @@ class Test2
 {
     static void Main()
     {
-        var typeName1 = nameof(Test);
+        var typeName1 = nameof(Test1);
         var typeName2 = nameof(Int32);
         var typeName3 = nameof(String);
         var typeName4 = nameof(Double);
@@ -185,9 +185,9 @@ class Test1
 {
     static void Main()
     {
-        var typeName1 = {|FixAllInSolution:typeof(Test).Name|};
-        var typeName2 = typeof(Test).Name;
-        var typeName3 = typeof(Test).Name;
+        var typeName1 = {|FixAllInSolution:typeof(Test1).Name|};
+        var typeName2 = typeof(Test1).Name;
+        var typeName3 = typeof(Test1).Name;
     }
 }
         </Document>
@@ -198,7 +198,7 @@ class Test2
 {
     static void Main()
     {
-        var typeName1 = typeof(Test).Name;
+        var typeName1 = typeof(Test1).Name;
         var typeName2 = typeof(int).Name;
         var typeName3 = typeof(System.String).Name;
         var typeName4 = typeof(Double).Name;
@@ -212,7 +212,7 @@ class Test3
 {
     static void Main()
     {
-        var typeName1 = typeof(Test).Name; var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
+        var typeName1 = typeof(Test1).Name; var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
     }
 }
         </Document>
@@ -227,9 +227,9 @@ class Test1
 {
     static void Main()
     {
-        var typeName1 = nameof(Test);
-        var typeName2 = nameof(Test);
-        var typeName3 = nameof(Test);
+        var typeName1 = nameof(Test1);
+        var typeName2 = nameof(Test1);
+        var typeName3 = nameof(Test1);
     }
 }
         </Document>
@@ -240,7 +240,7 @@ class Test2
 {
     static void Main()
     {
-        var typeName1 = nameof(Test);
+        var typeName1 = nameof(Test1);
         var typeName2 = nameof(Int32);
         var typeName3 = nameof(String);
         var typeName4 = nameof(Double);
@@ -254,7 +254,7 @@ class Test3
 {
     static void Main()
     {
-        var typeName1 = nameof(Test); var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
+        var typeName1 = nameof(Test1); var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
     }
 }
         </Document>
