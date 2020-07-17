@@ -16,6 +16,122 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveAsync
     public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task Method_Task_MultipleAndNested()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task {|CS1998:Goo|}()
+    {
+        if (DateTime.Now.Ticks > 0)
+        {
+            return;
+        }
+    }
+
+    async Task {|CS1998:Foo|}()
+    {
+        Console.WriteLine(1);
+    }
+
+    async Task {|CS1998:Bar|}()
+    {
+        async Task {|CS1998:Baz|}()
+        {
+            Func<Task<int>> g = async () {|CS1998:=>|} 5;
+        }
+    }
+
+    async Task<string> {|CS1998:Tur|}()
+    {
+        async Task<string> {|CS1998:Duck|}()
+        {
+            async Task<string> {|CS1998:En|}()
+            {
+                return ""Developers!"";
+            }
+
+            return ""Developers! Developers!"";
+        }
+
+        return ""Developers! Developers! Developers!"";
+    }
+
+    async Task {|CS1998:Nurk|}()
+    {
+        Func<Task<int>> f = async () {|CS1998:=>|} 4;
+
+        if (DateTime.Now.Ticks > f().Result)
+        {
+        }
+    }
+}",
+@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    Task Goo()
+    {
+        if (DateTime.Now.Ticks > 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    Task Foo()
+    {
+        Console.WriteLine(1);
+        return Task.CompletedTask;
+    }
+
+    Task Bar()
+    {
+        Task Baz()
+        {
+            Func<Task<int>> g = () => Task.FromResult(5);
+            return Task.CompletedTask;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    Task<string> Tur()
+    {
+        Task<string> Duck()
+        {
+            Task<string> En()
+            {
+                return Task.FromResult(""Developers!"");
+            }
+
+            return Task.FromResult(""Developers! Developers!"");
+        }
+
+        return Task.FromResult(""Developers! Developers! Developers!"");
+    }
+
+    Task Nurk()
+    {
+        Func<Task<int>> f = () => Task.FromResult(4);
+
+        if (DateTime.Now.Ticks > f().Result)
+        {
+        }
+
+        return Task.CompletedTask;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
         public async Task Method_Task_EmptyBlockBody()
         {
             await VerifyCS.VerifyCodeFixAsync(

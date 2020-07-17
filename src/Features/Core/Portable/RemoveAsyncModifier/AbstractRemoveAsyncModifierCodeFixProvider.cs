@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             var compilation = semanticModel.Compilation;
             var knownTypes = new KnownTypes(compilation);
 
-            foreach (var diagnostic in diagnostics)
+            foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
                 var token = diagnostic.Location.FindToken(cancellationToken);
                 var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
@@ -88,7 +88,18 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     continue;
                 }
 
-                RemoveAsyncModifier(editor, semanticModel, node, methodSymbol, knownTypes);
+                // We might need to perform control flow analysis as part of the fix, so we need to do it on the original node
+                // so do it up front. Nothing in the fixer changes the reachabiliy of the end of the method so this is safe
+                var controlFlow = GetControlFlowAnalysis(generator, semanticModel, node);
+                // If control flow couldn't be computed then its probably an empty block, which means we need to add a return anyway
+                var needsReturnStatementAdded = (controlFlow == null || controlFlow.EndPointIsReachable);
+
+                editor.ReplaceNode(node, (n, generator) =>
+                {
+                    var subEditor = new SyntaxEditor(n, generator);
+                    RemoveAsyncModifier(subEditor, needsReturnStatementAdded, n, methodSymbol, knownTypes);
+                    return subEditor.GetChangedRoot();
+                });
             }
         }
 
@@ -106,14 +117,11 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             => returnType.OriginalDefinition.Equals(knownTypes._taskType)
                 || returnType.OriginalDefinition.Equals(knownTypes._valueTaskType);
 
-        private void RemoveAsyncModifier(SyntaxEditor editor, SemanticModel semanticModel, SyntaxNode originalNode, IMethodSymbol methodSymbol, KnownTypes knownTypes)
+        private void RemoveAsyncModifier(SyntaxEditor editor, bool needsReturnStatementAdded, SyntaxNode originalNode, IMethodSymbol methodSymbol, KnownTypes knownTypes)
         {
-            // SyntaxEditor can't change or remove tokens so we have to replace the whole node for the method
-            // which means this edit must come first
             var replacementNode = RemoveAsyncModifier(methodSymbol, originalNode, knownTypes);
             editor.ReplaceNode(originalNode, replacementNode);
 
-            // Now that we've replaced the original node we have to work on the replacement for future work
             if (TryGetExpressionBody(replacementNode, out var expressionBody))
             {
                 if (IsTaskType(methodSymbol.ReturnType, knownTypes))
@@ -140,12 +148,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             {
                 if (IsTaskType(methodSymbol.ReturnType, knownTypes))
                 {
-                    // Note that we have to use the original node to do control flow analysis, but the reachability of it is the same
-                    var controlFlow = GetControlFlowAnalysis(editor.Generator, semanticModel, originalNode);
-
                     // If the end of the method isn't reachable, or there were no statements to analyze, then we
                     // need to add an explicit return
-                    if (controlFlow == null || controlFlow.EndPointIsReachable)
+                    if (needsReturnStatementAdded)
                     {
                         AddReturnStatement(editor, replacementNode, methodSymbol.ReturnType, knownTypes);
                     }
