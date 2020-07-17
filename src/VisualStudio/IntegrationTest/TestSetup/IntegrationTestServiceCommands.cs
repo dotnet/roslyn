@@ -45,6 +45,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         private IntegrationService _service;
         private IpcServerChannel _serviceChannel;
 
+#pragma warning disable IDE0052 // Remove unread private members - used to hold the marshalled integration test service
+        private ObjRef _marshalledService;
+#pragma warning restore IDE0052 // Remove unread private members
+
         private IntegrationTestServiceCommands(Package package)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
@@ -107,6 +111,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                     sinkProvider: DefaultSinkProvider
                 );
 
+                var serviceType = typeof(IntegrationService);
+                _marshalledService = RemotingServices.Marshal(_service, serviceType.FullName, serviceType);
+
                 _serviceChannel.StartListening(null);
 
                 var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
@@ -130,6 +137,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                     _serviceChannel = null;
                 }
 
+                _marshalledService = null;
                 _service = null;
 
                 var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
