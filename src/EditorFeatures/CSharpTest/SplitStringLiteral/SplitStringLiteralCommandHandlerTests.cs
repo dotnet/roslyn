@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// this known test infrastructure issure. This bug does not represent a product
         /// failure.
         /// </summary>
-        private void TestWorker(
+        private static void TestWorker(
             string inputMarkup,
             string expectedOutputMarkup,
             Action callback,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// this known test infrastructure issure. This bug does not represent a product
         /// failure.
         /// </summary>
-        private void TestHandled(
+        private static void TestHandled(
             string inputMarkup, string expectedOutputMarkup,
             bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart,
             bool useTabs = false)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 verifyUndo, indentStyle, useTabs);
         }
 
-        private void TestNotHandled(string inputMarkup)
+        private static void TestNotHandled(string inputMarkup)
         {
             var notHandled = false;
             TestWorker(

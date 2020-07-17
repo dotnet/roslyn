@@ -205,14 +205,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.NotSame(diagnostics1[0], diagnostics2[0]);
             Assert.NotSame(diagnostics1[1], diagnostics2[1]);
             Assert.Equal(diagnostics1, diagnostics2);
-            Assert.True(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
+            Assert.True(AnalyzerHelper.AreEquivalent(diagnostics1, diagnostics2));
 
             // Verify that not all collections are treated as equivalent.
             diagnostics1 = new[] { diagnostics1[0] };
             diagnostics2 = new[] { diagnostics2[1] };
 
             Assert.NotEqual(diagnostics1, diagnostics2);
-            Assert.False(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
+            Assert.False(AnalyzerHelper.AreEquivalent(diagnostics1, diagnostics2));
 #endif
         }
 

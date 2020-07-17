@@ -63,7 +63,7 @@ class Hello
 
         private static IClientConnection CreateClientConnection(Task<ConnectionData> task)
         {
-            var connection = new Mock<IClientConnection>();
+            var connection = new Mock<IClientConnection>(MockBehavior.Strict);
             connection
                 .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(task);
@@ -72,7 +72,7 @@ class Hello
 
         private static IClientConnectionHost CreateClientConnectionHost(params Task<IClientConnection>[] connections)
         {
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             var index = 0;
             host
                 .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
@@ -119,7 +119,7 @@ class Hello
 
         private static Mock<IClientConnectionHost> CreateNopClientConnectionHost()
         {
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
                 .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
@@ -137,7 +137,7 @@ class Hello
         public async Task ClientConnectionThrowsHandlingBuild()
         {
             var ex = new Exception();
-            var clientConnection = new Mock<IClientConnection>();
+            var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
             clientConnection
                 .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(FromException<ConnectionData>(ex));
@@ -163,7 +163,7 @@ class Hello
         public void KeepAliveNoConnections()
         {
             var keepAlive = TimeSpan.FromSeconds(3);
-            var connectionHost = new Mock<IClientConnectionHost>();
+            var connectionHost = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             connectionHost
                 .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
@@ -231,7 +231,7 @@ class Hello
             var totalCount = 2;
             var readySource = new TaskCompletionSource<bool>();
             var list = new List<TaskCompletionSource<ConnectionData>>();
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
                 .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken ct) =>
@@ -271,7 +271,7 @@ class Hello
         [Fact]
         public void ClientExceptionShouldBeginShutdown()
         {
-            var client = new Mock<IClientConnection>();
+            var client = new Mock<IClientConnection>(MockBehavior.Strict);
             client
                 .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Throws(new Exception());
@@ -279,7 +279,7 @@ class Hello
             var listenCancellationToken = default(CancellationToken);
             var first = true;
 
-            var host = new Mock<IClientConnectionHost>();
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
                 .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken cancellationToken) =>
@@ -512,7 +512,7 @@ class Hello
                     }
 
                     cancellationToken.WaitHandle.WaitOne();
-                    return new RejectedBuildResponse();
+                    return new RejectedBuildResponse("");
                 };
 
                 var list = new List<Task<BuildResponse>>();

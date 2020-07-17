@@ -1499,7 +1499,7 @@ class C(int X, int Y)
                     N(SyntaxKind.BaseList);
                     {
                         N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.SimpleBaseType);
+                        N(withBaseArguments ? SyntaxKind.PrimaryConstructorBaseType : SyntaxKind.SimpleBaseType);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -1797,7 +1797,7 @@ class C(int X, int Y)
                     N(SyntaxKind.BaseList);
                     {
                         N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.SimpleBaseType);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
                         {
                             N(SyntaxKind.IdentifierName);
                             {

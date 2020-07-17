@@ -464,6 +464,7 @@ namespace AnalyzerRunner
             WriteLine($"Symbol End Actions:             {telemetry.SymbolEndActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Node Actions:            {telemetry.SyntaxNodeActionsCount}", ConsoleColor.White);
             WriteLine($"Syntax Tree Actions:            {telemetry.SyntaxTreeActionsCount}", ConsoleColor.White);
+            WriteLine($"Additional File Actions:        {telemetry.AdditionalFileActionsCount}", ConsoleColor.White);
 
             WriteLine($"Suppression Actions:            {telemetry.SuppressionActionsCount}", ConsoleColor.White);
         }

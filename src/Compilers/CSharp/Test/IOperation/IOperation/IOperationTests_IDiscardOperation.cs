@@ -359,7 +359,7 @@ Block[B5] - Exit
 
         [WorkItem(27086, "https://github.com/dotnet/roslyn/issues/27086")]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
+        [Fact]
         public void DiscardFlow_06()
         {
             string source = @"
@@ -386,11 +386,10 @@ Block[B1] - Block
     Statements (0)
     Jump if False (Regular) to Block[B2]
         IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is var _')
-          Expression: 
+          Value: 
             IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
           Pattern: 
-            IDeclarationPatternOperation (Declared Symbol: System.Object _) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var _')
-
+            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1*2]

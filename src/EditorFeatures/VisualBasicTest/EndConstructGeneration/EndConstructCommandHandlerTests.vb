@@ -11,10 +11,10 @@ Imports Moq
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
     Public Class EndConstructCommandHandlerTests
-        Private _endConstructServiceMock As New Mock(Of IEndConstructGenerationService)
-        Private _featureOptions As New Mock(Of IOptionService)(MockBehavior.Strict)
-        Private _textViewMock As New Mock(Of ITextView)
-        Private _textBufferMock As New Mock(Of ITextBuffer)
+        Private ReadOnly _endConstructServiceMock As New Mock(Of IEndConstructGenerationService)(MockBehavior.Strict)
+        Private ReadOnly _featureOptions As New Mock(Of IOptionService)(MockBehavior.Strict)
+        Private ReadOnly _textViewMock As New Mock(Of ITextView)(MockBehavior.Strict)
+        Private ReadOnly _textBufferMock As New Mock(Of ITextBuffer)(MockBehavior.Strict)
 
 #If False Then
         ' TODO(jasonmal): Figure out how to enable these tests.

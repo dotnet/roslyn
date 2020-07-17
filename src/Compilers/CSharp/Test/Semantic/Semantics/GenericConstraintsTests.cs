@@ -1827,9 +1827,9 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,39): error CS8380: The 'unmanaged' constraint must come before any other constraints
+                // (1,39): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
                 // public class Test<T> where T : class, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 39));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -1845,9 +1845,9 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : struct, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,40): error CS8380: The 'unmanaged' constraint must come before any other constraints
+                // (1,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
                 // public class Test<T> where T : struct, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 40));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 40));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -1882,7 +1882,7 @@ public class Test2
             CreateCompilation("public class Test<T> where T : System.Exception, unmanaged { }").VerifyDiagnostics(
                 // (1,50): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Exception, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 50));
         }
 
         [Fact]
@@ -1891,7 +1891,7 @@ public class Test2
             CreateCompilation("public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }").VerifyDiagnostics(
                 // (1,65): error CS8376: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 65));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 65));
         }
 
         [Fact]
@@ -1917,7 +1917,7 @@ public class Test2
             CreateCompilation("public class Test<T, U> where T : U, unmanaged { }").VerifyDiagnostics(
                 // (1,38): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T, U> where T : U, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 38));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 38));
         }
 
         [Fact]
@@ -4151,6 +4151,113 @@ public class MyClass
                     //         fixed (int* ptr = &ms.field)
                     Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&ms.field").WithLocation(12, 27)
                 );
+        }
+
+        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        public void CannotCombineDiagnostics()
+        {
+            var comp = CreateCompilation(@"
+class C1<T1> where T1 : class, struct, unmanaged, notnull
+{
+    void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+}
+class C2<T1> where T1 : struct, class, unmanaged, notnull
+{
+    void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+}
+class C3<T1> where T1 : class, class
+{
+    void M3<T2>() where T2 : class, class {}
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (2,32): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(2, 32),
+                // (2,40): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(2, 40),
+                // (2,51): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(2, 51),
+                // (4,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(4, 37),
+                // (4,45): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(4, 45),
+                // (4,56): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(4, 56),
+                // (6,33): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(6, 33),
+                // (6,40): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(6, 40),
+                // (6,51): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(6, 51),
+                // (8,38): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(8, 38),
+                // (8,45): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(8, 45),
+                // (8,56): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(8, 56),
+                // (10,32): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C3<T1> where T1 : class, class
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(10, 32),
+                // (12,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M3<T2>() where T2 : class, class {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(12, 37)
+            );
+        }
+
+        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        public void CannotCombineDiagnostics_InheritedClassStruct()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public virtual void M<T1>() where T1 : class {}
+}
+class D : C
+{
+    public override void M<T1>() where T1 : C, class, struct {}
+}
+class E
+{
+    public virtual void M<T2>() where T2 : struct {}
+}
+class F : E
+{
+    public override void M<T2>() where T2 : E, struct, class {}
+}
+class G
+{
+    public virtual void M<T3>() where T3 : unmanaged {}
+}
+class H : G
+{
+    public override void M<T3>() where T3 : G, unmanaged, struct {}
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T1>() where T1 : C, class, struct {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "C").WithLocation(8, 45),
+                // (16,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T2>() where T2 : E, struct, class {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "E").WithLocation(16, 45),
+                // (24,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T3>() where T3 : G, unmanaged, struct {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "G").WithLocation(24, 45)
+            );
         }
     }
 }

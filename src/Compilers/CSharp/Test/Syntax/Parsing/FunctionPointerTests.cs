@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [InlineData("stdcall")]
         [InlineData("thiscall")]
         [InlineData("unmanaged")]
-        [InlineData("invalidcallingconvetion")] // This is a semantic error, not a syntax error
+        [InlineData("invalidcallingconvention")] // This is a semantic error, not a syntax error
         [InlineData("void")] // This is a semantic error, not a syntax error
         public void CallingConventions(string conventionString)
         {
@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             }
             EOF();
         }
+
         [Fact]
         public void LangVersion8()
         {

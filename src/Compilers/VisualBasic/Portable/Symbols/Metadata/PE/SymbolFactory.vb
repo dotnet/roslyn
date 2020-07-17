@@ -46,31 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return type.PrimitiveTypeCode
         End Function
 
-        Friend Overrides Function IsAcceptedVolatileModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
-            ' VB doesn't deal with Volatile fields.
-            Return False
-        End Function
-
-        Friend Overrides Function IsAcceptedInAttributeModifierType(type As TypeSymbol) As Boolean
-            ' VB doesn't deal with ref-readonly parameters, function pointers, or ref-return-types.
-            Return False
-        End Function
-
-        Friend Overrides Function IsAcceptedOutAttributeModifierType(type As TypeSymbol) As Boolean
-            ' VB doesn't deal with ref-readonly parameters, function pointers, or ref-return-types.
-            Return False
-        End Function
-
-        Friend Overrides Function IsAcceptedUnmanagedTypeModifierType(type As TypeSymbol) As Boolean
-            ' VB doesn't deal with unmanaged generic type constraints
-            Return False
-        End Function
-
-        Friend Overrides Function IsAcceptedIsExternalInitModifierType(type As TypeSymbol) As Boolean
-            ' https://github.com/dotnet/roslyn/issues/44870 VB doesn't deal with init-only members yet.
-            Return False
-        End Function
-
         Friend Overrides Function GetSZArrayTypeSymbol(moduleSymbol As PEModuleSymbol, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
             If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
                 Return elementType

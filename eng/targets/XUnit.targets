@@ -6,6 +6,11 @@
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Include BannedSymbols covering all test projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
+  </ItemGroup>
+
   <!-- Add a default test app.config, if the project doesn't already have one-->
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>

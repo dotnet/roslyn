@@ -14,9 +14,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// When compiling in metadata-only mode, <see cref="MethodCompiler"/> is not run. This is problematic because 
+    /// When compiling in metadata-only mode, <see cref="MethodCompiler"/> is not run. This is problematic because
     /// <see cref="MethodCompiler"/> adds synthesized explicit implementations to the list of synthesized definitions.
-    /// In lieu of running <see cref="MethodCompiler"/>, this class performs a quick 
+    /// In lieu of running <see cref="MethodCompiler"/>, this class performs a quick
     /// traversal of the symbol table and performs processing of synthesized symbols if necessary
     /// </summary>
     internal sealed class SynthesizedMetadataCompiler : CSharpSymbolVisitor
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_moduleBeingBuilt != null)
                 {
-                    // In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a 
+                    // In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
                     // base type from another assembly) it is necessary for the compiler to generate explicit implementations for
                     // some interface methods.  They don't go in the symbol table, but if we are emitting metadata, then we should
                     // generate MethodDef entries for them.
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitProperty(PropertySymbol symbol)
         {
-            var sourceProperty = symbol as SourcePropertySymbol;
+            var sourceProperty = symbol as SourcePropertySymbolBase;
             if ((object)sourceProperty != null && sourceProperty.IsSealed)
             {
                 var synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;

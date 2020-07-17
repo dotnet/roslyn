@@ -204,6 +204,11 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 return true;
             }
 
+            if (returnType.Equals(knownTypes._valueTaskType))
+            {
+                return true;
+            }
+
             if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
             {
                 return true;

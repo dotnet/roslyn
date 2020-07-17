@@ -10,19 +10,13 @@ using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 {
-    public enum TestHost
-    {
-        InProcess,
-        OutOfProcess,
-    }
-
     public class ConvertTupleToStructTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -34,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
         private OptionsCollection GetPreferImplicitTypeOptions(TestHost host)
         {
             var options = this.PreferImplicitTypeWithInfo();
-            options.Add(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess);
+            options.Add(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess);
             return options;
         }
 
@@ -106,6 +100,73 @@ internal struct NewStruct
             await TestInRegularAndScriptAsync(text, expected, options: GetPreferImplicitTypeOptions(host));
         }
 
+        [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleType_ChangeArgumentNameCase(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](A: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int A;
+    public int B;
+
+    public NewStruct(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = A;
+        b = B;
+    }
+
+    public static implicit operator (int A, int B)(NewStruct value)
+    {
+        return (value.A, value.B);
+    }
+
+    public static implicit operator NewStruct((int A, int B) value)
+    {
+        return new NewStruct(value.A, value.B);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected, options: GetPreferImplicitTypeOptions(host));
+        }
+
         [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertSingleTupleType_Explicit(TestHost host)
@@ -171,7 +232,7 @@ internal struct NewStruct
     }
 }";
             await TestInRegularAndScriptAsync(text, expected,
-                options: Option(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess));
+                options: Option(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess));
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1235,7 +1296,7 @@ class Test
 ";
 
             await TestMissingInRegularAndScriptAsync(text,
-                parameters: new TestParameters(options: Option(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess)));
+                parameters: new TestParameters(options: Option(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess)));
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1991,8 +2052,8 @@ class Test
         var t1 = new {|Rename:NewStruct|}(1, 2);
         var t2 = new NewStruct(1, 2);
         var t3 = (a: 1, b: 2);
-        var t4 = new NewStruct(Item1: 1, Item2: 2);
-        var t5 = new NewStruct(Item1: 1, Item2: 2);
+        var t4 = new NewStruct(item1: 1, item2: 2);
+        var t5 = new NewStruct(item1: 1, item2: 2);
     }
 }
 
@@ -2069,8 +2130,8 @@ class Test
         var t1 = new NewStruct(1, 2);
         var t2 = new NewStruct(1, 2);
         var t3 = (a: 1, b: 2);
-        var t4 = new {|Rename:NewStruct|}(Item1: 1, Item2: 2);
-        var t5 = new NewStruct(Item1: 1, Item2: 2);
+        var t4 = new {|Rename:NewStruct|}(item1: 1, item2: 2);
+        var t5 = new NewStruct(item1: 1, item2: 2);
     }
 }
 
