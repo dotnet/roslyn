@@ -946,5 +946,55 @@ ref struct RefStruct
     static string M(C c) => $""{c[||].ToString()}"";
 }");
         }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task OverridenShadowedToString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public new string ToString() => ""Shadow"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideShadow"";
+    static string M(C c) => $""{c[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task DoubleOverridenToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    public override string ToString() => ""Override"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideOverride"";
+
+    void M(B someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString()|}} suffix"";
+    }
+}",
+@"class C
+{
+    public override string ToString() => ""Override"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideOverride"";
+
+    void M(B someValue)
+    {
+        _ = $""prefix {someValue} suffix"";
+    }
+}");
+        }
     }
 }
