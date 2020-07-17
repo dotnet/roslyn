@@ -367,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "Language",
                 "AllowUnsafe",
                 "Usings",
+                "WarningVersion",
                 "TopLevelBinderFlags",
                 "NullableContextOptions");
         }
