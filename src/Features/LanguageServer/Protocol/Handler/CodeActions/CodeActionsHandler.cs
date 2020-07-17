@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IThreadingContext _threadingContext;
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
 
@@ -41,11 +44,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public CodeActionsHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider)
+            ILspSolutionProvider solutionProvider,
+            IThreadingContext threadingContext)
             : base(solutionProvider)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
+            _threadingContext = threadingContext;
         }
 
         public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(
@@ -60,51 +65,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<VSCodeAction>();
             }
 
-            var (codeFixCollections, codeRefactorings) = await CodeActionHelpers.GetCodeFixesAndRefactoringsAsync(
-                document, _codeFixService, _codeRefactoringService,
+            var codeActionsAndKinds = await CodeActionHelpers.GetCodeActionsAndKindsAsync(
+                document, _codeFixService, _codeRefactoringService, _threadingContext,
                 request.Range, cancellationToken).ConfigureAwait(false);
 
-            var codeFixes = codeFixCollections.SelectMany(c => c.Fixes);
             using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var results);
-
-            // Go through code fixes and code refactorings separately so that we can properly set the CodeActionKind.
-            foreach (var codeFix in codeFixes)
+            foreach (var action in codeActionsAndKinds)
             {
-                // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-                if (codeFix.Action is CodeActionWithOptions)
-                {
-                    continue;
-                }
-
-                // Temporarily filter out suppress and configure code actions, as we'll later combine them under a top-level
-                // code action.
-                if (codeFix.Action is AbstractConfigurationActionWithNestedActions)
-                {
-                    continue;
-                }
-
-                results.Add(GenerateVSCodeAction(request, codeFix.Action, CodeActionKind.QuickFix));
-            }
-
-            foreach (var (action, _) in codeRefactorings.SelectMany(codeRefactoring => codeRefactoring.CodeActions))
-            {
-                // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-                if (action is CodeActionWithOptions)
-                {
-                    continue;
-                }
-
-                results.Add(GenerateVSCodeAction(request, action, CodeActionKind.Refactor));
-            }
-
-            // Special case (also dealt with specially in local Roslyn): 
-            // If we have configure/suppress code actions, combine them under one top-level code action.
-            var configureSuppressActions = codeFixes.Where(a => a.Action is AbstractConfigurationActionWithNestedActions);
-            if (configureSuppressActions.Any())
-            {
-                results.Add(GenerateVSCodeAction(request, new CodeActionWithNestedActions(
-                    CodeFixesResources.Suppress_or_Configure_issues,
-                    configureSuppressActions.Select(a => a.Action).ToImmutableArray(), true), CodeActionKind.QuickFix));
+                results.Add(GenerateVSCodeAction(request, action.CodeAction, action.Kind));
             }
 
             return results.ToArray();
@@ -120,19 +88,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (!string.IsNullOrEmpty(currentTitle))
                 {
-                    // Adding a delimiter for nested code actions, e.g. 'Suppress IDEXXXX|in Source'
+                    // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
                     currentTitle += '|';
                 }
 
-                // Don't include Suppress or Configure issues in the unique identifier, as when we
-                // resolve these code actions, we won't be able to see the Suppress or Configure title
-                // (since it utilizes special logic).
-                // Once we make the logic between local and LSP uniform, this should no longer be necessary.
-                // https://github.com/dotnet/roslyn/issues/45726
-                if (codeAction.Title != CodeFixesResources.Suppress_or_Configure_issues)
-                {
-                    currentTitle += codeAction.Title;
-                }
+                currentTitle += codeAction.Title;
 
                 // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
                 foreach (var action in codeAction.NestedCodeActions)

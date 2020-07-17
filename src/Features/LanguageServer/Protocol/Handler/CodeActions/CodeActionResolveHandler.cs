@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -36,17 +37,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionResolveHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
+            IThreadingContext threadingContext,
             ILspSolutionProvider solutionProvider)
             : base(solutionProvider)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
+            _threadingContext = threadingContext;
         }
 
         public override async Task<LSP.VSCodeAction> HandleRequestAsync(
@@ -63,11 +67,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 document,
                 _codeFixService,
                 _codeRefactoringService,
+                _threadingContext,
                 data.Range,
                 cancellationToken).ConfigureAwait(false);
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(
-                data.UniqueIdentifier, codeActions.ToImmutableArray());
+                data.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(codeActionToResolve);
 
             var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);

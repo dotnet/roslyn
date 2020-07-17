@@ -22,6 +22,11 @@
         <target state="translated">Ad İhlalini Düzelt: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="new">Fix all occurrences in</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">Gereksiz atamayı kaldır</target>

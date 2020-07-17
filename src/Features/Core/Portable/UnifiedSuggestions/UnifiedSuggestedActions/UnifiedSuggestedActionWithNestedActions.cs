@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
+    /// <summary>
+    /// Similar to SuggestedActionWithNestedActions, but in a location that can be used by
+    /// both local Roslyn and LSP.
+    /// </summary>
     internal class UnifiedSuggestedActionWithNestedActions : UnifiedSuggestedAction
     {
         public object? Provider { get; }

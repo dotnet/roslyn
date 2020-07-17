@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                document, _codeFixService, _codeRefactoringService, runRequest.Range, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(codeActions);
+                document, _codeFixService, _codeRefactoringService,
+                _threadingContext, runRequest.Range, cancellationToken).ConfigureAwait(false);
 
-            var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions.ToImmutableArray());
+            var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(actionToRun);
 
             var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
