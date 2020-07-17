@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, [NotNullWhen(returnValue: true)] out TExpressionSyntax? expression);
-        protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
+        protected abstract SyntaxNode RemoveAsyncModifier(SyntaxNode node);
         protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
         private void RemoveAsyncModifier(SyntaxEditor editor, bool needsReturnStatementAdded, SyntaxNode originalNode, IMethodSymbol methodSymbol, KnownTypes knownTypes)
         {
-            var replacementNode = RemoveAsyncModifier(methodSymbol, originalNode, knownTypes);
+            var replacementNode = RemoveAsyncModifier(originalNode);
             editor.ReplaceNode(originalNode, replacementNode);
 
             if (TryGetExpressionBody(replacementNode, out var expressionBody))
@@ -198,6 +198,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             var generator = editor.Generator;
 
             var returns = node.DescendantNodes(n => n == node || !IsAsyncSupportingFunctionSyntax(n)).Where(n => n is TReturnStatementSyntax);
+
             foreach (TReturnStatementSyntax returnSyntax in returns)
             {
                 var returnExpression = generator.SyntaxFacts.GetExpressionOfReturnStatement(returnSyntax);

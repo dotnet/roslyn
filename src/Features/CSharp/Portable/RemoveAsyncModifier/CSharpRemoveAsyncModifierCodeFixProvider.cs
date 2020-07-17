@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return null;
         }
 
-        protected override SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes)
+        protected override SyntaxNode RemoveAsyncModifier(SyntaxNode node)
             => node switch
             {
                 MethodDeclarationSyntax method => RemoveAsyncModifierHelpers.WithoutAsyncModifier(method, method.ReturnType),

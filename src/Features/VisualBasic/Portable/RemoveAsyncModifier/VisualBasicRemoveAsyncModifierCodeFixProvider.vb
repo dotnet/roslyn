@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function RemoveAsyncModifier(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, knownTypes As KnownTypes) As SyntaxNode
+        Protected Overrides Function RemoveAsyncModifier(node As SyntaxNode) As SyntaxNode
             Dim methodBlock = TryCast(node, MethodBlockSyntax)
             If methodBlock IsNot Nothing Then
                 Dim subOrFunctionStatement = methodBlock.SubOrFunctionStatement
