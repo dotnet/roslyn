@@ -139,14 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         [Fact]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds()
         {
-            await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
+            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
         {
-            await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
         }
 
@@ -154,23 +154,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
             => await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInGetFixAllProvider());
 
-        private static async Task GetDefaultFixesAsync(CodeFixProvider codefix)
-        {
-            var tuple = ServiceSetup(codefix);
-            using var workspace = tuple.workspace;
-
-            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
-            var fixes = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeConfigurationFixes: true, cancellationToken: CancellationToken.None);
-            Assert.True(((TestErrorLogger)tuple.errorLogger).Messages.Count == 1);
-            Assert.True(((TestErrorLogger)tuple.errorLogger).Messages.TryGetValue(codefix.GetType().Name, out var message));
-        }
+        [Fact, WorkItem(45851, "https://github.com/dotnet/roslyn/issues/45851")]
+        public async Task TestGetCodeFixWithExceptionOnCodeFixProviderCreation()
+            => await GetAddedFixesAsync(
+                new MockFixer(),
+                new MockAnalyzerReference.MockDiagnosticAnalyzer(),
+                throwExceptionInFixerCreation: true);
 
         private static Task<ImmutableArray<CodeFixCollection>> GetAddedFixesWithExceptionValidationAsync(CodeFixProvider codefix)
             => GetAddedFixesAsync(codefix, diagnosticAnalyzer: new MockAnalyzerReference.MockDiagnosticAnalyzer(), exception: true);
 
-        private static async Task<ImmutableArray<CodeFixCollection>> GetAddedFixesAsync(CodeFixProvider codefix, DiagnosticAnalyzer diagnosticAnalyzer, bool exception = false)
+        private static async Task<ImmutableArray<CodeFixCollection>> GetAddedFixesAsync(CodeFixProvider codefix, DiagnosticAnalyzer diagnosticAnalyzer, bool exception = false, bool throwExceptionInFixerCreation = false)
         {
-            var tuple = ServiceSetup(codefix);
+            var tuple = ServiceSetup(codefix, throwExceptionInFixerCreation: throwExceptionInFixerCreation);
 
             using var workspace = tuple.workspace;
 
@@ -203,11 +199,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static (TestWorkspace workspace, TestDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             CodeFixProvider codefix,
-            bool includeConfigurationFixProviders = false)
+            bool includeConfigurationFixProviders = false,
+            bool throwExceptionInFixerCreation = false)
         {
             var fixers = SpecializedCollections.SingletonEnumerable(
                 new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(
-                () => codefix,
+                () => throwExceptionInFixerCreation ? throw new Exception() : codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
             var code = @"class Program { }";

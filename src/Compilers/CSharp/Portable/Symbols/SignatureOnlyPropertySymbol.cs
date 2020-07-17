@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable; } }
 
-        public override bool IsOverride { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsOverride => false;
 
         public override bool IsAbstract { get { throw ExceptionUtilities.Unreachable; } }
 

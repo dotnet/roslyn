@@ -139,6 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => ((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists;
 
+        public override IAttributeTargetSymbol AttributesOwner => this;
+
         private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
             DiagnosticBag diagnostics,
