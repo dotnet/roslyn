@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(4, options.GetOption(FormattingOptions.IndentationSize));
         }
 
-        private TestWorkspace CreateWithLines(params string[] lines)
+        private static TestWorkspace CreateWithLines(params string[] lines)
         {
             var workspace = TestWorkspace.CreateCSharp(string.Join("\r\n", lines), openDocuments: true);
             var editorOptionsFactoryService = workspace.ExportProvider.GetExportedValue<IEditorOptionsFactoryService>();

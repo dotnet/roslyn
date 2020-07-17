@@ -152,6 +152,11 @@
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadWarningVersion">
+        <source>Warning version must be greater than or equal to '0'.</source>
+        <target state="new">Warning version must be greater than or equal to '0'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
@@ -954,7 +959,9 @@
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warnversion:&lt;n&gt;        Enable recently introduced warnings. Default '0'.
+                              To enable warnings introduced through this version, use '5'.
+                              Use '9999' to enable all current and future warning waves.
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -7238,8 +7245,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">ソース型 '{0}' のクエリ パターンの実装が見つかりませんでした。'{1}' が見つかりません。'System.Core.dll' の参照または 'System.Linq' のディレクティブの使用が指定されていることを確認してください。</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">ソース型 '{0}' のクエリ パターンの実装が見つかりませんでした。'{1}' が見つかりません。'System.Core.dll' の参照または 'System.Linq' のディレクティブの使用が指定されていることを確認してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">

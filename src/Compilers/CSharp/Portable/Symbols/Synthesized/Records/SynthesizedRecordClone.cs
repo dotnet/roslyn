@@ -119,12 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            var members = ContainingType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
+            var members = ContainingType.InstanceConstructors;
             foreach (var member in members)
             {
                 var ctor = (MethodSymbol)member;
-                if (ctor.ParameterCount == 1 &&
-                    ctor.Parameters[0].Type.Equals(ContainingType, TypeCompareKind.ConsiderEverything))
+                if (ctor.ParameterCount == 1 && ctor.Parameters[0].RefKind == RefKind.None &&
+                    ctor.Parameters[0].Type.Equals(ContainingType, TypeCompareKind.AllIgnoreOptions))
                 {
                     F.CloseMethod(F.Return(F.New(ctor, F.This())));
                     return;

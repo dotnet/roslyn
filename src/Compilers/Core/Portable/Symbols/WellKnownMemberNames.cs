@@ -344,6 +344,16 @@ namespace Microsoft.CodeAnalysis
         public const string SliceMethodName = "Slice";
 
         // internal until we settle on this long-term
-        internal const string CloneMethodName = "<>Clone";
+        internal const string CloneMethodName = "<Clone>$";
+
+        /// <summary>
+        /// The name of an entry point method synthesized for top-level statements.
+        /// </summary>
+        public const string TopLevelStatementsEntryPointMethodName = "<Main>$";
+
+        /// <summary>
+        /// The name of a type synthesized for a top-level statements entry point method.
+        /// </summary>
+        public const string TopLevelStatementsEntryPointTypeName = "<Program>$";
     }
 }

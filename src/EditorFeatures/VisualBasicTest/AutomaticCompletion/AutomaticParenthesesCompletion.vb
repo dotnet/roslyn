@@ -351,11 +351,11 @@ End Class</code>
             End Using
         End Sub
 
-        Friend Overloads Function CreateSession(code As XElement) As Holder
+        Friend Overloads Shared Function CreateSession(code As XElement) As Holder
             Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Function CreateSession(code As String) As Holder
+        Friend Overloads Shared Function CreateSession(code As String) As Holder
             Return CreateSession(
 TestWorkspace.CreateVisualBasic(code),
 BraceCompletionSessionProvider.Parenthesis.OpenCharacter, BraceCompletionSessionProvider.Parenthesis.CloseCharacter)

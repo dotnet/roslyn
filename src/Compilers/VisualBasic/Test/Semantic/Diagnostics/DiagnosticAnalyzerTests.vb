@@ -4,12 +4,14 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.FlowAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -1559,6 +1561,42 @@ End Namespace
             Dim analyzers = New DiagnosticAnalyzer() {New SymbolStartAnalyzer(topLevelAction:=False, SymbolKind.NamedType)}
             compilation.VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
                 Diagnostic("SymbolStartRuleId").WithArguments("MyApplication", "Analyzer1").WithLocation(1, 1))
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Async Function TestAdditionalFileAnalyzer(registerFromInitialize As Boolean) As Task
+            Dim tree = VisualBasicSyntaxTree.ParseText(String.Empty)
+            Dim compilation = CreateCompilationWithMscorlib45({tree})
+            compilation.VerifyDiagnostics()
+
+            Dim additionalFile As AdditionalText = New TestAdditionalText("Additional File Text")
+            Dim options = New AnalyzerOptions(ImmutableArray.Create(additionalFile))
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer = New AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan)
+            Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
+
+            Dim diagnostics = Await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer, additionalFile)
+
+            Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+
+            analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+        End Function
+
+        Private Shared Sub TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics As ImmutableArray(Of Diagnostic),
+                                                                        expectedDiagnosticSpan As TextSpan,
+                                                                        Analyzer As AdditionalFileAnalyzer,
+                                                                        additionalFile As AdditionalText)
+            Dim diagnostic = Assert.Single(diagnostics)
+            Assert.Equal(Analyzer.Descriptor.Id, diagnostic.Id)
+            Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind)
+            Dim location = DirectCast(diagnostic.Location, ExternalFileLocation)
+            Assert.Equal(additionalFile.Path, location.FilePath)
+            Assert.Equal(expectedDiagnosticSpan, location.SourceSpan)
         End Sub
     End Class
 End Namespace

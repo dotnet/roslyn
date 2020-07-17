@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
     public class FileSystemCompletionHelperTests
     {
-        private void AssertItemsEqual(ImmutableArray<CompletionItem> actual, params string[] expected)
+        private static void AssertItemsEqual(ImmutableArray<CompletionItem> actual, params string[] expected)
         {
             AssertEx.Equal(
                 expected,
