@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfNameInExplicitInterface = 1 << 22,
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
-            IsEndOfTypeSignature = 1 << 25,
+            IsEndOfRecordSignature = 1 << 25,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfTypeSignature;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordSignature;
 
         private bool IsTerminator()
         {
@@ -122,10 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsSwitchSectionStart when this.IsPossibleSwitchSection():
                     case TerminatorState.IsEndOfTypeParameterList when this.IsEndOfTypeParameterList():
                     case TerminatorState.IsEndOfMethodSignature when this.IsEndOfMethodSignature():
-                    case TerminatorState.IsEndOfTypeSignature when this.IsEndOfTypeSignature():
                     case TerminatorState.IsEndOfNameInExplicitInterface when this.IsEndOfNameInExplicitInterface():
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
+                    case TerminatorState.IsEndOfRecordSignature when this.IsEndOfRecordSignature():
                         return true;
                 }
             }
@@ -1451,7 +1451,11 @@ tryAgain:
             var keyword = ConvertToKeyword(this.EatToken());
 
             var saveTerm = _termState;
-            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop | TerminatorState.IsEndOfTypeSignature;
+            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
+            if (keyword.Kind == SyntaxKind.RecordKeyword)
+            {
+                _termState |= TerminatorState.IsEndOfRecordSignature;
+            }
 
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
@@ -1471,7 +1475,10 @@ tryAgain:
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                 {
                     var saveTerm2 = _termState;
-                    _termState |= TerminatorState.IsEndOfTypeSignature;
+                    if (keyword.Kind == SyntaxKind.RecordKeyword)
+                    {
+                        _termState |= TerminatorState.IsEndOfRecordSignature;
+                    }
                     constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
                     this.ParseTypeParameterConstraintClauses(constraints);
                     _termState = saveTerm2;
@@ -1762,10 +1769,11 @@ tryAgain:
                 list.Add(argumentList is object ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList) : (BaseTypeSyntax)_syntaxFactory.SimpleBaseType(firstType));
 
                 // any additional types
-                int lastTokenPosition = -1;
-                while (IsMakingProgress(ref lastTokenPosition))
+                while (true)
                 {
-                    if (AbortForEndOfBaseList())
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
+                        ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
+                        this.IsCurrentTokenWhereOfConstraintClause())
                     {
                         break;
                     }
@@ -1775,7 +1783,7 @@ tryAgain:
                         list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
                         continue;
                     }
-                    else if (skipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                    else if (this.SkipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                     {
                         break;
                     }
@@ -1787,26 +1795,14 @@ tryAgain:
             {
                 _pool.Free(list);
             }
-
-            PostSkipAction skipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
-            {
-                return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
-                    s_notExpectedForEndOfBaseList,
-                    s_abortForEndOfBaseList,
-                    expected);
-            }
         }
 
-        private static readonly Func<LanguageParser, bool> s_notExpectedForEndOfBaseList = p => p.NotExpectedForEndOfBaseList();
-        private bool NotExpectedForEndOfBaseList()
+        private PostSkipAction SkipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
         {
-            return this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleAttribute();
-        }
-
-        private static readonly Func<LanguageParser, bool> s_abortForEndOfBaseList = p => p.AbortForEndOfBaseList();
-        private bool AbortForEndOfBaseList()
-        {
-            return this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword || this.IsTerminator();
+            return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
+                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
+                p => p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                expected);
         }
 
         private bool IsCurrentTokenWhereOfConstraintClause()
@@ -1847,10 +1843,12 @@ tryAgain:
                     bounds.Add(this.ParseTypeParameterConstraint());
 
                     // remaining bounds
-                    int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
+                    while (true)
                     {
-                        if (AbortForEndOfTypeConstraintClause())
+                        if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                            || ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                            || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
+                            || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                         {
                             break;
                         }
@@ -1867,7 +1865,7 @@ tryAgain:
                                 bounds.Add(this.ParseTypeParameterConstraint());
                             }
                         }
-                        else if (skipBadTypeParameterConstraintTokens(bounds, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                        else if (this.SkipBadTypeParameterConstraintTokens(bounds, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                         {
                             break;
                         }
@@ -1880,30 +1878,6 @@ tryAgain:
             {
                 _pool.Free(bounds);
             }
-
-            PostSkipAction skipBadTypeParameterConstraintTokens(SeparatedSyntaxListBuilder<TypeParameterConstraintSyntax> list, SyntaxKind expected)
-            {
-                CSharpSyntaxNode tmp = null;
-                Debug.Assert(list.Count > 0);
-                return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                    s_notExpectedForEndOfTypeConstraintClause,
-                    s_abortForEndOfTypeConstraintClause,
-                    expected);
-            }
-        }
-
-        private static readonly Func<LanguageParser, bool> s_notExpectedForEndOfTypeConstraintClause = p => p.NotExpectedForEndOfTypeConstraintClause();
-        private bool NotExpectedForEndOfTypeConstraintClause()
-        {
-            return this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeParameterConstraint();
-        }
-
-        private static readonly Func<LanguageParser, bool> s_abortForEndOfTypeConstraintClause = p => p.AbortForEndOfTypeConstraintClause();
-        private bool AbortForEndOfTypeConstraintClause()
-        {
-            return this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword
-                   || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken // ex: 'void localFunction<T>() where T : class => ...'
-                   || this.IsTerminator();
         }
 
         private bool IsPossibleTypeParameterConstraint()
@@ -1924,6 +1898,8 @@ tryAgain:
         private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
             SyntaxToken questionToken = null;
+            var syntaxKind = this.CurrentToken.Kind;
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.NewKeyword:
@@ -1950,6 +1926,16 @@ tryAgain:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
             }
+        }
+
+        private PostSkipAction SkipBadTypeParameterConstraintTokens(SeparatedSyntaxListBuilder<TypeParameterConstraintSyntax> list, SyntaxKind expected)
+        {
+            CSharpSyntaxNode tmp = null;
+            Debug.Assert(list.Count > 0);
+            return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
+                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleTypeParameterConstraint(),
+                p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                expected);
         }
 
         private bool IsPossibleMemberStart()
@@ -3052,7 +3038,7 @@ parse_member_name:;
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
-        private bool IsEndOfTypeSignature()
+        private bool IsEndOfRecordSignature()
         {
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }

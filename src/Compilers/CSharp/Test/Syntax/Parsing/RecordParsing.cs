@@ -555,12 +555,15 @@ abstract record D
         public void RecordParsing_ConstraintAndSemiColon_Class()
         {
             UsingTree("abstract class C<T> where T : class;",
-                // (1,36): error CS1514: { expected
+                // (1,36): error CS1003: Syntax error, ',' expected
                 // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 36),
-                // (1,36): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 36),
+                // (1,37): error CS1514: { expected
                 // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 36)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 37),
+                // (1,37): error CS1513: } expected
+                // abstract class C<T> where T : class;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 37)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -594,7 +597,6 @@ abstract record D
                     }
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -605,14 +607,16 @@ abstract record D
         public void RecordParsing_TwoConstraintsAndSemiColon_Class()
         {
             UsingTree("abstract class C<T1, T2> where T1 : class where T2 : class;",
-                // (1,59): error CS1514: { expected
+                // (1,59): error CS1003: Syntax error, ',' expected
                 // abstract class C<T1, T2> where T1 : class where T2 : class;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 59),
-                // (1,59): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 59),
+                // (1,60): error CS1514: { expected
                 // abstract class C<T1, T2> where T1 : class where T2 : class;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 59)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 60),
+                // (1,60): error CS1513: } expected
+                // abstract class C<T1, T2> where T1 : class where T2 : class;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 60)
                 );
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -662,7 +666,6 @@ abstract record D
                     }
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -908,12 +911,12 @@ abstract record D
         public void TestWhereWhere()
         {
             UsingTree("public class Goo<T> : System.Object where where { }",
-                // (1,49): error CS1003: Syntax error, ':' expected
+                // (1,37): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":", "{").WithLocation(1, 49),
-                // (1,49): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 37),
+                // (1,43): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 49)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 43)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -950,20 +953,20 @@ abstract record D
                                 }
                             }
                         }
-                    }
-                    N(SyntaxKind.TypeParameterConstraintClause);
-                    {
-                        N(SyntaxKind.WhereKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
                         {
-                            N(SyntaxKind.IdentifierToken, "where");
-                        }
-                        M(SyntaxKind.ColonToken);
-                        M(SyntaxKind.TypeConstraint);
-                        {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
                             }
                         }
                     }
@@ -979,9 +982,15 @@ abstract record D
         public void TestWhereWhereWhere()
         {
             UsingTree("public class Goo<T> : System.Object where where where { }",
-                // (1,49): error CS1003: Syntax error, ':' expected
+                // (1,37): error CS1003: Syntax error, ',' expected
                 // public class Goo<T> : System.Object where where where { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(":", "").WithLocation(1, 49)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 37),
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // public class Goo<T> : System.Object where where where { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 43),
+                // (1,49): error CS1003: Syntax error, ',' expected
+                // public class Goo<T> : System.Object where where where { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(",", "").WithLocation(1, 49)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1018,16 +1027,24 @@ abstract record D
                                 }
                             }
                         }
-                    }
-                    N(SyntaxKind.TypeParameterConstraintClause);
-                    {
-                        N(SyntaxKind.WhereKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
                         {
-                            N(SyntaxKind.IdentifierToken, "where");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
                         }
-                        M(SyntaxKind.ColonToken);
-                        N(SyntaxKind.TypeConstraint);
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
