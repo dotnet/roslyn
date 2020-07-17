@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             var symbolType = GetSymbolType(semanticModel, nodeToReplace);
             var typeExpression = editor.Generator.TypeExpression(symbolType);
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
-            editor.ReplaceNode(nodeToReplace, nameOfSyntax.WithAdditionalAnnotations(Formatter.Annotation));
+            editor.ReplaceNode(nodeToReplace, nameOfSyntax.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation));
         }
 
         protected abstract ITypeSymbol GetSymbolType(SemanticModel model, SyntaxNode node);

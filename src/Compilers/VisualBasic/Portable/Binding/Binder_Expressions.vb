@@ -694,9 +694,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.GenericName
                     value = DirectCast(node.Argument, SimpleNameSyntax).Identifier.ValueText
 
-                Case Else
+                    ' Case Else
                     ' Must be a syntax error
-                    Debug.Assert(node.Argument.HasErrors)
+                    '   Debug.Assert(node.Argument.HasErrors)
             End Select
 
             ' Bind the argument
