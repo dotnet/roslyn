@@ -2452,11 +2452,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.LocalFunctionStatement:
                     return ((LocalFunctionStatementSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.AnonymousMethodExpression:
-                    return ((AnonymousMethodExpressionSyntax)declaration).WithBody(body);
+                    var anonymousMethod = (AnonymousMethodExpressionSyntax)declaration;
+                    return anonymousMethod.WithBody(body.WithTriviaFrom(anonymousMethod.Body));
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
+                    var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)declaration;
+                    return parenthesizedLambda.WithBody(body.WithTriviaFrom(parenthesizedLambda.Body));
                 case SyntaxKind.SimpleLambdaExpression:
-                    return ((SimpleLambdaExpressionSyntax)declaration).WithBody(body);
+                    var simpleLambda = (SimpleLambdaExpressionSyntax)declaration;
+                    return simpleLambda.WithBody(body.WithTriviaFrom(simpleLambda.Body));
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
