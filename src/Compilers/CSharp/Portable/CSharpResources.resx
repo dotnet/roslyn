@@ -3235,6 +3235,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadWarningLevel" xml:space="preserve">
     <value>Warning level must be in the range 0-4</value>
   </data>
+  <data name="ERR_BadWarningVersion" xml:space="preserve">
+    <value>Warning version must be greater than or equal to '0'.</value>
+  </data>
   <data name="ERR_BadDebugType" xml:space="preserve">
     <value>Invalid option '{0}' for /debug; must be 'portable', 'embedded', 'full' or 'pdbonly'</value>
   </data>
@@ -4617,7 +4620,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warnversion:&lt;n&gt;        Enable recently introduced warnings. Default '0'.
+                              To enable warnings introduced through this version, use '5'.
+                              Use '9999' to enable all current and future warning waves.
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -6324,5 +6329,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NonPrivateAPIInRecord" xml:space="preserve">
     <value>Record member '{0}' must be private.</value>
+  <data name="IDS_FeatureModuleInitializers" xml:space="preserve">
+    <value>module initializers</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType" xml:space="preserve">
+    <value>Module initializer method '{0}' must be accessible at the module level</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
+    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
+    <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
+    <value>A module initializer must be an ordinary member method</value>
   </data>
 </root>
