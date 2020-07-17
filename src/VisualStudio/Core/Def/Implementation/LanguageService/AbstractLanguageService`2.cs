@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // First, acquire any services we need throughout our lifetime.
             this.GetServices();
 
-            // TODO: Can the below be removed?
+            // TODO: Is the below access to component model required or can be removed?
             _ = this.Package.ComponentModel;
 
             // Start off a background task to prime some components we'll need for editing
