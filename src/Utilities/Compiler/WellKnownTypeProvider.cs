@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 
@@ -22,6 +24,15 @@ namespace Analyzer.Utilities
         {
             Compilation = compilation;
             _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol?>(StringComparer.Ordinal);
+            _referencedAssemblies = new Lazy<ImmutableHashSet<IAssemblySymbol>>(
+                () =>
+                {
+                    return ImmutableHashSet.Create<IAssemblySymbol>(
+                        Compilation.Assembly.Modules
+                            .SelectMany(m => m.ReferencedAssemblySymbols)
+                            .ToArray());
+                },
+                LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
@@ -34,6 +45,16 @@ namespace Analyzer.Utilities
         }
 
         public Compilation Compilation { get; }
+
+        /// <summary>
+        /// All the referenced assembly symbols.
+        /// </summary>
+        /// <remarks>
+        /// Seems to be less memory intensive than:
+        /// foreach (Compilation.Assembly.Modules)
+        ///     foreach (Module.ReferencedAssemblySymbols)
+        /// </remarks>
+        private readonly Lazy<ImmutableHashSet<IAssemblySymbol>> _referencedAssemblies;
 
         /// <summary>
         /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
@@ -50,8 +71,8 @@ namespace Analyzer.Utilities
         /// https://github.com/dotnet/roslyn/blob/9e786147b8cb884af454db081bb747a5bd36a086/src/Compilers/CSharp/Portable/Symbols/AssemblySymbol.cs#L455
         /// suggests the TypeNames collection can be checked to avoid expensive operations.
         /// </remarks>
-        private static readonly ConcurrentDictionary<string, (ImmutableHashSet<string> NamespaceNames, string SimpleTypeName)> _fullTypeNameToSimpleInfo =
-            new ConcurrentDictionary<string, (ImmutableHashSet<string> NamespaceNames, string SimpleTypeName)>(StringComparer.Ordinal);
+        private static readonly ConcurrentDictionary<string, (string[] NamespaceNames, string SimpleTypeName)> _fullTypeNameToSimpleInfo =
+            new ConcurrentDictionary<string, (string[] NamespaceNames, string SimpleTypeName)>(StringComparer.Ordinal);
 
         /// <summary>
         /// Attempts to get the type by the full type name.
@@ -72,22 +93,26 @@ namespace Analyzer.Utilities
 #pragma warning disable RS0030 // Do not used banned APIs
                     // Use of Compilation.GetTypeByMetadataName is allowed here (this is our wrapper for it which
                     // includes fallback handling for cases where GetTypeByMetadataName returns null).
-                    var type = Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
+                    INamedTypeSymbol? type = null; // Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
 #pragma warning restore RS0030 // Do not used banned APIs
 
                     // sharwell says: Suppose you reference assembly A with public API X.Y, and you reference assembly B with
                     // internal API X.Y. Even though you can use X.Y from assembly A, compilation.GetTypeByMetadataName will 
                     // fail outright because it finds two types with the same name.
 
-                    ImmutableHashSet<string>? namespaceNames = null;
+                    // A way to test the fallback code. :-D
+                    type = null;
+
+                    string[]? namespaceNames = null;
                     string? typeName = null;
                     if (type is null)
                     {
 #if NETSTANDARD1_3 // Probably in 2.9.x branch; just cache everything.
+                        // TODO paulming: Statically caching everything is a bad idea.
                         (namespaceNames, typeName) = _fullTypeNameToSimpleInfo.GetOrAdd(
                             fullTypeName,
                             GetSimpleNameInfoFromFullTypeName);
-#else // Assuming we're on .NET Standard 2.0 or later, cache type names which are probably compile time constants.
+#else // Assuming we're on .NET Standard 2.0 or later, cache the type names that are probably compile time constants.
                         if (string.IsInterned(fullTypeName) != null)
                         {
                             (namespaceNames, typeName) = _fullTypeNameToSimpleInfo.GetOrAdd(
@@ -101,7 +126,7 @@ namespace Analyzer.Utilities
 #endif
 
                         if (IsSubsetOfCollection(namespaceNames, Compilation.Assembly.NamespaceNames)
-                            && Compilation.Assembly.TypeNames.Contains(typeName))
+                            /*&& Compilation.Assembly.TypeNames.Contains(typeName)*/)
                         {
                             type = Compilation.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
                         }
@@ -112,40 +137,37 @@ namespace Analyzer.Utilities
                         RoslynDebug.Assert(namespaceNames != null);
                         RoslynDebug.Assert(typeName != null);
 
-                        foreach (var module in Compilation.Assembly.Modules)
+                        foreach (IAssemblySymbol? referencedAssembly in _referencedAssemblies.Value)
                         {
-                            foreach (var referencedAssembly in module.ReferencedAssemblySymbols)
+                            if (!IsSubsetOfCollection(namespaceNames, referencedAssembly.NamespaceNames!)
+                                /*|| !referencedAssembly.TypeNames.Contains(typeName)*/)
                             {
-                                if (!IsSubsetOfCollection(namespaceNames, referencedAssembly.NamespaceNames!)
-                                    || !referencedAssembly.TypeNames.Contains(typeName))
-                                {
-                                    continue;
-                                }
-
-                                var currentType = referencedAssembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
-                                if (currentType is null)
-                                {
-                                    continue;
-                                }
-
-                                switch (currentType.GetResultantVisibility())
-                                {
-                                    case SymbolVisibility.Public:
-                                    case SymbolVisibility.Internal when referencedAssembly.GivesAccessTo(Compilation.Assembly):
-                                        break;
-
-                                    default:
-                                        continue;
-                                }
-
-                                if (type is object)
-                                {
-                                    // Multiple visible types with the same metadata name are present.
-                                    return null;
-                                }
-
-                                type = currentType;
+                                continue;
                             }
+
+                            var currentType = referencedAssembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
+                            if (currentType is null)
+                            {
+                                continue;
+                            }
+
+                            switch (currentType.GetResultantVisibility())
+                            {
+                                case SymbolVisibility.Public:
+                                case SymbolVisibility.Internal when referencedAssembly.GivesAccessTo(Compilation.Assembly):
+                                    break;
+
+                                default:
+                                    continue;
+                            }
+
+                            if (type is object)
+                            {
+                                // Multiple visible types with the same metadata name are present.
+                                return null;
+                            }
+
+                            type = currentType;
                         }
                     }
 
@@ -184,7 +206,7 @@ namespace Analyzer.Utilities
                 && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);
         }
 
-        private static (ImmutableHashSet<string> NamespaceNames, string SimpleTypeName) GetSimpleNameInfoFromFullTypeName(string fullTypeName)
+        private static (string[] NamespaceNames, string SimpleTypeName) GetSimpleNameInfoFromFullTypeName(string fullTypeName)
         {
             int plusIndex = fullTypeName.LastIndexOf('+');   // For nested types.
             int dotIndex = fullTypeName.LastIndexOf('.');
@@ -193,35 +215,29 @@ namespace Analyzer.Utilities
             int typeStartIndex = Math.Max(dotIndex, plusIndex) + 1;   // Exclude the '+' or '.'; LastIndexOf() returns -1 if not found.
             int typeEndIndex = backTickIndex >= 0 && backTickIndex > typeStartIndex ? backTickIndex : fullTypeName.Length;
 
-            ImmutableHashSet<string> namespaceNames;
+            string[] namespaceNames;
             if (dotIndex >= 0)
             {
-                namespaceNames = ImmutableHashSet.Create(
-                    StringComparer.Ordinal,
-                    fullTypeName
-                        .Substring(0, dotIndex >= 0 ? dotIndex : fullTypeName.Length)
-                        .Split('.'));
+                namespaceNames = fullTypeName.Substring(0, dotIndex >= 0 ? dotIndex : fullTypeName.Length).Split('.');
             }
             else
             {
-                namespaceNames = ImmutableHashSet<string>.Empty;
+                namespaceNames = Array.Empty<string>();
             }
 
             return (namespaceNames, fullTypeName[typeStartIndex..typeEndIndex]);
         }
 
-        // This would live in ImmutableHashSetsExtensions.cs, but Microsoft.CodeAnalysis.PublicApiAnalyzers.csproj doesn't get
-        // it.
-        private static bool IsSubsetOfCollection<T>(ImmutableHashSet<T> set1, ICollection<T> set2)
+        private static bool IsSubsetOfCollection<T>(T[] set1, ICollection<T> set2)
         {
-            if (set1.Count > set2.Count)
+            if (set1.Length > set2.Count)
             {
                 return false;
             }
 
-            foreach (T item in set1)
+            for (int i = 0; i < set1.Length; i++)
             {
-                if (!set2.Contains(item))
+                if (!set2.Contains(set1[i]))
                 {
                     return false;
                 }
