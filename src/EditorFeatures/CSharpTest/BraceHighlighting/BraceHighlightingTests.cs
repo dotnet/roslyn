@@ -56,6 +56,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         [InlineData("public class C<$$T> { }")]
         [InlineData("public class C<T$$> { }")]
         [InlineData("public class C[|<|]T[|>$$|] { }")]
+
+        [InlineData("unsafe class C { delegate*$$[|<|] int, int[|>|] functionPointer; }")]
+        [InlineData("unsafe class C { delegate*[|<|]int, int[|>$$|] functionPointer; }")]
+        [InlineData("unsafe class C { delegate*<int, delegate*[|<|]int, int[|>|]$$> functionPointer; }")]
         public async Task TestAngles(string testCase)
         {
             await TestBraceHighlightingAsync(testCase);
