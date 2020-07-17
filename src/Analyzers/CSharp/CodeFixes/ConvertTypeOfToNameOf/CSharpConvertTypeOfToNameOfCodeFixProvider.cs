@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
 
         protected override ITypeSymbol? GetSymbolType(SemanticModel model, SyntaxNode node)
         {
-            if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression})
+            if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression })
             {
                 return model.GetSymbolInfo(typeOfExpression.Type).Symbol.GetSymbolType();
             }

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertGetTypeToNa
             Dim text = "
 class Test
     sub Method()
-        dim typeName = [||]GetType(Test).FullName
+        dim typeName = [||]GetType(Test).Name
     end sub
 end class
 "

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
@@ -37,19 +38,19 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                ConvertTypeOfToNameOf(editor, node, semanticModel);
+                ConvertTypeOfToNameOf(semanticModel, editor, node);
             }
         }
 
         /// <Summary>
         ///  Method converts typeof(...).Name to nameof(...)
         /// </Summary>
-        public void ConvertTypeOfToNameOf(SyntaxEditor editor, SyntaxNode nodeToReplace, SemanticModel semanticModel)
+        public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, SyntaxNode nodeToReplace)
         {
             var symbolType = GetSymbolType(semanticModel, nodeToReplace);
             var typeExpression = editor.Generator.TypeExpression(symbolType);
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
-            editor.ReplaceNode(nodeToReplace, nameOfSyntax);
+            editor.ReplaceNode(nodeToReplace, nameOfSyntax.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         protected abstract ITypeSymbol GetSymbolType(SemanticModel model, SyntaxNode node);
