@@ -190,9 +190,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Remove entries for unhandled diagnostic ids.
             foreach (var id in unhandledIds)
             {
-                foreach (var (pragma, _) in idToPragmasMap[id])
+                if (idToPragmasMap.TryGetValue(id, out var pragmas))
                 {
-                    pragmasToIsUsedMap.Remove(pragma);
+                    foreach (var (pragma, _) in pragmas)
+                    {
+                        pragmasToIsUsedMap.Remove(pragma);
+                    }
                 }
 
                 if (idToSuppressMessageAttributesMap.TryGetValue(id, out var attributeNodes))
