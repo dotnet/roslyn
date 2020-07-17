@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveAsyncModifier), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.MakeMethodSynchronous)>
     Friend Class VisualBasicRemoveAsyncModifierCodeFixProvider
-        Inherits AbstractRemoveAsyncModifierCodeFixProvider(Of ReturnStatementSyntax)
+        Inherits AbstractRemoveAsyncModifierCodeFixProvider(Of ReturnStatementSyntax, ExpressionSyntax)
 
         Private Const BC42356 As String = NameOf(BC42356) ' This async method lacks 'Await' operators and so will run synchronously.
 
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return Nothing
         End Function
 
-        Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As SyntaxNode) As SyntaxNode
+        Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As ExpressionSyntax) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

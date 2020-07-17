@@ -19,14 +19,15 @@ using KnownTypes = Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMet
 
 namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 {
-    internal abstract class AbstractRemoveAsyncModifierCodeFixProvider<TReturnStatementSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractRemoveAsyncModifierCodeFixProvider<TReturnStatementSyntax, TExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TReturnStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode RemoveAsyncModifier(SyntaxNode node);
-        protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody);
+        protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, TExpressionSyntax expressionBody);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 }
 
                 // We might need to perform control flow analysis as part of the fix, so we need to do it on the original node
-                // so do it up front. Nothing in the fixer changes the reachabiliy of the end of the method so this is safe
+                // so do it up front. Nothing in the fixer changes the reachability of the end of the method so this is safe
                 var controlFlow = GetControlFlowAnalysis(generator, semanticModel, node);
                 // If control flow couldn't be computed then its probably an empty block, which means we need to add a return anyway
                 var needsReturnStatementAdded = controlFlow == null || controlFlow.EndPointIsReachable;
@@ -113,8 +114,8 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         {
             node = RemoveAsyncModifier(node);
 
-            var expressionBody = generator.GetExpression(node);
-            if (expressionBody != null)
+            var expression = generator.GetExpression(node);
+            if (expression is TExpressionSyntax expressionBody)
             {
                 if (IsTaskType(returnType, knownTypes))
                 {
@@ -165,14 +166,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         }
 
         private static SyntaxNode AddReturnStatement(SyntaxGenerator generator, SyntaxNode node)
-        {
-            //var returnStatement = GetReturnTaskCompletedTaskStatement(generator, returnType, knownTypes);
-
-            var statements = generator.GetStatements(node).ToImmutableArray();
-            statements = statements.Add(generator.ReturnStatement());
-
-            return generator.WithStatements(node, statements);
-        }
+            => generator.WithStatements(node, generator.GetStatements(node).Concat(generator.ReturnStatement()));
 
         private SyntaxNode ChangeReturnStatements(SyntaxGenerator generator, SyntaxNode node, ITypeSymbol returnType, KnownTypes knownTypes)
         {

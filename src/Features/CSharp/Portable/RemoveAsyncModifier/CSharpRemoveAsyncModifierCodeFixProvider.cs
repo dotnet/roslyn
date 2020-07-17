@@ -9,9 +9,9 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.RemoveAsyncModifier;
 using Roslyn.Utilities;
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveAsyncModifier), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.MakeMethodSynchronous)]
-    internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax>
+    internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>
     {
         private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
 
@@ -34,9 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override SyntaxNode? ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody)
+        protected override SyntaxNode? ConvertToBlockBody(SyntaxNode node, ExpressionSyntax expressionBody)
         {
-            if (InitializeParameterHelpers.TryConvertExpressionBodyToStatement(expressionBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var statement))
+            var semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+            if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
             {
                 var block = SyntaxFactory.Block(statement);
                 return node switch
