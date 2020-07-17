@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer2
     {
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerTelemetry _telemetry;
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsCreated(
-            Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            TextDocument document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
@@ -235,16 +235,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
             => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
 
-        private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
+        private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
             => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
 
-        private static string GetResetLogMessage(Document document)
+        private static string GetResetLogMessage(TextDocument document)
             => $"document close/reset: ({document.FilePath ?? document.Name})";
 
-        private static string GetOpenLogMessage(Document document)
+        private static string GetOpenLogMessage(TextDocument document)
             => $"document open: ({document.FilePath ?? document.Name})";
 
         private static string GetRemoveLogMessage(DocumentId id)

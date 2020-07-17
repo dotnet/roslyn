@@ -116,14 +116,20 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var cancellationToken = reader.CancellationToken;
 
                 var name = reader.ReadString();
                 var kind = (SymbolKind)reader.ReadInteger();
-                var locations = reader.ReadLocationArray();
+                var locations = reader.ReadLocationArray(out var locationsFailureReason);
                 var ordinal = reader.ReadInteger();
+
+                if (locationsFailureReason != null)
+                {
+                    failureReason = $"({nameof(BodyLevelSymbolKey)} {nameof(locations)} failed -> {locationsFailureReason})";
+                    return default;
+                }
 
                 // First check if we can recover the symbol just through the original location.
                 foreach (var loc in locations)
@@ -136,6 +142,7 @@ namespace Microsoft.CodeAnalysis
                         if (symbol?.Kind == kind &&
                             SymbolKey.Equals(reader.Compilation, name, symbol.Name))
                         {
+                            failureReason = null;
                             return resolution;
                         }
                     }
@@ -148,10 +155,14 @@ namespace Microsoft.CodeAnalysis
                     foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
                     {
                         if (symbol.ordinal == ordinal)
+                        {
+                            failureReason = null;
                             return new SymbolKeyResolution(symbol.symbol);
+                        }
                     }
                 }
 
+                failureReason = $"({nameof(BodyLevelSymbolKey)} '{name}' not found)";
                 return default;
             }
 
