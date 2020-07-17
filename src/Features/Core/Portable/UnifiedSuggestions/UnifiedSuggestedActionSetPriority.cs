@@ -6,6 +6,10 @@
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
+    /// <summary>
+    /// Equivalent to SuggestedActionSetPriority, but in a location that can be used
+    /// by both local Roslyn and LSP.
+    /// </summary>
     internal enum UnifiedSuggestedActionSetPriority
     {
         None = 0,

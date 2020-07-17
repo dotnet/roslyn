@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Runs a code action as a command on the server.
     /// This is done when a code action cannot be applied as a WorkspaceEdit on the LSP client.
     /// For example, all non-ApplyChangesOperations must be applied as a command.
-    /// TO-DO: Currently, any ApplyChangesOperation that adds or modifies an outside document must also be
+    /// TO-DO: Currently, any ApplyChangesOperation that adds a document must also be
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>
     [ExportExecuteWorkspaceCommand(CodeActionsHandler.RunCodeActionCommandName)]
-    internal class RunCodeActionsHandler : IExecuteWorkspaceCommandHandler
+    internal class RunCodeActionHandler : IExecuteWorkspaceCommandHandler
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RunCodeActionsHandler(
+        public RunCodeActionHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             ILspSolutionProvider solutionProvider,

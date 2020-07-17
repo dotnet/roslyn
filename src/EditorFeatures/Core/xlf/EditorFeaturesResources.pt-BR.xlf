@@ -1209,11 +1209,6 @@ Deseja continuar?</target>
         <target state="translated">Preenchimento de Chaves</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Corrigir todas as ocorrências em</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">Não é possível aplicar a operação enquanto uma sessão de renomeação está ativa.</target>

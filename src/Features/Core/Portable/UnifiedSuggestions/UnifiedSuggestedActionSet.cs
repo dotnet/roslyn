@@ -7,6 +7,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
+    /// <summary>
+    /// Similar to SuggestedActionSet, but in a location that can be used
+    /// by both local Roslyn and LSP.
+    /// </summary>
     internal class UnifiedSuggestedActionSet
     {
         public string CategoryName { get; }

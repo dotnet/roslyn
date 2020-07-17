@@ -1209,11 +1209,6 @@ Continuare?</target>
         <target state="translated">Completamento parentesi graffa</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Correggi tutte le occorrenze in</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">Non è possibile applicare l'operazione mentre è attiva una sessione di ridenominazione.</target>

@@ -1209,11 +1209,6 @@ Do you want to proceed?</source>
         <target state="translated">かっこ完了</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">次の場所のすべての出現箇所を修正します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">名前変更セッションがアクティブな間は、操作を適用できません。</target>

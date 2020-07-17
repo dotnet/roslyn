@@ -1209,11 +1209,6 @@ Do you want to proceed?</source>
         <target state="translated">중괄호 완성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">다음 위치에서 모든 발생 수정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">이름 바꾸기 세션이 활성인 동안에는 작업을 적용할 수 없습니다.</target>

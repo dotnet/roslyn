@@ -5,22 +5,15 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -65,50 +58,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<VSCodeAction>();
             }
 
-            var codeActionsAndKinds = await CodeActionHelpers.GetCodeActionsAndKindsAsync(
-                document, _codeFixService, _codeRefactoringService, _threadingContext,
+            var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
+                request, document, _codeFixService, _codeRefactoringService, _threadingContext,
                 request.Range, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var results);
-            foreach (var action in codeActionsAndKinds)
-            {
-                results.Add(GenerateVSCodeAction(request, action.CodeAction, action.Kind));
-            }
-
-            return results.ToArray();
-
-            // Local functions
-            static VSCodeAction GenerateVSCodeAction(
-                CodeActionParams request,
-                CodeAction codeAction,
-                CodeActionKind codeActionKind,
-                string currentTitle = "")
-            {
-                using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var nestedActions);
-
-                if (!string.IsNullOrEmpty(currentTitle))
-                {
-                    // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
-                    currentTitle += '|';
-                }
-
-                currentTitle += codeAction.Title;
-
-                // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
-                foreach (var action in codeAction.NestedCodeActions)
-                {
-                    nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, currentTitle));
-                }
-
-                return new VSCodeAction
-                {
-                    Title = codeAction.Title,
-                    Kind = codeActionKind,
-                    Diagnostics = request.Context.Diagnostics,
-                    Children = nestedActions.ToArray(),
-                    Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
-                };
-            }
+            return codeActions;
         }
     }
 }

@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
+    /// <summary>
+    /// Similar to ISuggestedAction, but in a location that can be used by both local Roslyn and LSP.
+    /// </summary>
     internal interface IUnifiedSuggestedAction
     {
         public Workspace Workspace { get; }

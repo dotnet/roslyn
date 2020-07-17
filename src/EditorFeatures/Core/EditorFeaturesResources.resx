@@ -700,9 +700,6 @@ Do you want to proceed?</value>
   <data name="Brace_Completion" xml:space="preserve">
     <value>Brace Completion</value>
   </data>
-  <data name="Fix_all_occurrences_in" xml:space="preserve">
-    <value>Fix all occurrences in</value>
-  </data>
   <data name="Cannot_apply_operation_while_a_rename_session_is_active" xml:space="preserve">
     <value>Cannot apply operation while a rename session is active.</value>
   </data>

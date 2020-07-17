@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
+    /// <summary>
+    /// Similar to FixAllSuggestedAction, but in a location that can be used by
+    /// both local Roslyn and LSP.
+    /// </summary>
     internal class UnifiedFixAllSuggestedAction : UnifiedSuggestedAction
     {
         public Diagnostic Diagnostic { get; }

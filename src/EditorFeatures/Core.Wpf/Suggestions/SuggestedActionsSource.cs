@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource
+        private class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
         {
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
@@ -154,6 +154,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
                 => GetSuggestedActions(requestedActionCategories, range, operationContext: null, cancellationToken);
+
+            public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                IUIThreadOperationContext operationContext)
+            {
+                return GetSuggestedActions(
+                    requestedActionCategories,
+                    range,
+                    operationContext,
+                    operationContext.UserCancellationToken);
+            }
 
             public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
