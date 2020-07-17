@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TryApplyWorksWhenProjectNameChanges()
         {
-            using var workspace = new CustomizedCanApplyWorkspace(allowedKinds: ApplyChangesKind.AddAnalyzerConfigDocument);
+            using var workspace = new CustomizedCanApplyWorkspace(allowedKinds: ApplyChangesKind.ChangeProjectInfo);
 
             var project = workspace.CurrentSolution.Projects.Single();
 
