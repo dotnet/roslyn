@@ -6333,4 +6333,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DoesNotOverrideBaseEqualityContract" xml:space="preserve">
     <value>'{0}' does not override expected property from '{1}'.</value>
   </data>
+  <data name="IDS_FeatureModuleInitializers" xml:space="preserve">
+    <value>module initializers</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType" xml:space="preserve">
+    <value>Module initializer method '{0}' must be accessible at the module level</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
+    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
+    <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
+    <value>A module initializer must be an ordinary member method</value>
+  </data>
 </root>
