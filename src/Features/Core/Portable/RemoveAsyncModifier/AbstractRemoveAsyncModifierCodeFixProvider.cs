@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using KnownTypes = Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider.KnownTypes;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncModifier(SyntaxNode node);
+        protected abstract SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode node);
         protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, TExpressionSyntax expressionBody);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
         private SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode node, ITypeSymbol returnType, KnownTypes knownTypes, bool needsReturnStatementAdded)
         {
-            node = RemoveAsyncModifier(node);
+            node = RemoveAsyncModifier(generator, node);
 
             var expression = generator.GetExpression(node);
             if (expression is TExpressionSyntax expressionBody)

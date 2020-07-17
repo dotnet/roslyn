@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.RemoveAsyncModifier;
 using Roslyn.Utilities;
@@ -52,15 +53,21 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return null;
         }
 
-        protected override SyntaxNode RemoveAsyncModifier(SyntaxNode node)
+        protected override SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode node)
             => node switch
             {
                 MethodDeclarationSyntax method => RemoveAsyncModifierHelpers.WithoutAsyncModifier(method, method.ReturnType),
                 LocalFunctionStatementSyntax localFunction => RemoveAsyncModifierHelpers.WithoutAsyncModifier(localFunction, localFunction.ReturnType),
-                AnonymousMethodExpressionSyntax method => RemoveAsyncModifierHelpers.WithoutAsyncModifier(method),
-                ParenthesizedLambdaExpressionSyntax lambda => RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda),
-                SimpleLambdaExpressionSyntax lambda => RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda),
+                AnonymousMethodExpressionSyntax method => AnnotateBlock(generator, RemoveAsyncModifierHelpers.WithoutAsyncModifier(method)),
+                ParenthesizedLambdaExpressionSyntax lambda => AnnotateBlock(generator, RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda)),
+                SimpleLambdaExpressionSyntax lambda => AnnotateBlock(generator, RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda)),
                 _ => node,
             };
+
+        // Block bodied lambdas and anonymous methods need to be formatted after changing their modifiers, or their indentation is broken
+        private static SyntaxNode AnnotateBlock(SyntaxGenerator generator, SyntaxNode node)
+            => generator.GetExpression(node) == null
+                ? node.WithAdditionalAnnotations(Formatter.Annotation)
+                : node;
     }
 }

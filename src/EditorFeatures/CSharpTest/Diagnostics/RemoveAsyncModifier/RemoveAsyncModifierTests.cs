@@ -663,8 +663,7 @@ class C
 {
     public void M1()
     {
-        Func<Task> foo = (Func<Task>)async {|CS1998:delegate|}
-        {
+        Func<Task> foo = (Func<Task>)async {|CS1998:delegate|} {
             if (System.DateTime.Now.Ticks > 0)
             {
                 return;
@@ -773,7 +772,8 @@ class C
 {
     public void M1()
     {
-        Func<int, Task<int>> foo = x => {
+        Func<int, Task<int>> foo = x =>
+        {
             return Task.FromResult(1);
         };
     }
@@ -833,8 +833,7 @@ class C
 {
     public void M1()
     {
-        Func<int, Task> foo = x =>
-        {
+        Func<int, Task> foo = x => {
             if (System.DateTime.Now.Ticks > 0)
             {
                 return Task.CompletedTask;
@@ -895,7 +894,8 @@ class C
 {
     public void M1()
     {
-        Func<Task<int>> foo = () => {
+        Func<Task<int>> foo = () =>
+        {
             return Task.FromResult(1);
         };
     }
@@ -955,8 +955,7 @@ class C
 {
     public void M1()
     {
-        Func<Task> foo = () =>
-        {
+        Func<Task> foo = () => {
             if (System.DateTime.Now.Ticks > 0)
             {
                 return Task.CompletedTask;

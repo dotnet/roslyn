@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.RemoveAsyncModifier
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function RemoveAsyncModifier(node As SyntaxNode) As SyntaxNode
+        Protected Overrides Function RemoveAsyncModifier(generator As SyntaxGenerator, node As SyntaxNode) As SyntaxNode
             Dim methodBlock = TryCast(node, MethodBlockSyntax)
             If methodBlock IsNot Nothing Then
                 Dim subOrFunctionStatement = methodBlock.SubOrFunctionStatement
