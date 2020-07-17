@@ -5608,7 +5608,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
   </data>
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
-    <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Please use language version '{0}' or greater, or consider adding a 'class', 'struct', or type constraint.</value>
+    <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Please use language version '{0}' or greater to use annotations with unconstrained type parameters, or consider adding a 'class', 'struct', or type constraint.</value>
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</value>
