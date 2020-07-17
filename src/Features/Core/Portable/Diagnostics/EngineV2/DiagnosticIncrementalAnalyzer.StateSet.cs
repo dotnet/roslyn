@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
                 => _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
 
-            public async Task<bool> OnDocumentOpenedAsync(IPersistentStorageService persistentStorageService, Document document)
+            public async Task<bool> OnDocumentOpenedAsync(IPersistentStorageService persistentStorageService, TextDocument document)
             {
                 // can not be cancelled
                 if (!TryGetProjectState(document.Project.Id, out var projectState) ||
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, Document document)
+            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, TextDocument document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public bool OnDocumentReset(Document document)
+            public bool OnDocumentReset(TextDocument document)
             {
                 var changed = false;
                 // can not be cancelled

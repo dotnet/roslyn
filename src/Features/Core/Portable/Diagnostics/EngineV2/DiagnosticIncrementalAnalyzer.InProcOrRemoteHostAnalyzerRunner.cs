@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool logPerformanceInfo,
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
-            => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.Document.Project, compilationWithAnalyzers,
+            => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers,
                 forceExecuteAllAnalyzers: false, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectAsync(
@@ -117,8 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // get compiler result builder map
             var builderMap = analysisResult.ToResultBuilderMap(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
-                compilationWithAnalyzers.Compilation, analyzers, skippedAnalyzersInfo,
-                compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken);
+                compilationWithAnalyzers.Compilation, analyzers, skippedAnalyzersInfo, compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken);
 
             var result = builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value));
             var telemetry = getTelemetryInfo
@@ -186,14 +185,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Use high priority if we are force executing all analyzers for user action OR serving an active document request.
             var isHighPriority = forceExecuteAllAnalyzers ||
-                documentAnalysisScope != null && _documentTrackingService?.TryGetActiveDocument() == documentAnalysisScope.Document.Id;
+                documentAnalysisScope != null && _documentTrackingService?.TryGetActiveDocument() == documentAnalysisScope.TextDocument.Id;
 
             var argument = new DiagnosticArguments(
                 isHighPriority,
                 compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
                 logPerformanceInfo,
                 getTelemetryInfo,
-                documentAnalysisScope?.Document.Id,
+                documentAnalysisScope?.TextDocument.Id,
                 documentAnalysisScope?.Span,
                 documentAnalysisScope?.Kind,
                 project.Id,

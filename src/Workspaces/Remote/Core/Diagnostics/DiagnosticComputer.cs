@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
     internal class DiagnosticComputer
     {
-        private readonly Document? _document;
+        private readonly TextDocument? _document;
         private readonly Project _project;
         private readonly TextSpan? _span;
         private readonly AnalysisKind? _analysisKind;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            _document = documentId != null ? project.GetRequiredDocument(documentId) : null;
+            _document = documentId != null ? project.Solution.GetRequiredTextDocument(documentId) : null;
             _project = project;
             _span = span;
             _analysisKind = analysisKind;

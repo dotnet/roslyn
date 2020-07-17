@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
 
-        private async Task AnalyzeDocumentForKindAsync(Document document, AnalysisKind kind, CancellationToken cancellationToken)
+        public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+            => AnalyzeDocumentForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken);
+
+        private async Task AnalyzeDocumentForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
         {
             try
             {
@@ -162,7 +165,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+            => TextDocumentOpenAsync(document, cancellationToken);
+
+        public Task NonSourceDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
+            => TextDocumentOpenAsync(document, cancellationToken);
+
+        private async Task TextDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
@@ -174,7 +183,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public async Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            => TextDocumentCloseAsync(document, cancellationToken);
+
+        public Task NonSourceDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
+            => TextDocumentCloseAsync(document, cancellationToken);
+
+        private async Task TextDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentClose, GetResetLogMessage, document, cancellationToken))
             {
@@ -188,6 +203,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+            => TextDocumentResetAsync(document, cancellationToken);
+
+        public Task NonSourceDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
+            => TextDocumentResetAsync(document, cancellationToken);
+
+        private Task TextDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
@@ -202,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return Task.CompletedTask;
         }
 
-        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(Document document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
+        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
             // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
             if (!documentHadDiagnostics ||
@@ -295,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return Task.CompletedTask;
         }
 
-        private static bool AnalysisEnabled(Document document)
+        private static bool AnalysisEnabled(TextDocument document)
         {
             if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
             {
@@ -436,17 +457,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             });
         }
 
-        private void RaiseDocumentDiagnosticsIfNeeded(Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
+        private void RaiseDocumentDiagnosticsIfNeeded(TextDocument document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
             => RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, ImmutableArray<DiagnosticData>.Empty, items);
 
         private void RaiseDocumentDiagnosticsIfNeeded(
-            Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+            TextDocument document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
         {
             RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, AnalyzerService.RaiseDiagnosticsUpdated, forceUpdate: false);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
-            Document document, StateSet stateSet, AnalysisKind kind,
+            TextDocument document, StateSet stateSet, AnalysisKind kind,
             DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult,
             Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
@@ -467,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
-            Document document, StateSet stateSet, AnalysisKind kind,
+            TextDocument document, StateSet stateSet, AnalysisKind kind,
             ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems,
             Action<DiagnosticsUpdatedArgs> raiseEvents,
             bool forceUpdate)
@@ -487,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
-                var document = project.GetDocument(documentId);
+                var document = project.GetTextDocument(documentId);
                 if (document == null)
                 {
                     // it can happen with build synchronization since, in build case, 

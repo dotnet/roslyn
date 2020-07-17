@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Location.None;
             }
 
-            var document = project.GetDocument(dataLocation.DocumentId);
-            if (document == null)
+            var textDocument = project.GetTextDocument(dataLocation.DocumentId);
+            if (textDocument == null)
             {
                 return Location.None;
             }
 
-            if (document.SupportsSyntaxTree)
+            if (textDocument is Document document && document.SupportsSyntaxTree)
             {
                 var syntacticDocument = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
                 return dataLocation.ConvertLocation(syntacticDocument);
@@ -144,9 +144,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool includeSuppressedDiagnostics,
             CancellationToken cancellationToken)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
-            var filterTree = documentAnalysisScope?.Document.GetSyntaxTreeSynchronously(cancellationToken);
+            SyntaxTree? filterTree = null;
+            AdditionalText? filterAdditionalFile = null;
+            if (documentAnalysisScope != null)
+            {
+                if (documentAnalysisScope.TextDocument is Document document)
+                {
+                    filterTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+                }
+                else
+                {
+                    filterAdditionalFile = documentAnalysisScope.AdditionalFile;
+                }
+            }
 
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
             foreach (var analyzer in analyzers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -161,28 +173,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     analyzer,
                     ImmutableArray<string>.Empty);
 
-                if (filterTree != null)
+                if (documentAnalysisScope != null)
                 {
-                    RoslynDebug.Assert(documentAnalysisScope != null);
+                    RoslynDebug.Assert(filterTree != null || filterAdditionalFile != null);
                     var filterSpan = documentAnalysisScope.Span;
                     var kind = documentAnalysisScope.Kind;
 
+                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzerMap;
                     switch (kind)
                     {
                         case AnalysisKind.Syntax:
-                            if (analysisResult.SyntaxDiagnostics.TryGetValue(filterTree, out var diagnosticsByAnalyzerMap))
+                            if (filterTree != null)
+                            {
+                                if (analysisResult.SyntaxDiagnostics.TryGetValue(filterTree, out diagnosticsByAnalyzerMap))
+                                {
+                                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
+                                        filterTree, additionalDocumentId: null, filterSpan, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                                }
+                            }
+                            else if (analysisResult.AdditionalFileDiagnostics.TryGetValue(filterAdditionalFile!, out diagnosticsByAnalyzerMap))
                             {
                                 AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                    filterTree, filterSpan, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                                    tree: null, documentAnalysisScope.TextDocument.Id, filterSpan, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                             }
 
                             break;
 
                         case AnalysisKind.Semantic:
-                            if (analysisResult.SemanticDiagnostics.TryGetValue(filterTree, out diagnosticsByAnalyzerMap))
+                            if (analysisResult.SemanticDiagnostics.TryGetValue(filterTree!, out diagnosticsByAnalyzerMap))
                             {
                                 AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                    filterTree, filterSpan, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                                    filterTree, additionalDocumentId: null, filterSpan, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                             }
 
                             break;
@@ -196,34 +217,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
                     {
                         AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                            tree, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                            tree, additionalDocumentId: null, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                     }
 
                     foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SemanticDiagnostics)
                     {
                         AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                            tree, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                            tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                    }
+
+                    foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.AdditionalFileDiagnostics)
+                    {
+                        var additionalDocumentId = project.GetDocumentForFile(file);
+                        var kind = additionalDocumentId != null ? AnalysisKind.Syntax : AnalysisKind.NonLocal;
+                        AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
+                            tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                     }
 
                     AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.CompilationDiagnostics, ref result, compilation,
-                        tree: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                        tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
 
                 // Special handling for pragma suppression diagnostics.
                 if (!additionalPragmaSuppressionDiagnostics.IsEmpty &&
                     analyzer is IPragmaSuppressionsAnalyzer)
                 {
-                    if (filterTree != null)
+                    if (documentAnalysisScope != null)
                     {
-                        var diagnostics = additionalPragmaSuppressionDiagnostics.WhereAsArray(d => d.Location.SourceTree == filterTree);
-                        AddDiagnosticsToResult(diagnostics, ref result, compilation, filterTree,
-                            documentAnalysisScope!.Span, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                        if (filterTree != null)
+                        {
+                            var diagnostics = additionalPragmaSuppressionDiagnostics.WhereAsArray(d => d.Location.SourceTree == filterTree);
+                            AddDiagnosticsToResult(diagnostics, ref result, compilation, filterTree, additionalDocumentId: null,
+                                documentAnalysisScope!.Span, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                        }
                     }
                     else
                     {
                         foreach (var group in additionalPragmaSuppressionDiagnostics.GroupBy(d => d.Location.SourceTree!))
                         {
-                            AddDiagnosticsToResult(group.AsImmutable(), ref result, compilation, group.Key,
+                            AddDiagnosticsToResult(group.AsImmutable(), ref result, compilation, group.Key, additionalDocumentId: null,
                                 span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                         }
                     }
@@ -242,6 +274,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ref DiagnosticAnalysisResultBuilder result,
                 Compilation compilation,
                 SyntaxTree? tree,
+                DocumentId? additionalDocumentId,
                 TextSpan? span,
                 AnalysisKind kind,
                 ImmutableArray<string> diagnosticIdsToFilter,
@@ -250,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (diagnosticsByAnalyzer.TryGetValue(analyzer, out var diagnostics))
                 {
                     AddDiagnosticsToResult(diagnostics, ref result, compilation,
-                        tree, span, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                        tree, additionalDocumentId, span, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
             }
 
@@ -259,6 +292,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ref DiagnosticAnalysisResultBuilder result,
                 Compilation compilation,
                 SyntaxTree? tree,
+                DocumentId? additionalDocumentId,
                 TextSpan? span,
                 AnalysisKind kind,
                 ImmutableArray<string> diagnosticIdsToFilter,
@@ -275,8 +309,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 switch (kind)
                 {
                     case AnalysisKind.Syntax:
-                        Debug.Assert(diagnostics.All(d => d.Location.SourceTree == tree));
-                        result.AddSyntaxDiagnostics(tree!, diagnostics);
+                        if (tree != null)
+                        {
+                            Debug.Assert(diagnostics.All(d => d.Location.SourceTree == tree));
+                            result.AddSyntaxDiagnostics(tree!, diagnostics);
+                        }
+                        else
+                        {
+                            RoslynDebug.Assert(additionalDocumentId != null);
+                            result.AddExternalSyntaxDiagnostics(additionalDocumentId, diagnostics);
+                        }
                         break;
 
                     case AnalysisKind.Semantic:
@@ -341,11 +383,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             switch (documentAnalysisScope.Kind)
             {
                 case AnalysisKind.Syntax:
-                    var tree = await documentAnalysisScope.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                    if (documentAnalysisScope.TextDocument is Document document)
+                    {
+                        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                    }
 
                 case AnalysisKind.Semantic:
-                    var model = await documentAnalysisScope.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var model = await ((Document)documentAnalysisScope.TextDocument).GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     return await compilationWithAnalyzers.GetAnalysisResultAsync(model, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
 
                 default:
@@ -369,8 +418,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (documentAnalysisScope != null)
             {
+                if (!(documentAnalysisScope.TextDocument is Document document))
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
                 using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
-                await AnalyzeDocumentAsync(suppressionAnalyzer, documentAnalysisScope.Document, documentAnalysisScope.Span, diagnosticsBuilder.Add).ConfigureAwait(false);
+                await AnalyzeDocumentAsync(suppressionAnalyzer, document, documentAnalysisScope.Span, diagnosticsBuilder.Add).ConfigureAwait(false);
                 return diagnosticsBuilder.ToImmutable();
             }
             else

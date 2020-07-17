@@ -169,6 +169,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Action<SyntaxTreeAnalysisContext> Action { get { return _action; } }
     }
 
+    internal sealed class AdditionalFileAnalyzerAction : AnalyzerAction
+    {
+        public AdditionalFileAnalyzerAction(Action<AdditionalFileAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
+
+        public Action<AdditionalFileAnalysisContext> Action { get; }
+    }
+
     internal sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
         private readonly Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> _action;
