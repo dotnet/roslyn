@@ -24,19 +24,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     [Name(nameof(InlineParameterNameHintsTaggerProvider))]
     internal class InlineParameterNameHintsTaggerProvider : IViewTaggerProvider
     {
-        private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
+        private readonly IViewTagAggregatorFactoryService _viewTagAggregatorFactoryService;
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+        public InlineParameterNameHintsTaggerProvider(IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
                                                        IClassificationFormatMapService classificationFormatMapService,
                                                        IClassificationTypeRegistryService classificationTypeRegistryService,
                                                        IThreadingContext threadingContext)
         {
-            _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
+            _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;
             this.ClassificationTypeRegistryService = classificationTypeRegistryService;
             this.ThreadingContext = threadingContext;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
+            var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(textView);
             return new InlineParameterNameHintsTagger(this, textView, buffer, tagAggregator) as ITagger<T>;
         }
     }

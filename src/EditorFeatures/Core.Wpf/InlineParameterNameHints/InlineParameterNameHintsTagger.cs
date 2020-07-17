@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 // Calculate UI elements
                 _cache.Clear();
                 _cacheSnapshot = snapshot;
+
+                // Thye fullspan is really only the size of the textview plus 100 lines, not the entire file
                 var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
                 var requestSpans = new NormalizedSnapshotSpanCollection(fullSpan);
                 var dataTags = _tagAggregator.GetTags(requestSpans);
@@ -117,7 +119,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 }
             }
 
-            return _cache;
+            var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
+            foreach (var tagSpan in _cache)
+            {
+                if (spans.IntersectsWith(tagSpan.Span))
+                {
+                    selectedSpans.Add(tagSpan);
+                }
+            }
+
+            return selectedSpans;
         }
 
         public void Dispose()
