@@ -2017,7 +2017,7 @@
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="ConvertedType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">

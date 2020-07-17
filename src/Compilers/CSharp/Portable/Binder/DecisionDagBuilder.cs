@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, bindings));
                 builder.Add(MakeTestsAndBindings(input, bin.Right, bindings));
                 var result = Tests.OrSequence.Create(builder);
-                if (bin.InputType.Equals(bin.ConvertedType))
+                if (bin.InputType.Equals(bin.NarrowedType))
                 {
                     output = input;
                     return result;
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder = ArrayBuilder<Tests>.GetInstance(2);
                     builder.Add(result);
-                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.ConvertedType, isExplicitTest: false, tests: builder);
+                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
                     return Tests.AndSequence.Create(builder);
                 }
             }
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, out var leftOutput, bindings));
                 builder.Add(MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
                 output = rightOutput;
-                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.ConvertedType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
                 return Tests.AndSequence.Create(builder);
             }
         }
