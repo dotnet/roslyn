@@ -9,7 +9,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
@@ -97,51 +96,69 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 _ => null
             };
 
-        protected override SyntaxNode ReplaceParametersInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel)
+        protected override SyntaxNode ReplaceParametersAndGenericsInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel)
         {
+            /*
+            TODO:
+            Replace parameters & generics in the method body.
+            Example:
+            Before:
+            void Caller(int x)
+            {
+                Callee<int>(x, k: "Hello");
+            }
+
+            void Callee<T>(int i, int j = 0, string k = null)
+            {
+                Print(typeof(T) + i + j + k);
+            }
+
+            After:
+            void Caller(int x)
+            {
+                Callee<int>(x, k: "Hello");
+            }
+
+            void Callee<T>(int x, int j = 0, string k = null)
+            {
+                Print(typeof(int) + x + 0 + "Hello");
+            }
+            
+            Note: here we won't have naming conflict because there is only one statement. There is no statement to declare new local
+            variable in the Callee.
+             */
             return methodDeclarationSyntaxNode;
         }
 
         protected override bool TryGetVariableDeclarationsForOutParameters(SyntaxNode methodInvovation, SemanticModel semanticModel, out ImmutableArray<SyntaxNode> variableDeclarations)
         {
+            /*
+            TODO:
+            Genereate local varaible for 'out var' parameters
+            Example:
+
+            Before:
+            void Caller()
+            {
+                int i = 10;
+                Callee(out i, out var k);
+            }
+
+            void Callee(out int i, out int j)
+            {
+               // Method body
+            }
+
+            After:
+            void Caller()
+            {
+                int i = 10;
+                int k;
+                // Method body
+            }
+            */
             variableDeclarations = default;
-            if (methodInvovation is InvocationExpressionSyntax invocationExpressionSyntax)
-            {
-                var outParametersVariableDeclaration = invocationExpressionSyntax.ArgumentList.Arguments
-                    .Where(arg => arg.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword && arg.Expression is DeclarationExpressionSyntax)
-                    .ToImmutableArray();
-                if (outParametersVariableDeclaration.Any())
-                {
-                    variableDeclarations = outParametersVariableDeclaration
-                        .Select(outVariable => GenerateLocalDeclarationStatement((DeclarationExpressionSyntax)outVariable.Expression, semanticModel))
-                        .OfType<SyntaxNode>().ToImmutableArray();
-                    return true;
-                }
-            }
-
             return false;
-        }
-
-        private static LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement(
-            DeclarationExpressionSyntax declarationExpressionSyntax,
-            SemanticModel semanticModel)
-        {
-            var typeSyntax = declarationExpressionSyntax.Type;
-            if (typeSyntax.IsVar)
-            {
-                // TODO: cancellationToken
-                var convertedType = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
-                if (convertedType != null)
-                {
-                    typeSyntax = convertedType.GenerateTypeSyntax(allowVar: false);
-                }
-            }
-
-            return SyntaxFactory.LocalDeclarationStatement(
-                   SyntaxFactory.VariableDeclaration(
-                       typeSyntax, SyntaxFactory.SingletonSeparatedList(
-                           SyntaxFactory.VariableDeclarator(
-                               ((SingleVariableDesignationSyntax)declarationExpressionSyntax.Designation).Identifier))));
         }
     }
 }

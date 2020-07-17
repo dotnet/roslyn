@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// Replace the parameters of <param name="methodDeclarationSyntaxNode"/> by using the
         /// input parameters from <param name="methodInvocationSyntaxNode"/>
         /// </summary>
-        protected abstract SyntaxNode ReplaceParametersInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel);
+        protected abstract SyntaxNode ReplaceParametersAndGenericsInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel);
 
         /// <summary>
         /// Generate the 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             // 1. Using the input parameter from caller to replace callee's parameter. Because this feature only supports
             // one line scenario now, there won't be any naming conflict.
-            var methodDeclarationAfterParameterReplacement = ReplaceParametersInMethodDeclaration(methodDeclarationSyntaxNode, methodInvocationSyntaxNode, methodSymbol, semanticModel);
+            var methodDeclarationAfterParameterReplacement = ReplaceParametersAndGenericsInMethodDeclaration(methodDeclarationSyntaxNode, methodInvocationSyntaxNode, methodSymbol, semanticModel);
 
             // 2. Extract the Expression from the statement.
             var methodStatement = ExtractExpressionFromMethodDeclaration(methodDeclarationAfterParameterReplacement);

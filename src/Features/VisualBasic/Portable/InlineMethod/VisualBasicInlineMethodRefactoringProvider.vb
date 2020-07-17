@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return inlineSyntaxNode
         End Function
 
-        Protected Overrides Function ReplaceParametersInMethodDeclaration(methodDeclarationSyntaxNode As SyntaxNode, methodInvocationSyntaxNode As SyntaxNode, methodSymbol As IMethodSymbol, semanticModel As SemanticModel) As SyntaxNode
+        Protected Overrides Function ReplaceParametersAndGenericsInMethodDeclaration(methodDeclarationSyntaxNode As SyntaxNode, methodInvocationSyntaxNode As SyntaxNode, methodSymbol As IMethodSymbol, semanticModel As SemanticModel) As SyntaxNode
             Return methodDeclarationSyntaxNode
         End Function
 
