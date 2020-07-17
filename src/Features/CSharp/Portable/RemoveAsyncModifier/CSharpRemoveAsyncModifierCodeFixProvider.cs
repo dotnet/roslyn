@@ -35,20 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override bool TryGetExpressionBody(SyntaxNode node, [NotNullWhen(returnValue: true)] out ExpressionSyntax? expression)
-        {
-            expression = node switch
-            {
-                // For methods and local functions ExpressionBody is an ArrowExpressionClauseSyntax so we pull the real expression out
-                MethodDeclarationSyntax method => method.ExpressionBody?.Expression,
-                LocalFunctionStatementSyntax localFunction => localFunction.ExpressionBody?.Expression,
-                AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.ExpressionBody,
-                _ => throw ExceptionUtilities.Unreachable
-            };
-
-            return expression != null;
-        }
-
         protected override SyntaxNode? ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody)
         {
             if (InitializeParameterHelpers.TryConvertExpressionBodyToStatement(expressionBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var statement))

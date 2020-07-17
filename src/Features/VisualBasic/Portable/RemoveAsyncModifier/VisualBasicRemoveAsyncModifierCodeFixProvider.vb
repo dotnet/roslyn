@@ -56,16 +56,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
         Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As SyntaxNode) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
-
-        Protected Overrides Function TryGetExpressionBody(methodSymbolOpt As SyntaxNode, ByRef expression As ExpressionSyntax) As Boolean
-            Dim singleLineLambda = TryCast(methodSymbolOpt, SingleLineLambdaExpressionSyntax)
-            If singleLineLambda IsNot Nothing Then
-                ' Since this fixer doesn't apply to subs we know Body will be an expression
-                expression = DirectCast(singleLineLambda.Body, ExpressionSyntax)
-                Return True
-            End If
-
-            Return False
-        End Function
     End Class
 End Namespace
