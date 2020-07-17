@@ -39,7 +39,7 @@ end class
             Dim text = "
 class Test
     sub Method()
-        dim typeName = [||]GetType(System.String).FullName
+        dim typeName = [||]GetType(System.String).Name
     end sub
 end class
 "
@@ -60,7 +60,7 @@ import System
 
 class Test
     sub Method()
-        dim typeName = [||]GetType(String).FullName
+        dim typeName = [||]GetType(String).Name
     end sub
 end class
 "
@@ -83,7 +83,7 @@ import System
 
 class Test
     sub Method()
-        dim typeName = Foo([||]GetType(String).FullName)
+        dim typeName = Foo([||]GetType(String).Name)
     end sub
 
     sub Foo(ByVal typeName As String)
@@ -113,7 +113,7 @@ import System
 class Test
     sub Method()
         dim typeVar = GetType(String)
-        dim typeName = typeVar.FullName 
+        dim typeName = typeVar.Name 
     end sub
 end class
 ")

@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected void AnalyzeAction(OperationAnalysisContext context)
         {
+            var action = !IsValidTypeofAction(context);
+            var op = !IsValidOperation(context.Operation);
             if (!IsValidTypeofAction(context) || !IsValidOperation(context.Operation))
             {
                 return;
@@ -68,7 +70,8 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
             // Check Parent is a .Name access
             var operationParent = (IPropertyReferenceOperation)operation.Parent;
-            if (operationParent.Property.Name != nameof(System.Type.Name))
+            var parentProperty = operationParent.Property.Name;
+            if (parentProperty != nameof(System.Type.Name) && parentProperty != "Name")
             {
                 return false;
             }
