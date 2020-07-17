@@ -3263,7 +3263,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterTypesWithAnnotations = parameterTypes.SelectAsArray(
                 type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
 
-            return FunctionPointerTypeSymbol.CreateFromParts(returnTypeWithAnnotations, returnRefKind, parameterTypesWithAnnotations, parameterRefKinds, this).GetPublicSymbol();
+            // PROTOTYPE(func-ptr): Allow passing in calling convention and ref custom modifiers for return/parameters
+            return FunctionPointerTypeSymbol.CreateFromParts(
+                Cci.CallingConvention.Default,
+                returnTypeWithAnnotations,
+                refCustomModifiers: default,
+                returnRefKind,
+                parameterTypesWithAnnotations,
+                parameterRefCustomModifiers: default,
+                parameterRefKinds,
+                this).GetPublicSymbol();
         }
 
         protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)

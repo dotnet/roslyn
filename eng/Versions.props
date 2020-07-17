@@ -252,8 +252,9 @@
     -->
     <NewtonsoftJsonVersion>12.0.2</NewtonsoftJsonVersion>
     <StreamJsonRpcVersion>2.4.34</StreamJsonRpcVersion>
-    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
-    <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
+    <!-- PROTOTYPE(func-ptr): Need to do test insertions and ensure that we have binding redirects correct before merging to master -->
+    <SystemCollectionsImmutableVersion>5.0.0-preview.8.20365.1</SystemCollectionsImmutableVersion>
+    <SystemReflectionMetadataVersion>5.0.0-preview.8.20365.1</SystemReflectionMetadataVersion>
     <MicrosoftVisualStudioStaticReviewsEmbeddableVersion>0.1.102-alpha</MicrosoftVisualStudioStaticReviewsEmbeddableVersion>
     <MicrosoftBclAsyncInterfacesVersion>1.1.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>

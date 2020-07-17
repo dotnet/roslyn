@@ -697,6 +697,16 @@
         <target state="translated">대상 런타임이 인터페이스 멤버의 'protected', 'protected internal' 또는 'private protected' 접근성을 지원하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
+        <source>The target runtime doesn't support runtime-environment default calling convention. Specify the unmanaged calling convention explicitly.</source>
+        <target state="new">The target runtime doesn't support runtime-environment default calling convention. Specify the unmanaged calling convention explicitly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedExtensionCallConv">
+        <source>The target runtime doesn't support extensible unmanaged calling conventions.</source>
+        <target state="new">The target runtime doesn't support extensible unmanaged calling conventions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedGetHashCodeInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>

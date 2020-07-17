@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CandidateReason expectedCandidateReason = CandidateReason.None,
             string[]? expectedSymbolCandidates = null)
         {
-            Assert.Equal(expectedSyntax, syntax.ToString());
+            AssertEx.Equal(expectedSyntax, syntax.ToString());
             var semanticInfo = model.GetSemanticInfoSummary(syntax);
             ITypeSymbol? exprType;
 

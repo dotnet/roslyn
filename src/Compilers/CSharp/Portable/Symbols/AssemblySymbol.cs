@@ -424,8 +424,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
         {
-            get => !(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is null);
+            get => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is object;
         }
+
+        // PROTOTYPE(func-ptr): Remove when we have a runtime that supports this to test with
+        private bool _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
+        internal void SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention()
+            => _overrideRuntimeSupportUnmanagedSignatureCallingConvention = true;
+
+        internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
+            => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention) is object
+               || _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
 
         /// <summary>
         /// Return an array of assemblies involved in canonical type resolution of

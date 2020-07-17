@@ -1869,6 +1869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE(func-ptr): Pack before merge
 
         ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 9500,
+        ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 9501,
+        ERR_RuntimeDoesNotSupportUnmanagedExtensionCallConv = 9502,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

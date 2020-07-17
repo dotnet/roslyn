@@ -32,17 +32,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             Action<ModuleSymbol>? symbolValidator = null,
             string? expectedOutput = null,
             TargetFramework targetFramework = TargetFramework.Standard,
-            CSharpCompilationOptions? options = null)
+            CSharpCompilationOptions? options = null,
+            bool overrideUnmanagedSupport = false)
         {
-            return CompileAndVerify(
+            var comp = CreateCompilation(
                 source,
                 references,
                 parseOptions: TestOptions.RegularPreview,
                 options: options ?? (expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe),
-                symbolValidator: symbolValidator,
-                expectedOutput: expectedOutput,
-                verify: Verification.Skipped,
                 targetFramework: targetFramework);
+
+            if (overrideUnmanagedSupport) comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+
+            return CompileAndVerify(comp, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
@@ -72,15 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [InlineData("unmanaged[@Thiscall]", CallingConvention.ThisCall)]
         [InlineData("unmanaged[@Stdcall]", CallingConvention.Standard)]
         [InlineData("unmanaged[@Fastcall]", CallingConvention.FastCall)]
-        // PROTOTYPE(func-ptr): Update SRM so it can decode the convention correctly
-        //[InlineData("unmanaged", CallingConvention.Unmanaged)]
+        [InlineData("unmanaged", CallingConvention.Unmanaged)]
         internal void CallingConventions(string conventionString, CallingConvention expectedConvention)
         {
             var verifier = CompileAndVerifyFunctionPointers($@"
 class C
 {{
     public unsafe delegate* {conventionString}<string, int> M() => throw null;
-}}", symbolValidator: symbolValidator);
+}}", symbolValidator: symbolValidator, overrideUnmanagedSupport: true);
 
             symbolValidator(GetSourceModule(verifier));
 
@@ -99,25 +100,22 @@ class C
         [Fact]
         public void MultipleCallingConventions()
         {
-            var comp = CreateCompilationWithFunctionPointers(@"
+            var comp = CompileAndVerifyFunctionPointers(@"
 #pragma warning disable CS0168
 unsafe class C
 {
-    public void M()
-    {
-        delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
-    }
-}");
+    public delegate* unmanaged[Thiscall, Stdcall]<void> M() => throw null;
+}", symbolValidator: symbolValidator, overrideUnmanagedSupport: true);
 
-            // PROTOTYPE(func-ptr): Should pass, verify emit and readback
-            comp.VerifyDiagnostics(
-                // (7,29): error CS8807: 'Thiscall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
-                //         delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
-                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Thiscall").WithArguments("Thiscall").WithLocation(7, 29),
-                // (7,39): error CS8807: 'Stdcall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
-                //         delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
-                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Stdcall").WithArguments("Stdcall").WithLocation(7, 39)
-            );
+            void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var m = c.GetMethod("M");
+                var funcPtr = m.ReturnType;
+
+                AssertEx.Equal("delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>", funcPtr.ToTestDisplayString());
+                Assert.Equal(CallingConvention.Unmanaged, ((FunctionPointerTypeSymbol)funcPtr).Signature.CallingConvention);
+            }
         }
 
         [Fact]
@@ -6259,21 +6257,116 @@ unsafe class Base
 {
     protected virtual void M1(delegate*<void> ptr) {}
     protected virtual delegate*<void> M2() => throw null;
+    protected virtual void M3(delegate* unmanaged[Stdcall, Thiscall]<void> ptr) {}
+    protected virtual delegate* unmanaged[Stdcall, Thiscall]<void> M4() => throw null;
 }
-unsafe class Derived : Base
+unsafe class Derived1 : Base
 {
     protected override void M1(delegate* unmanaged[Cdecl]<void> ptr) {}
     protected override delegate* unmanaged[Cdecl]<void> M2() => throw null;
-}");
+    protected override void M3(delegate* unmanaged[Fastcall, Thiscall]<void> ptr) {}
+    protected override delegate* unmanaged[Fastcall, Thiscall]<void> M4() => throw null;
+}
+unsafe class Derived2 : Base
+{
+    protected override void M1(delegate*<void> ptr) {} // Implemented correctly
+    protected override delegate*<void> M2() => throw null; // Implemented correctly
+    protected override void M3(delegate* unmanaged[Stdcall, Fastcall]<void> ptr) {}
+    protected override delegate* unmanaged[Stdcall, Fastcall]<void> M4() => throw null;
+}
+");
+
+            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
 
             comp.VerifyDiagnostics(
-                // (9,29): error CS0115: 'Derived.M1(delegate*<void>)': no suitable method found to override
+                // (11,29): error CS0115: 'Derived1.M1(delegate*<void>)': no suitable method found to override
                 //     protected override void M1(delegate* unmanaged[Cdecl]<void> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1(delegate*<void>)").WithLocation(9, 29),
-                // (10,57): error CS0508: 'Derived.M2()': return type must be 'delegate*<void>' to match overridden member 'Base.M2()'
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived1.M1(delegate*<void>)").WithLocation(11, 29),
+                // (12,57): error CS0508: 'Derived1.M2()': return type must be 'delegate*<void>' to match overridden member 'Base.M2()'
                 //     protected override delegate* unmanaged[Cdecl]<void> M2() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "delegate*<void>").WithLocation(10, 57)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived1.M2()", "Base.M2()", "delegate*<void>").WithLocation(12, 57),
+                // (13,29): error CS0115: 'Derived1.M3(delegate*<void>)': no suitable method found to override
+                //     protected override void M3(delegate* unmanaged[Fastcall, Thiscall]<void> ptr) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived1.M3(delegate*<void>)").WithLocation(13, 29),
+                // (14,70): error CS0508: 'Derived1.M4()': return type must be 'delegate*<void>' to match overridden member 'Base.M4()'
+                //     protected override delegate* unmanaged[Fastcall, Thiscall]<void> M4() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("Derived1.M4()", "Base.M4()", "delegate*<void>").WithLocation(14, 70),
+                // (20,29): error CS0115: 'Derived2.M3(delegate*<void>)': no suitable method found to override
+                //     protected override void M3(delegate* unmanaged[Stdcall, Fastcall]<void> ptr) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived2.M3(delegate*<void>)").WithLocation(20, 29),
+                // (21,69): error CS0508: 'Derived2.M4()': return type must be 'delegate*<void>' to match overridden member 'Base.M4()'
+                //     protected override delegate* unmanaged[Stdcall, Fastcall]<void> M4() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("Derived2.M4()", "Base.M4()", "delegate*<void>").WithLocation(21, 69)
             );
+        }
+
+        [Fact]
+        public void Override_ConventionOrderingDoesNotMatter()
+        {
+            var source1 = @"
+public unsafe class Base
+{
+    public virtual void M1(delegate* unmanaged[Thiscall, Stdcall]<void> param) => throw null;
+    public virtual delegate* unmanaged[Thiscall, Stdcall]<void> M2() => throw null;
+    public virtual void M3(delegate* unmanaged[Thiscall, Stdcall]<ref string> param) => throw null;
+    public virtual delegate* unmanaged[Thiscall, Stdcall]<ref string> M4() => throw null;
+}
+";
+
+            var source2 = @"
+unsafe class Derived1 : Base
+{
+    public override void M1(delegate* unmanaged[Stdcall, Thiscall]<void> param) => throw null;
+    public override delegate* unmanaged[Stdcall, Thiscall]<void> M2() => throw null;
+    public override void M3(delegate* unmanaged[Stdcall, Thiscall]<ref string> param) => throw null;
+    public override delegate* unmanaged[Stdcall, Thiscall]<ref string> M4() => throw null;
+}
+unsafe class Derived2 : Base
+{
+    public override void M1(delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> param) => throw null;
+    public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> M2() => throw null;
+    public override void M3(delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> param) => throw null;
+    public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> M4() => throw null;
+}
+";
+            var allSourceComp = CreateCompilationWithFunctionPointers(source1 + source2);
+
+            allSourceComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+            CompileAndVerify(allSourceComp, symbolValidator: getSymbolValidator(separateAssembly: false));
+
+            var baseComp = CreateCompilationWithFunctionPointers(source1);
+            baseComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+            var metadataRef = baseComp.EmitToImageReference();
+
+            var derivedComp = CreateCompilationWithFunctionPointers(source2, references: new[] { metadataRef });
+            derivedComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+            CompileAndVerify(derivedComp, symbolValidator: getSymbolValidator(separateAssembly: true));
+
+            static Action<ModuleSymbol> getSymbolValidator(bool separateAssembly)
+            {
+                return module =>
+                {
+                    var @base = (separateAssembly ? module.ReferencedAssemblySymbols[1].GlobalNamespace : module.GlobalNamespace).GetTypeMember("Base");
+                    var baseM1 = @base.GetMethod("M1");
+                    var baseM2 = @base.GetMethod("M2");
+                    var baseM3 = @base.GetMethod("M3");
+                    var baseM4 = @base.GetMethod("M4");
+
+                    for (int derivedI = 1; derivedI <= 2; derivedI++)
+                    {
+                        var derived = module.GlobalNamespace.GetTypeMember($"Derived{derivedI}");
+                        var derivedM1 = derived.GetMethod("M1");
+                        var derivedM2 = derived.GetMethod("M2");
+                        var derivedM3 = derived.GetMethod("M3");
+                        var derivedM4 = derived.GetMethod("M4");
+
+                        Assert.True(baseM1.Parameters.Single().Type.Equals(derivedM1.Parameters.Single().Type, TypeCompareKind.ConsiderEverything));
+                        Assert.True(baseM2.ReturnType.Equals(derivedM2.ReturnType, TypeCompareKind.ConsiderEverything));
+                        Assert.True(baseM3.Parameters.Single().Type.Equals(derivedM3.Parameters.Single().Type, TypeCompareKind.ConsiderEverything));
+                        Assert.True(baseM3.ReturnType.Equals(derivedM3.ReturnType, TypeCompareKind.ConsiderEverything));
+                    }
+                };
+            }
         }
 
         [Theory]
@@ -7452,6 +7545,30 @@ unsafe class FunctionPointer
   IL_0008:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void UnmanagedOnUnsupportedRuntime()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#pragma warning disable CS0168 // Unused variable
+class C
+{
+    unsafe void M()
+    {
+        delegate* unmanaged<void> ptr1;
+        delegate* unmanaged[Stdcall, Thiscall]<void> ptr2;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,19): error CS9501: The target runtime doesn't support runtime-environment default calling convention. Specify the unmanaged calling convention explicitly.
+                //         delegate* unmanaged<void> ptr1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(7, 19),
+                // (8,19): error CS9502: The target runtime doesn't support extensible unmanaged calling conventions.
+                //         delegate* unmanaged[Stdcall, Thiscall]<void> ptr2;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedExtensionCallConv, "unmanaged").WithLocation(8, 19)
+            );
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
