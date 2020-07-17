@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type);
+            return node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasCompilerGenerated, node.Type);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)

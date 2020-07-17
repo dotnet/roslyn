@@ -3019,10 +3019,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 38)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3063,10 +3060,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 35)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3388,10 +3382,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3432,10 +3423,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 40)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
