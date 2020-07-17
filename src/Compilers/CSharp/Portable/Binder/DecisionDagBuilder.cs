@@ -816,14 +816,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wasAcyclic = decisionDag.TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> sortedStates);
             if (!wasAcyclic)
             {
+                // Since we intend the set of DagState nodes to be acyclic by construction, we do not expect
+                // this to occur. Just in case it does due to bugs, we recover gracefully to avoid crashing the
+                // compiler in production.  If you find that this happens (the assert fails), please modify the
+                // DagState construction process to avoid creating a cyclic state graph.
+                Debug.Assert(wasAcyclic); // force failure in debug builds
+
                 // If the dag contains a cycle, return a short-circuit dag instead.
                 decisionDag.RootNode.Dag = defaultDecision;
-
-                // Since we intended the set of DagState nodes to be acyclic by construction, we do not know how
-                // this can happen, but since it does occasionally happen we need to recover gracefully to avoid
-                // crashing the compiler.  See also https://github.com/dotnet/roslyn/issues/45946
-                // If you figure out how it occurs, please modify the DagState construction process to avoid that.
-                Debug.Assert(wasAcyclic); // force failure in debug builds
                 return;
             }
 
