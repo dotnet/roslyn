@@ -1450,12 +1450,14 @@ tryAgain:
 
             var keyword = ConvertToKeyword(this.EatToken());
 
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
+            var outerSaveTerm = _termState;
             if (keyword.Kind == SyntaxKind.RecordKeyword)
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
             }
+
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
 
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
@@ -1474,15 +1476,11 @@ tryAgain:
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                 {
-                    var saveTerm2 = _termState;
-                    if (keyword.Kind == SyntaxKind.RecordKeyword)
-                    {
-                        _termState |= TerminatorState.IsEndOfRecordSignature;
-                    }
                     constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
                     this.ParseTypeParameterConstraintClauses(constraints);
-                    _termState = saveTerm2;
                 }
+
+                _termState = outerSaveTerm;
 
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
