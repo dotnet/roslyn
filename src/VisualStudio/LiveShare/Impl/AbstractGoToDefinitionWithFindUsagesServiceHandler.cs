@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var locations = await GetDefinitionsWithFindUsagesServiceAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
-            if ((locations.Count() == 0) && document.SupportsSemanticModel && this._metadataAsSourceService != null)
+            if ((locations.Length == 0) && document.SupportsSemanticModel && this._metadataAsSourceService != null)
             {
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (symbol?.Locations.FirstOrDefault().IsInMetadata == true)
