@@ -49,20 +49,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true);
         }
 
-        private void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
+        private static void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
         {
             spans.Add(statement.DoKeyword.Span);
             spans.Add(statement.WhileKeyword.Span);
             spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
         }
 
-        private void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
+        private static void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
             => spans.Add(statement.ForKeyword.Span);
 
-        private void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
+        private static void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
             => spans.Add(statement.ForEachKeyword.Span);
 
-        private void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
+        private static void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
             => spans.Add(statement.WhileKeyword.Span);
 
         /// <summary>

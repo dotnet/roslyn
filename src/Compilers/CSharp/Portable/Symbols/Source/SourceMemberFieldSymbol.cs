@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool isPointerType = _lazyType.Value.DefaultType.Kind switch
                     {
                         SymbolKind.PointerType => true,
-                        SymbolKind.FunctionPointer => true,
+                        SymbolKind.FunctionPointerType => true,
                         _ => false
                     };
                     Debug.Assert(isPointerType == IsPointerFieldSyntactically());

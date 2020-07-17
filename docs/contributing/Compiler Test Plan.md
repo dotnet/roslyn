@@ -34,11 +34,11 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-    - types
-    - methods
-    - fields
-    - properties (including get/set accessors)
-    - events (including add/remove accessors)
+- type declarations (class, record with or without positional members, struct, interface, type parameter)
+- methods
+- fields
+- properties (including get/set/init accessors)
+- events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)

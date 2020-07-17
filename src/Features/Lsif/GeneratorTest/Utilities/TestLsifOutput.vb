@@ -30,6 +30,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
             For Each project In workspace.CurrentSolution.Projects
                 Dim compilation = Await project.GetCompilationAsync()
+
+                ' Assert we don't have any errors to prevent any typos in the tests
+                Assert.Empty(compilation.GetDiagnostics().Where(Function(d) d.Severity = DiagnosticSeverity.Error))
+
                 generator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices)
             Next
         End Function

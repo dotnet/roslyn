@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static void handleFunctionPointerType(FunctionPointerTypeSymbol funcPtr, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
                 {
                     Func<TypeSymbol, (ArrayBuilder<bool>, bool), bool, bool> visitor =
-                        (TypeSymbol type, (ArrayBuilder<bool> builder, bool addCustomModiferFlags) param, bool isNestedNamedType) => AddFlags(type, param.builder, isNestedNamedType, param.addCustomModiferFlags);
+                        (TypeSymbol type, (ArrayBuilder<bool> builder, bool addCustomModifierFlags) param, bool isNestedNamedType) => AddFlags(type, param.builder, isNestedNamedType, param.addCustomModifierFlags);
 
                     // The function pointer type itself gets a false
                     transformFlagsBuilder.Add(false);

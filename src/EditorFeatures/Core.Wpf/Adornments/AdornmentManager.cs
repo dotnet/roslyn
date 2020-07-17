@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         // topology, originally single span may be mapped into several spans. Visual adornments do
         // not make much sense on disjoint spans. We will not decorate spans that could not make it
         // in one piece.
-        private bool TryMapToSingleSnapshotSpan(IMappingSpan mappingSpan, ITextSnapshot viewSnapshot, out SnapshotSpan span)
+        private static bool TryMapToSingleSnapshotSpan(IMappingSpan mappingSpan, ITextSnapshot viewSnapshot, out SnapshotSpan span)
         {
             // IMappingSpan.GetSpans is a surprisingly expensive function that allocates multiple
             // lists and collection if the view buffer is same as anchor we could just map the

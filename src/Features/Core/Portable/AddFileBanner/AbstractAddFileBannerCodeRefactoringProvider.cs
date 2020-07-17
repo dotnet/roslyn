@@ -114,14 +114,14 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return banner;
             }
 
-            var result = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
             foreach (var trivia in banner)
             {
                 var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
                 result.Add(updated);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(

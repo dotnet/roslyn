@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class EnumerableExtensionTests
     {
-        private IEnumerable<T> Enumerable<T>(params T[] values)
+        private static IEnumerable<T> Enumerable<T>(params T[] values)
             => values;
 
         [Fact]

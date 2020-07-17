@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public RefTypeSyntax Update(SyntaxToken refKeyword, TypeSyntax type)
         {
-            return Update(refKeyword, default(SyntaxToken), type);
+            return Update(refKeyword, readOnlyKeyword: default, type);
         }
     }
 }
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
         public static RefTypeSyntax RefType(SyntaxToken refKeyword, TypeSyntax type)
         {
-            return RefType(refKeyword, default(SyntaxToken), type);
+            return RefType(refKeyword, readOnlyKeyword: default, type);
         }
     }
 }

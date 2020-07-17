@@ -696,5 +696,86 @@ class C
 
             Await VerifyHighlightsAsync(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestHighlightParamAndCommentsCursorOnDefinition() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+        /// &lt; summary &gt;
+        /// &lt; paramref name="{|Reference:x|}"/ &gt;
+        /// &lt; /summary &gt;
+        /// &lt; param name="{|Reference:x|}" &gt; &lt; /param &gt;
+        public int this[int $${|Definition:x|}]
+        {
+            get
+            {
+                return 0;
+            }
+        }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestHighlightParamAndCommentsCursorOnReference() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+        /// &lt; summary &gt;
+        /// &lt; paramref name="$${|Reference:x|}"/ &gt;
+        /// &lt; /summary &gt;
+        /// &lt; param name="{|Reference:x|}" &gt; &lt; /param &gt;
+        public int this[int {|Definition:x|}]
+        {
+            get
+            {
+                return 0;
+            }
+        }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestHighlightParamAndCommentsDefinitionNestedBetweenReferences() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+        /// &lt; summary &gt;
+        /// &lt; paramref name="$${|Reference:x|}"/ &gt;
+        /// &lt; /summary &gt;
+        /// &lt; param name="{|Reference:x|}" &gt; &lt; /param &gt;
+        public int this[int {|Definition:x|}]
+        {
+            get
+            {
+                return {|Reference:x|};
+            }
+        }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
     End Class
 End Namespace

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private const _VSFILECHANGEFLAGS DefaultFileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
 
-        private static readonly AsyncLazy<uint?> s_none = new AsyncLazy<uint?>(ct => null, cacheResult: true);
+        private static readonly AsyncLazy<uint?> s_none = new AsyncLazy<uint?>(value: null);
 
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly string _filePath;

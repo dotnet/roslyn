@@ -2371,14 +2371,14 @@ public class C
   IL_0001:  call       ""object..ctor()""
   IL_0006:  nop
   IL_0007:  ldarg.0
-  IL_0008:  ldarg.1
-  IL_0009:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_000e:  ldarg.0
-  IL_000f:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0014:  stfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0008:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
+  IL_000d:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  stfld      ""int C.<M>d__0.<>1__state""
   IL_0019:  ldarg.0
-  IL_001a:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
-  IL_001f:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_001a:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_001f:  stfld      ""int C.<M>d__0.<>l__initialThreadId""
   IL_0024:  ret
 }", sequencePoints: "C+<M>d__0..ctor", source: source);
                 }
@@ -2391,14 +2391,14 @@ public class C
   IL_0000:  ldarg.0
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
-  IL_0007:  ldarg.1
-  IL_0008:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_000d:  ldarg.0
-  IL_000e:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0013:  stfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0011:  ldarg.0
+  IL_0012:  ldarg.1
+  IL_0013:  stfld      ""int C.<M>d__0.<>1__state""
   IL_0018:  ldarg.0
-  IL_0019:  call       ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create()""
-  IL_001e:  stfld      ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0019:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_001e:  stfld      ""int C.<M>d__0.<>l__initialThreadId""
   IL_0023:  ret
 }", sequencePoints: "C+<M>d__0..ctor", source: source);
                 }
@@ -6150,7 +6150,7 @@ class C
         [Fact]
         public void TestWellKnownMembers()
         {
-            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { TestReferences.NetStandard20.TasksExtensionsRef }, targetFramework: TargetFramework.NetStandard20);
+            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { TestMetadata.SystemThreadingTasksExtensions.NetStandard20Lib }, targetFramework: TargetFramework.NetStandard20);
             comp.VerifyDiagnostics();
 
             verifyType(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,

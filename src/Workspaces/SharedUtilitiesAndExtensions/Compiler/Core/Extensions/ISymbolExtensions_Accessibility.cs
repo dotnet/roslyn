@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case SymbolKind.PointerType:
                     return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck);
 
-                case SymbolKindEx.FunctionPointer:
+                case SymbolKindEx.FunctionPointerType:
 #if !CODE_STYLE
                     var funcPtrSignature = ((IFunctionPointerTypeSymbol)symbol).Signature;
                     if (!IsSymbolAccessibleCore(funcPtrSignature.ReturnType, within, null, out failedThroughTypeCheck))
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // Note: there are currently no synthesized operators on function pointer types. If that
                     // ever changes, updated the below assert and fix the code
 #if !CODE_STYLE
-                    Debug.Assert(!(symbol.IsKind(SymbolKind.Method) && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator && symbol.ContainingSymbol.IsKind(SymbolKind.FunctionPointer)));
+                    Debug.Assert(!(symbol.IsKind(SymbolKind.Method) && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator && symbol.ContainingSymbol.IsKind(SymbolKind.FunctionPointerType)));
 #endif
                     if (symbol.IsKind(SymbolKind.Method) &&
                         ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&

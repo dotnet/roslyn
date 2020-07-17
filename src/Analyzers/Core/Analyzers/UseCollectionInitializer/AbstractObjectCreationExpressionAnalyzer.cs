@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return null;
             }
 
-            var matches = ArrayBuilder<TMatch>.GetInstance();
+            using var _ = ArrayBuilder<TMatch>.GetInstance(out var matches);
             AddMatches(matches);
-            return matches.ToImmutableAndFree();
+            return matches.ToImmutable();
         }
 
         private bool TryInitializeVariableDeclarationCase()

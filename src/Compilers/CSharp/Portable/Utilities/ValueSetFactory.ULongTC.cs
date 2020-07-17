@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ulong INumericTC<ulong>.MaxValue => ulong.MaxValue;
 
+            ulong INumericTC<ulong>.Zero => 0;
+
             bool INumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
             {
                 switch (relation)

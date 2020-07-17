@@ -285,11 +285,12 @@ namespace Microsoft.CodeAnalysis
                 // ObsoleteAttribute(string, bool)
 
                 Debug.Assert(args.Length <= 2);
-                message = (string)args[0].ValueInternal;
+                message = (string?)args[0].ValueInternal;
 
                 if (args.Length == 2)
                 {
-                    isError = (bool)args[1].ValueInternal;
+                    Debug.Assert(args[1].ValueInternal is object);
+                    isError = (bool)args[1].ValueInternal!;
                 }
             }
 
@@ -341,8 +342,9 @@ namespace Microsoft.CodeAnalysis
                 // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
                 // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
 
-                message = (string)args[0].ValueInternal;
-                isError = ((int)args[1].ValueInternal == 1);
+                Debug.Assert(args[1].ValueInternal is object);
+                message = (string?)args[0].ValueInternal;
+                isError = ((int)args[1].ValueInternal! == 1);
             }
 
             return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError, diagnosticId: null, urlFormat: null);
@@ -537,6 +539,7 @@ namespace Microsoft.CodeAnalysis
             //   
             //   See Roslyn Bug 8603: ETA crashes with InvalidOperationException on duplicate attributes for details.
 
+            Debug.Assert(positionalArg.ValueInternal is object);
             var validOn = (AttributeTargets)positionalArg.ValueInternal;
             bool allowMultiple = DecodeNamedArgument(namedArgs, "AllowMultiple", SpecialType.System_Boolean, false);
             bool inherited = DecodeNamedArgument(namedArgs, "Inherited", SpecialType.System_Boolean, true);

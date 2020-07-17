@@ -161,15 +161,30 @@ namespace Microsoft.CodeAnalysis
             string symbolKey, Compilation compilation,
             bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, out _, cancellationToken);
+        }
+
+        public static SymbolKeyResolution ResolveString(
+            string symbolKey, Compilation compilation,
+            out string failureReason, CancellationToken cancellationToken)
+        {
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey: false, out failureReason, cancellationToken);
+        }
+
+        public static SymbolKeyResolution ResolveString(
+            string symbolKey, Compilation compilation, bool ignoreAssemblyKey,
+            out string failureReason, CancellationToken cancellationToken)
+        {
             using var reader = SymbolKeyReader.GetReader(
                 symbolKey, compilation, ignoreAssemblyKey, cancellationToken);
             var version = reader.ReadFormatVersion();
             if (version != FormatVersion)
             {
+                failureReason = $"({nameof(SymbolKey)} invalid format '${version}')";
                 return default;
             }
 
-            var result = reader.ReadSymbolKey();
+            var result = reader.ReadSymbolKey(out failureReason);
             Debug.Assert(reader.Position == symbolKey.Length);
             return result;
         }
@@ -208,7 +223,8 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
             => _symbolKeyData;
 
-        private static SymbolKeyResolution CreateResolution<TSymbol>(PooledArrayBuilder<TSymbol> symbols)
+        private static SymbolKeyResolution CreateResolution<TSymbol>(
+            PooledArrayBuilder<TSymbol> symbols, string reasonIfFailed, out string failureReason)
             where TSymbol : class, ISymbol
         {
 #if DEBUG
@@ -220,14 +236,17 @@ namespace Microsoft.CodeAnalysis
 
             if (symbols.Builder.Count == 0)
             {
+                failureReason = reasonIfFailed;
                 return default;
             }
             else if (symbols.Builder.Count == 1)
             {
+                failureReason = null;
                 return new SymbolKeyResolution(symbols.Builder[0]);
             }
             else
             {
+                failureReason = null;
                 return new SymbolKeyResolution(
                     ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutable()),
                     CandidateReason.Ambiguous);

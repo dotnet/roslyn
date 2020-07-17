@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Make the tests and variable bindings for the given pattern with the given input.  The pattern's
         /// "output" value is placed in <paramref name="output"/>.  The output is defined as the input
-        /// narrwed according to the pattern's *narrowed type*; see https://github.com/dotnet/csharplang/issues/2850.
+        /// narrowed according to the pattern's *narrowed type*; see https://github.com/dotnet/csharplang/issues/2850.
         /// </summary>
         private Tests MakeTestsAndBindings(
             BoundDagTemp input,
@@ -1822,6 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case False f:
+                                remainingTests.Free();
                                 return f;
                             case AndSequence seq:
                                 var testsToInsert = seq.RemainingTests;
@@ -1891,6 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case True t:
+                                remainingTests.Free();
                                 return t;
                             case OrSequence seq:
                                 remainingTests.RemoveAt(i);

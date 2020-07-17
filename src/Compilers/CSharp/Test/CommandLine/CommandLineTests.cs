@@ -33,6 +33,7 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -1599,7 +1600,7 @@ class C
         [InlineData("iso-3")]
         [InlineData("iso1")]
         [InlineData("8.1")]
-        [InlineData("9")]
+        [InlineData("10")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1614,6 +1615,8 @@ class C
         [InlineData("05")]
         [InlineData("07")]
         [InlineData("07.1")]
+        [InlineData("08")]
+        [InlineData("09")]
         public void LangVersion_LeadingZeroes(string value)
         {
             DefaultParse(new[] { $"/langversion:{value}", "a.cs" }, WorkingDirectory).Errors.Verify(
@@ -1652,7 +1655,7 @@ class C
             // - update the "UpgradeProject" codefixer
             // - update the IDE drop-down for selecting Language Version (in project-systems repo)
             // - update all the tests that call this canary
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "latest", "latestmajor", "preview" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1683,6 +1686,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion7_2,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7_3,
                 ErrorCode.ERR_FeatureNotAvailableInVersion8,
+                ErrorCode.ERR_FeatureNotAvailableInVersion9,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1706,7 +1710,7 @@ class C
             InlineData(LanguageVersion.CSharp8, LanguageVersion.LatestMajor),
             InlineData(LanguageVersion.CSharp8, LanguageVersion.Latest),
             InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
-            InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
+            InlineData(LanguageVersion.Preview, LanguageVersion.CSharp9),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
@@ -1742,6 +1746,8 @@ class C
             InlineData("7.3", true, LanguageVersion.CSharp7_3),
             InlineData("8", true, LanguageVersion.CSharp8),
             InlineData("8.0", true, LanguageVersion.CSharp8),
+            InlineData("9", true, LanguageVersion.CSharp9),
+            InlineData("9.0", true, LanguageVersion.CSharp9),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
@@ -1804,7 +1810,7 @@ class C
             // - update OptimizationLevelFacts.ToPdbSerializedString
             // - update tests that call this method
             // - update docs\features\compilation-from-portable-pdb.md
-            // NOTE: release is duplicated because the return value for release is the same regardless of the debugPluseMode bool
+            // NOTE: release is duplicated because the return value for release is the same regardless of the debugPlusMode bool
             AssertEx.SetEqual(new[] { "release", "release", "debug", "debug-plus" },
                 Enum.GetValues(typeof(OptimizationLevel)).Cast<OptimizationLevel>().SelectMany(l => new[] { l.ToPdbSerializedString(false), l.ToPdbSerializedString(true) }));
         }
@@ -4125,7 +4131,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 </configuration>");
 
             var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             // Test linking two appconfig dlls with simple src
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6095,7 +6101,7 @@ public class CS1698_a {}
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
         public void BinaryFileErrorTest()
         {
-            var binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path;
+            var binaryPath = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib).Path;
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", binaryPath });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
@@ -12198,7 +12204,7 @@ generated_code = auto");
                 defaultSeverity == DiagnosticSeverity.Info && !errorlog;
 
             // We use an analyzer that throws an exception on every analyzer callback.
-            // So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            // So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
             var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
 
             var dir = Temp.CreateDirectory();
@@ -12587,6 +12593,30 @@ key3 = value3");
             Assert.False(options.TryGetValue("key2", out _));
             Assert.True(options.TryGetValue("key3", out val));
             Assert.Equal("value3", val);
+        }
+
+        [Theory, CombinatorialData]
+        public void TestAdditionalFileAnalyzer(bool registerFromInitialize)
+        {
+            var srcDirectory = Temp.CreateDirectory();
+
+            var source = "class C { }";
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            var additionalText = "Additional Text";
+            var additionalFile = srcDirectory.CreateFile("b.txt");
+            additionalFile.WriteAllText(additionalText);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
+
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/additionalfile:" + additionalFile.Path },
+                analyzers: analyzer);
+            Assert.Contains("b.txt(1,3): warning ID0001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcDirectory.Path);
         }
     }
 

@@ -18,10 +18,6 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-#if DEBUG
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
-#endif
-
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
@@ -301,9 +297,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.CompilationOutputFilePaths != newProjectAttributes.CompilationOutputFilePaths)
+            if (project.State.ProjectInfo.Attributes.CompilationOutputInfo != newProjectAttributes.CompilationOutputInfo)
             {
-                project = project.Solution.WithProjectCompilationOutputFilePaths(project.Id, newProjectAttributes.CompilationOutputFilePaths).GetProject(project.Id)!;
+                project = project.Solution.WithProjectCompilationOutputInfo(project.Id, newProjectAttributes.CompilationOutputInfo).GetProject(project.Id)!;
             }
 
             if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)
