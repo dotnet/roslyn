@@ -1911,7 +1911,7 @@ tryAgain:
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
                 case SyntaxKind.DefaultKeyword:
                     var defaultToken = this.EatToken();
-                    return _syntaxFactory.DefaultConstraint(defaultToken);
+                    return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);

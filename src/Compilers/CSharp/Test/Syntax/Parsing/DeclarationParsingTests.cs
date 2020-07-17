@@ -7548,11 +7548,21 @@ b { }";
             EOF();
         }
 
-        [Fact]
-        public void DefaultConstraint_01()
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_01(bool useCSharp8)
         {
             UsingNode(
-@"class C<T> where T : default { }");
+@"class C<T> where T : default { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (1,22): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(1, 22)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7652,13 +7662,26 @@ b { }";
             EOF();
         }
 
-        [Fact]
-        public void DefaultConstraint_03()
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_03(bool useCSharp8)
         {
             UsingNode(
 @"class C<T, U>
     where T : struct, default
-    where U : default, class { }");
+    where U : default, class { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (2,23): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     where T : struct, default
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(2, 23),
+                        // (3,15): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     where U : default, class { }
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(3, 15)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
 
             N(SyntaxKind.CompilationUnit);
             {

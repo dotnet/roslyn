@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRecords:
                 case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
-                case MessageID.IDS_FeatureDefaultTypeParameterConstraint: // semantic check
+                case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
