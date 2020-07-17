@@ -203,6 +203,11 @@
                     <!-- This column appears empty to sighted users, but provides an improved screenreader 
                     experience that avoids moving cell-by-cell through the DataGrid -->
                     <DataGridTextColumn x:Name="automationHeader" IsReadOnly="True" Width="0">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="{x:Type DataGridColumnHeader}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding ElementName=dialog, Path=CurrentParameter}" />
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}"/>
