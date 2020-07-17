@@ -673,7 +673,7 @@ abstract record D
         }
 
         [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
-        public void AbstractMethod_ConstrainsAndSemiColon()
+        public void AbstractMethod_ConstraintsAndSemiColon()
         {
             UsingTree("abstract class C { abstract void M<T>() where T : class; }");
 
@@ -901,6 +901,105 @@ abstract record D
                     }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        public void RecordParsing_ConstraintAndCommaAndSemiColon()
+        {
+            UsingTree("record R<T> where T : class, ;",
+                // (1,30): error CS1031: Type expected
+                // record R<T> where T : class, ;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 30)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        public void RecordParsing_ConstraintAndCommaAndNewAndSemiColon()
+        {
+            UsingTree("record R<T> where T : class, new();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ConstructorConstraint);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2302,12 +2401,15 @@ class C(int X, int Y)
         {
             var text = "interface C : B;";
             UsingTree(text,
-                // (1,16): error CS1514: { expected
+                // (1,16): error CS1003: Syntax error, ',' expected
                 // interface C : B;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 16),
-                // (1,16): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 16),
+                // (1,17): error CS1514: { expected
                 // interface C : B;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 17),
+                // (1,17): error CS1513: } expected
+                // interface C : B;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 17)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2329,7 +2431,6 @@ class C(int X, int Y)
                     }
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2432,12 +2533,15 @@ class C(int X, int Y)
                 // (1,16): error CS8861: Unexpected argument list.
                 // interface C : B(X, Y);
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(1, 16),
-                // (1,22): error CS1514: { expected
+                // (1,22): error CS1003: Syntax error, ',' expected
                 // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
-                // (1,22): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 22),
+                // (1,23): error CS1514: { expected
                 // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 23),
+                // (1,23): error CS1513: } expected
+                // interface C : B(X, Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 23)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2479,7 +2583,6 @@ class C(int X, int Y)
                     }
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
