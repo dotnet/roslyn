@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertGetTypeToNa
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer(), New VisualBasicConvertTypeOfToNameOfCodeFixProvider())
+            Return (New VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer(), New VisualBasicConvertGetTypeToNameOfCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)>
