@@ -576,6 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type.Type.IsTypeParameterDisallowingAnnotation())
             {
+                // Check IDS_FeatureDefaultTypeParameterConstraint feature since `T?` and `where ... : default`
+                // are treated as a single feature, even though the errors reported for the two cases are distinct.
                 var requiredVersion = MessageID.IDS_FeatureDefaultTypeParameterConstraint.RequiredVersion();
                 if (requiredVersion > languageVersion)
                 {
