@@ -328,4 +328,7 @@
   <data name="Convert_typeof_to_nameof" xml:space="preserve">
     <value>Convert 'typeof' to 'nameof'</value>
   </data>
+  <data name="Convert_gettype_to_nameof" xml:space="preserve">
+    <value>Convert 'GetType' to 'nameof'</value>
+  </data>
 </root>

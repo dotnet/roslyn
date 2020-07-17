@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
                    option: null,
                    new LocalizableResourceString(
-                       nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                       nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(
+                       nameof(AnalyzersResources.Convert_gettype_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

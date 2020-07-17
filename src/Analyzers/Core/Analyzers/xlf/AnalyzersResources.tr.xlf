@@ -67,6 +67,11 @@
         <target state="new">Conditional expression can be simplified</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_gettype_to_nameof">
+        <source>Convert 'GetType' to 'nameof'</source>
+        <target state="new">Convert 'GetType' to 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">Koşullu ifadeye dönüştürme</target>
