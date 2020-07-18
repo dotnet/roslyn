@@ -15,75 +15,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function Uncast(cast As PredefinedCastExpressionSyntax) As ExpressionSyntax
-            Return Uncast(cast, cast.OpenParenToken, cast.Expression, Nothing, Nothing, cast.CloseParenToken)
+            Return Uncast(cast, cast.OpenParenToken, cast.Expression, commaToken:=Nothing, typeNode:=Nothing, cast.CloseParenToken)
         End Function
 
         Private Function Uncast(castNode As ExpressionSyntax, openParen As SyntaxToken, innerNode As ExpressionSyntax, commaToken As SyntaxToken, typeNode As TypeSyntax, closeParen As SyntaxToken) As ExpressionSyntax
 
             Dim leadingTrivia As List(Of SyntaxTrivia) = castNode.GetLeadingTrivia.ToList
-            If openParen.LeadingTrivia.ContainsCommentOrLineContinue Then
-                leadingTrivia.AddRange(openParen.LeadingTrivia)
-            End If
-
-            If openParen.TrailingTrivia.ContainsCommentOrLineContinue Then
-                leadingTrivia.AddRange(openParen.TrailingTrivia)
-            End If
-            If (Not castNode.GetLeadingTrivia.Any) AndAlso leadingTrivia.FirstOrDefault.IsKind(SyntaxKind.WhitespaceTrivia) Then
+            leadingTrivia.AddRange(AddTriviaIfContainsAnyCommentOrLineContinuation(openParen.LeadingTrivia))
+            leadingTrivia.AddRange(AddTriviaIfContainsAnyCommentOrLineContinuation(openParen.TrailingTrivia))
+            If leadingTrivia.FirstOrDefault.IsKind(SyntaxKind.WhitespaceTrivia) AndAlso Not castNode.GetLeadingTrivia.Any Then
                 leadingTrivia.RemoveAt(0)
             End If
-
-            If innerNode.GetLeadingTrivia.ContainsCommentOrLineContinue Then
-                leadingTrivia.AddRange(innerNode.GetLeadingTrivia)
-            End If
+            leadingTrivia.AddRange(innerNode.GetLeadingTrivia)
 
             Dim trailingTrivia As List(Of SyntaxTrivia) = castNode.GetTrailingTrivia.ToList
-            If closeParen.TrailingTrivia.ContainsCommentOrLineContinue Then
-                trailingTrivia.InsertRange(0, closeParen.TrailingTrivia)
-            End If
+            trailingTrivia.InsertRange(0, closeParen.TrailingTrivia)
+            trailingTrivia.InsertRange(0, AddTriviaIfContainsAnyCommentOrLineContinuation(closeParen.TrailingTrivia))
+            trailingTrivia.InsertRange(0, AddTriviaIfContainsAnyCommentOrLineContinuation(openParen.LeadingTrivia))
 
-            If closeParen.LeadingTrivia.ContainsCommentOrLineContinue Then
-                trailingTrivia.InsertRange(0, openParen.LeadingTrivia)
-            End If
-
+            ' Nothing for Predefined Cast
             If typeNode IsNot Nothing Then
-                If typeNode.GetTrailingTrivia.ContainsCommentOrLineContinue Then
-                    trailingTrivia.InsertRange(0, typeNode.GetTrailingTrivia)
-                End If
-
-                If typeNode.GetLeadingTrivia.ContainsCommentOrLineContinue Then
-                    trailingTrivia.InsertRange(0, typeNode.GetLeadingTrivia)
-                End If
+                trailingTrivia.InsertRange(0, AddTriviaIfContainsAnyCommentOrLineContinuation(typeNode.GetTrailingTrivia))
+                trailingTrivia.InsertRange(0, AddTriviaIfContainsAnyCommentOrLineContinuation(typeNode.GetLeadingTrivia))
             End If
 
+            ' Kind None for Predefined Cast
             If commaToken.IsKind(SyntaxKind.CommaToken) Then
-                If commaToken.TrailingTrivia.ContainsCommentOrLineContinue Then
-                    trailingTrivia.InsertRange(0, commaToken.TrailingTrivia)
-                End If
-
-                If commaToken.LeadingTrivia.ContainsCommentOrLineContinue Then
-                    trailingTrivia.InsertRange(0, commaToken.LeadingTrivia)
-                End If
+                trailingTrivia.InsertRange(0, AddTriviaIfContainsAnyCommentOrLineContinuation(commaToken.TrailingTrivia))
+                trailingTrivia.InsertRange(0, AddTriviaIfContainsAnyCommentOrLineContinuation(commaToken.LeadingTrivia))
             End If
 
-            If innerNode.GetTrailingTrivia.ContainsCommentOrLineContinue Then
-                trailingTrivia.InsertRange(0, innerNode.GetTrailingTrivia)
-            End If
+            trailingTrivia.InsertRange(0, AddTriviaIfContainsAnyCommentOrLineContinuation(innerNode.GetTrailingTrivia))
 
             If trailingTrivia.Count > 0 Then
                 Dim newTrailingTrivia As New List(Of SyntaxTrivia)
                 Dim foundEOL As Boolean = False
                 For i As Integer = 0 To trailingTrivia.Count - 1
                     Dim trivia As SyntaxTrivia = trailingTrivia(i)
-                    Dim nextTrivia As SyntaxTrivia = GetNextTrivia(trailingTrivia, i, 1)
+                    Dim nextTrivia As SyntaxTrivia = GetForwardTriviaOrDefault(trailingTrivia, i)
                     Select Case trivia.Kind
                         Case SyntaxKind.WhitespaceTrivia
                             Select Case nextTrivia.Kind
                                 Case SyntaxKind.WhitespaceTrivia
-                                    trailingTrivia(i + 1) = AdjustWhitespace(trivia, nextTrivia, GetNextTrivia(trailingTrivia, i, 2).IsKind(SyntaxKind.LineContinuationTrivia))
+                                    trailingTrivia(i + 1) = AdjustWhitespace(trivia, nextTrivia, GetForwardTriviaOrDefault(trailingTrivia, i, lookaheadCount:=2).IsKind(SyntaxKind.LineContinuationTrivia))
                                 Case SyntaxKind.EndOfLineTrivia
                                     ' skip Whitespace before EOL
                                 Case SyntaxKind.LineContinuationTrivia
-                                    If GetNextTrivia(trailingTrivia, i, 2).IsKind(SyntaxKind.WhitespaceTrivia) Then
+                                    If GetForwardTriviaOrDefault(trailingTrivia, i, lookaheadCount:=2).IsKind(SyntaxKind.WhitespaceTrivia) Then
                                         trailingTrivia(i + 2) = trivia
                                         trivia = SyntaxFactory.Space
                                     End If
@@ -118,7 +96,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         End Function
 
-        Private Function GetNextTrivia(trailingTrivia As List(Of SyntaxTrivia), index As Integer, lookaheadCount As Integer) As SyntaxTrivia
+        Private Function AddTriviaIfContainsAnyCommentOrLineContinuation(leadingTrivia As SyntaxTriviaList) As IEnumerable(Of SyntaxTrivia)
+            If leadingTrivia.ContainsAnyCommentOrLineContinuation Then
+                Return leadingTrivia
+            End If
+            Return New List(Of SyntaxTrivia)
+        End Function
+
+        Private Function GetForwardTriviaOrDefault(trailingTrivia As List(Of SyntaxTrivia), index As Integer, Optional lookaheadCount As Integer = 1) As SyntaxTrivia
             Return If(index < trailingTrivia.Count - lookaheadCount, trailingTrivia(index + lookaheadCount), Nothing)
         End Function
 

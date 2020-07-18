@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTriviaListExtensions
 
         <Extension()>
-        Public Function ContainsCommentOrLineContinue(list As IEnumerable(Of SyntaxTrivia)) As Boolean
+        Public Function ContainsAnyCommentOrLineContinuation(list As IEnumerable(Of SyntaxTrivia)) As Boolean
             If list Is Nothing Then
                 Return False
             End If
