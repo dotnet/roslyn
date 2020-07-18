@@ -9,6 +9,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTriviaListExtensions
 
         <Extension()>
+        Public Function ContainsCommentOrLineContinue(list As IEnumerable(Of SyntaxTrivia)) As Boolean
+            If list Is Nothing Then
+                Return False
+            End If
+
+            Return list.Any(Function(t) t.IsKind(SyntaxKind.LineContinuationTrivia) OrElse t.IsRegularOrDocComment)
+        End Function
+
+        <Extension()>
         Public Function ContainsPreprocessorDirective(list As SyntaxTriviaList) As Boolean
             Return list.Any(Function(t) t.HasStructure AndAlso TypeOf t.GetStructure() Is DirectiveTriviaSyntax)
         End Function
