@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
         }
 
-        private static DocumentId GetExternalDocumentId(Project project, Diagnostic diagnostic)
+        private static DocumentId? GetExternalDocumentId(Project project, Diagnostic diagnostic)
         {
             var projectId = project.Id;
             var lineSpan = diagnostic.Location.GetLineSpan();

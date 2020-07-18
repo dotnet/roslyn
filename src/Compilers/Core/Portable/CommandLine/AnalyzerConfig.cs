@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
-        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string? val) && val == "true";
 
         /// <summary>
         /// Gets whether this editorconfig is a global editorconfig.
