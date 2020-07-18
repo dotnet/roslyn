@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editing
         private readonly SyntaxGenerator _generator;
         private readonly List<Change> _changes;
         private bool _allowEditsOnLazilyCreatedTrackedNewNodes;
-        private HashSet<SyntaxNode> _lazyTrackedNewNodesOpt;
+        private HashSet<SyntaxNode>? _lazyTrackedNewNodesOpt;
 
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes = new List<Change>();
         }
 
-        private SyntaxNode ApplyTrackingToNewNode(SyntaxNode node)
+        private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode node)
         {
             if (node == null)
             {
@@ -60,7 +63,13 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             foreach (var node in nodes)
             {
-                yield return ApplyTrackingToNewNode(node);
+                var result = ApplyTrackingToNewNode(node);
+                if (result == null)
+                {
+                    throw new ArgumentNullException(nameof(result));
+                }
+
+                yield return result;
             }
         }
 
@@ -173,8 +182,13 @@ namespace Microsoft.CodeAnalysis.Editing
                 return;
             }
 
-            newNode = ApplyTrackingToNewNode(newNode);
-            _changes.Add(new ReplaceChange(node, (n, g) => newNode, this));
+            var newNodeWithTracking = ApplyTrackingToNewNode(newNode);
+            if (newNodeWithTracking == null)
+            {
+                throw new ArgumentNullException(nameof(newNodeWithTracking));
+            }
+
+            _changes.Add(new ReplaceChange(node, (n, g) => newNodeWithTracking, this));
         }
 
         /// <summary>
@@ -190,8 +204,13 @@ namespace Microsoft.CodeAnalysis.Editing
                 throw new ArgumentNullException(nameof(newNodes));
             }
 
-            newNodes = ApplyTrackingToNewNodes(newNodes);
-            _changes.Add(new InsertChange(node, newNodes, isBefore: true));
+            var newNodesWithTracking = ApplyTrackingToNewNodes(newNodes);
+            if (newNodesWithTracking == null)
+            {
+                throw new ArgumentNullException(nameof(newNodesWithTracking));
+            }
+
+            _changes.Add(new InsertChange(node, newNodesWithTracking, isBefore: true));
         }
 
         /// <summary>
@@ -304,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 SyntaxEditor editor)
                 : base(node)
             {
+                Contract.ThrowIfNull(node, "Passed in node is null.");
                 _modifier = modifier;
                 _editor = editor;
             }
@@ -313,6 +333,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = _modifier(current, generator);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);
+
+                Contract.ThrowIfNull(current, $"GetCurrentNode returned null result with the following node: {this.Node}");
                 return generator.ReplaceNode(root, current, newNode);
             }
         }
@@ -338,7 +360,13 @@ namespace Microsoft.CodeAnalysis.Editing
                 var newNodes = _modifier(current, generator).ToList();
                 for (var i = 0; i < newNodes.Count; i++)
                 {
-                    newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
+                    var newNodeWithTracking = _editor.ApplyTrackingToNewNode(newNodes[i]);
+                    if (newNodeWithTracking == null)
+                    {
+                        throw new ArgumentNullException(nameof(newNodeWithTracking));
+                    }
+
+                    newNodes[i] = newNodeWithTracking;
                 }
 
                 return SyntaxGenerator.ReplaceNode(root, current, newNodes);
