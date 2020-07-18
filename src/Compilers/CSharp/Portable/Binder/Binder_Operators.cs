@@ -2237,7 +2237,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType = operand.Type;
             Debug.Assert((object)operandType != null, "BindValue should have caught a null operand type");
 
-            bool isManagedType = operandType.IsManagedType;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            bool isManagedType = operandType.IsManagedType(ref useSiteDiagnostics);
+            diagnostics.Add(node.Location, useSiteDiagnostics);
+
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)
             {

@@ -253,10 +253,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that they can be collected by GC if needed
             foreach (var hoistedLocal in hoistedLocals)
             {
-                if (!hoistedLocal.Type.IsManagedType)
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                if (!hoistedLocal.Type.IsManagedType(ref useSiteDiagnostics))
                 {
                     continue;
                 }
+                F.Diagnostics.Add(hoistedLocal.Locations.FirstOrNone(), useSiteDiagnostics);
 
                 builder.Add(F.Assignment(F.Field(F.This(), hoistedLocal), F.NullOrDefault(hoistedLocal.Type)));
             }

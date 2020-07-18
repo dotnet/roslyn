@@ -1286,7 +1286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, DiagnosticBag diagnostics)
         {
-            switch (type.ManagedKind)
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var managedKind = type.GetManagedKind(ref useSiteDiagnostics);
+            diagnostics.Add(location, useSiteDiagnostics);
+            switch (managedKind)
             {
                 case ManagedKind.Managed:
                     diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);

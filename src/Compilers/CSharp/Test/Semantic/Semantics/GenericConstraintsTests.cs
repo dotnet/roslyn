@@ -3547,8 +3547,8 @@ public unsafe struct YourStruct<T> where T : unmanaged
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3567,8 +3567,8 @@ public unsafe struct YourStruct
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
 
         }
 
@@ -3592,8 +3592,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3622,8 +3622,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public MyStruct<T> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("YourStruct<T>.field", "MyStruct<T>").WithLocation(9, 24));
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3647,8 +3647,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3675,8 +3675,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3703,8 +3703,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3786,8 +3786,8 @@ public struct Z
             var compilation = CreateCompilation(code);
             compilation.VerifyDiagnostics();
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]

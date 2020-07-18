@@ -684,19 +684,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind ManagedKind
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            get
+            var managedKind = _flags.ManagedKind;
+            if (managedKind == ManagedKind.Unknown)
             {
-                var managedKind = _flags.ManagedKind;
-                if (managedKind == ManagedKind.Unknown)
-                {
-                    var baseKind = base.ManagedKind;
-                    _flags.SetManagedKind(baseKind);
-                    return baseKind;
-                }
-                return managedKind;
+                var baseKind = base.GetManagedKind(ref useSiteDiagnostics);
+                _flags.SetManagedKind(baseKind);
+                return baseKind;
             }
+            return managedKind;
         }
 
         public override bool IsStatic => _declModifiers.HasFlag(DeclarationModifiers.Static);
