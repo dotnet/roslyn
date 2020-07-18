@@ -58,7 +58,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var calleeMethodDeclarationSymbol = semanticModel.GetSymbolInfo(methodInvocationNode).Symbol;
+            var symbolInfo = semanticModel.GetSymbolInfo(methodInvocationNode);
+            var calleeMethodDeclarationSymbol = symbolInfo.Symbol;
+            if (calleeMethodDeclarationSymbol == null && symbolInfo.CandidateSymbols.Any())
+            {
+                calleeMethodDeclarationSymbol = symbolInfo.CandidateSymbols[0];
+            }
 
             if (calleeMethodDeclarationSymbol == null
                 || calleeMethodDeclarationSymbol.DeclaredAccessibility != Accessibility.Private

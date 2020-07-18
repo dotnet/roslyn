@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.InlineMethod;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
+    [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider : AbstractInlineMethodRefactoringProvider
     {
         [ImportingConstructor]

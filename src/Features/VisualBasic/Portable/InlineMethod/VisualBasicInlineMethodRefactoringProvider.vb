@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InlineMethod), [Shared]>
+    <Export(GetType(VisualBasicInlineMethodRefactoringProvider))>
     Friend NotInheritable Class VisualBasicInlineMethodRefactoringProvider
         Inherits AbstractInlineMethodRefactoringProvider
 
