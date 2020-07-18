@@ -3,19 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
     internal static class IServiceProviderExtensions
     {
-        /// <summary>
-        /// Returns the specified interface from the service. This is useful when the service and interface differ
-        /// </summary>
-        public static TInterfaceType GetService<TInterfaceType, TServiceType>(this IServiceProvider sp)
-            where TInterfaceType : class
-            where TServiceType : class
+        /// <inheritdoc cref="Shell.ServiceExtensions.GetService{TService, TInterface}(IServiceProvider, bool)"/>
+        public static TInterface GetService<TService, TInterface>(this IServiceProvider sp)
         {
-            return (TInterfaceType)sp.GetService(typeof(TServiceType));
+            var service = (TInterface)sp.GetService(typeof(TService));
+            Debug.Assert(service != null);
+            return service;
         }
 
         /// <summary>

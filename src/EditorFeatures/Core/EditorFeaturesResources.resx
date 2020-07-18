@@ -945,4 +945,10 @@ Do you want to proceed?</value>
   <data name="Downloading_IntelliSense_index_for_0" xml:space="preserve">
     <value>Downloading IntelliSense index for {0}</value>
   </data>
+  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider '{0}'</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider</value>
+  </data>
 </root>
