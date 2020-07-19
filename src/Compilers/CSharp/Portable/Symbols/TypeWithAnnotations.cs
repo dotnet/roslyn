@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Create(Type, NullableAnnotation.NotAnnotated, CustomModifiers);
         }
 
+        // Only used by ConstraintsHelper.
         internal NullableAnnotation GetValueNullableAnnotation()
         {
             if (NullableAnnotation.IsAnnotated())
