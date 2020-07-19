@@ -36,11 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
         {
             DeclarationModifiers result = DeclarationModifiers.Public;
-            HashSet<DiagnosticInfo>? ignoredUseSiteDiagnostics = null; // This is reported when we bind bases
-            NamedTypeSymbol baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
-            bool haveVirtualCloneInBase = !baseType.IsObjectType() && FindValidCloneMethod(baseType, ref ignoredUseSiteDiagnostics) is object;
 
-            if (haveVirtualCloneInBase)
+            if (VirtualCloneInBase() is object)
             {
                 result |= DeclarationModifiers.Override;
             }
@@ -90,11 +87,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         }
 
+        private MethodSymbol? VirtualCloneInBase()
+        {
+            NamedTypeSymbol baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
+
+            if (!baseType.IsObjectType())
+            {
+                HashSet<DiagnosticInfo>? ignoredUseSiteDiagnostics = null; // This is reported when we bind bases
+                return FindValidCloneMethod(baseType, ref ignoredUseSiteDiagnostics);
+            }
+
+            return null;
+        }
+
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo>? ignoredUseSiteDiagnostics = null; // This is reported when we bind bases
-            NamedTypeSymbol baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
-            return (ReturnType: !baseType.IsObjectType() && FindValidCloneMethod(baseType, ref ignoredUseSiteDiagnostics) is { } baseClone ?
+            return (ReturnType: VirtualCloneInBase() is { } baseClone ?
                                      baseClone.ReturnTypeWithAnnotations : // Use covariant returns when available
                                      TypeWithAnnotations.Create(isNullableEnabled: true, ContainingType),
                     Parameters: ImmutableArray<ParameterSymbol>.Empty,

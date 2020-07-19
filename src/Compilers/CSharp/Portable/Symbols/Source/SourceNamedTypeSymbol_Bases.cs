@@ -92,13 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Location baseLocation = null;
+            bool baseContainsErrorTypes = localBase.ContainsErrorType();
+
+            if (!baseContainsErrorTypes)
+            {
+                baseLocation = FindBaseRefSyntax(localBase);
+                Debug.Assert(!this.IsClassType() || localBase.IsObjectType() || baseLocation != null);
+            }
 
             // you need to know all bases before you can ask this question... (asking this causes a cycle)
-            if (this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
+            if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
             {
-                baseLocation ??= FindBaseRefSyntax(localBase);
-                Debug.Assert(baseLocation != null);
-
                 // A generic type cannot derive from '{0}' because it is an attribute class
                 diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
             }
@@ -114,25 +118,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
             // Records can only inherit from other records or object
-            if (declaration.Kind == DeclarationKind.Record)
+            if (this.IsClassType() && !localBase.IsObjectType() && !baseContainsErrorTypes)
             {
-                if (localBase.SpecialType != SpecialType.System_Object &&
-                    SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null)
-                {
-                    baseLocation ??= FindBaseRefSyntax(localBase);
-                    diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
-                }
-            }
-            else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is object)
-            {
-                baseLocation ??= FindBaseRefSyntax(localBase);
-                diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
-            }
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            diagnostics.Add(baseLocation ?? FindBaseRefSyntax(localBase), useSiteDiagnostics);
+                if (declaration.Kind == DeclarationKind.Record)
+                {
+                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+                    }
+                }
+                else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is object)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
+                }
+
+                diagnostics.Add(baseLocation, useSiteDiagnostics);
+            }
         }
 
         protected override void CheckInterfaces(DiagnosticBag diagnostics)

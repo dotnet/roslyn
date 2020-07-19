@@ -8056,9 +8056,6 @@ record C(int j) : B(3, 4)
                 // (2,19): error CS0122: 'B' is inaccessible due to its protection level
                 // record C(int j) : B(3, 4);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B").WithArguments("B").WithLocation(2, 19),
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // record C(int j) : B(3, 4);
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(2, 19),
                 // (2,20): error CS0122: 'B.B(object, object)' is inaccessible due to its protection level
                 // record C(int j) : B(3, 4);
                 Diagnostic(ErrorCode.ERR_BadAccess, "(3, 4)").WithArguments("B.B(object, object)").WithLocation(2, 20)
@@ -17419,9 +17416,6 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
-                // (1,15): error CS8864: Records may only inherit from object or another record
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "System.IEquatable<A<T>>").WithLocation(1, 15),
                 // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
@@ -17499,9 +17493,6 @@ record B : A<int>, IEquatable<B>;
                 // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
-                // (2,15): error CS8864: Records may only inherit from object or another record
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "IEquatable<A<T>>").WithLocation(2, 15),
                 // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
