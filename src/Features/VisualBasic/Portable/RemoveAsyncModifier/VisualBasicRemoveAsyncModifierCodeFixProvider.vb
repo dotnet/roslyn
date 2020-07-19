@@ -32,20 +32,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function RemoveAsyncModifier(generator As SyntaxGenerator, node As SyntaxNode) As SyntaxNode
-            Dim methodBlock = TryCast(node, MethodBlockSyntax)
+        Protected Overrides Function RemoveAsyncModifier(generator As SyntaxGenerator, methodLikeNode As SyntaxNode) As SyntaxNode
+            Dim methodBlock = TryCast(methodLikeNode, MethodBlockSyntax)
             If methodBlock IsNot Nothing Then
                 Dim subOrFunctionStatement = methodBlock.SubOrFunctionStatement
                 Dim newSubOrFunctionStatement = RemoveAsyncModifierHelpers.RemoveAsyncKeyword(subOrFunctionStatement)
                 Return methodBlock.WithSubOrFunctionStatement(newSubOrFunctionStatement)
             End If
 
-            Dim multiLineLambda = TryCast(node, MultiLineLambdaExpressionSyntax)
+            Dim multiLineLambda = TryCast(methodLikeNode, MultiLineLambdaExpressionSyntax)
             If multiLineLambda IsNot Nothing Then
                 Return RemoveAsyncModifierHelpers.FixMultiLineLambdaExpression(multiLineLambda)
             End If
 
-            Dim singleLineLambda = TryCast(node, SingleLineLambdaExpressionSyntax)
+            Dim singleLineLambda = TryCast(methodLikeNode, SingleLineLambdaExpressionSyntax)
             If singleLineLambda IsNot Nothing Then
                 Return RemoveAsyncModifierHelpers.FixSingleLineLambdaExpression(singleLineLambda)
             End If

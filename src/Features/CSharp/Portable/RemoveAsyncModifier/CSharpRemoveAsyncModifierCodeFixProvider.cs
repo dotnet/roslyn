@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return null;
         }
 
-        protected override SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode node)
-            => node switch
+        protected override SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode methodLikeNode)
+            => methodLikeNode switch
             {
                 MethodDeclarationSyntax method => RemoveAsyncModifierHelpers.WithoutAsyncModifier(method, method.ReturnType),
                 LocalFunctionStatementSyntax localFunction => RemoveAsyncModifierHelpers.WithoutAsyncModifier(localFunction, localFunction.ReturnType),
                 AnonymousMethodExpressionSyntax method => AnnotateBlock(generator, RemoveAsyncModifierHelpers.WithoutAsyncModifier(method)),
                 ParenthesizedLambdaExpressionSyntax lambda => AnnotateBlock(generator, RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda)),
                 SimpleLambdaExpressionSyntax lambda => AnnotateBlock(generator, RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda)),
-                _ => node,
+                _ => methodLikeNode,
             };
 
         // Block bodied lambdas and anonymous methods need to be formatted after changing their modifiers, or their indentation is broken

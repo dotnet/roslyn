@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode node);
+        protected abstract SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode methodLikeNode);
         protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, TExpressionSyntax expressionBody);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             var compilation = semanticModel.Compilation;
             var knownTypes = new KnownTypes(compilation);
 
+            // For fix all we need to do nested locals or lambdas first, so order the diagnostics by location descending
             foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
                 var token = diagnostic.Location.FindToken(cancellationToken);
@@ -93,14 +94,14 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 // If control flow couldn't be computed then its probably an empty block, which means we need to add a return anyway
                 var needsReturnStatementAdded = controlFlow == null || controlFlow.EndPointIsReachable;
 
-                editor.ReplaceNode(node, (updatedNode, generator) => RemoveAsyncModifier(generator, updatedNode, methodSymbol.ReturnType, knownTypes, needsReturnStatementAdded));
+                editor.ReplaceNode(node,
+                    (updatedNode, generator) => RemoveAsyncModifier(generator, updatedNode, methodSymbol.ReturnType, knownTypes, needsReturnStatementAdded));
             }
         }
 
         private static IMethodSymbol? GetMethodSymbol(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol methodSymbol
-                ? methodSymbol
-                : semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
+            => semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol ??
+               semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
         private static bool ShouldOfferFix(ITypeSymbol returnType, KnownTypes knownTypes)
             => IsTaskType(returnType, knownTypes)
@@ -173,9 +174,11 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         {
             var editor = new SyntaxEditor(node, generator);
 
-            var returns = node.DescendantNodes(n => n == node || !IsAsyncSupportingFunctionSyntax(n)).Where(n => n is TReturnStatementSyntax);
+            // Look for all return statements, but if we find a new node that can have the async modifier we stop
+            // because that will have its own diagnostic and fix, if applicable
+            var returns = node.DescendantNodes(n => n == node || !IsAsyncSupportingFunctionSyntax(n)).OfType<TReturnStatementSyntax>();
 
-            foreach (TReturnStatementSyntax returnSyntax in returns)
+            foreach (var returnSyntax in returns)
             {
                 var returnExpression = generator.SyntaxFacts.GetExpressionOfReturnStatement(returnSyntax);
                 if (returnExpression is null)
