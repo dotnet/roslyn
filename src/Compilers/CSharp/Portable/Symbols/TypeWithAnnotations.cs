@@ -126,12 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation;
             }
 
-            if (Type is null)
-            {
-                return NullableAnnotation.NotAnnotated;
-            }
-
-            if (Type.IsPossiblyNullableReferenceTypeTypeParameter())
+            if (Type?.IsPossiblyNullableReferenceTypeTypeParameter() == true)
             {
                 return NullableAnnotation.Annotated;
             }

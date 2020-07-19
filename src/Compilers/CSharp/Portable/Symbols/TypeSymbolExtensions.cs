@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.SpecialType == SpecialType.System_Void;
         }
 
-        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
+        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol? type)
         {
             if (type is null)
             {
