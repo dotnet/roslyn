@@ -308,5 +308,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestIncompleteFunctionCall() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+                        Class Foo
+                            Sub Main(args As String())
+                                TestMethod({|x:5|},)
+                            End Sub
+
+                            Sub TestMethod(x As Integer, y As Double)
+
+                            End Sub
+                        End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace
