@@ -39,6 +39,11 @@
         <target state="new">The hintName of the added source file must be unique within a generator.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">抑制された診断 ID '{0}' が、指定された抑制記述子の抑制可能な ID '{1}' と一致しません。</target>

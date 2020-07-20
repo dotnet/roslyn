@@ -2391,10 +2391,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public abstract SyntaxToken AsyncKeyword { get; }
-        public AnonymousFunctionExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => WithAsyncKeywordCore(asyncKeyword);
-        internal abstract AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword);
+        public abstract SyntaxTokenList Modifiers { get; }
+        public AnonymousFunctionExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+        internal abstract AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+        public AnonymousFunctionExpressionSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+        internal abstract AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items);
 
         /// <summary>
         /// BlockSyntax node representing the body of the anonymous function.
@@ -2431,13 +2433,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken AsyncKeyword
+        public override SyntaxTokenList Modifiers
         {
             get
             {
-                var slot = ((Syntax.InternalSyntax.AnonymousMethodExpressionSyntax)this.Green).asyncKeyword;
-                return slot != null ? new SyntaxToken(this, slot, Position, 0) : default;
+                var slot = this.Green.GetSlot(0);
+                return slot != null ? new SyntaxTokenList(this, slot, Position, 0) : default;
             }
         }
 
@@ -2481,11 +2482,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousMethodExpression(this);
 
-        public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
+        public AnonymousMethodExpressionSyntax Update(SyntaxTokenList modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
+                var newNode = SyntaxFactory.AnonymousMethodExpression(modifiers, delegateKeyword, parameterList, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -2493,15 +2494,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
-        public new AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
-        public AnonymousMethodExpressionSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(this.AsyncKeyword, delegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
-        public AnonymousMethodExpressionSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.AsyncKeyword, this.DelegateKeyword, parameterList, this.Block, this.ExpressionBody);
+        internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new AnonymousMethodExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(modifiers, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
+        public AnonymousMethodExpressionSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(this.Modifiers, delegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
+        public AnonymousMethodExpressionSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.Modifiers, this.DelegateKeyword, parameterList, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block ?? throw new ArgumentNullException(nameof(block)));
-        public new AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block) => Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, block, this.ExpressionBody);
+        public new AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block) => Update(this.Modifiers, this.DelegateKeyword, this.ParameterList, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, expressionBody);
+        public new AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.Modifiers, this.DelegateKeyword, this.ParameterList, this.Block, expressionBody);
 
+        internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new AnonymousMethodExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public AnonymousMethodExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
         {
             var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
@@ -2526,9 +2529,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => WithArrowTokenCore(arrowToken);
         internal abstract LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken);
 
-        public new LambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => (LambdaExpressionSyntax)WithAsyncKeywordCore(asyncKeyword);
+        public new LambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => (LambdaExpressionSyntax)WithModifiersCore(modifiers);
         public new LambdaExpressionSyntax WithBlock(BlockSyntax? block) => (LambdaExpressionSyntax)WithBlockCore(block);
         public new LambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => (LambdaExpressionSyntax)WithExpressionBodyCore(expressionBody);
+
+        public new LambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => (LambdaExpressionSyntax)AddModifiersCore(items);
 
         public new AnonymousFunctionExpressionSyntax AddBlockAttributeLists(params AttributeListSyntax[] items) => AddBlockAttributeListsCore(items);
 
@@ -2547,13 +2552,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken AsyncKeyword
+        public override SyntaxTokenList Modifiers
         {
             get
             {
-                var slot = ((Syntax.InternalSyntax.SimpleLambdaExpressionSyntax)this.Green).asyncKeyword;
-                return slot != null ? new SyntaxToken(this, slot, Position, 0) : default;
+                var slot = this.Green.GetSlot(0);
+                return slot != null ? new SyntaxTokenList(this, slot, Position, 0) : default;
             }
         }
 
@@ -2597,11 +2601,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleLambdaExpression(this);
 
-        public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public SimpleLambdaExpressionSyntax Update(SyntaxTokenList modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.SimpleLambdaExpression(modifiers, parameter, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -2609,16 +2613,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
-        public new SimpleLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => Update(asyncKeyword, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
-        public SimpleLambdaExpressionSyntax WithParameter(ParameterSyntax parameter) => Update(this.AsyncKeyword, parameter, this.ArrowToken, this.Block, this.ExpressionBody);
+        internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new SimpleLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(modifiers, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
+        public SimpleLambdaExpressionSyntax WithParameter(ParameterSyntax parameter) => Update(this.Modifiers, parameter, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
-        public new SimpleLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AsyncKeyword, this.Parameter, arrowToken, this.Block, this.ExpressionBody);
+        public new SimpleLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.Modifiers, this.Parameter, arrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block);
-        public new SimpleLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, block, this.ExpressionBody);
+        public new SimpleLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.Modifiers, this.Parameter, this.ArrowToken, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, this.Block, expressionBody);
+        public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.Modifiers, this.Parameter, this.ArrowToken, this.Block, expressionBody);
 
+        internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new SimpleLambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items) => WithParameter(this.Parameter.WithAttributeLists(this.Parameter.AttributeLists.AddRange(items)));
         public SimpleLambdaExpressionSyntax AddParameterModifiers(params SyntaxToken[] items) => WithParameter(this.Parameter.WithModifiers(this.Parameter.Modifiers.AddRange(items)));
         internal override AnonymousFunctionExpressionSyntax AddBlockAttributeListsCore(params AttributeListSyntax[] items) => AddBlockAttributeLists(items);
@@ -2684,13 +2690,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken AsyncKeyword
+        public override SyntaxTokenList Modifiers
         {
             get
             {
-                var slot = ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).asyncKeyword;
-                return slot != null ? new SyntaxToken(this, slot, Position, 0) : default;
+                var slot = this.Green.GetSlot(0);
+                return slot != null ? new SyntaxTokenList(this, slot, Position, 0) : default;
             }
         }
 
@@ -2734,11 +2739,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
-        public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(modifiers, parameterList, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -2746,16 +2751,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
-        public new ParenthesizedLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => Update(asyncKeyword, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
-        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AsyncKeyword, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new ParenthesizedLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.Modifiers, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
-        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AsyncKeyword, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.Modifiers, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block);
-        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.Modifiers, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
 
+        internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new ParenthesizedLambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override AnonymousFunctionExpressionSyntax AddBlockAttributeListsCore(params AttributeListSyntax[] items) => AddBlockAttributeLists(items);
         public new ParenthesizedLambdaExpressionSyntax AddBlockAttributeLists(params AttributeListSyntax[] items)
@@ -9578,7 +9585,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
     {
         private TypeSyntax? type;
-        private ArgumentListSyntax? argumentList;
 
         internal SimpleBaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9587,13 +9593,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override TypeSyntax Type => GetRedAtZero(ref this.type)!;
 
-        public ArgumentListSyntax? ArgumentList => GetRed(ref this.argumentList, 1);
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
+
+        public SimpleBaseTypeSyntax Update(TypeSyntax type)
+        {
+            if (type != this.Type)
+            {
+                var newNode = SyntaxFactory.SimpleBaseType(type);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override BaseTypeSyntax WithTypeCore(TypeSyntax type) => WithType(type);
+        public new SimpleBaseTypeSyntax WithType(TypeSyntax type) => Update(type);
+    }
+
+    public sealed partial class PrimaryConstructorBaseTypeSyntax : BaseTypeSyntax
+    {
+        private TypeSyntax? type;
+        private ArgumentListSyntax? argumentList;
+
+        internal PrimaryConstructorBaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override TypeSyntax Type => GetRedAtZero(ref this.type)!;
+
+        public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.type)!,
-                1 => GetRed(ref this.argumentList, 1),
+                1 => GetRed(ref this.argumentList, 1)!,
                 _ => null,
             };
 
@@ -9605,15 +9647,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _ => null,
             };
 
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrimaryConstructorBaseType(this);
         [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrimaryConstructorBaseType(this);
 
-        public SimpleBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax? argumentList)
+        public PrimaryConstructorBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
         {
             if (type != this.Type || argumentList != this.ArgumentList)
             {
-                var newNode = SyntaxFactory.SimpleBaseType(type, argumentList);
+                var newNode = SyntaxFactory.PrimaryConstructorBaseType(type, argumentList);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -9622,14 +9664,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override BaseTypeSyntax WithTypeCore(TypeSyntax type) => WithType(type);
-        public new SimpleBaseTypeSyntax WithType(TypeSyntax type) => Update(type, this.ArgumentList);
-        public SimpleBaseTypeSyntax WithArgumentList(ArgumentListSyntax? argumentList) => Update(this.Type, argumentList);
+        public new PrimaryConstructorBaseTypeSyntax WithType(TypeSyntax type) => Update(type, this.ArgumentList);
+        public PrimaryConstructorBaseTypeSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.Type, argumentList);
 
-        public SimpleBaseTypeSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
-        {
-            var argumentList = this.ArgumentList ?? SyntaxFactory.ArgumentList();
-            return WithArgumentList(argumentList.WithArguments(argumentList.Arguments.AddRange(items)));
-        }
+        public PrimaryConstructorBaseTypeSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Type parameter constraint clause.</summary>

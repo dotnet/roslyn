@@ -1469,7 +1469,7 @@ recurse:
         /// <summary>
         /// Creates a new tree of nodes with the specified node removed.
         /// </summary>
-        protected internal abstract SyntaxNode RemoveNodesCore(
+        protected internal abstract SyntaxNode? RemoveNodesCore(
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options);
 

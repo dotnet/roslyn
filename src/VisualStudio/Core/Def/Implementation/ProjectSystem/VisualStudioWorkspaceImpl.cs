@@ -1033,7 +1033,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only
                 // depends on the file path.
 
-                var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
+                var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
                 return ErrorHandler.Succeeded(openDocumentService.OpenDocumentViaProject(
                     document.FilePath,
                     VSConstants.LOGVIEWID.TextView_guid,
@@ -1072,7 +1072,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var filePath = this.GetFilePath(documentId);
                 if (filePath != null)
                 {
-                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
+                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
                     if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out var uiHierarchy, null, out var frame, out var isOpen)))
                     {
                         // TODO: do we need save argument for CloseDocument?
@@ -1659,6 +1659,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // We're referencing something that we can't create a compilation from something that can, so keep the metadata reference
                     return false;
                 }
+            }
+
+            // If this is going to cause a circular reference, also disallow it
+            if (CurrentSolution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
+            {
+                return false;
             }
 
             return true;

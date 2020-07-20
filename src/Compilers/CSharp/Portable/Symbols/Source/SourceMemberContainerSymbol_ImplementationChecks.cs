@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal partial class SourceMemberContainerTypeSymbol
     {
         /// <summary>
-        /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a 
+        /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
         /// base type from another assembly) it is necessary for the compiler to generate explicit implementations for
         /// some interface methods.  They don't go in the symbol table, but if we are emitting, then we should
         /// generate code for them.
@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var synthesizedImplementations = ArrayBuilder<SynthesizedExplicitImplementationForwardingMethod>.GetInstance();
 
-            // NOTE: We can't iterator over this collection directly, since it is not ordered.  Instead we 
-            // iterate over AllInterfaces and filter out the interfaces that are not in this set.  This is 
-            // preferable to doing the DFS ourselves because both AllInterfaces and 
+            // NOTE: We can't iterator over this collection directly, since it is not ordered.  Instead we
+            // iterate over AllInterfaces and filter out the interfaces that are not in this set.  This is
+            // preferable to doing the DFS ourselves because both AllInterfaces and
             // InterfacesAndTheirBaseInterfaces are cached and used in multiple places.
             MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBases = this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics;
 
@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportAccessorOfInterfacePropertyOrEvent(associatedPropertyOrEvent) ||
                         (wasImplementingMemberFound && !implementingMember.IsAccessor()))
                     {
-                        //we're here because 
-                        //(a) the interface member is not an accessor, or 
+                        //we're here because
+                        //(a) the interface member is not an accessor, or
                         //(b) the interface member is an accessor of an interesting (see ReportAccessorOfInterfacePropertyOrEvent) property or event, or
                         //(c) the implementing member exists and is not an accessor.
                         bool reportedAnError = false;
@@ -289,14 +289,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 // Don't report use site errors on properties - we'll report them on each of their accessors.
 
-                                // Don't report use site errors for implementations in other types unless 
+                                // Don't report use site errors for implementations in other types unless
                                 // a synthesized implementation is needed that invokes the base method.
                                 // We can do so only if there are no use-site errors.
 
                                 if ((object)synthesizedImplementation != null || TypeSymbol.Equals(implementingMember.ContainingType, this, TypeCompareKind.ConsiderEverything2))
                                 {
                                     DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteDiagnostic();
-                                    // CAVEAT: don't report ERR_ByRefReturnUnsupported since by-ref return types are 
+                                    // CAVEAT: don't report ERR_ByRefReturnUnsupported since by-ref return types are
                                     // specifically allowed for the purposes of interface implementation (for C++ interop).
                                     // However, if there's a reference to the interface member in source, then we do want
                                     // to produce a use site error.
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Struct:
                 case TypeKind.Interface:
-                case TypeKind.Submission: // we have to check that "override" is not used 
+                case TypeKind.Submission: // we have to check that "override" is not used
                     break;
 
                 default:
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                             }
                         }
-                        else if (property is SourcePropertySymbol sourceProperty)
+                        else if (property is SourcePropertySymbolBase sourceProperty)
                         {
                             var isNewProperty = sourceProperty.IsNew;
                             CheckNonOverrideMember(property, isNewProperty, property.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
@@ -813,11 +813,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // From: SymbolPreparer.cpp
-            // DevDiv Bugs 115384: Both out and ref parameters are implemented as references. In addition, out parameters are 
+            // DevDiv Bugs 115384: Both out and ref parameters are implemented as references. In addition, out parameters are
             // decorated with OutAttribute. In CLR when a signature is looked up in virtual dispatch, CLR does not distinguish
-            // between these to parameter types. The choice is the last method in the vtable. Therefore we check and warn if 
-            // there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no 
-            // way of communicating to CLR which method is the overridden one. We only run into this problem when the 
+            // between these to parameter types. The choice is the last method in the vtable. Therefore we check and warn if
+            // there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no
+            // way of communicating to CLR which method is the overridden one. We only run into this problem when the
             // parameters are generic.
             var runtimeOverriddenMembers = overriddenOrHiddenMembers.RuntimeOverriddenMembers;
             Debug.Assert(!runtimeOverriddenMembers.IsDefault);
@@ -1079,11 +1079,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
             }
+        }
 
-            static bool IsOrContainsErrorType(TypeSymbol typeSymbol)
-            {
-                return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
-            }
+        internal static bool IsOrContainsErrorType(TypeSymbol typeSymbol)
+        {
+            return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
         }
 
         static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
@@ -1283,7 +1283,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         //can actually get both, so don't use else if
                         if (!hidingMemberIsNew && hiddenMember.Kind == hidingMember.Kind &&
                             !hidingMember.IsAccessor() &&
-                            (hiddenMember.IsAbstract || hiddenMember.IsVirtual || hiddenMember.IsOverride))
+                            (hiddenMember.IsAbstract || hiddenMember.IsVirtual || hiddenMember.IsOverride) &&
+                            !(hidingMember is SynthesizedRecordEquals))
                         {
                             diagnostics.Add(ErrorCode.WRN_NewOrOverrideExpected, hidingMemberLocation, hidingMember, hiddenMember);
                             diagnosticAdded = true;
@@ -1296,7 +1297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (!hidingMemberIsNew && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
+                if (!hidingMemberIsNew && !(hidingMember is SynthesizedRecordEquals) && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
                 {
                     diagnostics.Add(ErrorCode.WRN_NewRequired, hidingMemberLocation, hidingMember, hiddenMembers[0]);
                 }
@@ -1544,19 +1545,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///   1) declares that it implements that interface; or
         ///   2) is a base class of a type that declares that it implements the interface but not
         ///        a subtype of a class that declares that it implements the interface.
-        ///        
+        ///
         /// For example,
-        /// 
+        ///
         ///   interface I
         ///   class A
         ///   class B : A, I
         ///   class C : B
         ///   class D : C, I
-        /// 
-        /// Suppose the runtime is looking for D's implementation of a member of I.  It will look in 
+        ///
+        /// Suppose the runtime is looking for D's implementation of a member of I.  It will look in
         /// D because of (1), will not look in C, will look in B because of (1), and will look in A
         /// because of (2).
-        /// 
+        ///
         /// The key point is that it does not look in C, which C# *does*.
         /// </summary>
         private static bool IsPossibleImplementationUnderRuntimeRules(MethodSymbol implementingMethod, NamedTypeSymbol @interface)
@@ -1577,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <remarks>
         /// This is based on SymbolPreparer::IsCLRMethodImplSame in the native compiler.
-        /// 
+        ///
         /// ACASEY: What the native compiler actually does is compute the C# answer, compute the CLR answer,
         /// and then confirm that they override the same method.  What I've done here is check for the situations
         /// where the answers could disagree.  I believe the results will be equivalent.  If in doubt, a more conservative

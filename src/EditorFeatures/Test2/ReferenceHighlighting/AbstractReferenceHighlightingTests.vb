@@ -10,24 +10,25 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     <[UseExportProvider]>
     Public MustInherit Class AbstractReferenceHighlightingTests
-        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
-            Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=False)
-            Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=True)
+        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
+            Await VerifyHighlightsAsync(test, optionIsEnabled, TestHost.InProcess)
+            Await VerifyHighlightsAsync(test, optionIsEnabled, TestHost.OutOfProcess)
         End Function
 
-        Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, outOfProcess As Boolean) As Tasks.Task
+        Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, testHost As TestHost) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
+                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, testHost = TestHost.OutOfProcess)))
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
@@ -55,14 +56,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim expectedTags As New List(Of String)
 
                 For Each hostDocument In workspace.Documents
-                    For Each nameAndSpans In hostDocument.AnnotatedSpans.OrderBy(Function(x) x.Value.First().Start)
-                        For Each span In nameAndSpans.Value
-                            expectedTags.Add(nameAndSpans.Key + ":" + span.ToString())
-                        Next
+                    Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                        Function(name) name.Value,
+                        Function(name, span) _
+                        New With {.Name = name.Key,
+                                  .Span = span
+                        })
+
+                    For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
+                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.ToString())
                     Next
                 Next
 
                 AssertEx.Equal(expectedTags, producedTags)
+
             End Using
         End Function
     End Class

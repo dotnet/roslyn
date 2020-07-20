@@ -39,16 +39,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         // MethodCompiler employs concurrency by following flattened fork/join pattern.
         //
         // For every item that we want to compile in parallel a new task is forked.
-        // compileTaskQueue is used to track and observe all the tasks. 
+        // compileTaskQueue is used to track and observe all the tasks.
         // Once compileTaskQueue is empty, we know that there are no more tasks (and no more can be created)
         // and that means we are done compiling. WaitForWorkers ensures this condition.
         //
         // Note that while tasks may fork more tasks (nested types, lambdas, whatever else that may introduce more types),
-        // we do not want any child/parent relationship between spawned tasks and their creators. 
+        // we do not want any child/parent relationship between spawned tasks and their creators.
         // Creator has no real dependencies on the completion of its children and should finish and release any resources
         // as soon as it can regardless of the tasks it may have spawned.
         //
-        // Stack is used so that the wait would observe the most recently added task and have 
+        // Stack is used so that the wait would observe the most recently added task and have
         // more chances to do inlined execution.
         private ConcurrentStack<Task> _compilerTasks;
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      It is ok if other tasks will see the change after some delay or does not observe at all.
             //      Such races are unavoidable and will just result in performing some work that is safe to do
             //      but may no longer be needed.
-            //      The final Join of compiling tasks cannot happen without interlocked operations and that 
+            //      The final Join of compiling tasks cannot happen without interlocked operations and that
             //      will ensure that any write of the flag is globally visible.
             if (arg)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compilation.PreviousSubmission != null)
             {
-                // In case there is a previous submission, we should ensure 
+                // In case there is a previous submission, we should ensure
                 // it has already created anonymous type/delegates templates
 
                 // NOTE: if there are any errors, we will pick up what was created anyway
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Property:
                         {
-                            SourcePropertySymbol sourceProperty = member as SourcePropertySymbol;
+                            var sourceProperty = member as SourcePropertySymbolBase;
                             if ((object)sourceProperty != null && sourceProperty.IsSealed && compilationState.Emitting)
                             {
                                 CompileSynthesizedSealedAccessors(sourceProperty, compilationState);
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var importChain = methodWithBody.ImportChain;
                     compilationState.CurrentImportChain = importChain;
 
-                    // We make sure that an asynchronous mutation to the diagnostic bag does not 
+                    // We make sure that an asynchronous mutation to the diagnostic bag does not
                     // confuse the method body generator by making a fresh bag and then loading
                     // any diagnostics emitted into it back into the main diagnostic bag.
                     var diagnosticsThisMethod = DiagnosticBag.GetInstance();
@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method, diagnosticsThisMethod);
 
                     // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
-                    // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
+                    // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named,
                     // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                     const int methodOrdinal = -1;
                     MethodBody emittedBody = null;
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a 
+        /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
         /// base type from another assembly) it is necessary for the compiler to generate explicit implementations for
         /// some interface methods.  They don't go in the symbol table, but if we are emitting, then we should
         /// generate code for them.
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CompileSynthesizedSealedAccessors(SourcePropertySymbol sourceProperty, TypeCompilationState compilationState)
+        private void CompileSynthesizedSealedAccessors(SourcePropertySymbolBase sourceProperty, TypeCompilationState compilationState)
         {
             SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
 
@@ -991,9 +991,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnassignedFieldsWalker.Analyze(_compilation, methodSymbol, body, diagsForCurrentMethod);
                     }
 
-                    // lower initializers just once. the lowered tree will be reused when emitting all constructors 
+                    // lower initializers just once. the lowered tree will be reused when emitting all constructors
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
-                    // (see later in this method). Don't bother lowering _now_ if this particular ctor won't have the initializers 
+                    // (see later in this method). Don't bother lowering _now_ if this particular ctor won't have the initializers
                     // appended to its body.
                     if (includeInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), lazySemanticModel));
                 }
 
-                // Don't lower if we're not emitting or if there were errors. 
+                // Don't lower if we're not emitting or if there were errors.
                 // Methods that had binding errors are considered too broken to be lowered reliably.
                 if (_moduleBeingBuiltOpt == null || hasErrors)
                 {
@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ############################
                 // LOWERING AND EMIT
-                // Any errors generated below here are considered Emit diagnostics 
+                // Any errors generated below here are considered Emit diagnostics
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
                 ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
@@ -1320,9 +1320,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (sawAwaitInExceptionHandler)
                 {
-                    // If we have awaits in handlers, we need to 
+                    // If we have awaits in handlers, we need to
                     // replace handlers with synthetic ones which can be consumed by async rewriter.
-                    // The reason why this rewrite happens before the lambda rewrite 
+                    // The reason why this rewrite happens before the lambda rewrite
                     // is that we may need access to exception locals and it would be fairly hard to do
                     // if these locals are captured into closures (possibly nested ones).
                     loweredBody = AsyncExceptionHandlerRewriter.Rewrite(
@@ -1442,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     isAsyncStateMachine = kickoffMethod.IsAsync;
 
-                    // Async void method may be partial. Debug info needs to be associated with the emitted definition, 
+                    // Async void method may be partial. Debug info needs to be associated with the emitted definition,
                     // but the kickoff method is the method implementation (the part with body).
                     kickoffMethod = kickoffMethod.PartialDefinitionPart ?? kickoffMethod;
                 }
@@ -1488,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stateMachineHoistedLocalScopes = ((object)kickoffMethod != null) ?
                     builder.GetHoistedLocalScopes() : default(ImmutableArray<StateMachineHoistedLocalScope>);
 
-                // Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
+                // Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata
                 // and we don't want to emit different metadata depending on whether or we emit with PDB stream.
                 // TODO (https://github.com/dotnet/roslyn/issues/2846): This will need to change for member initializers in partial class.
                 var importScopeOpt = importChainOpt?.Translate(moduleBuilder, diagnosticsForThisMethod);
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
+                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
                     if ((object)property != null && property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
@@ -1863,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to be inside the body of a derived class in order for it to be in the
             // accessibility domain of the protected base class ctor.
             //
-            // In the second case the binder could be the binder associated with 
+            // In the second case the binder could be the binder associated with
             // the body of D2; since the implicit call to base() will have no arguments
             // there is no need to look up "x".
             Binder outerBinder;
@@ -1871,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)sourceConstructor == null)
             {
                 // The constructor is implicit. We need to get the binder for the body
-                // of the enclosing class. 
+                // of the enclosing class.
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 

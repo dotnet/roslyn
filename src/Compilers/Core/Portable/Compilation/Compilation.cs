@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis
             ISymbol within,
             ITypeSymbol? throughType);
 
-        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue);
+        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out ConstantValue? constantValue);
 
         #endregion
 

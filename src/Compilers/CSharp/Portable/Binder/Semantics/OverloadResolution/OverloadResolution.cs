@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isFunctionPointerResolution)
             {
                 RemoveCallingConventionMismatches(results, callingConvention);
-                RemoveStaticInstanceMismatches(results, requireStatic: true);
+                RemoveMethodsNotDeclaredStatic(results);
             }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
@@ -381,6 +381,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = results[f];
                 TMember member = result.Member;
                 if (result.Result.IsValid && member.RequiresInstanceReceiver() == requireStatic)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
+                }
+            }
+        }
+
+        private static void RemoveMethodsNotDeclaredStatic<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
+        {
+            // RemoveStaticInstanceMistmatches allows methods that do not need a reciever but are not declared static,
+            // such as a local function that is not declared static. This eliminates methods that are not actually
+            // declared as static
+            for (int f = 0; f < results.Count; f++)
+            {
+                var result = results[f];
+                TMember member = result.Member;
+                if (result.Result.IsValid && !member.IsStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();
                     if (syntaxFactsService.IsIdentifier(token) && languageHeuristicsService.IsIdentifierValidForRenameTracking(token.Text))
                     {
-                        var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
+                        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
                         var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
                         var renameSymbolInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, _cancellationToken);
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                             _forceRenameOverloads = true;
 
-                            return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document, token).ConfigureAwait(false);
+                            return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document).ConfigureAwait(false);
                         }
                         else
                         {
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return TriggerIdentifierKind.NotRenamable;
             }
 
-            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document, SyntaxToken token)
+            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document)
             {
                 foreach (var symbol in symbols)
                 {

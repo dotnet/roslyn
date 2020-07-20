@@ -31,9 +31,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             MetadataReference[]? references = null,
             Action<ModuleSymbol>? symbolValidator = null,
             string? expectedOutput = null,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            TargetFramework targetFramework = TargetFramework.Standard,
+            CSharpCompilationOptions? options = null)
         {
-            return CompileAndVerify(source, references, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped, targetFramework: targetFramework);
+            return CompileAndVerify(
+                source,
+                references,
+                parseOptions: TestOptions.RegularPreview,
+                options: options ?? (expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe),
+                symbolValidator: symbolValidator,
+                expectedOutput: expectedOutput,
+                verify: Verification.Skipped,
+                targetFramework: targetFramework);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
@@ -7097,6 +7106,319 @@ public class C
   IL_001c:  newobj     ""string..ctor(System.ReadOnlySpan<char>)""
   IL_0021:  call       ""void System.Console.Write(string)""
   IL_0026:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        public void LocalFunction_ValidStatic()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class FunctionPointer
+{
+    public static void Main()
+    {
+        delegate*<void> a = &local;
+        a();
+
+        static void local() => System.Console.Write(""local"");
+    }
+}
+", expectedOutput: "local");
+
+
+            verifier.VerifyIL("FunctionPointer.Main", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldftn      ""void FunctionPointer.<Main>g__local|0_0()""
+  IL_0006:  calli      ""delegate*<void>""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        public void LocalFunction_ValidStatic_NestedInLocalFunction()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class FunctionPointer
+{
+    public static void Main()
+    {
+        local(true);
+
+        static void local(bool invoke)
+        {
+            if (invoke)
+            {
+                delegate*<bool, void> ptr = &local;
+                ptr(false);
+            }
+            else
+            {
+                System.Console.Write(""local"");
+            }
+        }
+    }
+}
+", expectedOutput: "local");
+
+
+            verifier.VerifyIL("FunctionPointer.<Main>g__local|0_0(bool)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (delegate*<bool, void> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldftn      ""void FunctionPointer.<Main>g__local|0_0(bool)""
+  IL_0009:  stloc.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  calli      ""delegate*<bool, void>""
+  IL_0011:  ret
+  IL_0012:  ldstr      ""local""
+  IL_0017:  call       ""void System.Console.Write(string)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void LocalFunction_ValidStatic_NestedInLambda()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class C
+{
+    public static void Main()
+    {
+        int capture = 1;
+        System.Action _ = () =>
+        {
+            System.Console.Write(capture); // Just to ensure that this is emitted as a capture
+            delegate*<void> ptr = &local;
+            ptr();
+
+            static void local() => System.Console.Write(""local"");
+        };
+
+        _();
+    }
+}
+", expectedOutput: "1local");
+
+            verifier.VerifyIL("C.<>c__DisplayClass0_0.<Main>b__0()", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.capture""
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  ldftn      ""void C.<Main>g__local|0_1()""
+  IL_0011:  calli      ""delegate*<void>""
+  IL_0016:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        public void LocalFunction_InvalidNonStatic()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class FunctionPointer
+{
+    public static void M()
+    {
+        int local = 1;
+
+        delegate*<void> first = &noCaptures;
+        delegate*<void> second = &capturesLocal;
+
+        void noCaptures() { }
+        void capturesLocal() { local++; }
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,34): error CS8759: Cannot create a function pointer for 'noCaptures()' because it is not a static method
+                //         delegate*<void> first = &noCaptures;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "noCaptures").WithArguments("noCaptures()").WithLocation(8, 34),
+                // (9,35): error CS8759: Cannot create a function pointer for 'capturesLocal()' because it is not a static method
+                //         delegate*<void> second = &capturesLocal;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "capturesLocal").WithArguments("capturesLocal()").WithLocation(9, 35)
+            );
+        }
+
+        [Fact, WorkItem(45418, "https://github.com/dotnet/roslyn/issues/45418")]
+        public void RefMismatchInCall()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Test
+{
+    void M1(delegate*<ref string, void> param1)
+    {
+        param1(out var l);
+        string s = null;
+        param1(s);
+        param1(in s);
+    }
+
+    void M2(delegate*<in string, void> param2)
+    {
+        param2(out var l);
+        string s = null;
+        param2(s);
+        param2(ref s);
+    }
+
+    void M3(delegate*<out string, void> param3)
+    {
+        string s = null;
+        param3(s);
+        param3(ref s);
+        param3(in s);
+    }
+
+    void M4(delegate*<string, void> param4)
+    {
+        param4(out var l);
+        string s = null;
+        param4(ref s);
+        param4(in s);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,20): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         param1(out var l);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "var l").WithArguments("1", "ref").WithLocation(6, 20),
+                // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         param1(s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(8, 16),
+                // (9,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         param1(in s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(9, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         param2(out var l);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(14, 20),
+                // (17,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         param2(ref s);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(17, 20),
+                // (23,16): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         param3(s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(23, 16),
+                // (24,20): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         param3(ref s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(24, 20),
+                // (25,19): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         param3(in s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(25, 19),
+                // (30,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         param4(out var l);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(30, 20),
+                // (32,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         param4(ref s);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(32, 20),
+                // (33,19): error CS1615: Argument 1 may not be passed with the 'in' keyword
+                //         param4(in s);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "in").WithLocation(33, 19)
+            );
+        }
+
+        [Fact]
+        public void MismatchedInferredLambdaReturn()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M(delegate*<System.Func<string>, void> param)
+    {
+        param(a => a);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,15): error CS1593: Delegate 'Func<string>' does not take 1 arguments
+                //         param(a => a);
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "a => a").WithArguments("System.Func<string>", "1").WithLocation(6, 15)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+            Assert.Equal("a => a", lambda.ToString());
+
+            var info = model.GetSymbolInfo(lambda);
+            var lambdaSymbol = (IMethodSymbol)info.Symbol!;
+            Assert.NotNull(lambdaSymbol);
+            Assert.Equal("System.String", lambdaSymbol.ReturnType.ToTestDisplayString(includeNonNullable: false));
+            Assert.True(lambdaSymbol.Parameters.Single().Type.IsErrorType());
+        }
+
+        [Fact, WorkItem(45418, "https://github.com/dotnet/roslyn/issues/45418")]
+        public void OutDeconstructionMismatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Test
+{
+    void M1(delegate*<string, void> param1, object o)
+    {
+        param1(o is var (a, b));
+        param1(o is (var c, var d));
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         param1(o is var (a, b));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a, b)").WithArguments("object", "Deconstruct").WithLocation(6, 25),
+                // (6,25): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         param1(o is var (a, b));
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a, b)").WithArguments("object", "2").WithLocation(6, 25),
+                // (7,21): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         param1(o is (var c, var d));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var c, var d)").WithArguments("object", "Deconstruct").WithLocation(7, 21),
+                // (7,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         param1(o is (var c, var d));
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var c, var d)").WithArguments("object", "2").WithLocation(7, 21)
+            );
+        }
+
+        [Fact]
+        public void UnusedLoadNotLeftOnStack()
+        {
+            string source = @"
+unsafe class FunctionPointer
+{
+    public static void Main()
+    {
+        delegate*<void> ptr = &Main;
+    }
+}
+";
+            var verifier = CompileAndVerifyFunctionPointers(source, expectedOutput: "", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyIL(@"FunctionPointer.Main", expectedIL: @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+");
+
+            verifier = CompileAndVerifyFunctionPointers(source, expectedOutput: "", options: TestOptions.UnsafeDebugExe);
+            verifier.VerifyIL("FunctionPointer.Main", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (delegate*<void> V_0) //ptr
+  IL_0000:  nop
+  IL_0001:  ldftn      ""void FunctionPointer.Main()""
+  IL_0007:  stloc.0
+  IL_0008:  ret
 }
 ");
         }

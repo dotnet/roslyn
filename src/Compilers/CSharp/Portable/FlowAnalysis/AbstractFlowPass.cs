@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly Symbol _symbol;
 
         /// <summary>
-        /// Reflects the enclosing member or lambda at the current location (in the bound tree).
+        /// Reflects the enclosing member, lambda or local function at the current location (in the bound tree).
         /// </summary>
         protected Symbol CurrentSymbol;
 
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                     {
-                        var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
+                        var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
                         if (backingField != null)
                         {
                             VisitFieldAccessInternal(access.ReceiverOpt, backingField);
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArgList(BoundArgList node)
         {
-            // The "__arglist" expression that is legal inside a varargs method has no 
+            // The "__arglist" expression that is legal inside a varargs method has no
             // effect on flow analysis and it has no children.
             return null;
         }
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RestorePending(pendingBeforeTry);
 
             // NOTE: At this point all branches that are internal to try or catch blocks have been resolved.
-            //       However we have not yet restored the oldPending branches. Therefore all the branches 
+            //       However we have not yet restored the oldPending branches. Therefore all the branches
             //       that are currently pending must have been introduced in try/catch and do not terminate inside those blocks.
             //
             //       With exception of YieldReturn, these branches logically go through finally, if such present,
@@ -1811,7 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitReceiverAfterCall(receiver, setter);
         }
 
-        // returns false if expression is not a property access 
+        // returns false if expression is not a property access
         // or if the property has a backing field
         // and accessed in a corresponding constructor
         private bool RegularPropertyAccess(BoundExpression expr)
@@ -1958,7 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
             {
-                var backingField = (property as SourcePropertySymbol)?.BackingField;
+                var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)
                 {
                     VisitFieldAccessInternal(node.ReceiverOpt, backingField);
@@ -3144,10 +3144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In error cases we have two bodies. These are two unrelated pieces of code,
             // they are not executed one after another. As we don't really know which one the developer
             // intended to use, we need to visit both. We are going to pretend that there is
-            // an unconditional fork in execution and then we are converging after each body is executed. 
+            // an unconditional fork in execution and then we are converging after each body is executed.
             // For example, if only one body assigns an out parameter, then after visiting both bodies
             // we should consider that parameter is not definitely assigned.
-            // Note, that today this code is not executed for regular definite assignment analysis. It is 
+            // Note, that today this code is not executed for regular definite assignment analysis. It is
             // only executed for region analysis.
             TLocalState initialState = this.State.Clone();
             Visit(blockBody);

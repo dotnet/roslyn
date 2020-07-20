@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
@@ -202,6 +204,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return s_resourceManager;
+            }
+        }
+
+        /// <summary>
+        /// For each warning that is linked to a warning "wave" (/warnversion), the number of
+        /// the warning wave in which it was introduced.
+        /// </summary>
+        internal static decimal GetWarningVersion(this ErrorCode code)
+        {
+            // *** ATTENTION!  If you are modifying this method, there are things you need to do.
+
+            // If you introduce a new warning "wave" version (i.e. a new return value
+            // possible from this method), please update
+            // CSharpResources.resx to include documentation for the "latest"
+            // warning version in "IDS_CSCHelp" under "-warnversion". Note that
+            // it is our intention that warning wave version numbers correspond
+            // to the dotnet platform with which the compiler is released.
+
+            // If you introduce a new warning under control of the /warnversion flag
+            // (i.e. a new case in the following switch statement), please update
+            // the file "docs\compilers\CSharp\Warnversion Warning Waves.md"
+            // to document it.
+            switch (code)
+            {
+                case ErrorCode.WRN_NubExprIsConstBool2:
+                    return 5m;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(code);
             }
         }
 
@@ -399,6 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
@@ -447,6 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_ConstOutOfRangeChecked:
                 case ErrorCode.WRN_MemberNotNull:
                 case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_MemberNotNullWhen:

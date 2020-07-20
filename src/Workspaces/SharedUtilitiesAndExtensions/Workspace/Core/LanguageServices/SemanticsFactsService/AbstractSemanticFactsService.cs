@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -11,9 +12,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal abstract class AbstractSemanticFactsService
+    internal abstract class AbstractSemanticFactsService : ISemanticFacts
     {
         protected abstract ISyntaxFacts SyntaxFacts { get; }
+        protected abstract ISemanticFacts SemanticFacts { get; }
+
         protected abstract SyntaxToken ToIdentifierToken(string identifier);
 
         public SyntaxToken GenerateUniqueName(
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IEnumerable<string> usedNames, CancellationToken cancellationToken)
         {
             var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
-                a => SyntaxFacts.IsExecutableBlock(a) || SyntaxFacts.IsMethodBody(a));
+                a => SyntaxFacts.IsExecutableBlock(a) || SyntaxFacts.IsParameterList(a) || SyntaxFacts.IsMethodBody(a));
 
             var candidates = GetCollidableSymbols(semanticModel, location, container, cancellationToken);
             var filteredCandidates = filter != null ? candidates.Where(filter) : candidates;
@@ -80,5 +83,74 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 NameGenerator.EnsureUniqueness(
                     baseName, usedNames, this.SyntaxFacts.IsCaseSensitive));
         }
+
+        #region ISemanticFacts implementation
+
+        public bool SupportsImplicitInterfaceImplementation => SemanticFacts.SupportsImplicitInterfaceImplementation;
+
+        public bool SupportsParameterizedProperties => SemanticFacts.SupportsParameterizedProperties;
+
+        public bool ExposesAnonymousFunctionParameterNames => SemanticFacts.ExposesAnonymousFunctionParameterNames;
+
+        public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.IsWrittenTo(semanticModel, node, cancellationToken);
+
+        public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken);
+
+        public bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.IsInOutContext(semanticModel, node, cancellationToken);
+
+        public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.IsInRefContext(semanticModel, node, cancellationToken);
+
+        public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.IsInInContext(semanticModel, node, cancellationToken);
+
+        public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
+            => SemanticFacts.CanReplaceWithRValue(semanticModel, expression, cancellationToken);
+
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
+
+        public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+            => SemanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
+
+        public bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol)
+            => SemanticFacts.LastEnumValueHasInitializer(namedTypeSymbol);
+
+        public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
+            => SemanticFacts.TryGetSpeculativeSemanticModel(oldSemanticModel, oldNode, newNode, out speculativeModel);
+
+        public ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken)
+            => SemanticFacts.GetAliasNameSet(model, cancellationToken);
+
+        public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
+            => SemanticFacts.GetForEachSymbols(semanticModel, forEachStatement);
+
+        public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
+            => SemanticFacts.GetGetAwaiterMethod(semanticModel, node);
+
+        public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
+            => SemanticFacts.GetDeconstructionAssignmentMethods(semanticModel, node);
+
+        public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
+            => SemanticFacts.GetDeconstructionForEachMethods(semanticModel, node);
+
+        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+            => SemanticFacts.IsPartial(typeSymbol, cancellationToken);
+
+        public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
+            => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
+
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+
+        public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+            => SemanticFacts.GetBestOrAllSymbols(semanticModel, node, token, cancellationToken);
+
+        public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => SemanticFacts.IsInsideNameOfExpression(semanticModel, node, cancellationToken);
+        #endregion
     }
 }

@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460, // 270
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1320, // 1290
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 260, // 170
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 750, // 730
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
@@ -227,7 +227,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -273,7 +273,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void Constraints()
         {
             int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch

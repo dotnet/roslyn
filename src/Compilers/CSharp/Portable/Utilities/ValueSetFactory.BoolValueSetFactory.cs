@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoolValueSetFactory() { }
 
+            IValueSet IValueSetFactory.AllValues => BoolValueSet.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => BoolValueSet.None;
+
             public IValueSet<bool> Related(BinaryOperatorKind relation, bool value)
             {
                 switch (relation, value)
