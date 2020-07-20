@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
+            if (buffer != textView.TextBuffer)
+            {
+                return null;
+            }
+
             var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(textView);
             return new InlineParameterNameHintsTagger(this, textView, buffer, tagAggregator) as ITagger<T>;
         }
