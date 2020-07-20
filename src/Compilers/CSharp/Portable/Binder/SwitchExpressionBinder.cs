@@ -98,10 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
                     {
+                        var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
+                            BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false, out bool requiresFalseWhenClause);
+                        ErrorCode warningCode = requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen : ErrorCode.WRN_SwitchExpressionNotExhaustive;
                         diagnostics.Add(
-                            ErrorCode.WRN_SwitchExpressionNotExhaustive,
+                            warningCode,
                             node.SwitchKeyword.GetLocation(),
-                            PatternExplainer.SamplePatternForPathToDagNode(BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false));
+                            samplePattern);
                         return true;
                     }
                 }

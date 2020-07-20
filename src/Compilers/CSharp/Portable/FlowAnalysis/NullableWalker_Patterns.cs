@@ -593,11 +593,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(defaultLabelState.state);
                 var nodes = node.DecisionDag.TopologicallySortedNodes;
                 var leaf = nodes.Where(n => n is BoundLeafDecisionDagNode leaf && leaf.Label == node.DefaultLabel).First();
+                var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
+                    BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true, out bool requiresFalseWhenClause);
+                ErrorCode warningCode = requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen : ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull;
                 ReportDiagnostic(
-                    ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull,
+                    warningCode,
                     ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation(),
-                    PatternExplainer.SamplePatternForPathToDagNode(BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true)
-                    );
+                    samplePattern);
             }
 
             // collect expressions, conversions and result types
