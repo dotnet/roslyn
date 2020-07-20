@@ -1207,13 +1207,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(rewrittenFilter != null);
                 var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(prologue.Count);
-                if (rewrittenFilterPrologue != null)
-                {
-                    prologueBuilder.AddRange(rewrittenFilterPrologue.Statements);
-                }
                 foreach (var p in prologue)
                 {
                     prologueBuilder.Add(new BoundExpressionStatement(p.Syntax, p) { WasCompilerGenerated = true });
+                }
+                if (rewrittenFilterPrologue != null)
+                {
+                    prologueBuilder.AddRange(rewrittenFilterPrologue.Statements);
                 }
 
                 rewrittenFilterPrologue = new BoundStatementList(rewrittenFilter.Syntax, prologueBuilder.ToImmutableAndFree());

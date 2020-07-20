@@ -4154,7 +4154,7 @@ public class C
         }
 
         [Fact]
-        public void SwitchExpressionAsExceptionFilter()
+        public void SwitchExpressionAsExceptionFilter_01()
         {
             var source = @"
 using System;
@@ -4353,6 +4353,37 @@ toad";
 ");
                 }
             }
+        }
+
+        [Fact]
+        public void SwitchExpressionAsExceptionFilter_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch when ((3 is int i) switch { true when M(() => i) => true, _ => false })
+        {
+            Console.WriteLine(""correct"");
+        }
+    }
+    static bool M(Func<int> func)
+    {
+        func();
+        return true;
+    }
+}
+";
+            var expectedOutput = @"correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         #endregion Miscellaneous

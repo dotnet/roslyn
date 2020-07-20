@@ -2115,7 +2115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _nodeCounter++;
             }
 
-            filterPrologue = (filterPrologue != null) ? (BoundBlock)this.Visit(filterPrologue) : null;
+            filterPrologue = (filterPrologue != null) ? (BoundStatementList)this.Visit(filterPrologue) : null;
 
             if (filter != null)
             {

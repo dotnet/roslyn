@@ -883,7 +883,7 @@ oneMoreTime:
         ///
         /// gets emitted as something like ===>
         ///
-        /// Try           
+        /// Try
         ///     TryBlock
         /// Filter 
         ///     var tmp = Pop() as {ExceptionType}
@@ -902,6 +902,9 @@ oneMoreTime:
         ///     variable ex can be used here
         ///     Handler
         /// EndCatch
+        /// 
+        /// When evaluating `Condition` requires additional statements be executed first, those
+        /// statements are stored in `catchBlock.ExceptionFilterPrologueOpt` and emitted before the condition.
         /// </remarks>
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
