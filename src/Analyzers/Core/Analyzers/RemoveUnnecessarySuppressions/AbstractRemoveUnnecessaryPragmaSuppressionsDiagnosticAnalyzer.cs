@@ -117,6 +117,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 return;
             }
 
+            // Bail out for generated code.
+            if (tree.IsGeneratedCode(compilationWithAnalyzers.AnalysisOptions.Options, SyntaxFacts, cancellationToken))
+            {
+                return;
+            }
+
             var root = tree.GetRoot(cancellationToken);
 
             // Bail out if tree has syntax errors.

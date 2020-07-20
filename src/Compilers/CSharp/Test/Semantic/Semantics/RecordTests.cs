@@ -362,9 +362,9 @@ record C(int X, int Y)
                 "System.Int32 C.set_Y(System.Int32 value)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(C? other)",
                 "C C." + WellKnownMemberNames.CloneMethodName + "()",
-                "C..ctor(C )",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -5127,9 +5127,9 @@ record C(int X, int Y, int Z) : B
                 "System.Int32 C.Y.get",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(C? other)",
                 "C C." + WellKnownMemberNames.CloneMethodName + "()",
-                "C..ctor(C )",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -5641,10 +5641,10 @@ record C(object P)
                 "System.Object B.Q { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
                 "A B." + WellKnownMemberNames.CloneMethodName + "()",
-                "B..ctor(B )",
+                "B..ctor(B original)",
                 "void B.Deconstruct(out System.Object P, out System.Object Q)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
@@ -5662,9 +5662,9 @@ record C(object P)
                 "System.Object C.set_Q()",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(C? other)",
                 "C C." + WellKnownMemberNames.CloneMethodName + "()",
-                "C..ctor(C )",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Object P)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
@@ -7441,7 +7441,7 @@ public record C(object P1, object P2) : B(3, 4) { }
             {
                 "B..ctor(System.Object N1, System.Object N2)",
                 "B..ctor(B b, params System.Int32[] i)",
-                "B..ctor(B )"
+                "B..ctor(B original)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
 
@@ -8167,7 +8167,7 @@ public record C(int j) : B(1)
             {
                 "B..ctor(System.Int32 i)",
                 "B..ctor(ref B b)",
-                "B..ctor(B )"
+                "B..ctor(B original)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -10182,10 +10182,10 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
                 "A B." + WellKnownMemberNames.CloneMethodName + "()",
-                "B..ctor(B )",
+                "B..ctor(B original)",
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -10233,10 +10233,10 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
                 "A B." + WellKnownMemberNames.CloneMethodName + "()",
-                "B..ctor(B )",
+                "B..ctor(B original)",
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -12343,7 +12343,7 @@ B.Equals(B)
 False
 ").VerifyDiagnostics();
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.Equals(A? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -12445,7 +12445,7 @@ abstract record B : A
                 );
 
             var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean B.Equals(B? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -12703,7 +12703,7 @@ True
 True
 ").VerifyDiagnostics();
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.Equals(A? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -12809,7 +12809,7 @@ True
 ").VerifyDiagnostics();
 
             var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean B.Equals(B? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -12848,7 +12848,7 @@ True
 ").VerifyDiagnostics();
 
             var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean B.Equals(B? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.False(recordEquals.IsVirtual);
@@ -12884,7 +12884,7 @@ True
 ").VerifyDiagnostics();
 
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.Equals(A? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.False(recordEquals.IsVirtual);
@@ -15464,7 +15464,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(Base )", "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = new[] { "Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()" };
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -15565,7 +15565,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
+                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -16321,13 +16321,13 @@ True").VerifyDiagnostics();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.GetHashCode"), isOverride: true);
 
-            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
-            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? other)", false), ("System.Boolean A.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? other)", false), ("System.Boolean B.Equals(A? other)", true), ("System.Boolean B.Equals(System.Object? obj)", true));
             ImmutableArray<Symbol> cEquals = comp.GetMembers("C.Equals");
-            VerifyVirtualMethods(cEquals, ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(cEquals, ("System.Boolean C.Equals(C? other)", false), ("System.Boolean C.Equals(B? other)", true), ("System.Boolean C.Equals(System.Object? obj)", true));
 
             var baseEquals = cEquals[1];
-            Assert.Equal("System.Boolean C.Equals(B? )", baseEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean C.Equals(B? other)", baseEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, baseEquals.DeclaredAccessibility);
             Assert.True(baseEquals.IsOverride);
             Assert.True(baseEquals.IsSealed);
@@ -16760,10 +16760,10 @@ record C : B;
                 "System.Type B.EqualityContract.get",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
                 "A B." + WellKnownMemberNames.CloneMethodName + "()",
-                "B..ctor(B )",
+                "B..ctor(B original)",
                 "B..ctor()",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -16890,10 +16890,10 @@ False").VerifyDiagnostics();
                 "System.Int32 B1.P { get; init; }",
                 "System.Int32 B1.GetHashCode()",
                 "System.Boolean B1.Equals(System.Object? obj)",
-                "System.Boolean B1.Equals(A? )",
-                "System.Boolean B1.Equals(B1? )",
+                "System.Boolean B1.Equals(A? other)",
+                "System.Boolean B1.Equals(B1? other)",
                 "A B1." + WellKnownMemberNames.CloneMethodName + "()",
-                "B1..ctor(B1 )",
+                "B1..ctor(B1 original)",
                 "void B1.Deconstruct(out System.Int32 P)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -16908,13 +16908,13 @@ False").VerifyDiagnostics();
             var comp = CreateCompilation(sourceA);
             var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
-            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? other)", false), ("System.Boolean A.Equals(System.Object? obj)", true));
 
             var sourceB = @"record B : A;";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
-            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? other)", false), ("System.Boolean B.Equals(A? other)", true), ("System.Boolean B.Equals(System.Object? obj)", true));
         }
 
         [Fact]
@@ -17885,7 +17885,7 @@ public class C
             var expectedMembers = new[]
             {
                 "R..ctor(in System.Int32 P1)",
-                "R..ctor(R )"
+                "R..ctor(R original)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -17930,7 +17930,7 @@ public class C
             var expectedMembers = new[]
             {
                 "R..ctor(params System.Int32[] Array)",
-                "R..ctor(R )"
+                "R..ctor(R original)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }

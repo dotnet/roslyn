@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     isNullableEnabled: true,
                     ContainingType),
                 ordinal: 0,
-                RefKind.None));
+                RefKind.None,
+                "original"));
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
