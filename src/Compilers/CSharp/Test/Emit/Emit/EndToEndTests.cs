@@ -217,7 +217,7 @@ public class Test
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
                     compilation.VerifyDiagnostics();
 
                     // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
@@ -266,7 +266,7 @@ $@"        if (F({i}))
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var comp = CreateCompilation(source);
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     comp.VerifyDiagnostics();
                 });
             }
@@ -306,7 +306,7 @@ $@"        if (F({i}))
 
                 RunInThread(() =>
                 {
-                    var comp = CreateCompilation(source);
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     var type = comp.GetMember<NamedTypeSymbol>("C0");
                     var typeParameter = type.TypeParameters[0];
                     Assert.True(typeParameter.IsReferenceType);
