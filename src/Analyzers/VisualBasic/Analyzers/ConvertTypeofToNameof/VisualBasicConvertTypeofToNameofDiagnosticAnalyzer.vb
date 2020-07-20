@@ -26,5 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
 
             Return isValidLanguage And IsValidType And IsParentValid
         End Function
+
+        Protected Overrides Function LanguageReportDiagnostic(location As Location, cSharpDescriptor As DiagnosticDescriptor, visualBasicDescriptor As DiagnosticDescriptor) As Diagnostic
+            Return Diagnostic.Create(visualBasicDescriptor, location)
+        End Function
     End Class
 End Namespace

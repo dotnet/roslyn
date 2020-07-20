@@ -39,5 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
             // expression that we want to analyze
             return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax _ };
         }
+
+        protected override Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor)
+        {
+            return Diagnostic.Create(cSharpDescriptor, location);
+        }
     }
 }

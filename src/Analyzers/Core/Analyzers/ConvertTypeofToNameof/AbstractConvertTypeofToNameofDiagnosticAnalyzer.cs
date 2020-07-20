@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -18,16 +19,21 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
-                   option: null,
-                   new LocalizableResourceString(
-                       nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(
+            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, option: null, new LocalizableResourceString(
+                       nameof(AnalyzersResources.Convert_gettype_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)), new LocalizableResourceString(
                        nameof(AnalyzersResources.Convert_gettype_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
+            var csharpTitle = new LocalizableResourceString(nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            var csharpMessage = new LocalizableResourceString(nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            CSharpDescriptor = CreateDescriptorWithId(DescriptorId, csharpTitle, csharpMessage);
         }
+        internal DiagnosticDescriptor VBDescriptor => Descriptor;
+
+        internal DiagnosticDescriptor CSharpDescriptor { get; }
 
         protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
+
+        protected abstract Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -39,8 +45,6 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected void AnalyzeAction(OperationAnalysisContext context)
         {
-            var action = !IsValidTypeofAction(context);
-            var op = !IsValidOperation(context.Operation);
             if (!IsValidTypeofAction(context) || !IsValidOperation(context.Operation))
             {
                 return;
@@ -54,8 +58,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                 return;
             }
             var location = parent.GetLocation();
-            var diagnostic = Diagnostic.Create(Descriptor, location);
-            context.ReportDiagnostic(diagnostic);
+            context.ReportDiagnostic(LanguageReportDiagnostic(location, CSharpDescriptor, VBDescriptor));
 
         }
 
