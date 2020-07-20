@@ -294,7 +294,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
+                case BoundKind.UnconvertedConditionalOperator:
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.UnconvertedSwitchExpression:
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.ConvertedSwitchExpression:
                     return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:

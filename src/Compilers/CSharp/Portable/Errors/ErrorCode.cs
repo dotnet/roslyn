@@ -1837,7 +1837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadWarningVersion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
-        ERR_DuplicateRecordConstructor = 8851,
+
+        // Available = 8851,
+
         ERR_AssignmentInitOnly = 8852,
         ERR_CantChangeInitOnlyOnOverride = 8853,
         ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
@@ -1863,6 +1865,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SignatureMismatchInRecord = 8874,
         ERR_NonProtectedAPIInRecord = 8875,
         ERR_DoesNotOverrideBaseEqualityContract = 8876,
+        ERR_StaticAPIInRecord = 8877,
+        ERR_CopyConstructorWrongAccessibility = 8878,
+        ERR_NonPrivateAPIInRecord = 8879,
 
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
