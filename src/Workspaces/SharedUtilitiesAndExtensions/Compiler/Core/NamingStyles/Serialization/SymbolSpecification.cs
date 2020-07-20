@@ -365,9 +365,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             internal XElement CreateXElement()
                 => SymbolKind.HasValue ? new XElement(nameof(SymbolKind), SymbolKind) :
-                   TypeKind.HasValue ? new XElement(nameof(TypeKind), TypeKind) :
-                   MethodKind.HasValue ? new XElement(nameof(MethodKind), MethodKind) :
+                   TypeKind.HasValue ? new XElement(nameof(TypeKind), GetTypeKindString(TypeKind.Value)) :
+                   MethodKind.HasValue ? new XElement(nameof(MethodKind), GetMethodKindString(MethodKind.Value)) :
                    throw ExceptionUtilities.Unreachable;
+
+            private static string GetTypeKindString(TypeKind typeKind)
+            {
+                // We have two members in TypeKind that point to the same value, Struct and Structure. Because of this,
+                // Enum.ToString(), which under the covers uses a binary search, isn't stable which one it will pick and it can
+                // change if other TypeKinds are added. This ensures we keep using the same string consistently.
+                return typeKind switch
+                {
+                    CodeAnalysis.TypeKind.Structure => nameof(CodeAnalysis.TypeKind.Struct),
+                    _ => typeKind.ToString()
+                };
+            }
+
+            private static string GetMethodKindString(MethodKind methodKind)
+            {
+                // We ehave some members in TypeKind that point to the same value. Because of this,
+                // Enum.ToString(), which under the covers uses a binary search, isn't stable which one it will pick and it can
+                // change if other MethodKinds are added. This ensures we keep using the same string consistently.
+                return methodKind switch
+                {
+
+                    CodeAnalysis.MethodKind.SharedConstructor => nameof(CodeAnalysis.MethodKind.StaticConstructor),
+                    CodeAnalysis.MethodKind.AnonymousFunction => nameof(CodeAnalysis.MethodKind.LambdaMethod),
+                    _ => methodKind.ToString()
+                };
+            }
 
             public bool ShouldReuseInSerialization => false;
 

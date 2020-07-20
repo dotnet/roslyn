@@ -612,6 +612,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 ScanInterpolatedStringLiteralNestedVerbatimString();
                                 continue;
                             }
+                            else if (lexer.TextWindow.PeekChar(1) == '$' && lexer.TextWindow.PeekChar(2) == '"')
+                            {
+                                lexer.CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
+                                var interpolations = (ArrayBuilder<Interpolation>)null;
+                                var info = default(TokenInfo);
+                                bool wasVerbatim = this.isVerbatim;
+                                bool wasAllowNewlines = this.allowNewlines;
+                                try
+                                {
+                                    this.isVerbatim = true;
+                                    this.allowNewlines = true;
+                                    bool closeQuoteMissing;
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+                                }
+                                finally
+                                {
+                                    this.isVerbatim = wasVerbatim;
+                                    this.allowNewlines = wasAllowNewlines;
+                                }
+                                continue;
+                            }
 
                             goto default;
                         case '/':

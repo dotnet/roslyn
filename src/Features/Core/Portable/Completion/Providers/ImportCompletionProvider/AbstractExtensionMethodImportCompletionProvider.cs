@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    var items = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    var (items, counter) = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         forceIndexCreation: isExpandedCompletion,
                         cancellationToken).ConfigureAwait(false);
 
-                    completionContext.AddItems(items.Select(i => Convert(i)));
+                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol);
+                    completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
                 }
                 else
                 {
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _ => symbol as ITypeSymbol,
             };
 
-        private CompletionItem Convert(SerializableImportCompletionItem serializableItem)
+        private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey)
             => ImportCompletionItem.Create(
                 serializableItem.Name,
                 serializableItem.Arity,
@@ -112,6 +113,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 serializableItem.Glyph,
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
-                serializableItem.SymbolKeyData);
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount));
     }
 }

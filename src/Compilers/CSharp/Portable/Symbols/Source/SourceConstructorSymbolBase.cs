@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SourceConstructorSymbolBase(
             SourceMemberContainerTypeSymbol containingType,
             Location location,
-            CSharpSyntaxNode syntax,
-            MethodKind methodKind,
-            DiagnosticBag diagnostics)
+            CSharpSyntaxNode syntax)
             : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), SyntaxFacts.HasYieldOperations(syntax))
         {
             Debug.Assert(
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, parameterList, out arglistToken,
-                allowRefOrOut: true,
+                allowRefOrOut: AllowRefOrOut,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
@@ -74,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         protected abstract ParameterListSyntax GetParameterList();
+
+        protected abstract bool AllowRefOrOut { get; }
 #nullable restore
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)

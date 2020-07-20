@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -624,7 +625,7 @@ partial void F(dynamic d)
         [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
-        public async Task DynamicAsArrayName(bool script, bool outOfProcess)
+        public async Task DynamicAsArrayName(bool script, TestHost testHost)
         {
             var code =
 @"int[] dynamic = {
@@ -637,7 +638,7 @@ partial void F(dynamic d)
                 code,
                 code,
                 parseOptions,
-                outOfProcess,
+                testHost,
                 Keyword("int"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,

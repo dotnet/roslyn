@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if ((method as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SourcePropertyAccessorSymbol sourceAccessor &&
-                (propertyOpt as Symbols.PublicModel.PropertySymbol)?.UnderlyingSymbol is SourcePropertySymbol sourceProperty)
+                (propertyOpt as Symbols.PublicModel.PropertySymbol)?.UnderlyingSymbol is SourcePropertySymbolBase sourceProperty)
             {
                 // only display if the accessor is explicitly readonly
                 return sourceAccessor.LocalDeclaredReadOnly || sourceProperty.HasReadOnlyModifier;
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Method members always have a type unless (1) this is a lambda method symbol, which we 
+            // Method members always have a type unless (1) this is a lambda method symbol, which we
             // have dealt with already, or (2) this is an error method symbol. If we have an error method
             // symbol then we do not know its accessibility, modifiers, etc, all of which require knowing
             // the containing type, so we'll skip them.
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case MethodKind.Destructor:
                         case MethodKind.Conversion:
-                            // If we're using the metadata format, then include the return type.  
+                            // If we're using the metadata format, then include the return type.
                             // Otherwise we eschew it since it is redundant in a conversion
                             // signature.
                             if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
@@ -354,8 +354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         default:
                             // The display code is called by the debugger; if a developer is debugging Roslyn and attempts
-                            // to visualize a symbol *during its construction*, the parameters and return type might 
-                            // still be null. 
+                            // to visualize a symbol *during its construction*, the parameters and return type might
+                            // still be null.
 
                             if (symbol.ReturnsByRef)
                             {
@@ -777,8 +777,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var first = true;
 
             // The display code is called by the debugger; if a developer is debugging Roslyn and attempts
-            // to visualize a symbol *during its construction*, the parameters and return type might 
-            // still be null. 
+            // to visualize a symbol *during its construction*, the parameters and return type might
+            // still be null.
 
             if (!parameters.IsDefault)
             {

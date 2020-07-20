@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 //   "appBasePath": "%VSAPPIDDIR%"
                 //
 
-                var loadDir = AppDomain.CurrentDomain.BaseDirectory;
+                var loadDir = AppDomain.CurrentDomain.BaseDirectory!;
 
                 try
                 {
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
                 => ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), _text.Length));
             public override int GetHashCode() => _text.GetHashCode();
-            public override bool Equals(object obj) => _text.Equals(obj);
+            public override bool Equals(object? obj) => _text.Equals(obj);
             public override string ToString() => _text.ToString();
             public override string ToString(TextSpan span) => _text.ToString(span);
         }

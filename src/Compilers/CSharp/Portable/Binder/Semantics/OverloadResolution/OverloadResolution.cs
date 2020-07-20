@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isFunctionPointerResolution)
             {
                 RemoveCallingConventionMismatches(results, callingConvention);
-                RemoveStaticInstanceMismatches(results, requireStatic: true);
+                RemoveMethodsNotDeclaredStatic(results);
             }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
@@ -381,6 +381,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = results[f];
                 TMember member = result.Member;
                 if (result.Result.IsValid && member.RequiresInstanceReceiver() == requireStatic)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
+                }
+            }
+        }
+
+        private static void RemoveMethodsNotDeclaredStatic<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
+        {
+            // RemoveStaticInstanceMistmatches allows methods that do not need a reciever but are not declared static,
+            // such as a local function that is not declared static. This eliminates methods that are not actually
+            // declared as static
+            for (int f = 0; f < results.Count; f++)
+            {
+                var result = results[f];
+                TMember member = result.Member;
+                if (result.Result.IsValid && !member.IsStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }
@@ -1606,8 +1622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // implicit conversion from EX to PX, and for at least one argument, the conversion from
             // EX to PX is better than the conversion from EX to QX.
 
-            var m1LeastOverridenParameters = m1.LeastOverriddenMember.GetParameters();
-            var m2LeastOverridenParameters = m2.LeastOverriddenMember.GetParameters();
+            var m1LeastOverriddenParameters = m1.LeastOverriddenMember.GetParameters();
+            var m2LeastOverriddenParameters = m2.LeastOverriddenMember.GetParameters();
 
             bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
@@ -1624,10 +1640,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
                 var type1 = GetParameterType(parameter1, m1.Result);
 
-                var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
                 var type2 = GetParameterType(parameter2, m2.Result);
 
                 bool okToDowngradeToNeither;
@@ -1768,10 +1784,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
                     var type1 = GetParameterType(parameter1, m1.Result);
 
-                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
                     var type2 = GetParameterType(parameter2, m2.Result);
 
                     var type1Normalized = type1;
@@ -1836,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
+                return PreferValOverInParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -1977,7 +1993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters.
-            return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
+            return PreferValOverInParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
         private static BetterResult PreferValOverInParameters<TMember>(

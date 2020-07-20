@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -34,20 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions);
 
             // See CSharpCompilation.SerializeForPdb to see options that are included
-            Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
-            Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
-            Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
+            pdbOptions.VerifyPdbOption("nullable", originalOptions.NullableContextOptions);
+            pdbOptions.VerifyPdbOption("checked", originalOptions.CheckOverflow);
+            pdbOptions.VerifyPdbOption("unsafe", originalOptions.AllowUnsafe);
+
             Assert.Equal(langVersion, pdbOptions["language-version"]);
 
-            var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;
-            if (firstSyntaxTree is null || firstSyntaxTree.Options.PreprocessorSymbols.IsEmpty)
-            {
-                Assert.False(pdbOptions.ContainsKey("define"));
-            }
-            else
-            {
-                Assert.Equal(string.Join(",", firstSyntaxTree.Options.PreprocessorSymbolNames), pdbOptions["define"]);
-            }
+            var firstSyntaxTree = (CSharpSyntaxTree)compilation.SyntaxTrees.FirstOrDefault();
+            pdbOptions.VerifyPdbOption("define", firstSyntaxTree.Options.PreprocessorSymbolNames, isDefault: v => v.IsEmpty(), toString: v => string.Join(",", v));
         }
 
         private static void TestDeterministicCompilationCSharp(string langVersion, SyntaxTree[] syntaxTrees, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)

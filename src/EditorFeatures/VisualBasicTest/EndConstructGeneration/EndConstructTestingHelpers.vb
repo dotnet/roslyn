@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Friend Module EndConstructTestingHelpers
 
         Private Function CreateMockIndentationService() As ISmartIndentationService
-            Dim mock As New Mock(Of ISmartIndentationService)
+            Dim mock As New Mock(Of ISmartIndentationService)(MockBehavior.Strict)
             mock.Setup(Function(service) service.GetDesiredIndentation(It.IsAny(Of ITextView), It.IsAny(Of ITextSnapshotLine))).Returns(0)
             Return mock.Object
         End Function

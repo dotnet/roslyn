@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
 
             // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
-            var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+            var (analysisResult, additionalPragmaSuppressionDiagnostics) = await analyzerDriver.GetAnalysisResultAsync(_project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
             // record performance if tracker is available
             if (_performanceTracker != null)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), _project.DocumentIds.Count + 1);
             }
 
-            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, skippedAnalyzersInfo, cancellationToken);
+            var builderMap = analysisResult.ToResultBuilderMap(additionalPragmaSuppressionDiagnostics, _project, VersionStamp.Default, compilation, analysisResult.Analyzers, skippedAnalyzersInfo, cancellationToken);
 
             return DiagnosticAnalysisResultMap.Create(
                 builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),

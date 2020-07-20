@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteString(symbol.Identity.Name);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var assemblyName = reader.ReadString();
                 var compilation = reader.Compilation;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(AssemblySymbolKey)} '{assemblyName}' not found)", out failureReason);
             }
         }
     }

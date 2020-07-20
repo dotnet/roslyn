@@ -199,8 +199,7 @@ function Process-Arguments() {
 }
 
 function BuildSolution() {
-  # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
-  $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
+  $solution = "Roslyn.sln"
 
   Write-Host "$($solution):"
 
@@ -222,8 +221,6 @@ function BuildSolution() {
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
   # that MSBuild output as well as ones that custom tasks output.
-  #
-  # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
@@ -255,7 +252,7 @@ function BuildSolution() {
       /p:UseRoslynAnalyzers=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
       /p:TestTargetFrameworks=$testTargetFrameworks `
-      /p:TreatWarningsAsErrors=true `
+      /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
       $restoreUseStaticGraphEvaluation `
@@ -311,6 +308,8 @@ function GetIbcDropName() {
     
     # Find the matching drop
     $branch = GetIbcSourceBranchName
+    Write-Host "Optimization data branch name is '$branch'."
+
     $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch
     return $drop.Name
 }
