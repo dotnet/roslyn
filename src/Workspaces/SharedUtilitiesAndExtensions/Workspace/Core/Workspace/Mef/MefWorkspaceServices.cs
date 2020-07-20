@@ -5,12 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+
+[assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
-    internal class MefWorkspaceServices : HostWorkspaceServices
+    internal sealed class MefWorkspaceServices : HostWorkspaceServices
     {
         private readonly IMefHostExportProvider _exportProvider;
         private readonly Workspace _workspace;
@@ -181,5 +186,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
             => _languageServicesMap.TryGetValue(languageName, out languageServices);
+
+        internal sealed class LazyServiceMetadataDebuggerProxy
+        {
+            private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
+
+            public LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services) =>
+                _services = services;
+
+            public (string type, string layer)[] Metadata
+                => _services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
+        }
     }
 }
