@@ -1069,8 +1069,8 @@ record C
                 "void C.Y.init",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C.C(C! )",
+                "System.Boolean C.Equals(C? other)",
+                "C.C(C! original)",
                 "C.C()",
             }, members.Select(m => m.ToTestDisplayString(includeNonNullable: true)));
         }
@@ -1101,7 +1101,7 @@ partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
@@ -1130,7 +1130,7 @@ partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
