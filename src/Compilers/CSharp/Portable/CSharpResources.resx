@@ -3378,7 +3378,7 @@ Although C# distinguishes between out and ref, the CLR sees them as the same. Wh
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</value>
   </data>
   <data name="WRN_MultipleRuntimeOverrideMatches" xml:space="preserve">
-    <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</value>
+    <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</value>
   </data>
   <data name="WRN_MultipleRuntimeOverrideMatches_Title" xml:space="preserve">
     <value>Member overrides base member with multiple override candidates at run-time</value>
@@ -6296,6 +6296,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DoesNotOverrideMethodFromObject" xml:space="preserve">
     <value>'{0}' does not override expected method from 'object'.</value>
+  </data>
+  <data name="IDS_FeatureCovariantReturnsForOverrides" xml:space="preserve">
+    <value>covariant returns</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</value>
   </data>
   <data name="ERR_SealedGetHashCodeInRecord" xml:space="preserve">
     <value>'{0}' cannot be sealed because containing record is not sealed.</value>

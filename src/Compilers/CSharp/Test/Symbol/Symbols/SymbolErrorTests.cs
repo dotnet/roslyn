@@ -7721,9 +7721,26 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 3, Column = 24, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 9, Column = 25 });
+            var comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,24): warning CS1957: Member 'D.F(int)' overrides 'C<int>.F(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //    public virtual void F(T t) {}
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "F").WithArguments("C<int>.F(int)", "D.F(int)").WithLocation(3, 24),
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -15381,12 +15398,15 @@ public class Derived : Base
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.get not impl
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.set not impl
-                                                                                                                        // COMPARE: InheritanceBindingTests.TestNoPropertyToOverride
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 13, Column = 28 } //key error, property type changed
+            // The set accessor has the wrong parameter type so is not implemented.
+            // The override get accessor has the right signature (no parameters) so is implemented, though with the wrong return type.
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,14): error CS0534: 'Derived' does not implement inherited abstract member 'Base.myProperty.set'
+                // public class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.myProperty.set").WithLocation(10, 14),
+                // (13,28): error CS1715: 'Derived.myProperty': type must be 'int' to match overridden member 'Base.myProperty'
+                //     public override double myProperty  // CS1715
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "myProperty").WithArguments("Derived.myProperty", "Base.myProperty", "int").WithLocation(13, 28)
                 );
         }
 
@@ -18256,7 +18276,8 @@ class Derived : Base<int, int>, IFace
         [Fact]
         public void CS1957WRN_MultipleRuntimeOverrideMatches()
         {
-            var text = @"class Base<TString>
+            var text =
+@"class Base<TString>
 {
     public virtual void Test(TString s, out int x)
     {
@@ -18271,8 +18292,21 @@ class Derived : Base<string>
     public override void Test(string s, ref int x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 8, Column = 25, IsWarning = true });
+            // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
+            CSharpCompilation comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (8,25): warning CS1957: Member 'Derived.Test(string, ref int)' overrides 'Base<string>.Test(string, ref int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Test(string s, ref int x) { } // CS1957
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Test").WithArguments("Base<string>.Test(string, ref int)", "Derived.Test(string, ref int)").WithLocation(8, 25)
+                    );
+            }
         }
 
         [Fact]

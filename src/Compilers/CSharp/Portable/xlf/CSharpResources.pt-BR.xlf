@@ -712,6 +712,16 @@
         <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">O runtime de destino não é compatível com a acessibilidade 'protected', 'protected internal' ou 'private protected' para um membro de uma interface.</target>
@@ -1242,6 +1252,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">atribuição de união</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
@@ -2062,6 +2077,16 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="translated">A anotação para tipos de referência anuláveis deve ser usada apenas em código em um contexto de anotações '#nullable'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -7393,21 +7418,11 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">Esse aviso pode ser gerado quando dois métodos de interface são diferenciados somente por se um determinado parâmetro é marcado com ref ou out. É aconselhável alterar o código para evitar este aviso porque não fica óbvio ou garantido qual método é chamado no runtime.
+        <target state="needs-review-translation">Esse aviso pode ser gerado quando dois métodos de interface são diferenciados somente por se um determinado parâmetro é marcado com ref ou out. É aconselhável alterar o código para evitar este aviso porque não fica óbvio ou garantido qual método é chamado no runtime.
 
 Embora C# faça a distinção entre out e ref, o CLR os vê da mesma forma. Ao decidir qual método implementa a interface, o CLR simplesmente escolhe um deles.
 
 Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, você pode dar-lhes nomes diferentes ou fornecer um parâmetro adicional em um deles.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Membro "{1}" substitui "{0}". Há vários candidatos de substituição em tempo de execução. Ele é dependente de implementação cujo método que será chamado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">O membro substitui o membro base com vários candidatos à substituição no tempo de execução</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
