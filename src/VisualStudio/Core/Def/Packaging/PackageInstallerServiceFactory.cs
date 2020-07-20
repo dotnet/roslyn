@@ -63,9 +63,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private IVsPackage? _nugetPackageManager;
 
-        // We keep track of what types of changes we've seen so we can then determine what to
-        // refresh on the UI thread.  If we hear about project changes, we only refresh that
-        // project.  If we hear about a solution level change, we'll refresh all projects.
+        /// <summary>
+        /// Used to keep track of what types of changes we've seen so we can then determine what to refresh on the UI
+        /// thread.  If we hear about project changes, we only refresh that project.  If we hear about a solution level
+        /// change, we'll refresh all projects.
+        /// </summary>
+        /// <remarks>
+        /// <c>solutionChanged == true iff changedProject == null</c> and <c>solutionChanged == false iff changedProject
+        /// != null</c>. So technically having both values is redundant.  However, i like the clarity of having both.
+        /// </remarks>
         private AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>? _workQueue;
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
