@@ -112,7 +112,7 @@ import System
 
 class Test
     sub Method()
-        dim typeVar = GetType(String)
+        dim typeVar = [||]GetType(String)
         dim typeName = typeVar.Name 
     end sub
 end class
