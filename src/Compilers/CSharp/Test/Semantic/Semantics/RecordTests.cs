@@ -336,7 +336,7 @@ record C(int X, int Y)
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -354,8 +354,8 @@ record C(int X, int Y)
                 "System.Int32 C.set_Y(System.Int32 value)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C..ctor(C )",
+                "System.Boolean C.Equals(C? other)",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -720,7 +720,7 @@ Block[B0] - Entry
                   Left:
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                   Right:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -895,7 +895,7 @@ record C(int X)
   IL_0006:  dup
   IL_0007:  callvirt   ""int C.X.get""
   IL_000c:  call       ""void System.Console.WriteLine(int)""
-  IL_0011:  callvirt   ""C C.<>Clone()""
+  IL_0011:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0016:  dup
   IL_0017:  ldc.i4.5
   IL_0018:  callvirt   ""void C.X.init""
@@ -933,7 +933,7 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.<>Clone()""
+  IL_000d:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
@@ -973,13 +973,13 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.<>Clone()""
+  IL_000d:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  dup
   IL_001a:  call       ""void System.Console.WriteLine(object)""
-  IL_001f:  callvirt   ""C C.<>Clone()""
+  IL_001f:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0024:  dup
   IL_0025:  ldc.i4.2
   IL_0026:  callvirt   ""void C.Y.init""
@@ -1293,7 +1293,7 @@ record C9 : System.ICloneable
     .field private initonly int32 '<i>k__BackingField'
     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
 
-    .method public hidebysig specialname newslot virtual instance class Base '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class Base '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldarg.0
         IL_0001: newobj instance void Base::.ctor(class Base)
@@ -1471,7 +1471,7 @@ record C(int X)
             var verifier = CompileAndVerify(source, expectedOutput: @"1
 11");
 
-            verifier.VerifyIL("C.<>Clone", @"
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1480,6 +1480,9 @@ record C(int X)
   IL_0006:  ret
 }
 ");
+
+            var clone = verifier.Compilation.GetMember("C." + WellKnownMemberNames.CloneMethodName);
+            Assert.Equal("<Clone>$", clone.Name);
         }
 
         [Fact]
@@ -1510,7 +1513,7 @@ record C(int X)
             var verifier = CompileAndVerify(source, expectedOutput: @"1
 11");
 
-            verifier.VerifyIL("C.<>Clone", @"
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1550,7 +1553,7 @@ record C(int X)
             var verifier = CompileAndVerify(source, expectedOutput: @"1
 11");
 
-            verifier.VerifyIL("C.<>Clone", @"
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1584,7 +1587,7 @@ record C(int X)
             var verifier = CompileAndVerify(source, expectedOutput: @"1
 11");
 
-            verifier.VerifyIL("C.<>Clone", @"
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1618,7 +1621,7 @@ record C(int X)
             var verifier = CompileAndVerify(source, expectedOutput: @"1
 11");
 
-            verifier.VerifyIL("C.<>Clone", @"
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1653,7 +1656,7 @@ record C(int X)
             var verifier = CompileAndVerify(source, expectedOutput: @"1
 11");
 
-            verifier.VerifyIL("C.<>Clone", @"
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1895,7 +1898,7 @@ X");
   IL_0001:  ldc.i4.1
   IL_0002:  ldc.i4.2
   IL_0003:  newobj     ""C..ctor(int, int, int)""
-  IL_0008:  callvirt   ""C C.<>Clone()""
+  IL_0008:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000d:  dup
   IL_000e:  ldstr      ""Y""
   IL_0013:  call       ""int C.W(string)""
@@ -1918,7 +1921,7 @@ X");
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ Y = W(""Y"" ...  = W(""X"") }')
       Initializers(2):
@@ -1998,7 +2001,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                   Value:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -2068,7 +2071,7 @@ record C(long X)
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i8
   IL_0002:  newobj     ""C..ctor(long)""
-  IL_0007:  callvirt   ""C C.<>Clone()""
+  IL_0007:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000c:  dup
   IL_000d:  ldc.i4.s   11
   IL_000f:  conv.i8
@@ -2120,7 +2123,7 @@ conversion
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldc.i4.s   11
   IL_000b:  call       ""S..ctor(int)""
-  IL_0010:  callvirt   ""C C.<>Clone()""
+  IL_0010:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0015:  dup
   IL_0016:  ldloc.0
   IL_0017:  call       ""long S.op_Implicit(S)""
@@ -2253,7 +2256,7 @@ set
   IL_0005:  ldloca.s   V_0
   IL_0007:  ldc.i4.s   11
   IL_0009:  call       ""S..ctor(int)""
-  IL_000e:  callvirt   ""C C.<>Clone()""
+  IL_000e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0013:  dup
   IL_0014:  ldloc.0
   IL_0015:  call       ""int S.op_Implicit(S)""
@@ -2439,7 +2442,7 @@ record C(int X, string Y)
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { X = 2 }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ X = 2 }')
       Initializers(1):
@@ -2493,7 +2496,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { X = 2 }')
                   Value:
-                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
+                    IInvocationOperation (virtual C C." + WellKnownMemberNames.CloneMethodName + @"()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -2667,7 +2670,7 @@ record C(int X, int Y)
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ 5 }')
       Initializers(1):
@@ -2680,7 +2683,7 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
   Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.<>Clone()
+  CloneMethod: C C." + WellKnownMemberNames.CloneMethodName + @"()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ')
       Initializers(0)");
@@ -3329,7 +3332,7 @@ class D
   // Code size       33 (0x21)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  callvirt   ""C C.<>Clone()""
+  IL_0001:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0006:  dup
   IL_0007:  ldc.i4.5
   IL_0008:  callvirt   ""void C.X.set""
@@ -3379,7 +3382,7 @@ record C(int Y)
   IL_000f:  callvirt   ""ref int C.X.get""
   IL_0014:  ldind.i4
   IL_0015:  call       ""void System.Console.WriteLine(int)""
-  IL_001a:  callvirt   ""C C.<>Clone()""
+  IL_001a:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_001f:  dup
   IL_0020:  callvirt   ""ref int C.X.get""
   IL_0025:  ldc.i4.1
@@ -3704,7 +3707,7 @@ record C(int X, int Y, int Z) : B
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -3715,8 +3718,8 @@ record C(int X, int Y, int Z) : B
                 "System.Int32 C.Y.get",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C..ctor(C )",
+                "System.Boolean C.Equals(C? other)",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -4215,7 +4218,7 @@ record C(object P)
 
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Object P, System.Object Q)",
@@ -4229,16 +4232,16 @@ record C(object P)
                 "System.Object B.Q { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
-                "B..ctor(B )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
+                "B..ctor(B original)",
                 "void B.Deconstruct(out System.Object P, out System.Object Q)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
 
             expectedMembers = new[]
             {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Object P)",
@@ -4250,8 +4253,8 @@ record C(object P)
                 "System.Object C.set_Q()",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C..ctor(C )",
+                "System.Boolean C.Equals(C? other)",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Object P)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
@@ -5466,7 +5469,7 @@ class Program
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type A::get_EqualityContract()
@@ -5500,7 +5503,7 @@ class Program
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class B A_1) { ldnull throw }
-  .method public hidebysig specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type B::get_EqualityContract()
@@ -5560,7 +5563,7 @@ record CB(object P) : B;
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type A::GetProperty1()
@@ -5634,7 +5637,7 @@ B");
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type A::'EqualityContract<>get'()
@@ -5728,7 +5731,7 @@ B");
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { }
   .property instance class [mscorlib]System.Type modopt(int32) EqualityContract()
   {
     .get instance class [mscorlib]System.Type modopt(int32) A::get_EqualityContract()
@@ -5851,7 +5854,7 @@ record B : A
     ret
   }
   .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname virtual instance class A  '<>Clone'() { ldnull throw }
+  .method public hidebysig newslot specialname virtual instance class A  '" + WellKnownMemberNames.CloneMethodName + @"'() { ldnull throw }
   .property instance object P()
   {
     .get instance object A::get_P()
@@ -6034,7 +6037,7 @@ public record C(object P1, object P2) : B(3, 4) { }
             {
                 "B..ctor(System.Object N1, System.Object N2)",
                 "B..ctor(B b, params System.Int32[] i)",
-                "B..ctor(B )"
+                "B..ctor(B original)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
 
@@ -6735,7 +6738,7 @@ public record C(int j) : B(1)
             {
                 "B..ctor(System.Int32 i)",
                 "B..ctor(ref B b)",
-                "B..ctor(B )"
+                "B..ctor(B original)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -6795,7 +6798,7 @@ public record C(object P1, object P2) : B(3, 4)
             var ilSource = @"
 .class public auto ansi beforefieldinit B extends [mscorlib]System.Object
 {
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -6870,7 +6873,7 @@ public record C : B
             var ilSource = @"
 .class public auto ansi beforefieldinit B extends [mscorlib]System.Object
 {
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -6939,7 +6942,7 @@ public record C : B {
 {
     INJECT
 
-    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldarg.0
         IL_0001: newobj instance void B::.ctor(class B)
@@ -7126,7 +7129,7 @@ THROW
         IL_000a:  ret
     }
 
-    .method public hidebysig specialname newslot virtual instance class B`1<!T> '<>Clone' () cil managed
+    .method public hidebysig specialname newslot virtual instance class B`1<!T> '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
     {
         IL_0000: ldarg.0
         IL_0001: newobj instance void class B`1<!T>::.ctor(class B`1<!0>)
@@ -8449,7 +8452,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -8463,9 +8466,9 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
-                "B..ctor(B )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
+                "B..ctor(B original)",
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -8500,7 +8503,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -8514,9 +8517,9 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
-                "B..ctor(B )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
+                "B..ctor(B original)",
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -8531,13 +8534,13 @@ record B(int X, int Y) : A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public final hidebysig virtual 
         instance bool Equals (
@@ -8625,13 +8628,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig virtual 
         instance bool Equals (
@@ -8719,13 +8722,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig 
         instance bool Equals (
@@ -8813,13 +8816,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public newslot hidebysig virtual 
         instance int32 Equals (
@@ -8984,13 +8987,13 @@ public record A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9156,13 +9159,13 @@ public record C : B {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual
         instance bool Equals (
@@ -9267,13 +9270,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9519,13 +9522,13 @@ sealed record A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9624,13 +9627,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -9722,13 +9725,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -10053,13 +10056,13 @@ public record A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -10147,13 +10150,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -10241,13 +10244,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -10335,13 +10338,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -10425,13 +10428,13 @@ public record B : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -10598,7 +10601,7 @@ B.Equals(B)
 False
 ");
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.Equals(A? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -10685,7 +10688,7 @@ abstract record B : A
                 );
 
             var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean B.Equals(B? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -10923,7 +10926,7 @@ True
 True
 ");
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.Equals(A? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -11029,7 +11032,7 @@ True
 True
 ");
             var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean B.Equals(B? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.True(recordEquals.IsVirtual);
@@ -11068,7 +11071,7 @@ True
 True
 ");
             var recordEquals = comp.GetMembers("B.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean B.Equals(B? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean B.Equals(B? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.False(recordEquals.IsVirtual);
@@ -11104,7 +11107,7 @@ True
 True
 ");
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A? )", recordEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.Equals(A? other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.False(recordEquals.IsVirtual);
@@ -11711,13 +11714,13 @@ sealed record H : A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -11873,13 +11876,13 @@ record C : A
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -12000,13 +12003,13 @@ public record F : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -12113,13 +12116,13 @@ public record F : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -12192,13 +12195,13 @@ public record F : A {
 {
     // Methods
     .method public hidebysig specialname newslot virtual 
-        instance class A '<>Clone' () cil managed 
+        instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         .maxstack 8
 
         IL_0000: ldnull
         IL_0001: throw
-    } // end of method A::'<>Clone'
+    } // end of method A::'" + WellKnownMemberNames.CloneMethodName + @"'
 
     .method public hidebysig virtual 
         instance bool Equals (
@@ -12493,7 +12496,7 @@ class E
   IL_0007:  callvirt   ""void C.X.init""
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
-  IL_000e:  callvirt   ""C C.<>Clone()""
+  IL_000e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0013:  dup
   IL_0014:  ldc.i4.2
   IL_0015:  callvirt   ""void C.X.init""
@@ -12509,7 +12512,7 @@ class E
   IL_0037:  callvirt   ""void C.X.init""
   IL_003c:  stloc.1
   IL_003d:  ldloc.1
-  IL_003e:  callvirt   ""C C.<>Clone()""
+  IL_003e:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0043:  castclass  ""D""
   IL_0048:  dup
   IL_0049:  ldc.i4.2
@@ -12549,13 +12552,13 @@ class E
   IL_00b3:  ldloc.2
   IL_00b4:  stloc.s    V_4
   IL_00b6:  ldloc.3
-  IL_00b7:  callvirt   ""C C.<>Clone()""
+  IL_00b7:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_00bc:  dup
   IL_00bd:  ldc.i4.3
   IL_00be:  callvirt   ""void C.X.init""
   IL_00c3:  stloc.3
   IL_00c4:  ldloc.s    V_4
-  IL_00c6:  callvirt   ""C C.<>Clone()""
+  IL_00c6:  callvirt   ""C C." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_00cb:  dup
   IL_00cc:  ldc.i4.4
   IL_00cd:  callvirt   ""void C.X.init""
@@ -13503,7 +13506,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(Base )", "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = new[] { "Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()" };
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -13604,7 +13607,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
+                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -14343,21 +14346,21 @@ True");
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
 
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.<>Clone"), isOverride: false);
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.<>Clone"), isOverride: true);
-            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.<>Clone"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A." + WellKnownMemberNames.CloneMethodName), isOverride: false);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B." + WellKnownMemberNames.CloneMethodName), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C." + WellKnownMemberNames.CloneMethodName), isOverride: true);
 
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.GetHashCode"), isOverride: true);
 
-            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
-            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? other)", false), ("System.Boolean A.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? other)", false), ("System.Boolean B.Equals(A? other)", true), ("System.Boolean B.Equals(System.Object? obj)", true));
             ImmutableArray<Symbol> cEquals = comp.GetMembers("C.Equals");
-            VerifyVirtualMethods(cEquals, ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(cEquals, ("System.Boolean C.Equals(C? other)", false), ("System.Boolean C.Equals(B? other)", true), ("System.Boolean C.Equals(System.Object? obj)", true));
 
             var baseEquals = cEquals[1];
-            Assert.Equal("System.Boolean C.Equals(B? )", baseEquals.ToTestDisplayString());
+            Assert.Equal("System.Boolean C.Equals(B? other)", baseEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, baseEquals.DeclaredAccessibility);
             Assert.True(baseEquals.IsOverride);
             Assert.True(baseEquals.IsSealed);
@@ -14787,14 +14790,14 @@ record C : B;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B.<>Clone()",
+                "A B." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B.EqualityContract { get; }",
                 "System.Type B.EqualityContract.get",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
-                "B..ctor(B )",
+                "System.Boolean B.Equals(A? other)",
+                "System.Boolean B.Equals(B? other)",
+                "B..ctor(B original)",
                 "B..ctor()",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -14913,7 +14916,7 @@ False");
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B1").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "A B1.<>Clone()",
+                "A B1." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type B1.EqualityContract.get",
                 "System.Type B1.EqualityContract { get; }",
                 "B1..ctor(System.Int32 P)",
@@ -14923,9 +14926,9 @@ False");
                 "System.Int32 B1.P { get; init; }",
                 "System.Int32 B1.GetHashCode()",
                 "System.Boolean B1.Equals(System.Object? obj)",
-                "System.Boolean B1.Equals(A? )",
-                "System.Boolean B1.Equals(B1? )",
-                "B1..ctor(B1 )",
+                "System.Boolean B1.Equals(A? other)",
+                "System.Boolean B1.Equals(B1? other)",
+                "B1..ctor(B1 original)",
                 "void B1.Deconstruct(out System.Int32 P)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -14940,13 +14943,13 @@ False");
             var comp = CreateCompilation(sourceA);
             var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
-            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? other)", false), ("System.Boolean A.Equals(System.Object? obj)", true));
 
             var sourceB = @"record B : A;";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
-            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? other)", false), ("System.Boolean B.Equals(A? other)", true), ("System.Boolean B.Equals(System.Object? obj)", true));
         }
 
         [Fact]
@@ -15859,6 +15862,237 @@ record R(int P1, int* P2, delegate*<int> P3);";
 
             p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
             Assert.True(p.HasPointerType);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_RefOrOut()
+        {
+            var src = @"
+record R(ref int P1, out int P2);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,9): error CS0177: The out parameter 'P2' must be assigned to before control leaves the current method
+                // record R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "(ref int P1, out int P2)").WithArguments("P2").WithLocation(2, 9),
+                // (2,10): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(2, 10),
+                // (2,22): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(2, 22)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_RefOrOut_WithBase()
+        {
+            var src = @"
+record Base(int I);
+record R(ref int P1, out int P2) : Base(P2 = 1);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,10): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2) : Base(P2 = 1);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(3, 10),
+                // (3,22): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2) : Base(P2 = 1);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(3, 22)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_In()
+        {
+            var src = @"
+record R(in int P1);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(42);
+        int i = 43;
+        var r2 = new R(in i);
+        System.Console.Write((r.P1, r2.P1));
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.Skipped /* init-only */);
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R..ctor(in System.Int32 P1)",
+                "R..ctor(R original)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_This()
+        {
+            var src = @"
+record R(this int i);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,10): error CS0027: Keyword 'this' is not available in the current context
+                // record R(this int i);
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(2, 10)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_Params()
+        {
+            var src = @"
+record R(params int[] Array);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(42, 43);
+        var r2 = new R(new[] { 44, 45 });
+        System.Console.Write((r.Array[0], r.Array[1], r2.Array[0], r2.Array[1]));
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44, 45)", verify: Verification.Skipped /* init-only */);
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R..ctor(params System.Int32[] Array)",
+                "R..ctor(R original)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer()
+        {
+            var src = @"
+record R(int P = 1)
+{
+    public int P { get; init; } = 42;
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stfld      ""int R.<P>k__BackingField""
+  IL_0008:  ldarg.0
+  IL_0009:  call       ""object..ctor()""
+  IL_000e:  nop
+  IL_000f:  ret
+}");
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithoutInitializer()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public int P { get; init; }
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ret
+}");
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer_CopyingParameter()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public int P { get; init; } = P;
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int R.<P>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""object..ctor()""
+  IL_000d:  nop
+  IL_000e:  ret
+}");
         }
 
         [Fact]

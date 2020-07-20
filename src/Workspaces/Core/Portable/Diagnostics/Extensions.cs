@@ -176,6 +176,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
+                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.AdditionalFileDiagnostics)
+                {
+                    if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+
+                        if (project.GetDocumentForFile(file) is DocumentId documentId)
+                        {
+                            result.AddExternalSyntaxDiagnostics(documentId, diagnostics);
+                        }
+                        else
+                        {
+                            result.AddCompilationDiagnostics(diagnostics);
+                        }
+                    }
+                }
+
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
                     diagnostics = diagnostics.Filter(diagnosticIdsToFilter);

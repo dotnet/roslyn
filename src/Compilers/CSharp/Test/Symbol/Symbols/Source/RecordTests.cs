@@ -1056,7 +1056,7 @@ record C
 }");
             var members = comp.GlobalNamespace.GetTypeMember("C").GetMembers();
             AssertEx.Equal(new[] {
-                "C! C.<>Clone()",
+                "C! C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type! C.EqualityContract.get",
                 "System.Type! C.EqualityContract { get; }",
                 "System.Int32 C.<X>k__BackingField",
@@ -1069,8 +1069,8 @@ record C
                 "void C.Y.init",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C.C(C! )",
+                "System.Boolean C.Equals(C? other)",
+                "C.C(C! original)",
                 "C.C()",
             }, members.Select(m => m.ToTestDisplayString(includeNonNullable: true)));
         }
@@ -1101,7 +1101,7 @@ partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
@@ -1130,7 +1130,7 @@ partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
@@ -1429,7 +1429,7 @@ class C
             Assert.True(clone.IsAbstract);
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(0, clone.Arity);
-            Assert.Equal("R R.<>Clone()", clone.ToTestDisplayString());
+            Assert.Equal("R R." + WellKnownMemberNames.CloneMethodName + "()", clone.ToTestDisplayString());
 
             var r2 = comp.GlobalNamespace.GetTypeMember("R2");
             var clone2 = (MethodSymbol)r2.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1439,7 +1439,7 @@ class C
             Assert.Equal(0, clone2.ParameterCount);
             Assert.Equal(0, clone2.Arity);
             Assert.True(clone2.OverriddenMethod.Equals(clone, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R2.<>Clone()", clone2.ToTestDisplayString());
+            Assert.Equal("R R2." + WellKnownMemberNames.CloneMethodName + "()", clone2.ToTestDisplayString());
 
             var r3 = comp.GlobalNamespace.GetTypeMember("R3");
             var clone3 = (MethodSymbol)r3.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1449,7 +1449,7 @@ class C
             Assert.Equal(0, clone3.ParameterCount);
             Assert.Equal(0, clone3.Arity);
             Assert.True(clone3.OverriddenMethod.Equals(clone2, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R3.<>Clone()", clone3.ToTestDisplayString());
+            Assert.Equal("R R3." + WellKnownMemberNames.CloneMethodName + "()", clone3.ToTestDisplayString());
 
             var r4 = comp.GlobalNamespace.GetTypeMember("R4");
             var clone4 = (MethodSymbol)r4.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1459,7 +1459,7 @@ class C
             Assert.Equal(0, clone4.ParameterCount);
             Assert.Equal(0, clone4.Arity);
             Assert.True(clone4.OverriddenMethod.Equals(clone3, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R4.<>Clone()", clone4.ToTestDisplayString());
+            Assert.Equal("R R4." + WellKnownMemberNames.CloneMethodName + "()", clone4.ToTestDisplayString());
 
             var r5 = comp.GlobalNamespace.GetTypeMember("R5");
             var clone5 = (MethodSymbol)r5.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1469,7 +1469,7 @@ class C
             Assert.Equal(0, clone5.ParameterCount);
             Assert.Equal(0, clone5.Arity);
             Assert.True(clone5.OverriddenMethod.Equals(clone4, TypeCompareKind.ConsiderEverything));
-            Assert.Equal("R R5.<>Clone()", clone5.ToTestDisplayString());
+            Assert.Equal("R R5." + WellKnownMemberNames.CloneMethodName + "()", clone5.ToTestDisplayString());
 
             var verifier = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             verifier.VerifyIL("C.Main", @"
@@ -1477,10 +1477,10 @@ class C
   // Code size       28 (0x1c)
   .maxstack  1
   IL_0000:  newobj     ""R3..ctor()""
-  IL_0005:  callvirt   ""R R.<>Clone()""
+  IL_0005:  callvirt   ""R R." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_000a:  pop
   IL_000b:  newobj     ""R5..ctor()""
-  IL_0010:  callvirt   ""R R.<>Clone()""
+  IL_0010:  callvirt   ""R R." + WellKnownMemberNames.CloneMethodName + @"()""
   IL_0015:  castclass  ""R4""
   IL_001a:  pop
   IL_001b:  ret

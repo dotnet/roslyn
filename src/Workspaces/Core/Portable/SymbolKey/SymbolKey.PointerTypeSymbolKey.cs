@@ -11,9 +11,15 @@ namespace Microsoft.CodeAnalysis
             public static void Create(IPointerTypeSymbol symbol, SymbolKeyWriter visitor)
                 => visitor.WriteSymbolKey(symbol.PointedAtType);
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
-                var pointedAtTypeResolution = reader.ReadSymbolKey();
+                var pointedAtTypeResolution = reader.ReadSymbolKey(out var pointedAtTypeFailureReason);
+
+                if (pointedAtTypeFailureReason != null)
+                {
+                    failureReason = $"({nameof(PointerTypeSymbolKey)} {nameof(pointedAtTypeResolution)} failed -> {pointedAtTypeFailureReason})";
+                    return default;
+                }
 
                 using var result = PooledArrayBuilder<IPointerTypeSymbol>.GetInstance(pointedAtTypeResolution.SymbolCount);
                 foreach (var typeSymbol in pointedAtTypeResolution.OfType<ITypeSymbol>())
@@ -21,7 +27,7 @@ namespace Microsoft.CodeAnalysis
                     result.AddIfNotNull(reader.Compilation.CreatePointerTypeSymbol(typeSymbol));
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(PointerTypeSymbolKey)} could not resolve)", out failureReason);
             }
         }
     }
