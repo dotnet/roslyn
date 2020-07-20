@@ -158,8 +158,8 @@ New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
-            installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "1.0")).Returns(Enumerable.Empty(Of Project))
-            installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "2.0")).Returns(Enumerable.Empty(Of Project))
+            installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "1.0")).Returns(ImmutableArray(Of Project).Empty)
+            installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "2.0")).Returns(ImmutableArray(Of Project).Empty)
             installerServiceMock.Setup(Function(i) i.TryGetPackageSources()).Returns(NuGetPackageSources)
             installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                 Returns(ImmutableArray.Create("1.0", "2.0"))
@@ -231,7 +231,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
-            installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "1.0")).Returns(Enumerable.Empty(Of Project))
+            installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "1.0")).Returns(ImmutableArray(Of Project).Empty)
             installerServiceMock.Setup(Function(i) i.TryGetPackageSources()).Returns(NuGetPackageSources)
             installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                 Returns(ImmutableArray.Create("1.0"))

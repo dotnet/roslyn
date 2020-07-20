@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
-        IEnumerable<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
+        ImmutableArray<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
         bool CanShowManagePackagesDialog();
         void ShowManagePackagesDialog(string packageName);
 

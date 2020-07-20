@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -11,19 +11,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private struct ProjectState
         {
-            public static readonly ProjectState Disabled = new ProjectState(isEnabled: false, new MultiDictionary<string, string>());
+            public static readonly ProjectState Disabled = new ProjectState(isEnabled: false, ImmutableDictionary<string, string>.Empty);
 
             public readonly bool IsEnabled;
 
-            private readonly MultiDictionary<string, string> InstalledPackageToVersion;
+            private readonly ImmutableDictionary<string, string> InstalledPackageToVersion;
 
-            private ProjectState(bool isEnabled, MultiDictionary<string, string> installedPackageToVersion)
+            private ProjectState(bool isEnabled, ImmutableDictionary<string, string> installedPackageToVersion)
             {
                 IsEnabled = isEnabled;
                 InstalledPackageToVersion = installedPackageToVersion;
             }
 
-            public ProjectState(MultiDictionary<string, string> installedPackageToVersion)
+            public ProjectState(ImmutableDictionary<string, string> installedPackageToVersion)
                 : this(isEnabled: true, installedPackageToVersion)
             {
             }
@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             public bool IsInstalled(string package)
                 => IsEnabled && InstalledPackageToVersion.ContainsKey(package);
 
-            public MultiDictionary<string, string>.ValueSet GetInstalledVersions(string packageName)
-                => InstalledPackageToVersion[packageName];
+            public bool TryGetInstalledVersion(string packageName, [NotNullWhen(true)] out string version)
+                => InstalledPackageToVersion.TryGetValue(packageName, out version);
         }
     }
 }

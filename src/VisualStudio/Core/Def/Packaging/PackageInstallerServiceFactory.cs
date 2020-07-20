@@ -515,14 +515,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
 
-                var installedPackages = new MultiDictionary<string, string>();
+                using var _ = PooledDictionary<string, string>.GetInstance(out var installedPackages);
                 if (installedPackagesResult?.Status == InstalledPackageResultStatus.Successful)
                 {
                     foreach (var installedPackage in installedPackagesResult.Packages)
-                        installedPackages.Add(installedPackage.Id, installedPackage.Version);
+                        installedPackages[installedPackage.Id] = installedPackage.Version;
                 }
 
-                return new ProjectState(installedPackages);
+                return new ProjectState(installedPackages.ToImmutableDictionary());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -541,9 +541,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            var installedVersions = new HashSet<string>();
+            using var _ = PooledHashSet<string>.GetInstance(out var installedVersions);
             foreach (var state in _projectToInstalledPackageAndVersion.Values)
-                installedVersions.AddRange(state.GetInstalledVersions(packageName));
+            {
+                if (state.TryGetInstalledVersion(packageName, out var version))
+                    installedVersions.Add(version);
+            }
 
             // Order the versions with a weak heuristic so that 'newer' versions come first.
             // Essentially, we try to break the version on dots, and then we use a LogicalComparer
@@ -579,27 +582,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return split2.Length - split1.Length;
         }
 
-        public IEnumerable<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version)
+        public ImmutableArray<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version)
         {
             ThisCanBeCalledOnAnyThread();
 
-            var result = new List<Project>();
+            using var _ = ArrayBuilder<Project>.GetInstance(out var result);
 
-            foreach (var kvp in this._projectToInstalledPackageAndVersion)
+            foreach (var (projectId, state) in this._projectToInstalledPackageAndVersion)
             {
-                var state = kvp.Value;
-                var versionSet = state.GetInstalledVersions(packageName);
-                if (versionSet.Contains(version))
+                if (state.TryGetInstalledVersion(packageName, out var installedVersion) &&
+                    installedVersion == version)
                 {
-                    var project = solution.GetProject(kvp.Key);
+                    var project = solution.GetProject(projectId);
                     if (project != null)
-                    {
                         result.Add(project);
-                    }
                 }
             }
 
-            return result;
+            return result.ToImmutable();
         }
 
         public bool CanShowManagePackagesDialog()
