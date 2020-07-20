@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1411,7 +1413,8 @@ class P
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
+        [Fact]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void GrabBag02()
         {
             var source =
@@ -1965,6 +1968,46 @@ class Test
 
             CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
+                expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
+        [Fact]
+        public void DiscardParameters()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Test
+{
+    public static void Main()
+    {
+        Expression<Func<int, long, string>> e = (_, _) => null;
+        ExpressionVisitor ev = new ExpressionVisitor();
+        ev.Visit(e);
+
+        Console.Write(ev.toStr);
+    }
+}";
+            string expectedOutput = @"                            
+                        Lambda:
+                            Type->System.Func`3[System.Int32,System.Int64,System.String]
+                            Parameters->
+                                Parameter:
+                                    Type->System.Int32
+                                    Name->_
+                                Parameter:
+                                    Type->System.Int64
+                                    Name->_
+                            Body->
+                                Constant:
+                                    Type->System.String
+                                    Value->
+";
+
+            CompileAndVerifyUtil(
+                new[] { text, TreeWalkerLib },
+                parseOptions: TestOptions.RegularPreview,
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
@@ -3443,7 +3486,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { MscorlibRef, SystemCoreRef },
+                new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);

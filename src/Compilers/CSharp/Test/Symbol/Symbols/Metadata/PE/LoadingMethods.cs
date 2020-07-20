@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Reflection;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 //test
 
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.SymbolsTests.MDTestLib2,
                 TestReferences.SymbolsTests.Methods.CSMethods,
                 TestReferences.SymbolsTests.Methods.VBMethods,
-                TestReferences.NetFx.v4_0_21006.mscorlib,
+                Net40.mscorlib,
                 TestReferences.SymbolsTests.Methods.ByRefReturn
             },
             options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal("void TC10.M1()", localM1.ToTestDisplayString());
             Assert.True(localM1.ReturnsVoid);
             Assert.Equal(Accessibility.Public, localM1.DeclaredAccessibility);
-            Assert.Same(module2, localM1.Locations.Single().MetadataModule);
+            Assert.Same(module2, localM1.Locations.Single().MetadataModuleInternal);
 
             Assert.Equal("void TC10.M2(System.Int32 m1_1)", localM2.ToTestDisplayString());
             Assert.True(localM2.ReturnsVoid);
@@ -111,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.False(basicC1_M1.Parameters[0].IsOptional);
             Assert.False(basicC1_M1.Parameters[0].HasExplicitDefaultValue);
-            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModule);
+            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModuleInternal);
 
             Assert.True(basicC1_M2.Parameters[0].IsOptional);
             Assert.False(basicC1_M2.Parameters[0].HasExplicitDefaultValue);
@@ -434,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 mrefs: new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -470,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -561,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -654,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL,
                 });
 
@@ -688,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 

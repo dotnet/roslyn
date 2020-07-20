@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -119,7 +122,7 @@ class C : IB, IC
             var compilation = CompileAndVerify(source);
             compilation.VerifyDiagnostics();
 
-            var globalNamespace = (NamespaceSymbol)compilation.Compilation.GlobalNamespace;
+            var globalNamespace = (NamespaceSymbol)((CSharpCompilation)compilation.Compilation).GlobalNamespace;
 
             var type = globalNamespace.GetMember<NamedTypeSymbol>("IA");
             CheckIndexer(type.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
@@ -1279,7 +1282,7 @@ public class Derived : Base
             // Confirm that the base indexer is used (even though the derived indexer signature matches).
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(indexerAccessSyntax);
-            Assert.Equal(baseIndexer, symbolInfo.Symbol);
+            Assert.Equal(baseIndexer.GetPublicSymbol(), symbolInfo.Symbol);
         }
 
         /// <summary>
@@ -2541,11 +2544,11 @@ partial class C
 }
 ";
             var compilation = CreateCompilation(new string[] { text1, text2 });
-            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
+            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => x.IsIndexer()));
 
             //test with text inputs reversed in case syntax ordering predicate ever changes.
             compilation = CreateCompilation(new string[] { text2, text1 });
-            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
+            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => x.IsIndexer()));
         }
 
         [WorkItem(543957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543957")]
@@ -2622,18 +2625,18 @@ public class Wrapper
             // The receiver of each access expression has an indexer group.
             foreach (var syntax in receiverSyntaxes)
             {
-                var type = model.GetTypeInfo(syntax).Type;
+                var type = model.GetTypeInfo(syntax).Type.GetSymbol();
                 Assert.NotNull(type);
 
                 var indexerGroup = model.GetIndexerGroup(syntax);
 
                 if (type.Equals(baseType))
                 {
-                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else if (type.Equals(derivedType))
                 {
-                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else
                 {
@@ -2706,17 +2709,17 @@ class Derived2 : Base
 
             // In declaring type, can see everything.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[0]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can see non-private.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[1]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can only see public (or internal) members of other subtypes.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[2]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
         }
 
@@ -2815,7 +2818,7 @@ class Test
 ";
             #endregion
 
-            var comp1 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp1 = CreateEmptyCompilation(src1, new[] { TestMetadata.Net40.mscorlib });
             var comp2 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
             var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");

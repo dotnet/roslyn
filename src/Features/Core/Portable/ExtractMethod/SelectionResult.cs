@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SemanticDocument = document;
         }
 
-        protected abstract bool UnderAsyncAnonymousMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
+        protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
 
         public abstract bool ContainingScopeHasAsyncKeyword();
 
@@ -82,14 +85,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         public SyntaxToken GetFirstTokenInSelection()
-        {
-            return SemanticDocument.GetTokenWithAnnotation(FirstTokenAnnotation);
-        }
+            => SemanticDocument.GetTokenWithAnnotation(FirstTokenAnnotation);
 
         public SyntaxToken GetLastTokenInSelection()
-        {
-            return SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
-        }
+            => SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
 
         public TNode GetContainingScopeOf<TNode>() where TNode : SyntaxNode
         {
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
                 // which extract method is applied to
                 if (SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>().IsAwaitKeyword(currentToken)
-                    && !UnderAsyncAnonymousMethod(currentToken, firstToken, lastToken))
+                    && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
                 {
                     return true;
                 }
@@ -138,12 +137,59 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return false;
         }
 
-        public bool AllowMovingDeclaration
+        public bool ShouldCallConfigureAwaitFalse()
         {
-            get
+            var firstToken = GetFirstTokenInSelection();
+            var lastToken = GetLastTokenInSelection();
+
+            var span = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
+
+            foreach (var node in SemanticDocument.Root.DescendantNodesAndSelf())
             {
-                return Options.GetOption(ExtractMethodOptions.AllowMovingDeclaration, SemanticDocument.Project.Language);
+                if (!node.Span.OverlapsWith(span))
+                {
+                    continue;
+                }
+
+                if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
+                {
+                    return true;
+                }
             }
+
+            return false;
+        }
+
+        private bool IsConfigureAwaitFalse(SyntaxNode node)
+        {
+            var syntaxFacts = SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            if (!syntaxFacts.IsInvocationExpression(node))
+            {
+                return false;
+            }
+
+            var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(node);
+            if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+            {
+                return false;
+            }
+
+            var name = syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression);
+            var identifier = syntaxFacts.GetIdentifierOfSimpleName(name);
+            if (!syntaxFacts.StringComparer.Equals(identifier.ValueText, nameof(Task.ConfigureAwait)))
+            {
+                return false;
+            }
+
+            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(node);
+            if (arguments.Count != 1)
+            {
+                return false;
+            }
+
+            var argument = arguments[0];
+            var expression = syntaxFacts.GetExpressionOfArgument(argument);
+            return syntaxFacts.IsFalseLiteralExpression(expression);
         }
 
         public bool DontPutOutOrRefOnStruct

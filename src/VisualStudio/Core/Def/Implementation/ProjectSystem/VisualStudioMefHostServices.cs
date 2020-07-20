@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -43,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>()
         {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, typeof(TMetadata).AssemblyQualifiedName);
+            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, typeof(TMetadata).AssemblyQualifiedName!);
             if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
@@ -60,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public IEnumerable<Lazy<TExtension>> GetExports<TExtension>()
         {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, "");
+            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, "");
             if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
@@ -74,20 +79,18 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             internal readonly string ExtensionTypeName;
             internal readonly string MetadataTypeName;
-            private readonly int _hash;
 
             public ExportKey(string extensionTypeName, string metadataTypeName)
             {
                 ExtensionTypeName = extensionTypeName;
                 MetadataTypeName = metadataTypeName;
-                _hash = Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
             }
 
             public bool Equals(ExportKey other)
                 => string.Compare(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0 &&
                    string.Compare(MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => obj is ExportKey key && Equals(key);
 
             public override int GetHashCode()

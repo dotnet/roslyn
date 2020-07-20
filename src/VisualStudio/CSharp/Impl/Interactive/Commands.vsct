@@ -19,6 +19,7 @@
         <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): RoslynImageCatalogGuid -> ImageCatalogGuid -->
         <Icon guid="RoslynImageCatalogGuid" id="CSInteractiveWindow" />
         <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>AllowClientRole</CommandFlag>
         <Strings>
           <ButtonText>C# Interactive</ButtonText>
         </Strings>

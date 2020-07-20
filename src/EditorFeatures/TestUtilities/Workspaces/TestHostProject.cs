@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly string _assemblyName;
         private readonly Type _hostObjectType;
         private readonly VersionStamp _version;
-        private readonly string _filePath;
         private readonly string _outputFilePath;
         private readonly string _defaultNamespace;
 
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IEnumerable<TestHostDocument> AdditionalDocuments;
         public IEnumerable<TestHostDocument> AnalyzerConfigDocuments;
         public IEnumerable<ProjectReference> ProjectReferences;
+        private string _filePath;
 
         public string Name
         {
@@ -123,6 +124,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return _filePath;
             }
         }
+
+        internal void OnProjectFilePathChanged(string filePath)
+            => _filePath = filePath;
 
         public string OutputFilePath
         {
@@ -238,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
-            _metadataReferences = metadataReferences ?? new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib };
+            _metadataReferences = metadataReferences ?? new MetadataReference[] { TestMetadata.Net451.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";
             _version = VersionStamp.Create();
@@ -270,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        internal void SetSolution(TestHostSolution solution)
+        internal void SetSolution(TestHostSolution _)
         {
             // set up back pointer to this project.
             if (this.Documents != null)
@@ -299,9 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveDocument(TestHostDocument document)
-        {
-            this.Documents = this.Documents.Where(d => d != document);
-        }
+            => this.Documents = this.Documents.Where(d => d != document);
 
         internal void AddAdditionalDocument(TestHostDocument document)
         {
@@ -310,9 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveAdditionalDocument(TestHostDocument document)
-        {
-            this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
-        }
+            => this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
 
         internal void AddAnalyzerConfigDocument(TestHostDocument document)
         {
@@ -321,9 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveAnalyzerConfigDocument(TestHostDocument document)
-        {
-            this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
-        }
+            => this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
 
         public string Language
         {
@@ -344,27 +342,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public ProjectInfo ToProjectInfo()
         {
             return ProjectInfo.Create(
-                this.Id,
-                this.Version,
-                this.Name,
-                this.AssemblyName,
-                this.Language,
-                this.FilePath,
-                this.OutputFilePath,
-                outputRefFilePath: null,
-                defaultNamespace: null,
-                this.CompilationOptions,
-                this.ParseOptions,
-                this.Documents.Select(d => d.ToDocumentInfo()),
-                this.ProjectReferences,
-                this.MetadataReferences,
-                this.AnalyzerReferences,
-                this.AdditionalDocuments.Select(d => d.ToDocumentInfo()),
-                this.AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
-                this.IsSubmission,
-                this.HostObjectType,
-                hasAllInformation: true)
-                .WithDefaultNamespace(this.DefaultNamespace);
+                Id,
+                Version,
+                Name,
+                AssemblyName,
+                Language,
+                FilePath,
+                OutputFilePath,
+                CompilationOptions,
+                ParseOptions,
+                Documents.Select(d => d.ToDocumentInfo()),
+                ProjectReferences,
+                MetadataReferences,
+                AnalyzerReferences,
+                AdditionalDocuments.Select(d => d.ToDocumentInfo()),
+                IsSubmission,
+                HostObjectType)
+                .WithAnalyzerConfigDocuments(AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()))
+                .WithDefaultNamespace(DefaultNamespace);
         }
 
         // It is identical with the internal extension method 'GetDefaultExtension' defined in OutputKind.cs.

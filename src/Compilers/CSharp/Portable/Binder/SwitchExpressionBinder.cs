@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -66,9 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             var reachableLabels = decisionDag.ReachableLabels;
+            bool hasErrors = false;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
-                if (!reachableLabels.Contains(arm.Label))
+                hasErrors |= arm.HasErrors;
+                if (!hasErrors && !reachableLabels.Contains(arm.Label))
                 {
                     diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
                 }
@@ -81,19 +85,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (hasErrors)
+                return true;
+
             // We only report exhaustive warnings when the default label is reachable through some series of
             // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
-            foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
+            if (!hasErrors)
             {
-                if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
+                var nodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors);
+                foreach (var n in nodes)
                 {
-                    diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
-                    return true;
+                    if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.WRN_SwitchExpressionNotExhaustive,
+                            node.SwitchKeyword.GetLocation(),
+                            PatternExplainer.SamplePatternForPathToDagNode(BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false));
+                        return true;
+                    }
                 }
             }
 
-            return false;
+            return hasErrors;
 
             ImmutableArray<BoundDecisionDagNode> nonNullSuccessors(BoundDecisionDagNode n)
             {
@@ -121,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, DiagnosticBag diagnostics)
         {
-            var seenTypes = SpecializedCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
+            var seenTypes = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
             foreach (var @case in switchCases)
             {

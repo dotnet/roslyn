@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_reachableLabels == null)
                 {
-                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>(SymbolEqualityComparer.ConsiderEverything);
+                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything);
                     foreach (var node in this.TopologicallySortedNodes)
                     {
                         if (node is BoundLeafDecisionDagNode leaf)
@@ -178,6 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return d.Value == inputConstant;
                         case BoundDagTypeTest d:
                             return inputConstant.IsNull ? (bool?)false : null;
+                        case BoundDagRelationalTest d:
+                            var f = ValueSetFactory.ForType(input.Type);
+                            if (f is null) return null;
+                            // TODO: When ValueSetFactory has a method for comparing two values, use it.
+                            var set = f.Related(d.Relation.Operator(), d.Value);
+                            return set.Any(BinaryOperatorKind.Equal, inputConstant);
                         default:
                             throw ExceptionUtilities.UnexpectedValue(choice);
                     }
@@ -220,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (state)
                 {
                     case BoundTestDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Test)}");
+                        result.AppendLine($"  Test: {dumpDagTest(node.Test)}");
                         if (node.WhenTrue != null)
                         {
                             result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
@@ -232,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case BoundEvaluationDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Evaluation)}");
+                        result.AppendLine($"  Test: {dumpDagTest(node.Evaluation)}");
                         if (node.Next != null)
                         {
                             result.AppendLine($"  Next: {stateIdentifierMap[node.Next]}");
@@ -262,28 +270,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             tempIdentifierMap.Free();
             return resultBuilder.ToStringAndFree();
 
-            string dump(BoundDagTest d)
+            string dumpDagTest(BoundDagTest d)
             {
                 switch (d)
                 {
                     case BoundDagTypeEvaluation a:
-                        return $"t{tempIdentifier(a)}={a.Kind} {tempName(d.Input)} as {a.Type.ToString()}";
-                    case BoundDagPropertyEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind} {tempName(d.Input)}.{e.Property.Name}";
-                    case BoundDagIndexEvaluation i:
-                        return $"t{tempIdentifier(i)}={i.Kind} {tempName(d.Input)}[{i.Index}]";
+                        return $"t{tempIdentifier(a)}={a.Kind}(t{tempIdentifier(a)} as {a.Type})";
                     case BoundDagEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind}, {tempName(d.Input)}";
+                        return $"t{tempIdentifier(e)}={e.Kind}(t{tempIdentifier(e)})";
                     case BoundDagTypeTest b:
-                        return $"?{d.Kind} {tempName(d.Input)} is {b.Type.ToString()}";
+                        return $"?{d.Kind}({tempName(d.Input)} is {b.Type})";
                     case BoundDagValueTest v:
-                        return $"?{d.Kind} {v.Value.ToString()} == {tempName(d.Input)}";
-                    case BoundDagNonNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} != null";
-                    case BoundDagExplicitNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} == null";
+                        return $"?{d.Kind}({tempName(d.Input)} == {v.Value})";
+                    case BoundDagRelationalTest r:
+                        var operatorName = r.Relation.Operator() switch
+                        {
+                            BinaryOperatorKind.LessThan => "<",
+                            BinaryOperatorKind.LessThanOrEqual => "<=",
+                            BinaryOperatorKind.GreaterThan => ">",
+                            BinaryOperatorKind.GreaterThanOrEqual => ">=",
+                            _ => "??"
+                        };
+                        return $"?{d.Kind}({tempName(d.Input)} {operatorName} {r.Value})";
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(d);
+                        return $"?{d.Kind}({tempName(d.Input)})";
                 }
             }
         }

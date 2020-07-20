@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -9,18 +13,28 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class SpeculativeTCompletionProvider : CommonCompletionProvider
+    [ExportCompletionProvider(nameof(SpeculativeTCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
+    [Shared]
+    internal class SpeculativeTCompletionProvider : LSPCompletionProvider
     {
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SpeculativeTCompletionProvider()
         {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -47,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
+        private static async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
@@ -60,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
 
             var spanStart = position;
             while (true)
@@ -84,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken) ||
+            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
                    syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                    syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                    syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||

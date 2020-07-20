@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -23,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         }
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return true;
-        }
+            => true;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
@@ -126,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             };
         }
 
-        private TelemetryEvent CreateTelemetryEvent(FunctionId functionId, KeyValueLogMessage logMessage)
+        private static TelemetryEvent CreateTelemetryEvent(FunctionId functionId, KeyValueLogMessage logMessage)
         {
             var eventName = functionId.GetEventName();
             return AppendProperties(new TelemetryEvent(eventName), functionId, logMessage);

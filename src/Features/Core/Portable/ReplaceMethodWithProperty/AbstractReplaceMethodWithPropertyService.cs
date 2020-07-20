@@ -1,18 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     internal abstract class AbstractReplaceMethodWithPropertyService<TMethodDeclarationSyntax> where TMethodDeclarationSyntax : SyntaxNode
     {
+#pragma warning disable CA1822 // Mark members as static - implements interface method for sub-types.
         public async Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context)
+#pragma warning restore CA1822 // Mark members as static
             => await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
 
         protected static string GetWarning(GetAndSetMethods getAndSetMethods)
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         protected static TPropertyDeclaration SetLeadingTrivia<TPropertyDeclaration>(
-            ISyntaxFactsService syntaxFacts, GetAndSetMethods getAndSetMethods, TPropertyDeclaration property) where TPropertyDeclaration : SyntaxNode
+            ISyntaxFacts syntaxFacts, GetAndSetMethods getAndSetMethods, TPropertyDeclaration property) where TPropertyDeclaration : SyntaxNode
         {
             var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration;
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;

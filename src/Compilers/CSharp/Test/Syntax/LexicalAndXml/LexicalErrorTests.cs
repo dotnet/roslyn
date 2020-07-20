@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -366,22 +368,10 @@ int x = 0;
 
             ParserErrorMessageTests.ParseAndValidate(test,// (1,8): error CS1002: ; expected
                                                           // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\u005C"),
-    // (1,14): error CS0116: A namespace does not directly contain members such as fields or methods
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "u0065"),
-    // (1,22): error CS0116: A namespace does not directly contain members such as fields or methods
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "System"),
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\u005C").WithLocation(1, 8),
     // (1,8): error CS1056: Unexpected character '\u005C'
     // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u005C"),
-    // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_EOFExpected, "="),
-    // (1,28): error CS1022: Type or namespace definition, or end-of-file expected
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_EOFExpected, ";"));
+    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u005C").WithLocation(1, 8));
         }
 
         [Fact, WorkItem(536882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536882")]

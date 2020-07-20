@@ -1,55 +1,112 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementInterfaceTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private readonly NamingStylesTestOptionSets _options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
-            OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection AllOptionsOff
+            => new OptionsCollection(GetLanguage())
+            {
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
-        private IDictionary<OptionKey, object> AllOptionsOn =>
-            OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+        private OptionsCollection AllOptionsOn
+            => new OptionsCollection(GetLanguage())
+            {
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+            };
 
-        private IDictionary<OptionKey, object> AccessorOptionsOn =>
-            OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection AccessorOptionsOn
+            => new OptionsCollection(GetLanguage())
+            {
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
         private static readonly ParseOptions CSharp7_1 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
+
+        private const string NullableAttributesCode = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
+    internal sealed class AllowNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
+    internal sealed class DisallowNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+    internal sealed class MaybeNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+    internal sealed class NotNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    internal sealed class MaybeNullWhenAttribute : Attribute
+    {
+        public MaybeNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
+        public bool ReturnValue { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    internal sealed class NotNullWhenAttribute : Attribute
+    {
+        public NotNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
+        public bool ReturnValue { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+    internal sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute(string parameterName) => ParameterName = parameterName;
+        public string ParameterName { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    internal sealed class DoesNotReturnAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    internal sealed class DoesNotReturnIfAttribute : Attribute
+    {
+        public DoesNotReturnIfAttribute(bool parameterValue) => ParameterValue = parameterValue;
+        public bool ParameterValue { get; }
+    }
+}";
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
@@ -99,6 +156,77 @@ class Class : IInterface
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodInRecord()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task TestMethodWithNativeIntegers()
+        {
+            var nativeIntegerAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All)]
+    public sealed class NativeIntegerAttribute : System.Attribute
+    {
+        public NativeIntegerAttribute()
+        {
+        }
+        public NativeIntegerAttribute(bool[] flags)
+        {
+        }
+    }
+}";
+
+            // Note: we're putting the attribute by hand to simulate metadata
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
+    (nint, nuint) Method(nint x, nuint x2);
+}
+
+class Class : [|IInterface|]
+{
+}" + nativeIntegerAttributeDefinition,
+    @"interface IInterface
+{
+    [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
+    (nint, nuint) Method(nint x, nuint x2);
+}
+
+class Class : IInterface
+{
+    public (nint, nuint) Method(nint x, nuint x2)
+    {
+        throw new System.NotImplementedException();
+    }
+}" + nativeIntegerAttributeDefinition);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -187,9 +315,10 @@ class Class : IInterface
 }
 ";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInMethod()
         {
+            // Note: we're putting the attribute by hand to simulate metadata
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IInterface
 {
@@ -793,6 +922,136 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_SameMemberInDifferentType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOnePropInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i { get; }
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i { get; }
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOneNonViableInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    int i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    int i;
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberInterfaceWithIndexer()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -849,7 +1108,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return this.x.Compare(x, y);
+        return ((IComparer)this.x).Compare(x, y);
     }
 }",
 index: 1);
@@ -874,7 +1133,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return a.Compare(x, y);
+        return ((IComparer)a).Compare(x, y);
     }
 }",
 index: 1);
@@ -1777,18 +2036,18 @@ class A : IReadOnlyList<int>
     {
         get
         {
-            return ((IReadOnlyList<int>)field).Count;
+            return ((IReadOnlyCollection<int>)field).Count;
         }
     }
 
     public IEnumerator<int> GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return ((IEnumerable<int>)field).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return field.GetEnumerator();
     }
 }",
 index: 1);
@@ -1822,7 +2081,7 @@ class A : IReadOnlyList<int>
     {
         get
         {
-            return ((IReadOnlyList<int>)field).Count;
+            return ((IReadOnlyCollection<int>)field).Count;
         }
     }
 
@@ -1830,12 +2089,12 @@ class A : IReadOnlyList<int>
 
     public IEnumerator<int> GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return ((IEnumerable<int>)field).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return field.GetEnumerator();
     }
 }",
 index: 1);
@@ -5197,6 +5456,8 @@ class C : [|IDisposable|]",
 $@"using System;
 class C : IDisposable
 {{
+    private bool disposedValue;
+
 {DisposePattern("protected virtual ", "C", "public void ")}
 }}
 ", index: 1);
@@ -5237,6 +5498,8 @@ class C : [|System.IDisposable|]
 $@"using System;
 class C : System.IDisposable
 {{
+    private bool disposedValue;
+
     class IDisposable
     {{
     }}
@@ -5292,7 +5555,9 @@ class C : IDisposable
 @"class C : [|System.IDisposable|]",
 $@"class C : System.IDisposable
 {{
-{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
+    private bool disposedValue;
+
+{DisposePattern("protected virtual ", "C", "void System.IDisposable.", gcPrefix: "System.")}
 }}
 ", index: 3);
         }
@@ -5349,6 +5614,8 @@ interface I : IDisposable
 }}
 class C : I
 {{
+    private bool disposedValue;
+
     public void F()
     {{
         throw new NotImplementedException();
@@ -5378,6 +5645,8 @@ interface I : IDisposable
 }}
 class C : I
 {{
+    private bool disposedValue;
+
     void I.F()
     {{
         throw new NotImplementedException();
@@ -6170,6 +6439,7 @@ $@"using System;
 
 class Program : IDisposable
 {{
+    private bool disposedValue;
 
 {DisposePattern("protected virtual ", "Program", "public void ")}
 }}", index: 1);
@@ -6190,6 +6460,7 @@ $@"using System;
 class Program : IDisposable
 {{
     private bool DisposedValue;
+    private bool disposedValue;
 
 {DisposePattern("protected virtual ", "Program", "void IDisposable.")}
 }}", index: 3);
@@ -6258,9 +6529,52 @@ $@"using System;
 
 sealed class Program : IDisposable
 {{
+    private bool disposedValue;
 
-{DisposePattern("", "Program", "void IDisposable.")}
+{DisposePattern("private ", "Program", "void IDisposable.")}
 }}", index: 3);
+        }
+
+        [WorkItem(9760, "https://github.com/dotnet/roslyn/issues/9760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementInterfaceForExplicitIDisposableWithExistingField()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"using System;
+
+class Program : [|IDisposable|]
+{
+    private bool disposedValue;
+}",
+$@"using System;
+
+class Program : IDisposable
+{{
+    private bool disposedValue;
+    private bool disposedValue1;
+
+{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "disposedValue1")}
+}}", index: 1);
+        }
+
+        [WorkItem(9760, "https://github.com/dotnet/roslyn/issues/9760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementInterfaceUnderscoreNameForFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program : [|IDisposable|]
+{
+}",
+$@"using System;
+
+class Program : IDisposable
+{{
+    private bool _disposedValue;
+
+{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "_disposedValue")}
+}}", index: 1, options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
         [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
@@ -6424,6 +6738,8 @@ partial class C
 
 partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
 {{
+    private bool disposedValue;
+
     public bool Equals(int other)
     {{
         throw new NotImplementedException();
@@ -6472,6 +6788,8 @@ interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
 
 partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
 {{
+    private bool disposedValue;
+
     bool IEquatable<int>.Equals(int other)
     {{
         throw new NotImplementedException();
@@ -6495,43 +6813,41 @@ partial class C
 }}", index: 3);
         }
 
-        private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
+        private static string DisposePattern(
+            string disposeVisibility,
+            string className,
+            string implementationVisibility,
+            string disposeField = "disposedValue",
+            string gcPrefix = "")
         {
-            return $@"    #region IDisposable Support
-    private bool disposedValue = false; // {FeaturesResources.To_detect_redundant_calls}
-
-    {disposeVisibility}void Dispose(bool disposing)
+            return $@"    {disposeVisibility}void Dispose(bool disposing)
     {{
-        if (!disposedValue)
+        if (!{disposeField})
         {{
             if (disposing)
             {{
                 // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             }}
 
-            // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
+            // {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             // {FeaturesResources.TODO_colon_set_large_fields_to_null}
-
-            disposedValue = true;
+            {disposeField} = true;
         }}
     }}
 
-    // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
+    // // {string.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(bool disposing)")}
     // ~{className}()
     // {{
-    //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-    //   Dispose(false);
+    //     // {string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(bool disposing)")}
+    //     Dispose(disposing: false);
     // }}
 
-    // {CSharpFeaturesResources.This_code_added_to_correctly_implement_the_disposable_pattern}
     {implementationVisibility}Dispose()
     {{
-        // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-        Dispose(true);
-        // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
-        // GC.SuppressFinalize(this);
-    }}
-    #endregion";
+        // {string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(bool disposing)")}
+        Dispose(disposing: true);
+        {gcPrefix}GC.SuppressFinalize(this);
+    }}";
         }
 
         [WorkItem(1132014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1132014")]
@@ -6620,7 +6936,7 @@ class Issue2785<T> : IList<object>
     {
         get
         {
-            return ((IList<object>)innerList).Count;
+            return ((ICollection<object>)innerList).Count;
         }
     }
 
@@ -6628,33 +6944,33 @@ class Issue2785<T> : IList<object>
     {
         get
         {
-            return ((IList<object>)innerList).IsReadOnly;
+            return ((ICollection<object>)innerList).IsReadOnly;
         }
     }
 
     public void Add(object item)
     {
-        ((IList<object>)innerList).Add(item);
+        ((ICollection<object>)innerList).Add(item);
     }
 
     public void Clear()
     {
-        ((IList<object>)innerList).Clear();
+        ((ICollection<object>)innerList).Clear();
     }
 
     public bool Contains(object item)
     {
-        return ((IList<object>)innerList).Contains(item);
+        return ((ICollection<object>)innerList).Contains(item);
     }
 
     public void CopyTo(object[] array, int arrayIndex)
     {
-        ((IList<object>)innerList).CopyTo(array, arrayIndex);
+        ((ICollection<object>)innerList).CopyTo(array, arrayIndex);
     }
 
     public IEnumerator<object> GetEnumerator()
     {
-        return ((IList<object>)innerList).GetEnumerator();
+        return ((IEnumerable<object>)innerList).GetEnumerator();
     }
 
     public int IndexOf(object item)
@@ -6669,7 +6985,7 @@ class Issue2785<T> : IList<object>
 
     public bool Remove(object item)
     {
-        return ((IList<object>)innerList).Remove(item);
+        return ((ICollection<object>)innerList).Remove(item);
     }
 
     public void RemoveAt(int index)
@@ -6679,7 +6995,7 @@ class Issue2785<T> : IList<object>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IList<object>)innerList).GetEnumerator();
+        return ((IEnumerable)innerList).GetEnumerator();
     }
 }",
 index: 1);
@@ -8132,6 +8448,217 @@ public class Test : ITest
 {
     public string P => throw new System.NotImplementedException();
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericInterfaceNotNull1()
+        {
+            await TestInRegularAndScriptAsync(
+@$"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IFoo<T>
+{{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}}
+
+class A : [|IFoo<int>|]
+{{
+}}",
+@$"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IFoo<T>
+{{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}}
+
+class A : [|IFoo<int>|]
+{{
+    [return: NotNull]
+    public int Bar([DisallowNull] int bar)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: MaybeNull]
+    public int Baz([AllowNull] int bar)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
+        [WorkItem(13427, "https://github.com/dotnet/roslyn/issues/13427")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestDoNotAddNewWithGenericAndNonGenericMethods()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"class B
+{
+    public void M<T>() { }
+}
+
+interface I
+{
+    void M();
+}
+
+class D : B, [|I|]
+{
+}",
+@"class B
+{
+    public void M<T>() { }
+}
+
+interface I
+{
+    void M();
+}
+
+class D : B, I
+{
+    public void M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyWhenPartiallyImplemented()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+}",
+@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+
+    void I.M2()
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementInitOnlyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+    public int Property { get => throw new System.NotImplementedException(); init => throw new System.NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyMissingWhenAllImplemented()
+        {
+            await TestActionCountAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+    public void M2(){}
+}", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyMissingWhenAllImplementedAreExplicit()
+        {
+            await TestActionCountAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    void I.M1(){}
+}", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementRemainingExplicitlyNonPublicMember()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+    internal void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+}",
+@"
+interface I
+{
+    void M1();
+    internal void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+
+    void I.M2()
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 1);
         }
     }
 }

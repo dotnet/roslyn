@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Structure
         /// Gets the service corresponding to the specified document.
         /// </summary>
         public static BlockStructureService GetService(Document document)
-        {
-            return document.GetLanguageService<BlockStructureService>();
-        }
+            => document.GetLanguageService<BlockStructureService>();
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Structure
         /// implementations that do not block on async operations if possible.
         /// </summary>
         public virtual BlockStructure GetBlockStructure(Document document, CancellationToken cancellationToken)
-        {
-            return GetBlockStructureAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-        }
+            => GetBlockStructureAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
     }
 }

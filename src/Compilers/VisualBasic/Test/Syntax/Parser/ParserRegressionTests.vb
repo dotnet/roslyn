@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -751,7 +753,7 @@ End Select
     Public Sub ParseFileOnBinaryFile()
         ' This is doing the same thing as ParseFile, but using a MemoryStream
         ' instead of FileStream (because I don't want to write a file to disk).
-        Using data As New MemoryStream(TestResources.NetFX.v4_0_30319.mscorlib)
+        Using data As New MemoryStream(TestMetadata.ResourcesNet451.mscorlib)
             Const bug103047IsFixed = False
 
             If bug103047IsFixed Then

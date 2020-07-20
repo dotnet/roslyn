@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,9 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -16,6 +16,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticServiceTests
     {
+        private static DiagnosticService GetDiagnosticService(TestWorkspace workspace)
+        {
+            var diagnosticService = Assert.IsType<DiagnosticService>(workspace.ExportProvider.GetExportedValue<IDiagnosticService>());
+
+            // These tests were originally written under the assumption that the diagnostic service will not be
+            // initialized with listeners. If this check ever fails, the tests that use this method should be reviewed
+            // for impact.
+            Assert.Empty(diagnosticService.GetTestAccessor().EventListenerTracker.GetTestAccessor().EventListeners);
+
+            return diagnosticService;
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void TestGetDiagnostics1()
         {
@@ -24,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
             var source = new TestDiagnosticUpdateSource(false, null);
-            var diagnosticService = new DiagnosticService(
-                AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            var diagnosticService = GetDiagnosticService(workspace);
             diagnosticService.Register(source);
 
             diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
@@ -55,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
             var source = new TestDiagnosticUpdateSource(false, null);
-            var diagnosticService = new DiagnosticService(
-                AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            var diagnosticService = GetDiagnosticService(workspace);
             diagnosticService.Register(source);
 
             diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
@@ -97,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
             var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
-            var diagnosticService = new DiagnosticService(
-                AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            var diagnosticService = GetDiagnosticService(workspace);
 
             var source1 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
             diagnosticService.Register(source1);
@@ -150,14 +159,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private static DiagnosticData RaiseDiagnosticEvent(ManualResetEvent set, TestDiagnosticUpdateSource source, TestWorkspace workspace, ProjectId project, DocumentId document, object id)
+        private static DiagnosticData RaiseDiagnosticEvent(ManualResetEvent set, TestDiagnosticUpdateSource source, TestWorkspace workspace, ProjectId projectId, DocumentId documentId, object id)
         {
             set.Reset();
 
-            var diagnostic = CreateDiagnosticData(project, document);
+            var diagnostic = CreateDiagnosticData(projectId, documentId);
 
             source.RaiseDiagnosticsUpdatedEvent(
-                DiagnosticsUpdatedArgs.DiagnosticsCreated(id, workspace, workspace.CurrentSolution, project, document, ImmutableArray.Create(diagnostic)));
+                DiagnosticsUpdatedArgs.DiagnosticsCreated(id, workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray.Create(diagnostic)));
 
             set.WaitOne();
 
@@ -197,19 +206,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public event EventHandler DiagnosticsCleared;
 
             public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-            {
-                return _support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty;
-            }
+                => _support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty;
 
             public void RaiseDiagnosticsUpdatedEvent(DiagnosticsUpdatedArgs args)
-            {
-                DiagnosticsUpdated?.Invoke(this, args);
-            }
+                => DiagnosticsUpdated?.Invoke(this, args);
 
             public void RaiseDiagnosticsClearedEvent()
-            {
-                DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
-            }
+                => DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
         }
     }
 }

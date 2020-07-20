@@ -7,6 +7,11 @@
         <target state="translated">Applica tutte le regole di formattazione di C# (rientro, ritorno a capo, spaziatura)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_show_completion_list_in_argument_lists">
+        <source>Automatically show completion list in argument lists (experimental)</source>
+        <target state="translated">Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -22,14 +27,9 @@
         <target state="translated">Regole di formattazione C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_language_server_client">
-        <source>C# Language Server Client</source>
-        <target state="translated">Client del server di linguaggio C#</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Scarta</target>
+        <target state="translated">Variabile discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -49,8 +49,8 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">In operatori relazionali:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
-        <note />
+        <target state="needs-review-translation">In operatori relazionali:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
@@ -64,13 +64,18 @@
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Esegui la pulizia aggiuntiva del codice durante la formattazione</target>
+        <target state="translated">Esegui la pulizia del codice aggiuntiva durante la formattazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferisci 'is null' per i controlli di uguaglianza dei riferimenti</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
@@ -90,6 +95,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
         <target state="translated">Mostra elementi da spazi dei nomi non importati (sperimentale)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Mostra i commenti in Informazioni rapide</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -374,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_calls">
         <source>Set spacing for method calls</source>
-        <target state="translated">Imposta spaziatura per chiamate ai metodi</target>
+        <target state="translated">Imposta spaziatura per le chiamate a un metodo</target>
         <note />
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_declarations">
@@ -425,11 +435,6 @@
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">Usa 'var' durante la generazione di variabili locali</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">_Sposta la dichiarazione locale nel metodo estratto se non viene usata altrove</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -798,9 +803,9 @@
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">In altri operatori binari:  &amp;&amp;   ||   ??</target>
-        <note />
+        <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
+        <target state="needs-review-translation">In altri operatori binari:  &amp;&amp;   ||   ??</target>
+        <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
   </file>

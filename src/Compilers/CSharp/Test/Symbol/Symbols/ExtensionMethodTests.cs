@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,11 +9,13 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -218,7 +222,7 @@ static class S
 }";
             var compilation = CreateCompilation(source);
             var syntaxTree = compilation.SyntaxTrees.Single();
-            var gooSymbol = (MethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
+            var gooSymbol = (IMethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
                 syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single()).Symbol;
             Assert.True(gooSymbol.IsExtensionMethod);
             Assert.Equal(MethodKind.ReducedExtension, gooSymbol.MethodKind);
@@ -1000,7 +1004,7 @@ static class S3
 {
     internal static object F3(this N.C x, object y) { return null; }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef },
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore },
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
                 //             M1(c.F1); // wrong return type
@@ -1023,7 +1027,7 @@ static class S3
             // diagnostic (the caller has to grub through the diagnostic bag to see that there is no error there) and then the caller
             // has to produce a generic error message, which we see below. It does not appear that all callers have that test, though,
             // suggesting there may be a latent bug of missing diagnostics.
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
                 //             M1(c.F1); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F1").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(10, 16),
@@ -2190,7 +2194,7 @@ internal static class C
     private static void Main(string[] args) { }
 }
 ";
-            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.mscorlib });
             compilation.VerifyDiagnostics(
                 // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));
@@ -2420,7 +2424,7 @@ B");
             var info = model.GetSymbolInfo(expr);
             Assert.NotNull(info.Symbol);
             var symbol = info.Symbol;
-            Utils.CheckSymbol((Symbol)symbol, "IEnumerable<string> IEnumerable<string>.Take<string>(int count)");
+            Utils.CheckSymbol(symbol, "IEnumerable<string> IEnumerable<string>.Take<string>(int count)");
         }
 
         [ClrOnlyFact]
@@ -2713,7 +2717,7 @@ class Program
 
             var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode", StringComparison.Ordinal)).Parent;
             var symbolInfo = model.GetSymbolInfo((SimpleNameSyntax)node);
-            var methodSymbol = (MethodSymbol)symbolInfo.Symbol;
+            var methodSymbol = symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
             var parameter = methodSymbol.ThisParameter;
@@ -2723,7 +2727,7 @@ class Program
             // Get the GenericNameSyntax node Cast<T1> for binding
             node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>", StringComparison.Ordinal)).Parent;
             symbolInfo = model.GetSymbolInfo((GenericNameSyntax)node);
-            methodSymbol = (MethodSymbol)symbolInfo.Symbol;
+            methodSymbol = (MethodSymbol)symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
             // 9341 is resolved as Won't Fix since ThisParameter property is internal.
@@ -2836,13 +2840,13 @@ public struct MyStruct<T>
             var int32Type = compilation2.GetSpecialType(SpecialType.System_Int32);
             var msi = myStruct.Construct(int32Type);
 
-            var reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, compilation2);
+            object reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, compilation2);
             Assert.NotNull(reducedWithReceiver);
 
             reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
             Assert.NotNull(reducedWithReceiver);
 
-            reducedWithReceiver = (MethodSymbol)((IMethodSymbol)extensionMethod).ReduceExtensionMethod(msi);
+            reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
             Assert.NotNull(reducedWithReceiver);
 
 
@@ -2866,7 +2870,7 @@ public struct MyStruct<T>
             reducedWithReceiver = extensionMethod.ReduceExtensionMethod(msi, null!);
             Assert.NotNull(reducedWithReceiver);
 
-            reducedWithReceiver = (MethodSymbol)((IMethodSymbol)extensionMethod).ReduceExtensionMethod(msi);
+            reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
             Assert.NotNull(reducedWithReceiver);
         }
 
@@ -2932,9 +2936,9 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(source);
             var globalNamespace = compilation.GlobalNamespace;
-            var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
+            var type = globalNamespace.GetMember<INamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
@@ -2944,7 +2948,7 @@ static class Extensions
                 container: null,
                 name: "Test",
                 includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(lookupResult,
+            Utils.CheckISymbols(lookupResult,
                 "void C.Test(float f)");
 
             lookupResult = model.LookupSymbols(
@@ -2952,11 +2956,11 @@ static class Extensions
                 container: type,
                 name: "Test",
                 includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(lookupResult,
+            Utils.CheckISymbols(lookupResult,
                 "void C.Test(float f)"); // Extension methods not found.
 
             var memberGroup = model.GetMemberGroup(memberAccess);
-            Utils.CheckSymbols(memberGroup,
+            Utils.CheckISymbols(memberGroup,
                 "void C.Test(float f)");
 
             compilation.VerifyDiagnostics(
@@ -2990,9 +2994,9 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(source);
             var globalNamespace = compilation.GlobalNamespace;
-            var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
+            var type = globalNamespace.GetMember<INamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
@@ -3004,7 +3008,7 @@ static class Extensions
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             // Definitely want the extension method here for quick fix.
-            Utils.CheckSymbols(info.CandidateSymbols,
+            Utils.CheckISymbols(info.CandidateSymbols,
                 "void C.Test(float f)");
         }
 

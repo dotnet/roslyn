@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -69,15 +71,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return RuntimeHostInfo.IsCoreClrRuntime
                 ? null
                 : RuntimeEnvironment.GetRuntimeDirectory();
-        }
-
-        public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
-        {
-#if NET472
-            return new DesktopAnalyzerAssemblyLoader();
-#else
-            return new CoreClrAnalyzerAssemblyLoader();
-#endif
         }
 
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
@@ -204,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            var loader = CreateAnalyzerAssemblyLoader();
+            var loader = new DefaultAnalyzerAssemblyLoader();
             return _compileFunc(arguments, buildPaths, textWriter, loader);
         }
 
@@ -223,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var buildResponseTask = RunServerCompilation(
+                var buildResponseTask = RunServerCompilationAsync(
                     arguments,
                     buildPaths,
                     sessionName,
@@ -269,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        private Task<BuildResponse> RunServerCompilation(
+        private Task<BuildResponse> RunServerCompilationAsync(
             List<string> arguments,
             BuildPaths buildPaths,
             string sessionKey,
@@ -277,10 +270,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory,
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, cancellationToken);
+            return RunServerCompilationCoreAsync(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, cancellationToken);
         }
 
-        private static Task<BuildResponse> RunServerCompilationCore(
+        private static Task<BuildResponse> RunServerCompilationCoreAsync(
             RequestLanguage language,
             List<string> arguments,
             BuildPaths buildPaths,
@@ -297,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 buildPaths.SdkDirectory,
                 buildPaths.TempDirectory);
 
-            return BuildServerConnection.RunServerCompilationCore(
+            return BuildServerConnection.RunServerCompilationCoreAsync(
                 language,
                 arguments,
                 alt,

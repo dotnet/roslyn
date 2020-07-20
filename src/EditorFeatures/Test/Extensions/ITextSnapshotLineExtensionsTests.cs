@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -179,25 +181,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.False(value);
         }
 
-        private ITextSnapshotLine GetLine(string codeLine)
+        private static ITextSnapshotLine GetLine(string codeLine)
         {
             var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, codeLine).CurrentSnapshot;
             return snapshot.GetLineFromLineNumber(0);
         }
 
-        private bool IsEmptyOrWhitespace(string codeLine)
+        private static bool IsEmptyOrWhitespace(string codeLine)
         {
             var line = GetLine(codeLine);
             return line.IsEmptyOrWhitespace();
         }
 
-        private int? GetFirstNonWhitespacePosition(string codeLine)
+        private static int? GetFirstNonWhitespacePosition(string codeLine)
         {
             var line = GetLine(codeLine);
             return line.GetFirstNonWhitespacePosition();
         }
 
-        private int? GetLastNonWhitespacePosition(string codeLine)
+        private static int? GetLastNonWhitespacePosition(string codeLine)
         {
             var line = GetLine(codeLine);
             return line.GetLastNonWhitespacePosition();

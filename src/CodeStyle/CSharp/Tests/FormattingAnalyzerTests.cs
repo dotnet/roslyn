@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -262,26 +266,19 @@ root = true
 csharp_new_line_before_open_brace = methods
 ";
 
-            var testDirectoryName = Path.GetRandomFileName();
-            Directory.CreateDirectory(testDirectoryName);
-            try
+            await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
             {
-                File.WriteAllText(Path.Combine(testDirectoryName, ".editorconfig"), editorConfig);
-
-                // The contents of this file are ignored, but the coding conventions library checks for existence before
-                // .editorconfig is used.
-                File.WriteAllText(Path.Combine(testDirectoryName, "Test0.cs"), string.Empty);
-
-                await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
+                TestState = { Sources = { (Path.GetFullPath("Test0.cs"), testCode) } },
+                FixedState = { Sources = { (Path.GetFullPath("Test0.cs"), fixedCode) } },
+                SolutionTransforms =
                 {
-                    TestState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), testCode) } },
-                    FixedState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), fixedCode) } },
-                }.RunAsync();
-            }
-            finally
-            {
-                Directory.Delete(testDirectoryName, true);
-            }
+                    (solution, projectId) =>
+                    {
+                        var documentId = DocumentId.CreateNewId(projectId, ".editorconfig");
+                        return solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(editorConfig, Encoding.UTF8), filePath: Path.GetFullPath(".editorconfig"));
+                    },
+                },
+            }.RunAsync();
         }
     }
 }

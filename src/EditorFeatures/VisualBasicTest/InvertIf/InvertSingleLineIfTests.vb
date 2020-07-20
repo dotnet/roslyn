@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
             Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected))
         End Function
 
-        Function CreateTreeText(initial As String) As String
+        Public Shared Function CreateTreeText(initial As String) As String
             Return "
 Module Module1
     Sub Main()
@@ -79,7 +81,6 @@ End Module
 
             Await TestMissingAsync(markup)
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAndAlso() As Task

@@ -7,6 +7,11 @@
         <target state="translated">Alle C#-Formatierungsregeln anwenden (Einzug, Umbruch, Abstand)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_show_completion_list_in_argument_lists">
+        <source>Automatically show completion list in argument lists (experimental)</source>
+        <target state="translated">Vervollständigungsliste in Argumentlisten automatisch anzeigen (experimentell)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -22,14 +27,9 @@
         <target state="translated">C#-Formatierungsregeln</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_language_server_client">
-        <source>C# Language Server Client</source>
-        <target state="translated">Client des C#-Sprachservers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Verwerfen</target>
+        <target state="translated">Ausschussvariable</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -49,8 +49,8 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">In relationalen Operatoren: &lt; &gt; &lt;= &gt;= is as == !=</target>
-        <note />
+        <target state="needs-review-translation">In relationalen Operatoren: &lt; &gt; &lt;= &gt;= is as == !=</target>
+        <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
@@ -72,6 +72,11 @@
         <target state="translated">"is null" für Verweisübereinstimmungsprüfungen vorziehen</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
         <target state="translated">Switch-Ausdruck bevorzugen</target>
@@ -90,6 +95,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
         <target state="translated">Elemente aus nicht importierten Namespaces anzeigen (experimentell)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Hinweise in QuickInfo anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -427,11 +437,6 @@
         <target state="translated">Beim Generieren lokaler Variablen "var" verwenden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">_Lokale Deklaration in die extrahierte Methode verschieben, wenn nicht anderweitig verwendet</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">_Zeilentrennzeichen in Prozeduren anzeigen</target>
@@ -734,7 +739,7 @@
       </trans-unit>
       <trans-unit id="Prefer_block_body">
         <source>Prefer block body</source>
-        <target state="translated">Blocktext bevorzugen</target>
+        <target state="translated">Blocktextkörper bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_expression_body">
@@ -798,9 +803,9 @@
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">In anderen binären Operatoren: &amp; &amp; ||   ??</target>
-        <note />
+        <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
+        <target state="needs-review-translation">In anderen binären Operatoren: &amp; &amp; ||   ??</target>
+        <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
   </file>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -28,26 +28,21 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonTraceListener.cs" Link="Shared\WatsonTraceListener.cs" />
     <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">
       <Link>Shared\RoslynJsonConverter.cs</Link>
     </Compile>
     <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
       <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
     </Compile>
-    <Compile Include="..\ServiceHub\Shared\ServiceHubServiceBase.cs">
-      <Link>Shared\ServiceHubServiceBase.cs</Link>
+    <Compile Include="..\ServiceHub\Shared\ServiceBase.cs">
+      <Link>Shared\ServiceBase.cs</Link>
     </Compile>
-    <Compile Include="..\ServiceHub\Shared\Extensions.cs">
-      <Link>Shared\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceHub\Shared\ClientDirectStream.cs">
-      <Link>Shared\ClientDirectStream.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceHub\Shared\ServerDirectStream.cs">
-      <Link>Shared\ServerDirectStream.cs</Link>
+    <Compile Include="..\ServiceHub\Shared\RemoteEndPoint.cs">
+      <Link>Shared\RemoteEndPoint.cs</Link>
     </Compile>
   </ItemGroup>
 </Project>

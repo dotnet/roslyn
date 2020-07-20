@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -47,14 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxNode GetLambda(SyntaxNode lambdaBody)
         {
+            Debug.Assert(lambdaBody.Parent is object);
             var lambda = lambdaBody.Parent;
-            if (lambda.Kind() == SyntaxKind.ArrowExpressionClause)
+            if (lambda.IsKind(SyntaxKind.ArrowExpressionClause))
             {
                 // In case of expression bodied local functions there is a three level hierarchy: 
                 // LocalFunctionStatement -> ArrowExpressionClause -> Expression.
                 // And the lambda is the LocalFunctionStatement.
                 lambda = lambda.Parent;
-                Debug.Assert(lambda.Kind() == SyntaxKind.LocalFunctionStatement);
+                Debug.Assert(lambda.IsKind(SyntaxKind.LocalFunctionStatement));
             }
 
             Debug.Assert(IsLambda(lambda));
@@ -64,8 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// See SyntaxNode.GetCorrespondingLambdaBody.
         /// </summary>
-        internal static SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
+        internal static SyntaxNode? TryGetCorrespondingLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
+            Debug.Assert(oldBody.Parent is object);
+
             switch (newLambda.Kind())
             {
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -118,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => nestedFunction switch
             {
                 AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax => anonymousFunctionExpressionSyntax.Body,
-                LocalFunctionStatementSyntax localFunctionStatementSyntax => (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression,
+                LocalFunctionStatementSyntax localFunctionStatementSyntax => (CSharpSyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody!.Expression,
                 _ => throw ExceptionUtilities.UnexpectedValue(nestedFunction),
             };
 
@@ -219,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken sourceIdentifier;
             QueryBodySyntax containingBody;
 
+            Debug.Assert(selectOrGroupClause.Parent!.Parent is object);
             var containingQueryOrContinuation = selectOrGroupClause.Parent.Parent;
             if (containingQueryOrContinuation.IsKind(SyntaxKind.QueryExpression))
             {
@@ -273,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If the specified node represents a lambda returns a node (or nodes) that represent its body (bodies).
         /// </summary>
-        public static bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode lambdaBody1, out SyntaxNode lambdaBody2)
+        public static bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? lambdaBody1, out SyntaxNode? lambdaBody2)
         {
             lambdaBody1 = null;
             lambdaBody2 = null;
@@ -380,6 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind())
             {
+                case SyntaxKind.CompilationUnit:
                 case SyntaxKind.Block:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ArrowExpressionClause:  // expression-bodied member
@@ -401,8 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.ReturnStatement:
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.YieldReturnStatement:
@@ -410,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     // With dynamic analysis instrumentation, a type declaration can be the syntax associated
                     // with the analysis payload local of a synthesized constructor.
                     // If the synthesized constructor includes an initializer with a lambda,
@@ -472,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
         {
-            return (SyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody?.Expression;
+            return (SyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody!.Expression;
         }
     }
 }

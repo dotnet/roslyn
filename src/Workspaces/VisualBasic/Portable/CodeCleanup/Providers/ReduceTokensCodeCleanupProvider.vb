@@ -1,12 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -18,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Inherits AbstractTokensCodeCleanupProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="https://github.com/dotnet/roslyn/issues/42820")>
         Public Sub New()
         End Sub
 
@@ -270,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return valueText
             End Function
 
-            Private Function GetIntegerLiteralValueString(value As Object, base As LiteralBase) As String
+            Private Shared Function GetIntegerLiteralValueString(value As Object, base As LiteralBase) As String
                 Select Case base
                     Case LiteralBase.Decimal
                         Return CType(value, ULong).ToString(CultureInfo.InvariantCulture)
@@ -305,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End Select
             End Function
 
-            Private Function ConvertToOctalString(value As ULong) As String
+            Private Shared Function ConvertToOctalString(value As ULong) As String
                 Dim exponent As ULong = value
                 Dim builder As New StringBuilder()
 
@@ -324,11 +327,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return builder.ToString()
             End Function
 
-            Private Function HasOverflow(diagnostics As IEnumerable(Of Diagnostic)) As Boolean
+            Private Shared Function HasOverflow(diagnostics As IEnumerable(Of Diagnostic)) As Boolean
                 Return diagnostics.Any(Function(diagnostic As Diagnostic) diagnostic.Id = "BC30036")
             End Function
 
-            Private Function ConvertToULong(value As Object) As ULong
+            Private Shared Function ConvertToULong(value As Object) As ULong
                 'Cannot convert directly to ULong from Short or Integer as negative numbers
                 'appear to have all bits above the current bit range set to 1
                 'so short value -32768 or binary 1000000000000000 becomes

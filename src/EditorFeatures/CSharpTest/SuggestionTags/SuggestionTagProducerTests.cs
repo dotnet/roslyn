@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
     [UseExportProvider]
     public class SuggestionTagProducerTests
     {
-        private readonly DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider>();
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
         public async Task SuggestionTagTest1()
         {
@@ -37,14 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
             Assert.Equal(selection, spans.Single().Span.Span.ToTextSpan());
         }
 
-        private async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
+        private static async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
-            var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>()
-                {
-                    { LanguageNames.CSharp, new DiagnosticAnalyzer[] { new CSharpUseObjectInitializerDiagnosticAnalyzer() } }
-                };
-            var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
+            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>()
+            {
+                { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseObjectInitializerDiagnosticAnalyzer()) }
+            };
+
+            var spans = (await DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider>.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
             return (spans, workspace.Documents.Single().SelectedSpans.Single());
         }
     }

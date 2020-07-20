@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -99,15 +101,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public async Task OnCompilationEventsGeneratedAsync(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
-            await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
-
-            using (_gate.DisposableWait(cancellationToken))
+            try
             {
-                OnCompilationEventsGenerated_NoLock(compilationEvents, filterTreeOpt: null, driver: driver, cancellationToken: cancellationToken);
+                await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
+
+                using (_gate.DisposableWait(cancellationToken))
+                {
+                    OnCompilationEventsGenerated_NoLock(compilationEvents, filterTreeOpt: null);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
-        private void OnCompilationEventsGenerated_NoLock(ImmutableArray<CompilationEvent> compilationEvents, SyntaxTree filterTreeOpt, AnalyzerDriver driver, CancellationToken cancellationToken)
+        private void OnCompilationEventsGenerated_NoLock(ImmutableArray<CompilationEvent> compilationEvents, SyntaxTree filterTreeOpt)
         {
             Debug.Assert(_lazyAnalyzerActionCountsMap != null);
 
@@ -588,6 +597,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Marks the given event as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkEventCompleteForUnprocessedAnalyzers(
+            CompilationEvent completedEvent,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkEventComplete, completedEvent);
+
+        /// <summary>
         /// Checks if the given event has been fully analyzed for the given analyzer.
         /// </summary>
         public bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
@@ -626,6 +644,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             GetAnalyzerState(analyzer).MarkSymbolComplete(symbol);
         }
+
+        /// <summary>
+        /// Marks the given symbol as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkSymbolCompleteForUnprocessedAnalyzers(
+            ISymbol symbol,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSymbolComplete, symbol);
 
         /// <summary>
         /// True if the given symbol is fully analyzed for the given analyzer.
@@ -762,6 +789,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analyzers)
             {
                 GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(tree);
+            }
+        }
+
+        /// <summary>
+        /// Marks the given tree as fully syntactically analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
+            SyntaxTree tree,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSyntaxAnalysisComplete, tree);
+
+        private static void MarkAnalysisCompleteForUnprocessedAnalyzers<T>(
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers,
+            Action<T, DiagnosticAnalyzer> markComplete,
+            T arg)
+        {
+            Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
+            if (analysisScope.Analyzers.Length == processedAnalyzers.Count)
+            {
+                return;
+            }
+
+            foreach (var analyzer in analysisScope.Analyzers)
+            {
+                if (!processedAnalyzers.Contains(analyzer))
+                {
+                    markComplete(arg, analyzer);
+                }
             }
         }
     }

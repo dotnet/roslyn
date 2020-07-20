@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal static class PooledDictionaryIgnoringNullableModifiersForReferenceTypes
     {
         private static readonly ObjectPool<PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>> s_poolInstance
-            = PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>.CreatePool(TypeSymbol.EqualsIgnoringNullableComparer);
+            = PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>.CreatePool(Symbols.SymbolEqualityComparer.IgnoringNullable);
 
         internal static PooledDictionary<NamedTypeSymbol, NamedTypeSymbol> GetInstance()
         {
@@ -554,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = _arguments[arg];
                 TypeWithAnnotations target = _formalParameterTypes[arg];
-                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
+                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerOrFunctionPointer() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
 
                 MakeExplicitParameterTypeInferences(binder, argument, target, kind, ref useSiteDiagnostics);
             }
@@ -605,13 +607,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(sourceArguments.Length))
             {
                 // target is not a tuple of appropriate shape
                 return false;
             }
 
-            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var destTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             // NOTE: we are losing tuple element names when recursing into argument expressions.
@@ -778,12 +780,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(sourceArguments.Length))
             {
                 return;
             }
 
-            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var destTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             for (int i = 0; i < sourceArguments.Length; i++)
@@ -1561,8 +1563,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> sourceTypes;
             ImmutableArray<TypeWithAnnotations> targetTypes;
 
-            if (!source.Type.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out sourceTypes) ||
-                !target.Type.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetTypes) ||
+            if (!source.Type.TryGetElementTypesWithAnnotationsIfTupleType(out sourceTypes) ||
+                !target.Type.TryGetElementTypesWithAnnotationsIfTupleType(out targetTypes) ||
                 sourceTypes.Length != targetTypes.Length)
             {
                 return false;
@@ -1585,13 +1587,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type C<U1...Uk> then an exact inference 
             // SPEC:   is made from each Ui to the corresponding Vi.
 
-            var namedSource = source.Type.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var namedSource = source.Type as NamedTypeSymbol;
             if ((object)namedSource == null)
             {
                 return false;
             }
 
-            var namedTarget = target.Type.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var namedTarget = target.Type as NamedTypeSymbol;
             if ((object)namedTarget == null)
             {
                 return false;
@@ -1611,6 +1613,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
             {
                 ExactInference(((PointerTypeSymbol)source.Type).PointedAtTypeWithAnnotations, ((PointerTypeSymbol)target.Type).PointedAtTypeWithAnnotations, ref useSiteDiagnostics);
+                return true;
+            }
+            else if (source.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int sourceParameterCount } sourceSignature } &&
+                     target.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int targetParameterCount } targetSignature } &&
+                     sourceParameterCount == targetParameterCount)
+            {
+                for (int i = 0; i < sourceParameterCount; i++)
+                {
+                    ExactInference(sourceSignature.ParameterTypesWithAnnotations[i], targetSignature.ParameterTypesWithAnnotations[i], ref useSiteDiagnostics);
+                }
+
+                ExactInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
                 return true;
             }
 
@@ -1824,9 +1838,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
 
-            source = source.TupleUnderlyingTypeOrSelf();
-            target = target.TupleUnderlyingTypeOrSelf();
-
             var constructedTarget = target as NamedTypeSymbol;
             if ((object)constructedTarget == null)
             {
@@ -1989,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (dictionary.TryGetValue(@interface, out var found))
                 {
-                    var merged = (NamedTypeSymbol)found.MergeNullability(@interface, variance);
+                    var merged = (NamedTypeSymbol)found.MergeEquivalentTypes(@interface, variance);
                     dictionary[@interface] = merged;
                 }
                 else
@@ -2174,8 +2185,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(sourceWithAnnotations.HasType);
             Debug.Assert(targetWithAnnotations.HasType);
-            var source = sourceWithAnnotations.Type.TupleUnderlyingTypeOrSelf();
-            var target = targetWithAnnotations.Type.TupleUnderlyingTypeOrSelf();
+            var source = sourceWithAnnotations.Type;
+            var target = targetWithAnnotations.Type;
 
             var constructedSource = source as NamedTypeSymbol;
             if ((object)constructedSource == null)
@@ -2498,80 +2509,6 @@ OuterBreak:
             return best;
         }
 
-        internal static TypeWithAnnotations Merge(TypeWithAnnotations first, TypeWithAnnotations second, VarianceKind variance, ConversionsBase conversions)
-        {
-            var merged = MergeTupleNames(MergeDynamic(first, second, conversions.CorLibrary), second);
-            if (!conversions.IncludeNullability)
-            {
-                // https://github.com/dotnet/roslyn/issues/30534: Should preserve
-                // distinct "not computed" state from initial binding.
-                return merged.SetUnknownNullabilityForReferenceTypes();
-            }
-
-            return merged.MergeNullability(second, variance);
-        }
-
-        /// <summary>
-        /// Returns first or a modified version of first with merged dynamic flags from both types.
-        /// </summary>
-        internal static TypeWithAnnotations MergeDynamic(TypeWithAnnotations firstWithAnnotations, TypeWithAnnotations secondWithAnnotations, AssemblySymbol corLibrary)
-        {
-            var first = firstWithAnnotations.Type;
-            var second = secondWithAnnotations.Type;
-
-            // SPEC: 4.7 The Dynamic Type
-            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreDynamic))
-            {
-                return firstWithAnnotations;
-            }
-            ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
-            ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
-            ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
-
-            var result = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(first, corLibrary, RefKind.None, mergedFlags);
-            return TypeWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
-        }
-
-        /// <summary>
-        /// Returns first or a modified version of first with common tuple names from both types.
-        /// </summary>
-        internal static TypeWithAnnotations MergeTupleNames(TypeWithAnnotations firstWithAnnotations, TypeWithAnnotations secondWithAnnotations)
-        {
-            var first = firstWithAnnotations.Type;
-            var second = secondWithAnnotations.Type;
-
-            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames) ||
-                !first.ContainsTupleNames())
-            {
-                return firstWithAnnotations;
-            }
-
-            Debug.Assert(first.ContainsTuple());
-
-            ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
-            ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
-
-            ImmutableArray<string> mergedNames;
-            if (names1.IsDefault || names2.IsDefault)
-            {
-                mergedNames = default;
-            }
-            else
-            {
-                Debug.Assert(names1.Length == names2.Length);
-                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
-
-                if (mergedNames.All(n => n == null))
-                {
-                    mergedNames = default;
-                }
-            }
-
-            var result = TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
-            return TypeWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
-        }
-
         private static bool ImplicitConversionExists(TypeWithAnnotations sourceWithAnnotations, TypeWithAnnotations destinationWithAnnotations, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConversionsBase conversions)
         {
             var source = sourceWithAnnotations.Type;
@@ -2699,7 +2636,7 @@ OuterBreak:
                     else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything))
                     {
                         // Not unique. Bail out.
-                        return default;
+                        return null;
                     }
                 }
             }
@@ -2948,7 +2885,7 @@ OuterBreak:
                 // IOut<object?>, then merge that result with upper bound IOut<object!> (using VarianceKind.In)
                 // to produce IOut<object?>. But then conversion of argument IIn<IOut<object!>> to parameter
                 // IIn<IOut<object?>> will generate a warning at that point.)
-                TypeWithAnnotations merged = Merge(latest, newCandidate, variance, conversions);
+                TypeWithAnnotations merged = latest.MergeEquivalentTypes(newCandidate, variance);
                 candidates[oldCandidate] = merged;
             }
         }

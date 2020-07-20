@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
@@ -8,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,18 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
-
-        private Task TestAsync(
-             string initialMarkup,
-             string expected,
-             bool systemSpecialCase,
-             int index = 0)
-        {
-            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
-                {
-                    { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
-                });
-        }
 
         [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

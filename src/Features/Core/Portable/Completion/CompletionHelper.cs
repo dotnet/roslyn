@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
@@ -20,13 +25,11 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)
-        {
-            _isCaseSensitive = isCaseSensitive;
-        }
+            => _isCaseSensitive = isCaseSensitive;
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
+            return document.Project.Solution.Workspace.Services.GetRequiredService<ICompletionHelperService>()
                 .GetCompletionHelper(document);
         }
 
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
         }
 
-        private PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
+        private static PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
             => value.MatchedSpans.IsDefaultOrEmpty
                 ? value
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
@@ -87,24 +90,32 @@ namespace Microsoft.CodeAnalysis.Completion
             var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
             var match = patternMatcher.GetFirstMatch(completionItemText);
 
-            if (match != null)
+            // We still have making checks for language having different to English capitalization,
+            // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
+            // Now we escaping from the second check for English languages.
+            // Maybe we can escape as well for more similar languages in case if we meet performance issues.
+            if (culture.ThreeLetterWindowsLanguageName.Equals(EnUSCultureInfo.ThreeLetterWindowsLanguageName))
             {
                 return match;
             }
 
-            // Start with the culture-specific comparison, and fall back to en-US.
-            if (!culture.Equals(EnUSCultureInfo))
-            {
-                patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
-                match = patternMatcher.GetFirstMatch(completionItemText);
+            // Keywords in .NET are always in En-US.
+            // Identifiers can be in user language.
+            // Try to get matches for both and return the best of them.
+            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
+            var enUSCultureMatch = patternMatcher.GetFirstMatch(completionItemText);
 
-                if (match != null)
-                {
-                    return match;
-                }
+            if (match == null)
+            {
+                return enUSCultureMatch;
             }
 
-            return null;
+            if (enUSCultureMatch == null)
+            {
+                return match;
+            }
+
+            return match.Value.CompareTo(enUSCultureMatch.Value) < 0 ? match.Value : enUSCultureMatch.Value;
         }
 
         private PatternMatcher GetPatternMatcher(
@@ -186,9 +197,42 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            // Always prefer non-expanded item regardless of the pattern matching result.
-            // This currently means unimported types will be treated as "2nd tier" results,
-            // which forces users to be more explicit about selecting them.
+            // *Almost* always prefer non-expanded item regardless of the pattern matching result.
+            // Except when all non-expanded items are worse than prefix matching and there's
+            // a complete match from expanded ones. 
+            //
+            // For example, In the scenarios below, `NS2.Designer` would be selected over `System.Security.Cryptography.DES`
+            //
+            //  namespace System.Security.Cryptography
+            //  {
+            //      class DES {}
+            //  }
+            //  namespace NS2
+            //  {
+            //      class Designer {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            //
+            // But in this case, `System.Security.Cryptography.DES` would be selected over `NS2.MyDesigner`
+            //
+            //  namespace System.Security.Cryptography
+            //  {
+            //      class DES {}
+            //  }
+            //  namespace NS2
+            //  {
+            //      class MyDesigner {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            //
+            // This currently means items from unimported namespaces (those are the only expanded items now) 
+            // are treated as "2nd tier" results, which forces users to be more explicit about selecting them.
             var expandedDiff = CompareExpandedItem(item1, match1, item2, match2);
             if (expandedDiff != 0)
             {
@@ -238,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // If they both seemed just as good, but they differ on preselection, then
         // item1 is better if it is preselected, otherwise it is worse.
-        private int ComparePreselection(CompletionItem item1, CompletionItem item2)
+        private static int ComparePreselection(CompletionItem item1, CompletionItem item2)
             => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
@@ -246,60 +290,67 @@ namespace Microsoft.CodeAnalysis.Completion
             var isItem1Expanded = item1.Flags.IsExpanded();
             var isItem2Expanded = item2.Flags.IsExpanded();
 
+            // Consider them equal if both items are of the same kind (i.e. both expanded or non-expanded)
             if (isItem1Expanded == isItem2Expanded)
             {
                 return 0;
             }
 
-            var isItem1ExactMatch = match1.Kind == PatternMatchKind.Exact;
-            var isItem2ExactMatch = match2.Kind == PatternMatchKind.Exact;
-
-            // If neither of the items is an exact match, or both are exact matches,
-            // then we prefer non-expanded item over expanded one.
-            // 
-            // For example, suppose we have two types `Namespace1.Cafe` and `Namespace2.Cafe`, and import completion is enabled.
-            // In the scenarios below, `Namespace1.Cafe` would be selected over `Namespace2.Cafe`
-
-            //  using Namespace1;
-            //  class C
+            // Now we have two items of different kind.
+            // If neither item is exact match, we always prefer non-expanded one.
+            // For example, `NS2.MyTask` would be selected over `NS1.Tasks` 
+            //
+            //  namespace NS1
             //  {
-            //      cafe$$
+            //      class Tasks {}
             //  }
-
-            //  using Namespace1;
-            //  class C
+            //  namespace NS2
             //  {
-            //      caf$$
+            //      class MyTask {}
+            //      class C
+            //      {
+            //          task$$
+            //      }
             //  }
-
-            if (!isItem1ExactMatch && !isItem2ExactMatch
-                || match1.Kind == match2.Kind)
+            if (match1.Kind != PatternMatchKind.Exact && match2.Kind != PatternMatchKind.Exact)
             {
                 return isItem1Expanded ? 1 : -1;
             }
 
-            // We prefer expanded item over non-expanded one iff the expanded item 
-            // is an exact match whereas the non-expanded one isn't.
-            // 
-            // For example, suppose we have two types `Namespace1.Cafe1` and `Namespace2.Cafe`, and import completion is enabled.
-            // In the scenarios below, `Namespace2.Cafe` would be selected over `Namespace1.Cafe1`
-
-            //  using Namespace1;
-            //  class C
+            // Now we have two items of different kind and at least one is exact match.
+            // Prefer non-expanded item if it is prefix match or better.
+            // In the scenarios below, `NS2.Designer` would be selected over `System.Security.Cryptography.DES`
+            //
+            //  namespace System.Security.Cryptography
             //  {
-            //      cafe$$
+            //      class DES {}
             //  }
-            if (isItem1Expanded && isItem1ExactMatch)
+            //  namespace NS2
+            //  {
+            //      class Designer {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            if (!isItem1Expanded && match1.Kind <= PatternMatchKind.Prefix)
             {
                 return -1;
             }
-            else if (isItem2Expanded && isItem2ExactMatch)
+
+            if (!isItem2Expanded && match2.Kind <= PatternMatchKind.Prefix)
             {
                 return 1;
             }
 
-            // Non-expanded item is the only exact match, so we definitely prefer it.
-            return isItem1Expanded ? 1 : -1;
+            // Now we are left with an expanded item with exact match and a non-expanded item with worse than prefix match.
+            // Prefer non-expanded item with exact match.
+            Debug.Assert(isItem1Expanded && match1.Kind == PatternMatchKind.Exact && !isItem2Expanded && match2.Kind > PatternMatchKind.Prefix ||
+                         isItem2Expanded && match2.Kind == PatternMatchKind.Exact && !isItem1Expanded && match1.Kind > PatternMatchKind.Prefix);
+            return isItem1Expanded ? -1 : 1;
         }
+
+        public static string ConcatNamespace(string? containingNamespace, string name)
+            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
     }
 }

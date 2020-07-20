@@ -1,15 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.Build.Utilities;
+#nullable enable
+
+using System.Reflection;
+
+#if DEBUG || BOOTSTRAP
+using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System;
 using System.Threading;
+using Microsoft.Build.Utilities;
+using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
+    using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
+
 #if DEBUG || BOOTSTRAP
     /// <summary>
     /// This task exists to help us validate our bootstrap building phase is executing correctly.  The bootstrap
@@ -19,14 +30,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     public sealed partial class ValidateBootstrap : Task
     {
         private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
-        private static int s_failedServerConnectionCount = 0;
+        private static readonly ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)> s_failedQueue = new ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)>();
 
-        private string _tasksAssemblyFullPath;
+        private string? _tasksAssemblyFullPath;
 
-        public string TasksAssemblyFullPath
+        [DisallowNull]
+        public string? TasksAssemblyFullPath
         {
             get { return _tasksAssemblyFullPath; }
-            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value)); }
+            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value!)); }
         }
 
         public ValidateBootstrap()
@@ -67,18 +79,47 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // named pipe errors, CPU load causing timeouts, etc ...  Hence flagging a single failure would produce
             // a lot of false positives.  The current value was chosen as a reasonable number for warranting an 
             // investigation.
-            if (s_failedServerConnectionCount > 20)
+            const int maxRejectCount = 5;
+            var rejectCount = 0;
+            foreach (var tuple in s_failedQueue.ToList())
             {
-                Log.LogError($"Too many compiler server connection failures detected: {s_failedServerConnectionCount}");
-                allGood = false;
+                switch (tuple.ResponseType)
+                {
+                    case ResponseType.AnalyzerInconsistency:
+                        Log.LogError($"Analyzer inconsistency building {tuple.OutputAssembly}");
+                        allGood = false;
+                        break;
+                    case ResponseType.MismatchedVersion:
+                    case ResponseType.IncorrectHash:
+                        Log.LogError($"Critical error {tuple.ResponseType} building {tuple.OutputAssembly}");
+                        allGood = false;
+                        break;
+                    case ResponseType.Rejected:
+                        rejectCount++;
+                        if (rejectCount > maxRejectCount)
+                        {
+                            Log.LogError($"Too many compiler server connection failures detected");
+                            allGood = false;
+                        }
+                        break;
+                    case ResponseType.Completed:
+                    case ResponseType.Shutdown:
+                        // Expected messages
+                        break;
+                    default:
+                        Log.LogError($"Unexpected response type {tuple.ResponseType}");
+                        allGood = false;
+                        break;
+                }
             }
 
             return allGood;
         }
 
-        private static string NormalizePath(string path)
+        [return: NotNullIfNotNull("path")]
+        private static string? NormalizePath(string? path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (RoslynString.IsNullOrEmpty(path))
             {
                 return path;
             }
@@ -92,7 +133,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
-        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
+        private string? GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
 
         internal static void AddFailedLoad(AssemblyName name)
         {
@@ -109,9 +150,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        internal static void AddFailedServerConnection()
+        internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
         {
-            Interlocked.Increment(ref s_failedServerConnectionCount);
+            s_failedQueue.Enqueue((type, outputAssembly));
         }
     }
 #endif
@@ -125,10 +166,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 #endif
         }
 
-        internal static void AddFailedServerConnection()
+        internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
         {
 #if DEBUG || BOOTSTRAP
-            ValidateBootstrap.AddFailedServerConnection();
+            ValidateBootstrap.AddFailedServerConnection(type, outputAssembly);
 #endif
         }
     }

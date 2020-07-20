@@ -933,9 +933,6 @@ Additional information: {1}</value>
   <data name="Analysis" xml:space="preserve">
     <value>Analysis</value>
   </data>
-  <data name="Enable_full_solution_analysis" xml:space="preserve">
-    <value>Enable full solution _analysis</value>
-  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
   </data>
@@ -1067,8 +1064,14 @@ I agree to all of the foregoing:</value>
   <data name="Avoid_unused_value_assignments" xml:space="preserve">
     <value>Avoid unused value assignments</value>
   </data>
+  <data name="Parameter_name_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter name contains invalid character(s).</value>
+  </data>
   <data name="Parameter_preferences_colon" xml:space="preserve">
     <value>Parameter preferences:</value>
+  </data>
+  <data name="Parameter_type_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter type contains invalid character(s).</value>
   </data>
   <data name="Non_public_methods" xml:space="preserve">
     <value>Non-public methods</value>
@@ -1151,9 +1154,6 @@ I agree to all of the foregoing:</value>
   <data name="Select_member" xml:space="preserve">
     <value>Select member</value>
   </data>
-  <data name="Classifications" xml:space="preserve">
-    <value>Classifications</value>
-  </data>
   <data name="Prefer_static_local_functions" xml:space="preserve">
     <value>Prefer static local functions</value>
   </data>
@@ -1162,12 +1162,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Show_completion_list" xml:space="preserve">
     <value>Show completion list</value>
-  </data>
-  <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
-    <value>Use enhanced colors for C# and Basic</value>
-  </data>
-  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
-    <value>Enable nullable reference analysis IDE features</value>
   </data>
   <data name="Move_to_namespace" xml:space="preserve">
     <value>Move to Namespace</value>
@@ -1183,6 +1177,9 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="A_new_namespace_will_be_created" xml:space="preserve">
     <value>A new namespace will be created</value>
+  </data>
+  <data name="A_type_and_name_must_be_provided" xml:space="preserve">
+    <value>A type and name must be provided.</value>
   </data>
   <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename {0} to {1}</value>
@@ -1322,5 +1319,220 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Updating_severity" xml:space="preserve">
     <value>Updating severity</value>
+  </data>
+  <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
+    <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
+  </data>
+  <data name="Requires_System_HashCode_be_present_in_project" xml:space="preserve">
+    <value>Requires 'System.HashCode' be present in project</value>
+  </data>
+  <data name="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item" xml:space="preserve">
+    <value>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</value>
+  </data>
+  <data name="Run_Code_Analysis_on_0" xml:space="preserve">
+    <value>Run Code Analysis on {0}</value>
+  </data>
+  <data name="Running_code_analysis_for_0" xml:space="preserve">
+    <value>Running code analysis for '{0}'...</value>
+  </data>
+  <data name="Running_code_analysis_for_Solution" xml:space="preserve">
+    <value>Running code analysis for Solution...</value>
+  </data>
+  <data name="Code_analysis_completed_for_0" xml:space="preserve">
+    <value>Code analysis completed for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
+    <value>Code analysis completed for Solution.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
+    <value>Code analysis terminated before completion for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
+    <value>Code analysis terminated before completion for Solution.</value>
+  </data>
+  <data name="Background_analysis_scope_colon" xml:space="preserve">
+    <value>Background analysis scope:</value>
+  </data>
+  <data name="Current_document" xml:space="preserve">
+    <value>Current document</value>
+  </data>
+  <data name="Open_documents" xml:space="preserve">
+    <value>Open documents</value>
+  </data>
+  <data name="Entire_solution" xml:space="preserve">
+    <value>Entire solution</value>
+  </data>
+  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>C#/Visual Basic Language Server Client</value>
+  </data>
+  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>Live Share C#/Visual Basic Language Server Client</value>
+    <comment>'Live Share' is a product name and does not need to be localized.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>_Edit</value>
+  </data>
+  <data name="Edit_0" xml:space="preserve">
+    <value>Edit {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
+  <data name="Parameter_Details" xml:space="preserve">
+    <value>Parameter Details</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>_Add</value>
+    <comment>Adding an element to a list</comment>
+  </data>
+  <data name="Callsite" xml:space="preserve">
+    <value>Call site</value>
+  </data>
+  <data name="Add_Parameter" xml:space="preserve">
+    <value>Add Parameter</value>
+  </data>
+  <data name="Call_site_value" xml:space="preserve">
+    <value>Call site value:</value>
+  </data>
+  <data name="Parameter_Name" xml:space="preserve">
+    <value>Parameter name:</value>
+  </data>
+  <data name="Type_Name" xml:space="preserve">
+    <value>Type name:</value>
+  </data>
+  <data name="You_must_change_the_signature" xml:space="preserve">
+    <value>You must change the signature</value>
+    <comment>"signature" here means the definition of a method</comment>
+  </data>
+  <data name="Added_Parameter" xml:space="preserve">
+    <value>Added parameter.</value>
+  </data>
+  <data name="Inserting_call_site_value_0" xml:space="preserve">
+    <value>Inserting call site value '{0}'</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+    <comment>Index of parameter in original signature</comment>
+  </data>
+  <data name="IntroduceUndefinedTodoVariables" xml:space="preserve">
+    <value>Introduce undefined TODO variables</value>
+    <comment>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</comment>
+  </data>
+  <data name="Omit_only_for_optional_parameters" xml:space="preserve">
+    <value>Omit (only for optional parameters)</value>
+  </data>
+  <data name="Optional_with_default_value_colon" xml:space="preserve">
+    <value>Optional with default value:</value>
+  </data>
+  <data name="Parameter_kind" xml:space="preserve">
+    <value>Parameter kind</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="Use_named_argument" xml:space="preserve">
+    <value>Use named argument</value>
+    <comment>"argument" is a programming term for a value passed to a function</comment>
+  </data>
+  <data name="Value_to_inject_at_call_sites" xml:space="preserve">
+    <value>Value to inject at call sites</value>
+  </data>
+  <data name="Value_colon" xml:space="preserve">
+    <value>Value:</value>
+  </data>
+  <data name="Editor_Color_Scheme" xml:space="preserve">
+    <value>Editor Color Scheme</value>
+  </data>
+  <data name="Visual_Studio_2019" xml:space="preserve">
+    <value>Visual Studio 2019</value>
+  </data>
+  <data name="Visual_Studio_2017" xml:space="preserve">
+    <value>Visual Studio 2017</value>
+  </data>
+  <data name="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page" xml:space="preserve">
+    <value>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</value>
+  </data>
+  <data name="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations" xml:space="preserve">
+    <value>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</value>
+  </data>
+  <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
+    <value>Prefer simplified boolean expressions</value>
+  </data>
+  <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
+    <value>Razor C# Language Server Client</value>
+  </data>
+  <data name="All_sources" xml:space="preserve">
+    <value>All sources</value>
+  </data>
+  <data name="Entire_repository" xml:space="preserve">
+    <value>Entire repository</value>
+  </data>
+  <data name="Indexed_in_organization" xml:space="preserve">
+    <value>Indexed in organization</value>
+  </data>
+  <data name="Indexed_in_repo" xml:space="preserve">
+    <value>Indexed in repo</value>
+  </data>
+  <data name="Item_origin" xml:space="preserve">
+    <value>Item origin</value>
+  </data>
+  <data name="Loaded_items" xml:space="preserve">
+    <value>Loaded items</value>
+  </data>
+  <data name="Loaded_solution" xml:space="preserve">
+    <value>Loaded solution</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="Local_metadata" xml:space="preserve">
+    <value>Local metadata</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Others</value>
+  </data>
+  <data name="Repository" xml:space="preserve">
+    <value>Repository</value>
+  </data>
+  <data name="Type_name_has_a_syntax_error" xml:space="preserve">
+    <value>Type name has a syntax error</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_not_recognized" xml:space="preserve">
+    <value>Type name is not recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_recognized" xml:space="preserve">
+    <value>Type name is recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Please_enter_a_type_name" xml:space="preserve">
+    <value>Please enter a type name</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Enter_a_call_site_value_or_choose_a_different_value_injection_kind" xml:space="preserve">
+    <value>Enter a call site value or choose a different value injection kind</value>
+  </data>
+  <data name="Optional_parameters_must_provide_a_default_value" xml:space="preserve">
+    <value>Optional parameters must provide a default value</value>
+  </data>
+  <data name="Parameter_information" xml:space="preserve">
+    <value>Parameter information</value>
+  </data>
+  <data name="Infer_from_context" xml:space="preserve">
+    <value>Infer from context</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Warning_colon_duplicate_parameter_name" xml:space="preserve">
+    <value>Warning: duplicate parameter name</value>
+  </data>
+  <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
+    <value>Warning: type does not bind</value>
+  </data>
+  <data name="Bitness32" xml:space="preserve">
+    <value>32-bit</value>
+  </data>
+  <data name="Bitness64" xml:space="preserve">
+    <value>64-bit</value>
   </data>
 </root>

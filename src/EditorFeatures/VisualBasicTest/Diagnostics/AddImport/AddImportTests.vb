@@ -1,12 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Remote
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
@@ -19,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   Optional index As Integer = 0,
                                                   Optional priority As CodeActionPriority? = Nothing,
                                                   Optional placeSystemFirst As Boolean = True) As Task
-            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, outOfProcess:=False)
-            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, outOfProcess:=True)
+            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, TestHost.InProcess)
+            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, TestHost.OutOfProcess)
         End Function
 
         Friend Overloads Async Function TestAsync(initialMarkup As String,
@@ -28,12 +29,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   index As Integer,
                                                   priority As CodeActionPriority?,
                                                   placeSystemFirst As Boolean,
-                                                  outOfProcess As Boolean) As Task
+                                                  testHost As TestHost) As Task
             Await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
+                initialMarkup, expectedMarkup, index,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
-                    fixProviderData:=outOfProcess))
+                    testHost:=testHost,
+                    priority:=priority))
         End Function
     End Class
 
@@ -45,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
-            Dim outOfProcess = DirectCast(parameters.fixProviderData, Boolean)
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, parameters.testHost = TestHost.OutOfProcess)))
 
             Return MyBase.CreateDiagnosticProviderAndFixer(workspace, parameters)
         End Function
@@ -72,7 +74,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41484"), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         <WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")>
         Public Async Function TestAddImportWithCaseChange() As Task
             Await TestAsync(

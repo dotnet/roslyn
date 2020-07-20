@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -120,16 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            private static bool SequenceEquals(IEnumerable<string> s1, IEnumerable<string> s2)
-            {
-                if (s1 == s2)
-                {
-                    return true;
-                }
-
-                return s1 != null && s2 != null && s1.SequenceEqual(s2);
-            }
-
             private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureHelpItems items, ISignatureHelpProvider provider, out bool userSelected)
             {
                 // Try to find the most appropriate item in the list to select by default.
@@ -176,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private static bool CompareParts(TaggedText p1, TaggedText p2)
                 => p1.ToString() == p2.ToString();
 
-            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
+            private static async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -215,13 +207,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                     return (bestProvider, bestItems);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    return (null, null);
                 }
             }
 
-            private bool IsBetter(SignatureHelpItems bestItems, TextSpan? currentTextSpan)
+            private static bool IsBetter(SignatureHelpItems bestItems, TextSpan? currentTextSpan)
             {
                 // If we have no best text span, then this span is definitely better.
                 if (bestItems == null)

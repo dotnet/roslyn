@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,14 +21,13 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
     [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.ToggleLineComment)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
+    [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleLineComment)]
     internal class ToggleLineCommentCommandHandler :
         // Value tuple to represent that there is no distinct command to be passed in.
         AbstractCommentSelectionBase<ValueTuple>,
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal ToggleLineCommentCommandHandler(
+        public ToggleLineCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(undoHistoryRegistry, editorOperationsFactoryService)
@@ -45,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         public CommandState GetCommandState(ToggleLineCommentCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+            => GetCommandState(args.SubjectBuffer);
 
         public bool ExecuteCommand(ToggleLineCommentCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, ValueTuple.Create(), context);
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_line_comment;
 
-        internal async override Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
+        internal override async Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
         }
 
-        private CommentSelectionResult ToggleLineComment(CommentSelectionInfo commentInfo,
+        private static CommentSelectionResult ToggleLineComment(CommentSelectionInfo commentInfo,
             NormalizedSnapshotSpanCollection selectedSpans)
         {
             var textChanges = ArrayBuilder<TextChange>.GetInstance();
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 TextSpan.FromBounds(linesInSelection.First().Start, linesInSelection.Last().End)));
         }
 
-        private List<ITextSnapshotLine> GetLinesFromSelectedSpan(SnapshotSpan span)
+        private static List<ITextSnapshotLine> GetLinesFromSelectedSpan(SnapshotSpan span)
         {
             var lines = new List<ITextSnapshotLine>();
             var startLine = span.Snapshot.GetLineFromPosition(span.Start);
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return lines;
         }
 
-        private bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
+        private static bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
             => linesInSelection.Any(l => !IsLineCommentedOrEmpty(l, commentInfo));
 
         private static bool IsLineCommentedOrEmpty(ITextSnapshotLine line, CommentSelectionInfo info)

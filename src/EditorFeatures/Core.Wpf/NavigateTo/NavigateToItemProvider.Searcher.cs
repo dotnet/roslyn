@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
                     if (docTrackingService != null)
                     {
-                        await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
+                        await SearchProjectsInPriorityOrderAsync(docTrackingService).ConfigureAwait(false);
                     }
                     else
                     {
@@ -104,24 +106,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            private async Task SearchProjectsInPriorityOrder(IDocumentTrackingService docTrackingService)
+            private async Task SearchProjectsInPriorityOrderAsync(IDocumentTrackingService docTrackingService)
             {
                 var processedProjects = new HashSet<Project>();
 
-                var activeDocOpt = docTrackingService.GetActiveDocument(_solution);
+                var activeDocument = docTrackingService.GetActiveDocument(_solution);
                 var visibleDocs = docTrackingService.GetVisibleDocuments(_solution)
-                                                    .Where(d => d != activeDocOpt)
+                                                    .Where(d => d != activeDocument)
                                                     .ToImmutableArray();
 
                 // First, if there's an active document, search that project first, prioritizing
                 // that active document and all visible documents from it.
-                if (activeDocOpt != null)
+                if (activeDocument != null)
                 {
-                    var activeProject = activeDocOpt.Project;
+                    var activeProject = activeDocument.Project;
                     processedProjects.Add(activeProject);
 
                     var visibleDocsFromProject = visibleDocs.Where(d => d.Project == activeProject);
-                    var priorityDocs = ImmutableArray.Create(activeDocOpt).AddRange(visibleDocsFromProject);
+                    var priorityDocs = ImmutableArray.Create(activeDocument).AddRange(visibleDocsFromProject);
 
                     // Search the active project first.  That way we can deliver results that are
                     // closer in scope to the user quicker without forcing them to do something like
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    await SearchAsyncWorker(project, priorityDocuments).ConfigureAwait(false);
+                    await SearchCoreAsync(project, priorityDocuments).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            private async Task SearchAsyncWorker(Project project, ImmutableArray<Document> priorityDocuments)
+            private async Task SearchCoreAsync(Project project, ImmutableArray<Document> priorityDocuments)
             {
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback.AddItem(navigateToItem);
             }
 
-            private PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
+            private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
                 => matchKind switch
                 {
                     NavigateToMatchKind.Exact => PatternMatchKind.Exact,

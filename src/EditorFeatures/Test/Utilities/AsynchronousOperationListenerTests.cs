@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             private readonly List<Task> _tasks = new List<Task>();
 
             public SleepHelper()
-            {
-                _tokenSource = new CancellationTokenSource();
-            }
+                => _tokenSource = new CancellationTokenSource();
 
             public void Dispose()
             {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             // That's why each task set's a signal to say that it has begun and we first wait for
             // that, and then start waiting.
             Assert.True(signal.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
-            var waitTask = listener.CreateExpeditedWaitTask();
+            var waitTask = listener.ExpeditedWaitAsync();
             Assert.True(waitTask.Wait(s_testTimeout), "Wait shouldn't have needed to timeout");
         }
 
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(signal1.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
             Assert.True(signal2.Wait(s_testTimeout), "Shouldn't have hit timeout waiting for task to begin");
 
-            var waitTask = listener.CreateExpeditedWaitTask();
+            var waitTask = listener.ExpeditedWaitAsync();
             Assert.True(waitTask.Wait(s_testTimeout), "Wait shouldn't have needed to timeout");
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -358,7 +360,6 @@ class Class
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationCrossingNullableAnnotationsEnabled()
         {
@@ -434,7 +435,6 @@ class Class
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationNamedValueArg()
@@ -1722,6 +1722,7 @@ interface ISibling
 }");
         }
 
+        [WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateAbstractIntoSameType()
         {
@@ -1740,7 +1741,7 @@ interface ISibling
         Goo();
     }
 
-    internal abstract void Goo();
+    protected abstract void Goo();
 }",
 index: 1);
         }
@@ -3421,9 +3422,7 @@ class B : A<int>
         v = [|Goo|](v);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -3433,7 +3432,7 @@ class C
 
     private int Goo(int v)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6045,9 +6044,7 @@ class Program
         var x = nameof([|Z|]);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6056,7 +6053,7 @@ class C
 
     private object Z()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6073,9 +6070,7 @@ class C
         var x = nameof([|Z.X|]);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6084,7 +6079,7 @@ class C
 
     private object nameof(object x)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6101,9 +6096,7 @@ class C
         var x = nameof([|Z.X.Y|]);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6112,7 +6105,7 @@ class C
 
     private object nameof(object y)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6203,9 +6196,7 @@ namespace Z
         var x = [|nameof(y, z)|];
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6216,7 +6207,7 @@ class C
 
     private object nameof(int y, string z)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6263,9 +6254,7 @@ class C
         var x = [|nameof|](y, z);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6274,7 +6263,7 @@ class C
 
     private object nameof(object y, object z)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6833,9 +6822,7 @@ class C
     {
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     public E B { get; private set; }
 
@@ -6848,8 +6835,37 @@ class C
     {
         internal object C()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
+    }
+}");
+        }
+
+        [WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInConditionalAccess9()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct C
+{
+    void Main(C? c)
+    {
+        int? v = c?.[|Bar|]();
+    }
+}",
+@"using System;
+
+struct C
+{
+    void Main(C? c)
+    {
+        int? v = c?.Bar();
+    }
+
+    private int Bar()
+    {
+        throw new NotImplementedException();
     }
 }");
         }
@@ -7516,6 +7532,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task MethodWithNativeIntegerTypes()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void M(nint i, nuint i2)
+    {
+        (nint, nuint) d = [|NewMethod|](i, i2);
+    }
+}",
+@"class Class
+{
+    void M(nint i, nuint i2)
+    {
+        (nint, nuint) d = NewMethod(i, i2);
+    }
+
+    private (nint, nuint) NewMethod(nint i, nuint i2)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task MethodWithTuple()
         {
             await TestInRegularAndScriptAsync(
@@ -7608,9 +7650,7 @@ class Class
         [|Undefined|](out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7619,7 +7659,7 @@ class Class
 
     private void Undefined(out object c)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -7664,9 +7704,7 @@ class Class
         [|Undefined|](a: out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7675,7 +7713,7 @@ class Class
 
     private void Undefined(out object a)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -7719,9 +7757,7 @@ class Class
         [|Undefined|](out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7730,7 +7766,7 @@ class Class
 
     private void Undefined(out object c)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }",
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
@@ -7775,9 +7811,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
         [|Undefined|](a: out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7786,7 +7820,7 @@ class Class
 
     private void Undefined(out object a)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }",
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
@@ -7956,9 +7990,7 @@ parseOptions: TestOptions.Regular);
         var v = [|IsPrime|](i);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method(int i)
     {
@@ -7967,7 +7999,7 @@ class Class
 
     private bool IsPrime(int i)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -7984,9 +8016,7 @@ class Class
         var v = [|Issue|](i);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method(int i)
     {
@@ -7995,7 +8025,7 @@ class Class
 
     private object Issue(int i)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -8739,6 +8769,39 @@ class Class
     }
 
     private bool GreaterThanZero(int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerArgument()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate*<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate*<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate*<int, float> y)
     {
         throw new NotImplementedException();
     }

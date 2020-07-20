@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -65,7 +67,7 @@ class C
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(expected);
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string? s1 = null;
@@ -1902,7 +1904,7 @@ Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 || b2").WithArguments("||", "bool?", 
         [Fact]
         public void ShortCircuitLiftedUserDefinedOperators()
         {
-            // This test illustrates an bug in the native compiler which Roslyn fixes.
+            // This test illustrates a bug in the native compiler which Roslyn fixes.
             // The native compiler disallows a *lifted* & operator from being used as an &&
             // operator, but allows a *nullable* & operator to be used as an && operator.
             // There is no good reason for this discrepancy; either both should be legal

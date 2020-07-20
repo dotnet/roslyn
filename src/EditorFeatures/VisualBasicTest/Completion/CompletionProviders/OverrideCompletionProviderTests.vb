@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -14,8 +16,8 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New OverrideCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(OverrideCompletionProvider)
         End Function
 
 #Region "CompletionItem tests"
@@ -566,7 +568,7 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -587,7 +589,7 @@ End Class</a>.Value
 
             Await BaseVerifyWorkerAsync(
                 code, position, "[Class]", "Property CBase.Class As Integer",
-                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -936,7 +938,6 @@ Public Class derived
 
     Overrides $$
 End Class</a>
-
 
             Dim expectedCode = <a>Public Class base
     Public Overridable Property goo As String
@@ -1849,12 +1850,12 @@ public class C
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(text)
+            Using workspace = TestWorkspace.Create(text, exportProvider:=ExportProvider)
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-                Dim service = GetCompletionService(workspace)
+                Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Invoke)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using

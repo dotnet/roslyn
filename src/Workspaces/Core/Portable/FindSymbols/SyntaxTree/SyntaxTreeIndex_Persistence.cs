@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("16");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("20");
 
         public readonly Checksum Checksum;
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // attempt to load from persisted state
                 using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
                 using var stream = await storage.ReadStreamAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
-                using var reader = ObjectReader.TryGetReader(stream);
+                using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
                 if (reader != null)
                 {
                     return ReadFrom(GetStringTable(document.Project), reader, checksum);
@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //
             // We also want the checksum to change any time our serialization format changes.  If
             // the format has changed, all previous versions should be invalidated.
-            var projectChecksumState = await document.Project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var parseOptionsChecksum = projectChecksumState.ParseOptions;
+            var project = document.Project;
+            var parseOptionsChecksum = project.State.GetParseOptionsChecksum(cancellationToken);
 
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var textChecksum = documentChecksumState.Text;
@@ -75,9 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
                 using var stream = SerializableBytes.CreateWritableStream();
-                using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-                this.WriteTo(writer);
+                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                {
+                    WriteTo(writer);
+                }
 
                 stream.Position = 0;
                 return await storage.WriteStreamAsync(document, PersistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
@@ -123,6 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _identifierInfo.WriteTo(writer);
             _contextInfo.WriteTo(writer);
             _declarationInfo.WriteTo(writer);
+            _extensionMethodInfo.WriteTo(writer);
         }
 
         private static SyntaxTreeIndex ReadFrom(
@@ -132,14 +135,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
             var contextInfo = ContextInfo.TryReadFrom(reader);
             var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
+            var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
 
-            if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null)
+            if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null || extensionMethodInfo == null)
             {
                 return null;
             }
 
             return new SyntaxTreeIndex(
-                checksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
+                checksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value, extensionMethodInfo.Value);
         }
     }
 }

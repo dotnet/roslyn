@@ -1,18 +1,28 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities.DocumentationCommentXmlNames
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Partial Friend Class XmlDocCommentCompletionProvider
+    <ExportCompletionProvider(NameOf(XmlDocCommentCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(OverrideCompletionProvider))>
+    <[Shared]>
+    Friend Class XmlDocCommentCompletionProvider
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(s_defaultRules)
         End Sub
@@ -26,13 +36,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                    IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
+
+        Public Shared Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
             Return If(token.IntersectsWith(position) AndAlso IsText(token),
                       token.GetPreviousToken(includeSkipped:=True),
                       token)
         End Function
 
-        Private Function IsText(token As SyntaxToken) As Boolean
+        Private Shared Function IsText(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.XmlNameToken, SyntaxKind.XmlTextLiteralToken, SyntaxKind.IdentifierToken)
         End Function
 
@@ -83,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return GetCloseTagItem(token.GetPreviousToken())
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
                 Dim symbol As ISymbol = Nothing
 
                 If declaration IsNot Nothing Then
@@ -286,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return attributeValues
         End Function
 
-        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
+        Private Shared Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
             Dim nameSyntax As XmlNameSyntax = Nothing
             Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
 
@@ -326,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return nameSyntax?.LocalName.ValueText
         End Function
 
-        Private Shared s_defaultRules As CompletionItemRules =
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(
                 filterCharacterRules:=FilterRules,
                 enterKeyRule:=EnterKeyRule.Never)

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -17,21 +20,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// IL gen will use these fake tokens during codegen and later, when actual token values are known
     /// the method bodies will be patched.
     /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item.  (the second is really just a list).
+    /// This map supports tokens of type <see cref="Cci.ISignature"/> and <see cref="Cci.IReference"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal sealed class TokenMap<T> where T : class
+    internal sealed class TokenMap
     {
-        private readonly ConcurrentDictionary<T, uint> _itemIdentityToToken = new ConcurrentDictionary<T, uint>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<object, uint> _itemIdentityToToken = new ConcurrentDictionary<object, uint>(ReferenceEqualityComparer.Instance);
 
-        private readonly Dictionary<T, uint> _itemToToken;
-        private readonly ArrayBuilder<T> _items = new ArrayBuilder<T>();
+        private readonly Dictionary<object, uint> _itemToToken;
+        private readonly ArrayBuilder<object> _items = new ArrayBuilder<object>();
 
-        internal TokenMap(IEqualityComparer<T> comparer)
+        internal TokenMap(IEqualityComparer<object> comparer)
         {
-            _itemToToken = new Dictionary<T, uint>(comparer);
+            _itemToToken = new Dictionary<object, uint>(comparer);
         }
 
-        public uint GetOrAddTokenFor(T item, out bool referenceAdded)
+        public uint GetOrAddTokenFor(object item, out bool referenceAdded)
         {
             uint tmp;
             if (_itemIdentityToToken.TryGetValue(item, out tmp))
@@ -43,8 +46,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return AddItem(item, out referenceAdded);
         }
 
-        private uint AddItem(T item, out bool referenceAdded)
+        private uint AddItem(object item, out bool referenceAdded)
         {
+            Debug.Assert(item is Cci.ISignature || item is Cci.IReference);
             uint token;
 
             // NOTE: cannot use GetOrAdd here since items and itemToToken must be in sync
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return token;
         }
 
-        public T GetItem(uint token)
+        public object GetItem(uint token)
         {
             lock (_items)
             {
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public IEnumerable<T> GetAllItems()
+        public IEnumerable<object> GetAllItems()
         {
             lock (_items)
             {
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         //TODO: why is this is called twice during emit?
         //      should probably return ROA instead of IE and cache that in Module. (and no need to return count)
-        public IEnumerable<T> GetAllItemsAndCount(out int count)
+        public IEnumerable<object> GetAllItemsAndCount(out int count)
         {
             lock (_items)
             {

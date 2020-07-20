@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -25,36 +27,22 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly ISyntaxClassificationService _originalService;
         private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly IExperimentationService _experimentationService;
         private readonly IThreadingContext _threadingContext;
 
         public RoslynSyntaxClassificationService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace, ISyntaxClassificationService originalService,
-            ClassificationTypeMap classificationTypeMap, IExperimentationService experimentationService, IThreadingContext threadingContext)
+            ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory;
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace;
             _originalService = originalService;
             _classificationTypeMap = classificationTypeMap;
-            _experimentationService = experimentationService;
             _threadingContext = threadingContext;
         }
 
         public void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
-                ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
-            {
-                // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
-                return;
-            }
-            else
-            {
-                // Some other invalid flight.  Just fallback to the regular service.  Don't want to block the user based on an experimentation failure.
-                _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
-            }
-        }
+            => _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
-        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, CodeAnalysis.Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
@@ -77,52 +65,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         }
 
         public void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
-                ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
-            {
-                // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
-                return;
-            }
-            else
-            {
-                // Invalid experiment flight or older client.  Since this is an experiment, just fallback.
-                _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
-            }
-        }
+            => _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
 
         public ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan)
-        {
-            return _originalService.FixClassification(text, classifiedSpan);
-        }
+            => _originalService.FixClassification(text, classifiedSpan);
 
         public ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
-        {
-            return _originalService.GetDefaultSyntaxClassifiers();
-        }
-
-        /// <summary>
-        /// Check if the experiment should run.
-        /// Only runs the experiment if the server provides the capability
-        /// and the experiment flight is enabled.
-        /// </summary>
-        public bool ShouldRunExperiment(string experimentName)
-        {
-            return ShouldRunExperiment(_roslynLspClientServiceFactory, _experimentationService, experimentName);
-        }
-
-        public static bool ShouldRunExperiment(
-            AbstractLspClientServiceFactory lspClientServiceFactory,
-            IExperimentationService experimentationService,
-            string experimentName)
-        {
-            if (lspClientServiceFactory.ServerCapabilities?.Experimental is RoslynExperimentalCapabilities experimentalCapabilities)
-            {
-                return experimentalCapabilities.SyntacticLspProvider && experimentationService.IsExperimentEnabled(experimentName);
-            }
-
-            return false;
-        }
+            => _originalService.GetDefaultSyntaxClassifiers();
 
         public async Task AddRemoteClassificationsAsync(string classificationsServiceName, string filePath, SourceText sourceText, TextSpan textSpan, Action<ClassifiedSpan> tagAdder, CancellationToken cancellationToken)
         {

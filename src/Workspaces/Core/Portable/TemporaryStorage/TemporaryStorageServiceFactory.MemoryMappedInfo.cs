@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -38,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Host
             /// The memory mapped file.
             /// </summary>
             /// <remarks>
-            /// <para>It is possible for this accessor to be disposed prior to the view and/or the streams which use it.
-            /// However, the operating system does not actually close the views which are in use until the view handles
-            /// are closed as well, even if the <see cref="MemoryMappedFile"/> is disposed first.</para>
+            /// <para>It is possible for the file to be disposed prior to the view and/or the streams which use it.
+            /// However, the operating system does not actually close the views which are in use until the file handles
+            /// are closed as well, even if the file is disposed first.</para>
             /// </remarks>
             private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
 
@@ -89,16 +93,6 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             public long Size { get; }
 
-            private static void ForceCompactingGC()
-            {
-                // repeated GC.Collect / WaitForPendingFinalizers till memory freed delta is super small, ignore the return value
-                GC.GetTotalMemory(forceFullCollection: true);
-
-                // compact the LOH
-                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-                GC.Collect();
-            }
-
             /// <summary>
             /// Caller is responsible for disposing the returned stream.
             /// multiple call of this will not increase VM.
@@ -120,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
 
                     Debug.Assert(streamAccessor.Target.CanRead);
-                    return new SharedReadableStream(this, streamAccessor, Size);
+                    return new SharedReadableStream(streamAccessor, Size);
                 }
             }
 
@@ -167,23 +161,24 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
+            private static void ForceCompactingGC()
+            {
+                // repeated GC.Collect / WaitForPendingFinalizers till memory freed delta is super small, ignore the return value
+                GC.GetTotalMemory(forceFullCollection: true);
+
+                // compact the LOH
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                GC.Collect();
+            }
+
             public void Dispose()
             {
-                Dispose(true);
-                GC.SuppressFinalize(this);
+                // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
+                // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
+                _memoryMappedFile.Dispose();
             }
 
-            private void Dispose(bool disposing)
-            {
-                if (disposing)
-                {
-                    // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
-                    // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
-                    _memoryMappedFile.Dispose();
-                }
-            }
-
-            private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
+            private sealed unsafe class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
 
@@ -191,44 +186,17 @@ namespace Microsoft.CodeAnalysis.Host
                 private byte* _current;
                 private readonly byte* _end;
 
-                public SharedReadableStream(MemoryMappedInfo owner, ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
+                public SharedReadableStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
                 {
                     _accessor = accessor;
                     _current = _start = (byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset;
                     _end = checked(_start + length);
                 }
 
-                public override bool CanRead
-                {
-                    get
-                    {
-                        return true;
-                    }
-                }
-
-                public override bool CanSeek
-                {
-                    get
-                    {
-                        return true;
-                    }
-                }
-
-                public override bool CanWrite
-                {
-                    get
-                    {
-                        return false;
-                    }
-                }
-
-                public override long Length
-                {
-                    get
-                    {
-                        return _end - _start;
-                    }
-                }
+                public override bool CanRead => true;
+                public override bool CanSeek => true;
+                public override bool CanWrite => false;
+                public override long Length => _end - _start;
 
                 public override long Position
                 {
@@ -279,23 +247,13 @@ namespace Microsoft.CodeAnalysis.Host
                     byte* target;
                     try
                     {
-                        switch (origin)
+                        target = origin switch
                         {
-                            case SeekOrigin.Begin:
-                                target = checked(_start + offset);
-                                break;
-
-                            case SeekOrigin.Current:
-                                target = checked(_current + offset);
-                                break;
-
-                            case SeekOrigin.End:
-                                target = checked(_end + offset);
-                                break;
-
-                            default:
-                                throw new ArgumentOutOfRangeException(nameof(origin));
-                        }
+                            SeekOrigin.Begin => checked(_start + offset),
+                            SeekOrigin.Current => checked(_current + offset),
+                            SeekOrigin.End => checked(_end + offset),
+                            _ => throw new ArgumentOutOfRangeException(nameof(origin)),
+                        };
                     }
                     catch (OverflowException)
                     {
@@ -311,20 +269,9 @@ namespace Microsoft.CodeAnalysis.Host
                     return _current - _start;
                 }
 
-                public override void Flush()
-                {
-                    throw new NotSupportedException();
-                }
-
-                public override void SetLength(long value)
-                {
-                    throw new NotSupportedException();
-                }
-
-                public override void Write(byte[] buffer, int offset, int count)
-                {
-                    throw new NotSupportedException();
-                }
+                public override void Flush() => throw new NotSupportedException();
+                public override void SetLength(long value) => throw new NotSupportedException();
+                public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
                 protected override void Dispose(bool disposing)
                 {
@@ -342,9 +289,7 @@ namespace Microsoft.CodeAnalysis.Host
                 /// Get underlying native memory directly.
                 /// </summary>
                 public IntPtr GetPointer()
-                {
-                    return (IntPtr)_start;
-                }
+                    => (IntPtr)_start;
             }
         }
     }

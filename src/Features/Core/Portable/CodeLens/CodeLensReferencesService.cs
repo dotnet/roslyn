@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,8 +32,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
             {
                 return null;
             }
-
-            var cacheService = solution.Services.CacheService;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 : string.Empty;
             var referenceSpan = new TextSpan(spanStart, token.Span.Length);
 
-            var symbol = semanticModel.GetDeclaredSymbol(node);
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
             var glyph = symbol?.GetGlyph();
             var startLinePosition = location.GetLineSpan().StartLinePosition;
             var documentId = solution.GetDocument(location.SourceTree)?.Id;
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }
                 else if (syntaxFactsService.IsDeclaration(node) ||
                          syntaxFactsService.IsUsingOrExternOrImport(node) ||
-                         syntaxFactsService.IsGlobalAttribute(node))
+                         syntaxFactsService.IsGlobalAssemblyAttribute(node))
                 {
                     break;
                 }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         private static ISymbol GetEnclosingMethod(SemanticModel semanticModel, Location location, CancellationToken cancellationToken)
         {
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(location.SourceSpan.Start);
+            var enclosingSymbol = semanticModel.GetEnclosingSymbol(location.SourceSpan.Start, cancellationToken);
 
             for (var current = enclosingSymbol; current != null; current = current.ContainingSymbol)
             {
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken);
         }
 
-        public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        public async Task<string> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
             var document = solution.GetDocument(syntaxNode.GetLocation().SourceTree);

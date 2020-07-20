@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.IO;
@@ -10,6 +12,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         public CSharpInteractiveEvaluator(
             IThreadingContext threadingContext,
+            IAsynchronousOperationListener listener,
             HostServices hostServices,
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
@@ -30,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             string initialWorkingDirectory)
             : base(
                 threadingContext,
+                listener,
                 contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType),
                 hostServices,
                 classifierAggregator,

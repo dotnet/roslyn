@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -385,6 +387,17 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
+    /// This interface models the metadata representation of a pointer to a function in unmanaged memory.
+    /// </summary>
+    internal interface IFunctionPointerTypeReference : ITypeReference
+    {
+        /// <summary>
+        /// The signature of the function located at the target memory address.
+        /// </summary>
+        ISignature Signature { get; }
+    }
+
+    /// <summary>
     /// A type ref with attributes attached directly to the type reference
     /// itself. Unlike <see cref="IReference.GetAttributes(EmitContext)"/> a
     /// <see cref="TypeReferenceWithAttributes"/> will never provide attributes
@@ -502,6 +515,11 @@ namespace Microsoft.Cci
         /// True if the type is an interface.
         /// </summary>
         bool IsInterface { get; }
+
+        /// <summary>
+        /// True if the type is a delegate.
+        /// </summary>
+        bool IsDelegate { get; }
 
         /// <summary>
         /// True if this type gets special treatment from the runtime.
@@ -713,6 +731,11 @@ namespace Microsoft.Cci
         /// Not a primitive type.
         /// </summary>
         NotPrimitive,
+
+        /// <summary>
+        /// A pointer to a function in fixed or managed memory.
+        /// </summary>
+        FunctionPointer,
 
         /// <summary>
         /// Type is a dummy type.

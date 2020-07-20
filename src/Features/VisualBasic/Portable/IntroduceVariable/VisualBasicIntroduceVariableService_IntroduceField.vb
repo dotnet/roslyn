@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -9,13 +11,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
+    Partial Friend Class VisualBasicIntroduceVariableService
         Protected Overrides Async Function IntroduceFieldAsync(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim oldTypeDeclaration = expression.GetAncestorOrThis(Of TypeBlockSyntax)()
             Dim oldType = If(oldTypeDeclaration IsNot Nothing,
@@ -42,12 +44,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     document, oldTypeDeclaration, newNameToken, expression, allOccurrences, isConstant, cancellationToken)
 
                 Dim insertionIndex = If(isConstant, DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members), DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members))
-                Dim destination As SyntaxNode = oldCompilationUnit
 
                 Dim newRoot = newCompilationUnit.WithMembers(
                     newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration))
 
-                Return Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex)
+                Return document.Document.WithSyntaxRoot(newRoot)
             End If
         End Function
 
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 newNameToken As SyntaxToken,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim oldToNewTypeBlockMap = New Dictionary(Of TypeBlockSyntax, TypeBlockSyntax)
 
@@ -73,9 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim newTypeDeclaration = oldToNewTypeBlockMap(oldTypeBlock)
 
-            Dim insertionIndex = If(isConstant,
-                                DetermineConstantInsertPosition(oldTypeBlock.Members, newTypeDeclaration.Members),
-                                DetermineFieldInsertPosition(oldTypeBlock.Members, newTypeDeclaration.Members))
+            Dim insertionIndex = GetFieldInsertionIndex(isConstant, oldTypeBlock, newTypeDeclaration, cancellationToken)
             Dim destination As SyntaxNode = oldTypeBlock
 
             Dim newFieldDeclaration = CreateFieldDeclaration(
@@ -101,11 +100,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 updatedDocument = updatedDocument.Project.Solution.GetDocument(currentDocument.Id).WithSyntaxRoot(newRoot)
             Next
 
-            Return Tuple.Create(updatedDocument, destination, insertionIndex)
+            Return updatedDocument
         End Function
 
-        Protected Shared Function DetermineConstantInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
-                                                                  newMembers As SyntaxList(Of StatementSyntax)) As Integer
+        Protected Overrides Function DetermineConstantInsertPosition(oldDeclaration As TypeBlockSyntax, newDeclaration As TypeBlockSyntax) As Integer
+            Return DetermineConstantInsertPosition(oldDeclaration.Members, newDeclaration.Members)
+        End Function
+
+        Protected Overloads Shared Function DetermineConstantInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
+                                                                            newMembers As SyntaxList(Of StatementSyntax)) As Integer
             ' 1) Place the constant after the last constant.
             '
             ' 2) If there is no constant, place it before the first field
@@ -134,8 +137,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return index
         End Function
 
-        Protected Shared Function DetermineFieldInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
-                                                               newMembers As SyntaxList(Of StatementSyntax)) As Integer
+        Protected Overrides Function DetermineFieldInsertPosition(oldDeclaration As TypeBlockSyntax, newDeclaration As TypeBlockSyntax) As Integer
+            Return DetermineFieldInsertPosition(oldDeclaration.Members, newDeclaration.Members)
+        End Function
+
+        Protected Overloads Shared Function DetermineFieldInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
+                                                                         newMembers As SyntaxList(Of StatementSyntax)) As Integer
             ' 1) Place the constant after the last field.
             '
             ' 2) If there is no field, place it after the last constant
@@ -209,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         End Function
 
-        Private Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
+        Private Shared Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
                                             isConstant As Boolean,
                                             inScript As Boolean,
                                             inModule As Boolean) As SyntaxTokenList

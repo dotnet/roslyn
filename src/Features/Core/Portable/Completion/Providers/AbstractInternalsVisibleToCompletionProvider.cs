@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -14,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractInternalsVisibleToCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPCompletionProvider
     {
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
 
@@ -38,13 +40,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     ch = text[insertedCharacterPosition - 1];
                     if (ch == '\"')
                     {
-                        return true;
+                        return ShouldTriggerAfterQuotes(text, insertedCharacterPosition);
                     }
                 }
             }
 
             return false;
         }
+
+        protected abstract bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -112,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static async Task<bool> CheckTypeInfoOfAttributeAsync(Document document, SyntaxNode attributeNode, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeNode, cancellationToken).ConfigureAwait(false);
-            var typeInfo = semanticModel.GetTypeInfo(attributeNode);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attributeNode, cancellationToken).ConfigureAwait(false);
+            var typeInfo = semanticModel.GetTypeInfo(attributeNode, cancellationToken);
             var type = typeInfo.Type;
             if (type == null)
             {
@@ -171,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // sourceAssembly.GivesAccessTo(compilation.Assembly)
             // at the cost of being not so precise (can't check the validity of the PublicKey).
             var project = completionContext.Document.Project;
-            var resultBuilder = default(ImmutableHashSet<string>.Builder);
+            var resultBuilder = (ImmutableHashSet<string>.Builder)null;
             foreach (var document in project.Documents)
             {
                 var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -206,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(assemblyName))
                         {
-                            resultBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+                            resultBuilder ??= ImmutableHashSet.CreateBuilder(StringComparer.OrdinalIgnoreCase);
                             resultBuilder.Add(assemblyName);
                         }
                     }
@@ -226,8 +232,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return string.Empty;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
-            var constantCandidate = semanticModel.GetConstantValue(constructorArgument);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
+            var constantCandidate = semanticModel.GetConstantValue(constructorArgument, cancellationToken);
             if (constantCandidate.HasValue && constantCandidate.Value is string argument)
             {
                 if (AssemblyIdentity.TryParseDisplayName(argument, out var assemblyIdentity))
@@ -259,10 +265,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
-            var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));
+            var projectId = ProjectId.CreateFromSerialized(new Guid(projectIdGuid));
             var project = document.Project.Solution.GetProject(projectId);
             var assemblyName = item.DisplayText;
             var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);

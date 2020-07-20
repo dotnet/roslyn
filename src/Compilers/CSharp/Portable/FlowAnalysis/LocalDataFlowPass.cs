@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -11,9 +13,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Does a data flow analysis for state attached to local variables and fields of struct locals.
     /// </summary>
-    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
+    internal abstract partial class LocalDataFlowPass<TLocalState, TLocalFunctionState> : AbstractFlowPass<TLocalState, TLocalFunctionState>
+        where TLocalState : LocalDataFlowPass<TLocalState, TLocalFunctionState>.ILocalDataFlowState
+        where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
+        internal interface ILocalDataFlowState : ILocalState
+        {
+            /// <summary>
+            /// True if new variables introduced in <see cref="AbstractFlowPass{TLocalState, TLocalFunctionState}" /> should be set
+            /// to the bottom state. False if they should be set to the top state.
+            /// </summary>
+            bool NormalizeToBottom { get; }
+        }
+
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
         /// </summary>
@@ -101,12 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _emptyStructTypeCache.IsEmptyStructType(type);
         }
 
+#nullable enable
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
+        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
             Debug.Assert(containingSlot >= 0);
+            Debug.Assert(symbol != null);
 
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -157,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return slot;
         }
+#nullable restore
 
         private int GetSlotDepth(int slot)
         {
@@ -169,6 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return depth;
         }
 
+        /// <summary>
+        /// Sets the starting state for any newly declared variables in the LocalDataFlowPass.
+        /// </summary>
         protected abstract void Normalize(ref TLocalState state);
 
         /// <summary>
@@ -184,17 +202,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fieldSymbol = symbol as TupleFieldSymbol;
             if ((object)fieldSymbol != null)
             {
-                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
+                TypeSymbol containingType = symbol.ContainingType;
 
                 // for tuple fields the variable identifier represents the underlying field
                 symbol = fieldSymbol.TupleUnderlyingField;
 
                 // descend through Rest fields
                 // force corresponding slots if do not exist
-                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything2))
+                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything))
                 {
-                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
-                    if ((object)restField == null)
+                    var restField = containingType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() as FieldSymbol;
+                    if (restField is null)
                     {
                         return -1;
                     }
@@ -211,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type;
                 }
             }
 
@@ -225,7 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableIdentifier variableId = variableBySlot[slot];
             while (variableId.ContainingSlot > 0)
             {
-                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event);
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event,
+                    "inconsistent property symbol owner");
                 variableId = variableBySlot[variableId.ContainingSlot];
             }
             return variableId.Symbol;
@@ -283,7 +302,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 containingSlot = 0;
             }
+
             return GetOrCreateSlot(member, containingSlot);
+        }
+
+        protected int RootSlot(int slot)
+        {
+            while (true)
+            {
+                ref var varInfo = ref variableBySlot[slot];
+                if (varInfo.ContainingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = varInfo.ContainingSlot;
+                }
+            }
         }
     }
 }

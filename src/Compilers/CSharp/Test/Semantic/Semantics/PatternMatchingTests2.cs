@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -264,7 +267,7 @@ class Program
                 var source = string.Format(sourceTemplate, s1, s2, s3);
                 var compilation = CreatePatternCompilation(source);
                 compilation.VerifyDiagnostics(
-                    // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                    // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case (_, _): // error - subsumed
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "(_, _)").WithLocation(12, 18)
                     );
@@ -344,6 +347,22 @@ public class Point
         switch (i) { case default: break; } // error 3
         switch (i) { case default when true: break; } // error 4
         switch ((1, 2)) { case (1, default): break; } // error 5
+
+        if (i is < default) {} // error 6
+        switch (i) { case < default: break; } // error 7
+        if (i is < ((default))) {} // error 8
+        switch (i) { case < ((default)): break; } // error 9
+
+        if (i is default!) {} // error 10
+        if (i is (default!)) {} // error 11
+        if (i is < ((default)!)) {} // error 12
+        if (i is default!!) {} // error 13
+        if (i is (default!!)) {} // error 14
+        if (i is < ((default)!!)) {} // error 15
+
+        // These are not accepted by the parser. See https://github.com/dotnet/roslyn/issues/45387
+        if (i is (default)!) {} // error 16
+        if (i is ((default)!)) {} // error 17
     }
 }";
             var compilation = CreatePatternCompilation(source);
@@ -362,7 +381,67 @@ public class Point
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
                 // (10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch ((1, 2)) { case (1, default): break; } // error 5
-                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36),
+                // (12,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < default) {} // error 6
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 20),
+                // (13,29): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case < default: break; } // error 7
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(13, 29),
+                // (14,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default))) {} // error 8
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(14, 22),
+                // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case < ((default)): break; } // error 9
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
+                // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default!) {} // error 10
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
+                // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default!)) {} // error 11
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
+                // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default)!)) {} // error 12
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
+                // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
+                // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
+                // (22,22): error CS8715: Duplicate null suppression operator ('!')
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
+                // (22,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(22, 22),
+                // (25,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(25, 19),
+                // (25,27): error CS1026: ) expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(25, 27),
+                // (25,28): error CS1525: Invalid expression term ')'
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(25, 28),
+                // (25,28): error CS1002: ; expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(25, 28),
+                // (25,28): error CS1513: } expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(25, 28),
+                // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((default)!)").WithArguments("int", "2").WithLocation(26, 18),
+                // (26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(26, 20),
+                // (26,28): error CS1003: Syntax error, ',' expected
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(26, 28),
+                // (26,29): error CS1525: Invalid expression term ')'
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29)
                 );
         }
 
@@ -384,7 +463,7 @@ public class Point
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
 
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -440,10 +519,7 @@ public class Point
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
                 // (6,48): error CS8504: Pattern missing
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48),
-                // (6,57): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(6, 57)
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48)
                 );
         }
 
@@ -494,9 +570,9 @@ public class Point
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         var r = 1 switch { };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 19),
                 // (5,19): error CS8506: No best type was found for the switch expression.
                 //         var r = 1 switch { };
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 19));
@@ -518,9 +594,9 @@ public class Point
     public delegate void D();
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '3' is not covered.
                 //         var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("3").WithLocation(5, 19)
                 );
         }
 
@@ -609,9 +685,9 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (7,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 19)
                 );
             var names = new[] { "x1", "x2", "x3", "x4", "x5" };
             var tree = compilation.SyntaxTrees[0];
@@ -620,7 +696,7 @@ public class Point
                 var model = compilation.GetSemanticModel(tree);
                 var symbol = model.GetDeclaredSymbol(designation);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
-                Assert.Equal("int", ((LocalSymbol)symbol).TypeWithAnnotations.ToDisplayString());
+                Assert.Equal("int", ((ILocalSymbol)symbol).Type.ToDisplayString());
             }
             foreach (var ident in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
             {
@@ -671,26 +747,24 @@ class Program
         if (t is (int z3) { }) { }                      // ok
         if (t is ValueTuple<int>(int z4)) { }           // ok
     }
-    private static bool Check<T>(T expected, T actual)
-    {
-        if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
-        return true;
-    }
 }";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
+                // (8,18): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int x)").WithLocation(8, 18),
-                // (9,27): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x)").WithArguments("parenthesized pattern").WithLocation(8, 18),
+                // (8,19): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
+                //         if (t is (int x)) { }                           // error 1
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(8, 19),
+                // (9,27): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(_)").WithLocation(9, 27),
-                // (10,28): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_)").WithArguments("parenthesized pattern").WithLocation(9, 27),
+                // (10,28): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int y)").WithLocation(10, 28),
-                // (10,42): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int y)").WithArguments("parenthesized pattern").WithLocation(10, 28),
+                // (10,29): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 42)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29)
                 );
         }
 
@@ -867,7 +941,7 @@ namespace System
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (20,18): error CS8120: The switch case has already been handled by a previous case.
+                // (20,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var _: return 4;
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var _").WithLocation(20, 18)
                 );
@@ -933,7 +1007,7 @@ namespace System
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,61): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                // (6,61): error CS8410: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         string s2 = s switch { null => null, string t => t, "foo" => null };
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""foo""").WithLocation(6, 61)
                 );
@@ -1093,7 +1167,7 @@ class Program1
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(expected);
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(expected);
 
             expected = new[]
@@ -2332,6 +2406,542 @@ public class C
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WarnUnmatchedIsRelationalPattern()
+        {
+            var source =
+@"public class C
+{
+    public void M()
+    {
+        _ = 1 is < 0; // 1
+        _ = 1 is < 1; // 2
+        _ = 1 is < 2; // 3
+        _ = 1 is <= 0; // 4
+        _ = 1 is <= 1; // 5
+        _ = 1 is <= 2; // 6
+        _ = 1 is > 0; // 7
+        _ = 1 is > 1; // 8
+        _ = 1 is > 2; // 9
+        _ = 1 is >= 0; // 10
+        _ = 1 is >= 1; // 11
+        _ = 1 is >= 2; // 12
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (5,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is < 0; // 1
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is < 0").WithLocation(5, 13),
+                // (6,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is < 1; // 2
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is < 1").WithLocation(6, 13),
+                // (7,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is < 2; // 3
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is < 2").WithLocation(7, 13),
+                // (8,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is <= 0; // 4
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is <= 0").WithLocation(8, 13),
+                // (9,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is <= 1; // 5
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is <= 1").WithLocation(9, 13),
+                // (10,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is <= 2; // 6
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is <= 2").WithLocation(10, 13),
+                // (11,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is > 0; // 7
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is > 0").WithLocation(11, 13),
+                // (12,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is > 1; // 8
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is > 1").WithLocation(12, 13),
+                // (13,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is > 2; // 9
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is > 2").WithLocation(13, 13),
+                // (14,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is >= 0; // 10
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is >= 0").WithLocation(14, 13),
+                // (15,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is >= 1; // 11
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is >= 1").WithLocation(15, 13),
+                // (16,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is >= 2; // 12
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is >= 2").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
+        public void RelationalPatternInSwitchWithConstantControllingExpression()
+        {
+            var source =
+@"public class C
+{
+    public void M()
+    {
+        switch (1)
+        {
+            case < 0: break; // 1
+            case < 1: break; // 2
+            case < 2: break;
+            case < 3: break; // 3
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (7,23): warning CS0162: Unreachable code detected
+                //             case < 0: break; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(7, 23),
+                // (8,23): warning CS0162: Unreachable code detected
+                //             case < 1: break; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 23),
+                // (10,23): warning CS0162: Unreachable code detected
+                //             case < 3: break; // 3
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 23)
+                );
+        }
+
+        [Fact]
+        public void RelationalPatternInSwitchWithOutOfRangeComparand()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        switch (i)
+        {
+            case < int.MinValue: break; // 1
+            case <= int.MinValue: break;
+            case > int.MaxValue: break; // 2
+            case >= int.MaxValue: break;
+        }
+    }
+    public void M(uint i)
+    {
+        switch (i)
+        {
+            case < 0: break; // 3
+            case <= 0: break;
+            case > uint.MaxValue: break; // 4
+            case >= uint.MaxValue: break;
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (7,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case < int.MinValue: break; // 1
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< int.MinValue").WithLocation(7, 18),
+                    // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case > int.MaxValue: break; // 2
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> int.MaxValue").WithLocation(9, 18),
+                    // (17,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case < 0: break; // 3
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< 0").WithLocation(17, 18),
+                    // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case > uint.MaxValue: break; // 4
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> uint.MaxValue").WithLocation(19, 18)
+                );
+        }
+
+        [Fact]
+        public void IsRelationalPatternWithOutOfRangeComparand()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        _ = i is < int.MinValue; // 1
+        _ = i is <= int.MinValue;
+        _ = i is > int.MaxValue; // 2
+        _ = i is >= int.MaxValue;
+    }
+    public void M(uint i)
+    {
+        _ = i is < 0; // 3
+        _ = i is <= 0;
+        _ = i is > uint.MaxValue; // 4
+        _ = i is >= uint.MaxValue;
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (5,13): error CS8518: An expression of type 'int' can never match the provided pattern.
+                    //         _ = i is < int.MinValue; // 1
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is < int.MinValue").WithArguments("int").WithLocation(5, 13),
+                    // (7,13): error CS8518: An expression of type 'int' can never match the provided pattern.
+                    //         _ = i is > int.MaxValue; // 2
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is > int.MaxValue").WithArguments("int").WithLocation(7, 13),
+                    // (12,13): error CS8518: An expression of type 'uint' can never match the provided pattern.
+                    //         _ = i is < 0; // 3
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is < 0").WithArguments("uint").WithLocation(12, 13),
+                    // (14,13): error CS8518: An expression of type 'uint' can never match the provided pattern.
+                    //         _ = i is > uint.MaxValue; // 4
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is > uint.MaxValue").WithArguments("uint").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        public void IsRelationalPatternWithAlwaysMatchingRange()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        _ = i is > int.MinValue;
+        _ = i is >= int.MinValue; // 1
+        _ = i is < int.MaxValue;
+        _ = i is <= int.MaxValue; // 2
+    }
+    public void M(uint i)
+    {
+        _ = i is > 0;
+        _ = i is >= 0; // 3
+        _ = i is < uint.MaxValue;
+        _ = i is <= uint.MaxValue; // 4
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (6,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         _ = i is >= int.MinValue; // 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is >= int.MinValue").WithArguments("int").WithLocation(6, 13),
+                // (8,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         _ = i is <= int.MaxValue; // 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is <= int.MaxValue").WithArguments("int").WithLocation(8, 13),
+                // (13,13): warning CS8794: An expression of type 'uint' always matches the provided pattern.
+                //         _ = i is >= 0; // 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is >= 0").WithArguments("uint").WithLocation(13, 13),
+                // (15,13): warning CS8794: An expression of type 'uint' always matches the provided pattern.
+                //         _ = i is <= uint.MaxValue; // 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is <= uint.MaxValue").WithArguments("uint").WithLocation(15, 13)
+                );
+        }
+
+        [Fact]
+        public void IsImpossiblePatternKinds()
+        {
+            var source =
+@"public class C
+{
+    public void M(string s)
+    {
+        _ = s is (System.Delegate); // impossible parenthesized type pattern
+        _ = s is not _;             // impossible negated pattern
+        _ = s is ""a"" and ""b"";   // impossible conjunctive pattern
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (5,19): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'Delegate'.
+                //         _ = s is (System.Delegate); // impossible parenthesized type pattern
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "System.Delegate").WithArguments("string", "System.Delegate").WithLocation(5, 19),
+                // (6,13): error CS8518: An expression of type 'string' can never match the provided pattern.
+                //         _ = s is not _;             // impossible negated pattern
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not _").WithArguments("string").WithLocation(6, 13),
+                // (7,13): error CS8518: An expression of type 'string' can never match the provided pattern.
+                //         _ = s is "a" and "b";   // impossible conjunctive pattern
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"s is ""a"" and ""b""").WithArguments("string").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void IsNullableReferenceType_01()
+        {
+            var source =
+@"#nullable enable
+public class C {
+    public void M1(object o) {
+        var t = o is string? { };
+    }
+    public void M2(object o) {
+        var t = o is (string? { });
+    }
+    public void M3(object o) {
+        var t = o is string?;
+    }
+    public void M4(object o) {
+        var t = o is string? _;
+    }
+    public void M5(object o) {
+        var t = o is (string? _);
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (4,22): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
+                //         var t = o is string? { };
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(4, 22),
+                // (7,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? { })").WithArguments("object", "2").WithLocation(7, 22),
+                // (7,29): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(7, 29),
+                // (7,31): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 31),
+                // (10,22): error CS8650: It is not legal to use nullable reference type 'string?' in an is-type expression; use the underlying type 'string' instead.
+                //         var t = o is string?;
+                Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(10, 22),
+                // (13,30): error CS0103: The name '_' does not exist in the current context
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 30),
+                // (13,31): error CS1003: Syntax error, ':' expected
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(13, 31),
+                // (13,31): error CS1525: Invalid expression term ';'
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 31),
+                // (16,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? _)").WithArguments("object", "2").WithLocation(16, 22),
+                // (16,29): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(16, 29),
+                // (16,31): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(16, 31)
+                );
+        }
+
+        [Fact]
+        public void IsAlwaysPatternKinds()
+        {
+            var source =
+@"public class C
+{
+    public void M(string s)
+    {
+        _ = s is (_);                   // always parenthesized discard pattern
+        _ = s is not System.Delegate;   // always negated type pattern
+        _ = s is string or null;        // always disjunctive pattern
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (6,22): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'Delegate'.
+                //         _ = s is not System.Delegate;   // always negated type pattern
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "System.Delegate").WithArguments("string", "System.Delegate").WithLocation(6, 22),
+                // (7,13): warning CS8794: An expression of type 'string' always matches the provided pattern.
+                //         _ = s is string or null;        // always disjunctive pattern
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is string or null").WithArguments("string").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void SemanticModelForSwitchExpression()
+        {
+            var source =
+@"public class C
+{
+    void M(int i)
+    {
+        C x0 = i switch // 0
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        _ = i switch // 1
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x2 = i switch // 2
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x3 = i switch // 3
+        {
+            0 => new E(), // 3.1
+            1 => new F(), // 3.2
+            _ => throw null,
+        };
+        C x4 = i switch // 4
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x5 = i switch // 5
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x6 = i switch // 6
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        };
+        _ = (C)(i switch // 7
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 8
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 9
+        {
+            0 => new E(), // 9.1
+            1 => new F(), // 9.2
+            _ => throw null,
+        });
+        _ = (C)(i switch // 10
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 11
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 12
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        });
+    }
+}
+
+class A : C { }
+class B : C { }
+class D
+{
+    public static implicit operator D(C c) => throw null;
+    public static implicit operator D(short s) => throw null;
+}
+class E
+{
+    public static implicit operator C(E c) => throw null;
+}
+class F
+{
+    public static implicit operator C(F c) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (11,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch // 1
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(11, 15),
+                // (25,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 3.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(25, 18),
+                // (26,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 3.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(26, 18),
+                // (63,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 9.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(63, 18),
+                // (64,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 9.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(64, 18)
+                );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            void checkType(ExpressionSyntax expr, string expectedNaturalType, string expectedConvertedType, ConversionKind expectedConversionKind)
+            {
+                var typeInfo = model.GetTypeInfo(expr);
+                var conversion = model.GetConversion(expr);
+                Assert.Equal(expectedNaturalType, typeInfo.Type?.ToTestDisplayString());
+                Assert.Equal(expectedConvertedType, typeInfo.ConvertedType?.ToTestDisplayString());
+                Assert.Equal(expectedConversionKind, conversion.Kind);
+            }
+
+            var switches = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
+            for (int i = 0; i < switches.Length; i++)
+            {
+                var expr = switches[i];
+                switch (i)
+                {
+                    case 0:
+                    case 7:
+                        checkType(expr, null, "C", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 1:
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "B", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 2:
+                    case 8:
+                        checkType(expr, null, "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    case 3:
+                        checkType(expr, "?", "D", ConversionKind.NoConversion);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 9:
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 4:
+                    case 10:
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 5:
+                        checkType(expr, "C", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 11:
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 6:
+                    case 12:
+                        checkType(expr, "System.Int32", "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    default:
+                        Assert.False(true);
+                        break;
+                }
+            }
         }
     }
 }

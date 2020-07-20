@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -35,10 +36,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
                 solution, query, filter, cancellationToken).ConfigureAwait(false);
 
-            return declarations.SelectAsArray(d => d.Symbol);
+            return declarations;
         }
 
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
+        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithCustomQueryAsync(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (solution == null)
@@ -48,12 +49,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
-                var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+                var result = ArrayBuilder<ISymbol>.GetInstance();
                 foreach (var projectId in solution.ProjectIds)
                 {
                     var project = solution.GetProject(projectId);
@@ -80,10 +81,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
                 project, query, filter, cancellationToken).ConfigureAwait(false);
 
-            return declarations.SelectAsArray(d => d.Symbol);
+            return declarations;
         }
 
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
+        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithCustomQueryAsync(
             Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (project == null)
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
@@ -103,14 +104,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     var unfiltered = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
-                                                .Select(s => new SymbolAndProjectId(s, project.Id))
                                                 .ToImmutableArray();
 
                     return DeclarationFinder.FilterByCriteria(unfiltered, filter);
                 }
             }
 
-            return ImmutableArray<SymbolAndProjectId>.Empty;
+            return ImmutableArray<ISymbol>.Empty;
         }
     }
 }

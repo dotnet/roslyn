@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -29,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
             return GetSemanticClassificationsAsync(document, span);
@@ -1183,7 +1186,6 @@ class C
                 Class("C"));
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TypesOfClassMembers()
         {
@@ -2116,9 +2118,7 @@ q = from",
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DontColorThingsOtherThanFromInDeclaration()
-        {
-            await TestInExpressionAsync("fro ");
-        }
+            => await TestInExpressionAsync("fro ");
 
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2354,7 +2354,6 @@ struct Type<T>
             var provider = new SemanticClassificationViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
@@ -2366,7 +2365,7 @@ struct Type<T>
             }
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2381,17 +2380,16 @@ struct Type<T>
             var provider = new SemanticClassificationBufferTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
-            var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
+            var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
 
-            var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
-            var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
+            var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
+            var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
 
             Assert.Empty(tags);
             Assert.NotEmpty(allTags);
@@ -3292,12 +3290,54 @@ class X
                 Escape(@"}}"));
         }
 
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape1()
+        {
+            await TestInMethodAsync(@"var goo = '\n';",
+                Keyword("var"),
+                Escape(@"\n"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape2()
+        {
+            await TestInMethodAsync(@"var goo = '\\';",
+                Keyword("var"),
+                Escape(@"\\"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape3()
+        {
+            await TestInMethodAsync(@"var goo = '\'';",
+                Keyword("var"),
+                Escape(@"\'"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape5()
+        {
+            await TestInMethodAsync(@"var goo = '""';",
+                Keyword("var"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape4()
+        {
+            await TestInMethodAsync(@"var goo = '\u000a';",
+                Keyword("var"),
+                Escape(@"\u000a"));
+        }
+
         [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestDirectiveStringLiteral()
-        {
-            await TestInMethodAsync(@"#line 1 ""a\b""");
-        }
+            => await TestInMethodAsync(@"#line 1 ""a\b""");
 
         [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -3611,6 +3651,316 @@ class X
                 Namespace("OtherScope"),
                 TypeParameter("T"),
                 Keyword("notnull"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NonDiscardVariableDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        var _ = int.Parse("""");
+    }
+}",
+            Keyword("var"),
+            Static("Parse"),
+            Method("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NonDiscardVariableDeclarationMultipleDeclarators()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int i = 1, _ = 1;
+        int _ = 2, j = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        _ = int.Parse("""");
+    }
+}",
+            Keyword("_"),
+            Static("Parse"),
+            Method("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInOutDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out var _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("var"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInOutAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (x, _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (int x, int _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x is int _;
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        switch(x)
+        {
+            case int _:
+                return true;
+            default:
+                return false;
+        }
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitchPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x switch
+        {
+            _ => return true;
+        };
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UnusedUnderscoreParameterInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UsedUnderscoreParameterInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => _;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Parameter("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (int _, int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambdaWithInferredType()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (_, _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NativeInteger()
+        {
+            await TestInMethodAsync(
+                code: @"nint i = 0; nuint i2 = 0;",
+                expected: Classifications(Keyword("nint"), Keyword("nuint")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotNativeInteger()
+        {
+            await TestInMethodAsync("nint", "M",
+                code: @"nint i = 0;",
+                expected: Classifications(Class("nint")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotNativeUnsignedInteger()
+        {
+            await TestInMethodAsync("nuint", "M",
+                code: @"nuint i = 0;",
+                expected: Classifications(Class("nuint")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task StaticBoldingMethodName()
+        {
+            await TestAsync(
+@"class C
+{
+    public static void Method()
+    {
+        System.Action action = Method;
+    }
+}",
+            Namespace("System"),
+            Delegate("Action"),
+            Method("Method"),
+            Static("Method"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task StaticBoldingMethodNameNestedInNameof()
+        {
+            await TestAsync(
+@"class C
+{
+    public static void Method()
+    {
+        _ = nameof(Method);
+    }
+}",
+            Keyword("_"),
+            Keyword("nameof"),
+            Static("Method"),
+            Method("Method"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task BoldingMethodNameStaticAndNot()
+        {
+            await TestAsync(
+    @"class C
+{
+    public static void Method()
+    {
+        
+    }
+
+    public void Method(int x) 
+    {
+
+    }
+
+    public void Test() {
+        _ = nameof(Method);
+    }
+}",
+            Keyword("_"),
+            Keyword("nameof"),
+            Static("Method"),
+            Method("Method"));
         }
     }
 }

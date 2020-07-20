@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -10,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class WorkspaceChangedEventTests
         <WpfTheory>
         <CombinatorialData>
-        Public Async Sub AddingASingleSourceFileRaisesDocumentAdded(addInBatch As Boolean)
+        Public Async Function AddingASingleSourceFileRaisesDocumentAdded(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
                 Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
@@ -25,10 +27,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Equal(environment.Workspace.CurrentSolution.Projects.Single().DocumentIds.Single(), change.DocumentId)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Async Sub AddingTwoDocumentsInBatchRaisesProjectChanged()
+        Public Async Function AddingTwoDocumentsInBatchRaisesProjectChanged() As Task
             Using environment = New TestEnvironment()
                 Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
@@ -44,11 +46,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Null(change.DocumentId)
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData>
-        Public Async Sub AddingASingleAdditionalFileInABatchRaisesDocumentAdded(addInBatch As Boolean)
+        Public Async Function AddingASingleAdditionalFileInABatchRaisesDocumentAdded(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
                 Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
@@ -63,11 +65,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Equal(environment.Workspace.CurrentSolution.Projects.Single().AdditionalDocumentIds.Single(), change.DocumentId)
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData>
-        Public Async Sub AddingASingleMetadataReferenceRaisesProjectChanged(addInBatch As Boolean)
+        Public Async Function AddingASingleMetadataReferenceRaisesProjectChanged(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
                 Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
@@ -82,11 +84,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(project.Id, change.ProjectId)
                 Assert.Null(change.DocumentId)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(34309, "https://github.com/dotnet/roslyn/issues/34309")>
-        Public Async Sub StartingAndEndingBatchWithNoChangesDoesNothing()
+        Public Async Function StartingAndEndingBatchWithNoChangesDoesNothing() As Task
             Using environment = New TestEnvironment()
                 Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
@@ -97,6 +99,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Empty(Await workspaceChangeEvents.GetNewChangeEventsAsync())
                 Assert.Same(startingSolution, environment.Workspace.CurrentSolution)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

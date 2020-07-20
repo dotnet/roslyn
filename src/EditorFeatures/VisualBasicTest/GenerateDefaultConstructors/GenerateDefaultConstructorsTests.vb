@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -821,9 +823,10 @@ MustInherit Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")>
         <WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Async Function TestGenerateConstructorFromPublicConstructor2() As Task
+        Public Async Function TestGenerateConstructorInAbstractClassFromPublicConstructor() As Task
             Await TestInRegularAndScriptAsync(
 <Text>MustInherit Class C
     Inherits B[||]
@@ -836,7 +839,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>MustInherit Class C
     Inherits B
 
-    Public Sub New(x As Integer)
+    Protected Sub New(x As Integer)
         MyBase.New(x)
     End Sub
 End Class

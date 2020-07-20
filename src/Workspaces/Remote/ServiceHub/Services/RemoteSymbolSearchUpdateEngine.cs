@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,17 +11,15 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine :
-        ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
+    internal partial class RemoteSymbolSearchUpdateEngine : ServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
     {
-        private readonly SymbolSearchUpdateEngine _updateEngine;
+        private readonly ISymbolSearchUpdateEngine _updateEngine;
 
         public RemoteSymbolSearchUpdateEngine(
             Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
-            _updateEngine = new SymbolSearchUpdateEngine(
-                logService: this, progressService: this);
+            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess(logService: this, progressService: this);
 
             StartService();
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // In non-test scenarios, we're not cancellable.  Our lifetime will simply be that
                 // of the OOP process itself.  i.e. when it goes away, it will just tear down our
                 // update-loop itself.  So we don't need any additional controls over it.
-                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, CancellationToken.None);
+                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
             }, CancellationToken.None);
         }
 
@@ -71,22 +71,22 @@ namespace Microsoft.CodeAnalysis.Remote
         #region Messages to forward from here to VS
 
         public Task LogExceptionAsync(string exception, string text)
-            => this.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
 
         public Task LogInfoAsync(string text)
-            => this.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseStartedAsync(string title)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseSucceededAsync()
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), Array.Empty<object>(), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseCanceledAsync()
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), Array.Empty<object>(), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseFailedAsync(string message)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
 
         #endregion
     }

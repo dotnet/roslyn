@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -102,9 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected void UpdateVersion_NoLock()
-        {
-            _lastVersion++;
-        }
+            => _lastVersion++;
 
         public void Dispose()
         {
@@ -136,14 +136,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public void OnDataAddedOrChanged(object data)
-            {
-                _sources.OnDataAddedOrChanged(data, _tableSource);
-            }
+                => _sources.OnDataAddedOrChanged(data, _tableSource);
 
             public bool OnDataRemoved(object data)
-            {
-                return _sources.OnDataRemoved(data, _tableSource);
-            }
+                => _sources.OnDataRemoved(data, _tableSource);
 
             public ImmutableArray<TItem> GetItems()
             {
@@ -200,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab) => false;
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate) => false;
 
                 public override bool TryGetValue(int index, string columnName, out object content)
                 {

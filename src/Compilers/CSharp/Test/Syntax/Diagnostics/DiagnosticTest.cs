@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ErrorCode.Void,
                 ErrorCode.Unknown,
                 ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
+
+                // The following error codes are reserved by feature branches
+                ErrorCode.ERR_8813,
+                ErrorCode.ERR_8814,
+                ErrorCode.ERR_8815,
+                ErrorCode.ERR_8816,
             };
             foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
             {
@@ -270,9 +278,9 @@ class X
                         case ErrorCode.WRN_NullReferenceReturn:
                         case ErrorCode.WRN_NullReferenceArgument:
                         case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
-                        case ErrorCode.WRN_NullReferenceIterationVariable:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
@@ -302,15 +310,28 @@ class X
                         case ErrorCode.ERR_FeatureInPreview:
                         case ErrorCode.WRN_ThrowPossibleNull:
                         case ErrorCode.WRN_UnboxPossibleNull:
-                        case ErrorCode.WRN_ConditionalAccessMayReturnNull:
-                        case ErrorCode.WRN_AsOperatorMayReturnNull:
-                        case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
-                        case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
-                        case ErrorCode.WRN_ExpressionMayIntroduceNullT:
+                        case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                        case ErrorCode.WRN_ShouldNotReturn:
+                        case ErrorCode.WRN_DoesNotReturnMismatch:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_ConstOutOfRangeChecked:
+                        case ErrorCode.WRN_MemberNotNull:
+                        case ErrorCode.WRN_MemberNotNullWhen:
+                        case ErrorCode.WRN_MemberNotNullBadMember:
+                        case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                        case ErrorCode.WRN_GeneratorFailedDuringGeneration:
+                        case ErrorCode.WRN_ParameterDisallowsNull:
+                        case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
+                        case ErrorCode.WRN_IsPatternAlways:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -353,6 +374,11 @@ class X
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
+                    ErrorCode.WRN_GeneratorFailedDuringInitialization,
+                    ErrorCode.WRN_GeneratorFailedDuringGeneration,
+                    ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
+                    ErrorCode.WRN_IsPatternAlways,
+                    ErrorCode.WRN_ConstOutOfRangeChecked,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
@@ -2247,6 +2273,35 @@ public class Test
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
+        }
+
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
+        [Fact]
+        public void GetDiagnosticsCalledTwice_GetEmitDiagnostics()
+        {
+            var text = @"
+interface IMyEnumerator { }
+
+public class Test
+{
+    static IMyEnumerator Goo()
+    {
+        yield break;
+    }
+
+    public static int Main()
+    {
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(text);
+            var expected = new DiagnosticDescription[] {
+                // (6,26): error CS1624: The body of 'Test.Goo()' cannot be an iterator block because 'IMyEnumerator' is not an iterator interface type
+                //     static IMyEnumerator Goo()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "Goo").WithArguments("Test.Goo()", "IMyEnumerator").WithLocation(6, 26)
+            };
+            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

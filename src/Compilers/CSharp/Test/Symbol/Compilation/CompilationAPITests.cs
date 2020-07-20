@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -24,6 +26,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using System.Security.Cryptography;
 using static Roslyn.Test.Utilities.TestHelpers;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -308,7 +311,7 @@ namespace A.B {
             listSyntaxTree.Add(t1);
 
             // System.dll
-            listRef.Add(TestReferences.NetFx.v4_0_30319.System.WithEmbedInteropTypes(true));
+            listRef.Add(Net451.System.WithEmbedInteropTypes(true));
             var ops = TestOptions.ReleaseExe;
             // Create Compilation with Option is not null
             var comp = CSharpCompilation.Create("Compilation", listSyntaxTree, listRef, ops);
@@ -441,8 +444,8 @@ namespace A.B {
             var opt = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
             // Create Compilation takes two args
             var comp = CSharpCompilation.Create("Compilation", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.System;
             var ref3 = new TestMetadataReference(fullPath: @"c:\xml.bms");
             var ref4 = new TestMetadataReference(fullPath: @"c:\aaa.dll");
             // Add a new empty item 
@@ -543,18 +546,18 @@ namespace A.B {
             var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(files: new Dictionary<string, PortableExecutableReference>()
                 {
-                    { @"a.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
-                    { @"b.dll", TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic },
+                    { @"a.dll", Net451.MicrosoftCSharp },
+                    { @"b.dll", Net451.MicrosoftVisualBasic },
                 })));
 
             c.VerifyDiagnostics();
 
             // same containing script file name and directive string
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[0]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[1]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd2[0]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2[1]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd3[0]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd1[0]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd1[1]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd2[0]));
+            Assert.Same(Net451.MicrosoftVisualBasic, c.GetDirectiveReference(rd2[1]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd3[0]));
 
             // different script name or directive string:
             Assert.Null(c.GetDirectiveReference(rd4[0]));
@@ -596,35 +599,35 @@ namespace A.B {
 
             // use exported type with invalid alias
             comp = CSharpCompilation.Create("APP2",
-             options: TestOptions.ReleaseDll,
+             options: TestOptions.ReleaseExe,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
-                    options: TestOptions.Regular) },
+                    options: TestOptions.RegularPreview) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
             comp.VerifyDiagnostics(
-                // (1,19): error CS1002: ; expected
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,20): error CS1031: Type expected
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS8124: Tuple must contain at least two elements.
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "").WithLocation(1, 61),
                 // (1,61): error CS1026: ) expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+                // (1,61): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
-                // (1,1): hidden CS8020: Unused extern alias.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61),
+                // (1,14): error CS8112: Local function 'Alias()' must declare a body because it is not marked 'static extern'.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,8): error CS0246: The type or namespace name 'alias' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias").WithArguments("alias").WithLocation(1, 8),
+                // (1,14): warning CS0626: Method, operator, or accessor 'Alias()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,14): warning CS8321: The local function 'Alias' is declared but never used
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Alias").WithArguments("Alias").WithLocation(1, 14)
                 );
         }
 
@@ -664,7 +667,7 @@ namespace A.B {
 
             // use exported type with invalid alias
             comp = CSharpCompilation.Create("APP2",
-             options: TestOptions.ReleaseDll,
+             options: TestOptions.ReleaseExe,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
                     options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
@@ -672,30 +675,36 @@ namespace A.B {
              );
 
             comp.VerifyDiagnostics(
-                // (1,19): error CS1002: ; expected
+                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("top-level statements").WithLocation(1, 1),
+                // (1,1): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7.0").WithLocation(1, 19),
-                // (1,20): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(1, 1),
+                // (1,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Alias").WithArguments("local functions", "7.0").WithLocation(1, 14),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS8124: Tuple must contain at least two elements.
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "").WithLocation(1, 61),
                 // (1,61): error CS1026: ) expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+                // (1,61): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
-                // (1,1): hidden CS8020: Unused extern alias.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61),
+                // (1,14): error CS8112: Local function 'Alias()' must declare a body because it is not marked 'static extern'.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,8): error CS0246: The type or namespace name 'alias' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias").WithArguments("alias").WithLocation(1, 8),
+                // (1,14): warning CS0626: Method, operator, or accessor 'Alias()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,14): warning CS8321: The local function 'Alias' is declared but never used
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Alias").WithArguments("Alias").WithLocation(1, 14)
                 );
         }
 
@@ -910,7 +919,7 @@ class D
 
             // Create compilation with args is disordered
             CSharpCompilation comp1 = CSharpCompilation.Create(assemblyName: "Compilation", syntaxTrees: null, options: TestOptions.ReleaseDll, references: null);
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var ref1 = Net451.mscorlib;
             var listRef = new List<MetadataReference>();
             listRef.Add(ref1);
             listRef.Add(ref1);
@@ -1129,8 +1138,8 @@ var a = new C2();
 
             var compRef = vbComp.ToMetadataReference(embedInteropTypes: true);
 
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.System;
 
             // Add CompilationReference
             comp = CSharpCompilation.Create(
@@ -1271,7 +1280,13 @@ var a = new C2();
             Assert.Throws<NullReferenceException>(
             delegate
             {
-                comp.GetCompilationNamespace(namespaceSymbol: null);
+                comp.GetCompilationNamespace(namespaceSymbol: (INamespaceSymbol)null);
+            });
+
+            Assert.Throws<NullReferenceException>(
+            delegate
+            {
+                comp.GetCompilationNamespace(namespaceSymbol: (NamespaceSymbol)null);
             });
         }
 
@@ -1348,10 +1363,10 @@ var a = new C2();
         [Fact, WorkItem(537574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537574")]
         public void NegReference2()
         {
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System;
-            var ref3 = TestReferences.NetFx.v4_0_30319.System_Data;
-            var ref4 = TestReferences.NetFx.v4_0_30319.System_Xml;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.System;
+            var ref3 = Net451.SystemData;
+            var ref4 = Net451.SystemXml;
             var comp = CSharpCompilation.Create("Compilation");
 
             comp = comp.AddReferences(ref1, ref1);
@@ -1380,16 +1395,16 @@ var a = new C2();
             // Add a new invalid item
             comp = comp.AddReferences(ref1);
             Assert.Equal(1, comp.ExternalReferences.Length);
-            // Replace an non-existing item with another invalid item
+            // Replace a non-existing item with another invalid item
             Assert.Throws<ArgumentException>(() => comp = comp.ReplaceReference(MscorlibRef, ref1));
             Assert.Equal(1, comp.ExternalReferences.Length);
         }
 
-        // Replace an non-existing item with null
+        // Replace a non-existing item with null
         [Fact, WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
         public void NegReference4()
         {
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var ref1 = Net451.mscorlib;
             var comp = CSharpCompilation.Create("Compilation");
 
             Assert.Throws<ArgumentException>(
@@ -1410,8 +1425,8 @@ var a = new C2();
         [Fact, WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")]
         public void NegReference5()
         {
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System_Xml;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.SystemXml;
             var comp = CSharpCompilation.Create("Compilation");
             Assert.Throws<ArgumentException>(
             delegate
@@ -1421,11 +1436,11 @@ var a = new C2();
 
 
             SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree("Using System;");
-            // Replace an non-existing item with another valid item and disorder the args
+            // Replace a non-existing item with another valid item and disorder the args
             Assert.Throws<ArgumentException>(
             delegate
             {
-                comp.ReplaceReference(newReference: TestReferences.NetFx.v4_0_30319.System, oldReference: ref2);
+                comp.ReplaceReference(newReference: Net451.System, oldReference: ref2);
             });
             Assert.Equal(0, comp.SyntaxTrees.Length);
             Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(newTree: SyntaxFactory.ParseSyntaxTree("Using System;"), oldTree: t1));
@@ -1475,7 +1490,7 @@ var a = new C2();
         }
 
         [WorkItem(538168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538168")]
-        // Replace an non-existing item with another valid item and disorder the args
+        // Replace a non-existing item with another valid item and disorder the args
         [Fact]
         public void NegTree2()
         {
@@ -1600,7 +1615,7 @@ class A
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            Assert.Same(CSharpCompilation.EntryPoint.None, compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
         }
 
         [Fact]
@@ -1616,7 +1631,7 @@ class A
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            Assert.Same(CSharpCompilation.EntryPoint.None, compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
         }
 
         [Fact]
@@ -1833,7 +1848,7 @@ class B
         [Fact, WorkItem(750437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750437")]
         public void ConflictingAliases()
         {
-            var alias = TestReferences.NetFx.v4_0_30319.System.WithAliases(new[] { "alias" });
+            var alias = Net451.System.WithAliases(new[] { "alias" });
 
             var text =
 @"extern alias alias;
@@ -2068,6 +2083,44 @@ class C { }", options: TestOptions.Script);
             Assert.False(arc.ReferenceManagerEquals(ars));
         }
 
+        [Fact]
+        public void ReferenceManagerReuse_WithScriptCompilationInfo()
+        {
+            // Note: The following results would change if we optimized sharing more: https://github.com/dotnet/roslyn/issues/43397
+
+            var c1 = CSharpCompilation.CreateScriptCompilation("c1");
+            Assert.NotNull(c1.ScriptCompilationInfo);
+            Assert.Null(c1.ScriptCompilationInfo.PreviousScriptCompilation);
+
+            var c2 = c1.WithScriptCompilationInfo(null);
+            Assert.Null(c2.ScriptCompilationInfo);
+            Assert.True(c2.ReferenceManagerEquals(c1));
+
+            var c3 = c2.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: null, returnType: typeof(int), globalsType: null));
+            Assert.NotNull(c3.ScriptCompilationInfo);
+            Assert.Null(c3.ScriptCompilationInfo.PreviousScriptCompilation);
+            Assert.True(c3.ReferenceManagerEquals(c2));
+
+            var c4 = c3.WithScriptCompilationInfo(null);
+            Assert.Null(c4.ScriptCompilationInfo);
+            Assert.True(c4.ReferenceManagerEquals(c3));
+
+            var c5 = c4.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: c1, returnType: typeof(int), globalsType: null));
+            Assert.False(c5.ReferenceManagerEquals(c4));
+
+            var c6 = c5.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: c1, returnType: typeof(bool), globalsType: null));
+            Assert.True(c6.ReferenceManagerEquals(c5));
+
+            var c7 = c6.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: c2, returnType: typeof(bool), globalsType: null));
+            Assert.False(c7.ReferenceManagerEquals(c6));
+
+            var c8 = c7.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: null, returnType: typeof(bool), globalsType: null));
+            Assert.False(c8.ReferenceManagerEquals(c7));
+
+            var c9 = c8.WithScriptCompilationInfo(null);
+            Assert.True(c9.ReferenceManagerEquals(c8));
+        }
+
         private sealed class EvolvingTestReference : PortableExecutableReference
         {
             private readonly IEnumerator<Metadata> _metadataSequence;
@@ -2149,8 +2202,8 @@ class C { }", options: TestOptions.Script);
         {
             var references = new MetadataReference[]
             {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
-                TestReferences.NetFx.v4_0_30319.System,
+                Net451.mscorlib,
+                Net451.System,
                 TestReferences.NetFx.silverlight_v5_0_5_0.System
             };
 
@@ -2161,7 +2214,7 @@ class C { }", options: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System.dll' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
-                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll", "System.v5.0.5.0_silverlight.dll"));
+                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll (net451)", "System.v5.0.5.0_silverlight.dll"));
 
             var appConfig = new MemoryStream(Encoding.UTF8.GetBytes(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -2192,7 +2245,7 @@ using System.Runtime.Versioning;
 public class C { public static FrameworkName Goo() { return null; }}";
             var libComp = CreateEmptyCompilation(
                 libSource,
-                references: new[] { MscorlibRef, TestReferences.NetFx.v4_0_30319.System },
+                references: new[] { MscorlibRef, Net451.System },
                 options: TestOptions.ReleaseDll);
 
             libComp.VerifyDiagnostics();
@@ -2202,8 +2255,8 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             var references = new[]
             {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
-                TestReferences.NetFx.v4_0_30319.System,
+                Net451.mscorlib,
+                Net451.System,
                 TestReferences.NetFx.silverlight_v5_0_5_0.System,
                 mdRef
             };
@@ -2218,7 +2271,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             c1.VerifyDiagnostics(
                 // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System.dll' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
-                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll", "System.v5.0.5.0_silverlight.dll"),
+                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll (net451)", "System.v5.0.5.0_silverlight.dll"),
                 // error CS7069: Reference to type 'System.Runtime.Versioning.FrameworkName' claims it is defined in 'System', but it could not be found
                 Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "C.Goo").WithArguments(
                     "System.Runtime.Versioning.FrameworkName", "System"));
@@ -2249,7 +2302,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         public void GetMetadataReferenceAPITest()
         {
             var comp = CSharpCompilation.Create("Compilation");
-            var metadata = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var metadata = Net451.mscorlib;
             comp = comp.AddReferences(metadata);
             var assemblySmb = comp.GetReferencedAssemblySymbol(metadata);
             var reference = comp.GetMetadataReference(assemblySmb);
@@ -2259,6 +2312,20 @@ public class C { public static FrameworkName Goo() { return null; }}";
             comp2 = comp2.AddReferences(metadata);
             var reference2 = comp2.GetMetadataReference(assemblySmb);
             Assert.NotNull(reference2);
+        }
+
+        [Fact]
+        [WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")]
+        public void GetMetadataReference_VisualBasicSymbols()
+        {
+            var comp = CreateCompilation("");
+
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+            var assembly = (IAssemblySymbol)vbComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value;
+
+            Assert.Null(comp.GetMetadataReference(assembly));
+            Assert.Null(comp.GetMetadataReference(vbComp.Assembly));
+            Assert.Null(comp.GetMetadataReference((IAssemblySymbol)null));
         }
 
         [Fact]
@@ -2351,6 +2418,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var arrayType = comp.CreateArrayTypeSymbol(elementType);
             Assert.Equal(1, arrayType.Rank);
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementType.NullableAnnotation);
 
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, default));
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, 0));
@@ -2358,6 +2426,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             arrayType = comp.CreateArrayTypeSymbol(elementType, 1, default);
             Assert.Equal(1, arrayType.Rank);
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementType.NullableAnnotation);
 
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: default));
             Assert.Throws<ArgumentException>(() => comp.CreateArrayTypeSymbol(elementType, rank: 0));
@@ -2365,6 +2434,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: default);
             Assert.Equal(1, arrayType.Rank);
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementType.NullableAnnotation);
         }
 
         [Fact]
@@ -2375,10 +2445,15 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var elementType = comp.GetSpecialType(SpecialType.System_Object);
 
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType).ElementType.NullableAnnotation);
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.None).ElementType.NullableAnnotation);
             Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.None).ElementType.NullableAnnotation);
             Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.NotAnnotated).ElementType.NullableAnnotation);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated).ElementType.NullableAnnotation);
         }
 
         [Fact]
@@ -2394,7 +2469,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType_IncorrectLengths_IsReadOnly()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateAnonymousTypeSymbol(
                     ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
@@ -2406,7 +2481,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType_IncorrectLengths_Locations()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateAnonymousTypeSymbol(
                     ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
@@ -2418,7 +2493,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType_WritableProperty()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateAnonymousTypeSymbol(
                     ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
@@ -2430,7 +2505,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType_NullLocations()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             Assert.Throws<ArgumentNullException>(() =>
                 compilation.CreateAnonymousTypeSymbol(
                     ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
@@ -2472,7 +2547,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType_NullArgument4()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             Assert.Throws<ArgumentNullException>(() =>
                 compilation.CreateAnonymousTypeSymbol(
                         ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
@@ -2482,7 +2557,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType1()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             var type = compilation.CreateAnonymousTypeSymbol(
                         ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32)),
                         ImmutableArray.Create("m1"));
@@ -2497,7 +2572,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType_Locations()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             var tree = CSharpSyntaxTree.ParseText("class C { }");
             var loc1 = Location.Create(tree, new TextSpan(0, 1));
             var loc2 = Location.Create(tree, new TextSpan(1, 1));
@@ -2518,7 +2593,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         [Fact]
         public void CreateAnonymousType2()
         {
-            var compilation = CSharpCompilation.Create("HelloWorld");
+            var compilation = (Compilation)CSharpCompilation.Create("HelloWorld");
             var type = compilation.CreateAnonymousTypeSymbol(
                         ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
                         ImmutableArray.Create("m1", "m2"));
@@ -2585,13 +2660,18 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Throws<ArgumentException>(() => comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)));
 
             type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
-            Assert.Equal("<anonymous type: System.Object P, System.String Q>", type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("<anonymous type: System.Object! P, System.String? Q>", type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated }, GetAnonymousTypeNullableAnnotations(type));
         }
 
         private static ImmutableArray<CodeAnalysis.NullableAnnotation> GetAnonymousTypeNullableAnnotations(ITypeSymbol type)
         {
-            return type.GetMembers().OfType<IPropertySymbol>().SelectAsArray(p => p.NullableAnnotation);
+            return type.GetMembers().OfType<IPropertySymbol>().SelectAsArray(p =>
+            {
+                var result = p.Type.NullableAnnotation;
+                Assert.Equal(result, p.NullableAnnotation);
+                return result;
+            });
         }
 
         [Fact]
@@ -2612,6 +2692,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var type = genericType.Construct(typeArguments, default);
             Assert.Equal("Pair<System.Object, System.String>", type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None }, type.TypeArgumentNullableAnnotations);
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None }, type.TypeArgumentNullableAnnotations());
 
             Assert.Throws<ArgumentException>(() => genericType.Construct(typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
             Assert.Throws<ArgumentException>(() => genericType.Construct(ImmutableArray.Create<ITypeSymbol>(null, null), default));
@@ -2619,6 +2700,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated));
             Assert.Equal("Pair<System.Object?, System.String!>", type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated }, type.TypeArgumentNullableAnnotations);
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated }, type.TypeArgumentNullableAnnotations());
 
             // Type arguments from VB.
             comp = CreateVisualBasicCompilation("");
@@ -2645,6 +2727,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var type = genericMethod.Construct(typeArguments, default);
             Assert.Equal("void Program.M<System.Object, System.String>()", type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None }, type.TypeArgumentNullableAnnotations);
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None }, type.TypeArgumentNullableAnnotations());
 
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(ImmutableArray.Create<ITypeSymbol>(null, null), default));
@@ -2652,6 +2735,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             type = genericMethod.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated));
             Assert.Equal("void Program.M<System.Object?, System.String!>()", type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated }, type.TypeArgumentNullableAnnotations);
+            AssertEx.Equal(new[] { CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated }, type.TypeArgumentNullableAnnotations());
 
             // Type arguments from VB.
             comp = CreateVisualBasicCompilation("");

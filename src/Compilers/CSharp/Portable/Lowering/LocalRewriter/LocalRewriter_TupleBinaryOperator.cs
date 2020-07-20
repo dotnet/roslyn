@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -36,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private bool IsLikeTupleExpression(BoundExpression expr, out BoundTupleExpression tuple)
+        private bool IsLikeTupleExpression(BoundExpression expr, [NotNullWhen(true)] out BoundTupleExpression? tuple)
         {
             switch (expr)
             {
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitTupleLiteral }, Operand: var o }:
                     // The compiler produces the implicit tuple literal conversion as an identity conversion for
                     // the benefit of the semantic model only.
-                    Debug.Assert(expr.Type == (object)o.Type || expr.Type.Equals(o.Type, TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(expr.Type == (object?)o.Type || expr.Type is { } && expr.Type.Equals(o.Type, TypeCompareKind.AllIgnoreOptions));
                     return IsLikeTupleExpression(o, out tuple);
                 case BoundConversion { Conversion: { Kind: var kind } c, Operand: var o } conversion when
                         c.IsTupleConversion || c.IsTupleLiteralConversion:
@@ -77,13 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         var newArguments = builder.ToImmutableAndFree();
                         tuple = new BoundConvertedTupleLiteral(
-                            tuple.Syntax, sourceTuple: null, wasTargetTyped: true, newArguments, ImmutableArray<string>.Empty,
+                            tuple.Syntax, sourceTuple: null, wasTargetTyped: true, newArguments, ImmutableArray<string?>.Empty,
                             ImmutableArray<bool>.Empty, conversion.Type, conversion.HasErrors);
                         return true;
                     }
                 case BoundConversion { Conversion: { Kind: var kind }, Operand: var o } when
                         (kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable) &&
-                        expr.Type.IsNullableType() && expr.Type.StrippedType().Equals(o.Type, TypeCompareKind.AllIgnoreOptions):
+                        expr.Type is { } exprType && exprType.IsNullableType() && exprType.StrippedType().Equals(o.Type, TypeCompareKind.AllIgnoreOptions):
                     return IsLikeTupleExpression(o, out tuple);
                 default:
                     tuple = null;
@@ -100,10 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We push an implicit tuple converion down to its elements
                 var syntax = boundConversion.Syntax;
-                var destElementTypes = expr.Type.GetElementTypesOfTupleOrCompatible();
+                Debug.Assert(expr.Type is { });
+                var destElementTypes = expr.Type.TupleElementTypesWithAnnotations;
                 var numElements = destElementTypes.Length;
-                TypeSymbol srcType = (TupleTypeSymbol)boundConversion.Operand.Type;
-                var srcElementFields = srcType.TupleElements;
+                Debug.Assert(boundConversion.Operand.Type is { });
+                var srcElementFields = boundConversion.Operand.Type.TupleElements;
                 var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
                 var savedTuple = DeferSideEffectingArgumentToTempForTupleEquality(LowerConversions(boundConversion.Operand), initEffects, temps);
                 var elementConversions = conversion.UnderlyingConversions;
@@ -117,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new BoundConvertedTupleLiteral(
-                    syntax, sourceTuple: null, wasTargetTyped: true, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string>.Empty,
+                    syntax, sourceTuple: null, wasTargetTyped: true, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string?>.Empty,
                     ImmutableArray<bool>.Empty, expr.Type, expr.HasErrors);
             }
 
@@ -138,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operators.InfoKind == TupleBinaryOperatorInfoKind.Multiple)
             {
                 expr = PushDownImplicitTupleConversion(expr, initEffects, temps);
-                if (IsLikeTupleExpression(expr, out BoundTupleExpression tuple))
+                if (IsLikeTupleExpression(expr, out BoundTupleExpression? tuple))
                 {
                     // Example:
                     // in `(expr1, expr2) == (..., ...)` we need to save `expr1` and `expr2`
@@ -153,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var newArguments = builder.ToImmutableAndFree();
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, sourceTuple: null, wasTargetTyped: false, newArguments, ImmutableArray<string>.Empty,
+                        tuple.Syntax, sourceTuple: null, wasTargetTyped: false, newArguments, ImmutableArray<string?>.Empty,
                         ImmutableArray<bool>.Empty, tuple.Type, tuple.HasErrors);
                 }
             }
@@ -196,9 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var deferredOperand = DeferSideEffectingArgumentToTempForTupleEquality(conv.Operand, effects, temps, conv.ExplicitCastInCode || enclosingConversionWasExplicit);
                         return conv.UpdateOperand(deferredOperand);
                     }
-                case BoundObjectCreationExpression { Arguments: { Length: 0 } } _ when expr.Type.IsNullableType():
+                case BoundObjectCreationExpression { Arguments: { Length: 0 }, Type: { } eType } _ when eType.IsNullableType():
                     return new BoundLiteral(expr.Syntax, ConstantValue.Null, expr.Type);
-                case BoundObjectCreationExpression { Arguments: { Length: 1 } } creation when expr.Type.IsNullableType():
+                case BoundObjectCreationExpression { Arguments: { Length: 1 }, Type: { } eType } creation when eType.IsNullableType():
                     {
                         var deferredOperand = DeferSideEffectingArgumentToTempForTupleEquality(
                             creation.Arguments[0], effects, temps, enclosingConversionWasExplicit: true);
@@ -206,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: expr.Syntax, operand: deferredOperand,
                             conversion: Conversion.MakeNullableConversion(ConversionKind.ImplicitNullable, Conversion.Identity),
                             @checked: false, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null,
-                            type: expr.Type, hasErrors: expr.HasErrors);
+                            type: eType, hasErrors: expr.HasErrors);
                     }
                 default:
                     // When in doubt, evaluate early to a temp.
@@ -225,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.SwitchExpression:        // a switch expression must have its arms converted
                     case ConversionKind.StackAllocToPointerType: // a stack alloc is not well-defined without an enclosing conversion
                     case ConversionKind.StackAllocToSpanType:
+                    case ConversionKind.ObjectCreation:
                         return true;
                     default:
                         return false;
@@ -343,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void MakeNullableParts(BoundExpression expr, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> innerEffects,
             ArrayBuilder<BoundExpression> outerEffects, bool saveHasValue, out BoundExpression hasValue, out BoundExpression value, out bool isNullable)
         {
-            isNullable = !(expr is BoundTupleExpression) && expr.Type.IsNullableType();
+            isNullable = !(expr is BoundTupleExpression) && expr.Type is { } && expr.Type.IsNullableType();
             if (!isNullable)
             {
                 hasValue = MakeBooleanConstant(expr.Syntax, true);
@@ -355,6 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Optimization for nullable expressions that are always null
             if (NullableNeverHasValue(expr))
             {
+                Debug.Assert(expr.Type is { });
                 hasValue = MakeBooleanConstant(expr.Syntax, false);
                 // Since there is no value in this nullable expression, we don't need to construct a `.GetValueOrDefault()`, `default(T)` will suffice
                 value = new BoundDefaultExpression(expr.Syntax, expr.Type.StrippedType());
@@ -384,12 +392,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression makeNullableHasValue(BoundExpression expr)
             {
                 // Optimize conversions where we can use the HasValue of the underlying
+                Debug.Assert(expr.Type is { });
                 switch (expr)
                 {
                     case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
                         return makeNullableHasValue(o);
                     case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var underlying }, Operand: var o }
-                            when expr.Type.IsNullableType() && o.Type.IsNullableType() && !underlying[0].IsUserDefined:
+                            when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && !underlying[0].IsUserDefined:
                         // Note that a user-defined conversion from K to Nullable<R> which may translate
                         // a non-null K to a null value gives rise to a lifted conversion from Nullable<K> to Nullable<R> with the same property.
                         // We therefore do not attempt to optimize nullable conversions with an underlying user-defined conversion.
@@ -422,10 +431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
                     return MakeValueOrDefaultTemp(o, temps, effects);
                 case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var nested }, Operand: var o } conv when
-                        expr.Type.IsNullableType() && o.Type.IsNullableType() && nested[0] is { IsTupleConversion: true } tupleConversion:
+                        expr.Type is { } exprType && exprType.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && nested[0] is { IsTupleConversion: true } tupleConversion:
                     {
+                        Debug.Assert(expr.Type is { });
                         var operand = MakeValueOrDefaultTemp(o, temps, effects);
-                        var types = expr.Type.GetNullableUnderlyingType().GetElementTypesOfTupleOrCompatible();
+                        Debug.Assert(operand.Type is { });
+                        var types = expr.Type.GetNullableUnderlyingType().TupleElementTypesWithAnnotations;
                         int tupleCardinality = operand.Type.TupleElementTypesWithAnnotations.Length;
                         var underlyingConversions = tupleConversion.UnderlyingConversions;
                         Debug.Assert(underlyingConversions.Length == tupleCardinality);
@@ -439,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             sourceTuple: null,
                             wasTargetTyped: false,
                             arguments: argumentBuilder.ToImmutableAndFree(),
-                            argumentNamesOpt: ImmutableArray<string>.Empty,
+                            argumentNamesOpt: ImmutableArray<string?>.Empty,
                             inferredNamesOpt: ImmutableArray<bool>.Empty,
                             type: expr.Type,
                             hasErrors: expr.HasErrors).WithSuppression(expr.IsSuppressed);
@@ -471,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<TupleBinaryOperatorInfo> nestedOperators = operators.Operators;
 
-            BoundExpression currentResult = null;
+            BoundExpression? currentResult = null;
             for (int i = 0; i < nestedOperators.Length; i++)
             {
                 BoundExpression leftElement = GetTuplePart(left, i);
@@ -488,6 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            Debug.Assert(currentResult is { });
             return currentResult;
         }
 
@@ -504,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return tupleExpression.Arguments[i];
             }
 
-            Debug.Assert(tuple.Type.IsTupleType);
+            Debug.Assert(tuple.Type is { IsTupleType: true });
 
             // Example:
             // t == GetTuple();

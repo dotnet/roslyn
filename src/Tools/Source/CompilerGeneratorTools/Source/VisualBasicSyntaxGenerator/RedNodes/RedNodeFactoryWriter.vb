@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 
@@ -292,8 +294,6 @@ Friend Class RedNodeFactoryWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
 
-
-
         ' For tokens, generate factory method that doesn't take trivia
         If nodeStructure.IsToken Then
             ' 5. Generate the Function line
@@ -463,7 +463,7 @@ Friend Class RedNodeFactoryWriter
             _writer.WriteLine()
             _writer.WriteLine("                Case Else")
             _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-            _writer.WriteLine("             End Select")
+            _writer.WriteLine("            End Select")
 
         ElseIf childNodeKinds IsNot Nothing Then
             If nodeKind Is Nothing AndAlso child.KindForNodeKind IsNot Nothing AndAlso child.KindForNodeKind.Count > 1 Then
@@ -501,7 +501,7 @@ Friend Class RedNodeFactoryWriter
 
                 _writer.WriteLine("                Case Else")
                 _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-                _writer.WriteLine("             End Select")
+                _writer.WriteLine("            End Select")
 
             End If
         End If
@@ -521,14 +521,14 @@ Friend Class RedNodeFactoryWriter
             _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
 
             If child.IsOptional Then
-                _writer.WriteLine(":")
+                _writer.WriteLine(" :")
                 _writer.Write("                Case SyntaxKind.None")
             End If
 
             _writer.WriteLine()
             _writer.WriteLine("                Case Else")
             _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-            _writer.WriteLine("             End Select")
+            _writer.WriteLine("            End Select")
 
         ElseIf childNodeKinds IsNot Nothing Then
 
@@ -554,14 +554,14 @@ Friend Class RedNodeFactoryWriter
                 For Each childNodeKind In childNodeKinds
 
                     If needsComma Then
-                        _writer.WriteLine(":")
+                        _writer.WriteLine(" :")
                     End If
                     _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
                     needsComma = True
                 Next
 
                 If child.IsOptional Then
-                    _writer.WriteLine(":")
+                    _writer.WriteLine(" :")
                     _writer.WriteLine("                Case SyntaxKind.None")
                 End If
 
@@ -569,7 +569,7 @@ Friend Class RedNodeFactoryWriter
 
                 _writer.WriteLine("                Case Else")
                 _writer.WriteLine("                    Throw new ArgumentException(""{0}"")", paramName)
-                _writer.WriteLine("             End Select")
+                _writer.WriteLine("            End Select")
 
             End If
         End If

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
                         FeaturesResources.Convert_to_interpolated_string,
-                        c => CreateInterpolatedString(invocation, document, syntaxFactsService, c)),
+                        c => CreateInterpolatedStringAsync(invocation, document, syntaxFactsService, c)),
                     invocation.Span);
             }
         }
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
-                    if (syntaxFactsService.GetExpressionOfArgument(thisInstance.GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression &&
+                    if (syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression &&
                         syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
                     {
                         var invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
         }
 
-        private bool IsArgumentListCorrect(
+        private static bool IsArgumentListCorrect(
             SeparatedSyntaxList<TArgumentSyntax>? nullableArguments,
             ISymbol invocationSymbol,
             ImmutableArray<IMethodSymbol> formatMethods,
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return false;
         }
 
-        private async Task<Document> CreateInterpolatedString(
+        private async Task<Document> CreateInterpolatedStringAsync(
             TInvocationExpressionSyntax invocation,
             Document document,
             ISyntaxFactsService syntaxFactsService,
@@ -177,16 +179,16 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private string GetArgumentName(TArgumentSyntax argument, ISyntaxFactsService syntaxFactsService)
-            => syntaxFactsService.GetNameForArgument(argument);
+        private static string GetArgumentName(TArgumentSyntax argument, ISyntaxFacts syntaxFacts)
+            => syntaxFacts.GetNameForArgument(argument);
 
-        private SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+        private static SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
         => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
 
-        private TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+        private static TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
             => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
 
-        private TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFactsService syntaxFactsService)
+        private static TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFacts syntaxFacts)
         {
             if (arguments.Count > 4)
             {
@@ -194,37 +196,36 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             return arguments.FirstOrDefault(
-                argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase))
+                argument => string.Equals(GetArgumentName(argument, syntaxFacts), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase))
                 ?? arguments[index];
         }
 
-        private ImmutableArray<TExpressionSyntax> GetExpandedArguments(
+        private static ImmutableArray<TExpressionSyntax> GetExpandedArguments(
             SemanticModel semanticModel,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             SyntaxGenerator syntaxGenerator,
-            ISyntaxFactsService syntaxFactsService)
+            ISyntaxFacts syntaxFacts)
         {
-            var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
+            using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
             for (var i = 1; i < arguments.Count; i++)
             {
-                var argumentExpression = syntaxFactsService.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFactsService));
+                var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
                 if (convertedType == null)
                 {
-                    builder.Add(syntaxFactsService.Parenthesize(argumentExpression) as TExpressionSyntax);
+                    builder.Add(syntaxGenerator.AddParentheses(argumentExpression) as TExpressionSyntax);
                 }
                 else
                 {
-                    var castExpression = syntaxGenerator.CastExpression(convertedType, syntaxFactsService.Parenthesize(argumentExpression)).WithAdditionalAnnotations(Simplifier.Annotation);
+                    var castExpression = syntaxGenerator.CastExpression(convertedType, syntaxGenerator.AddParentheses(argumentExpression)).WithAdditionalAnnotations(Simplifier.Annotation);
                     builder.Add(castExpression as TExpressionSyntax);
                 }
             }
 
-            var expandedArguments = builder.ToImmutableAndFree();
-            return expandedArguments;
+            return builder.ToImmutable();
         }
 
-        private SyntaxNode VisitArguments(
+        private static SyntaxNode VisitArguments(
             ImmutableArray<TExpressionSyntax> expandedArguments,
             SyntaxNode interpolatedString,
             ISyntaxFactsService syntaxFactsService)

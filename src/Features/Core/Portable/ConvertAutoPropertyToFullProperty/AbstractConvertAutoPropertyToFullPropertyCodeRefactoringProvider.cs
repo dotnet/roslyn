@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
@@ -59,14 +60,14 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 property.Span);
         }
 
-        internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)
+        internal static bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
             return field != null;
         }
 
-        private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
+        private static async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
             var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default, Accessibility.Private,
                 DeclarationModifiers.From(propertySymbol),
-                propertySymbol.GetTypeWithAnnotatedNullability(), fieldName,
+                propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
 
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;

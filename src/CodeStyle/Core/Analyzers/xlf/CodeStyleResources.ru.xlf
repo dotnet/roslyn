@@ -12,6 +12,21 @@
         <target state="translated">Для данного параметра необходимо указать имя языка.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
+        <source>Arrays with more than one dimension cannot be serialized.</source>
+        <target state="translated">Массивы с несколькими измерениями нельзя сериализовать.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_serialize_type_0">
+        <source>Cannot serialize type '{0}'.</source>
+        <target state="translated">Невозможно сериализовать тип "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
+        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
+        <target state="translated">Считыватель десериализации для "{0}" считал неверное количество значений.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">Ошибка</target>
@@ -42,14 +57,24 @@
         <target state="translated">Только рефакторинг</target>
         <note />
       </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Стиль</target>
+      <trans-unit id="Stream_is_too_long">
+        <source>Stream is too long.</source>
+        <target state="translated">Слишком длинный поток.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Рекомендация</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
+        <source>The type '{0}' is not understood by the serialization binder.</source>
+        <target state="translated">Тип "{0}" не распознан модулем привязки сериализации.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">Слишком большое значение для представления в виде 30-разрядного целого числа без знака.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             BoundBlock tryBlock = rewrittenBody.Kind == BoundKind.Block
                 ? (BoundBlock)rewrittenBody
@@ -41,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(node.DeclarationsOpt is { });
                 SyntaxToken awaitKeyword = node.Syntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
                 return MakeDeclarationUsingStatement(node.Syntax,
                                                      tryBlock,
@@ -58,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        ImmutableArray<LocalSymbol> locals,
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
                                                        Conversion iDisposableConversion,
-                                                       MethodSymbol disposeMethodOpt,
-                                                       BoundAwaitableInfo awaitOpt,
+                                                       MethodSymbol? disposeMethodOpt,
+                                                       BoundAwaitableInfo? awaitOpt,
                                                        SyntaxToken awaitKeyword)
         {
             Debug.Assert(declarations != null);
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If expr is the constant null then we can elide the whole thing and simply generate the statement. 
 
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(node.ExpressionOpt);
+            BoundExpression rewrittenExpression = VisitExpression(node.ExpressionOpt);
             if (rewrittenExpression.ConstantValue == ConstantValue.Null)
             {
                 Debug.Assert(node.Locals.IsEmpty); // TODO: This might not be a valid assumption in presence of semicolon operator.
@@ -142,13 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   using(ResourceType temp = expression) statement;
             //
 
+            Debug.Assert(rewrittenExpression.Type is { });
             TypeSymbol expressionType = rewrittenExpression.Type;
             SyntaxNode expressionSyntax = rewrittenExpression.Syntax;
             UsingStatementSyntax usingSyntax = (UsingStatementSyntax)node.Syntax;
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp;
-            if ((object)expressionType == null || expressionType.IsDynamic())
+            if (expressionType is null || expressionType.IsDynamic())
             {
                 // IDisposable temp = (IDisposable) expr;
                 // or
@@ -195,8 +202,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, SyntaxToken awaitKeywordOpt, BoundAwaitableInfo awaitOpt, MethodSymbol methodSymbol)
+        private BoundBlock RewriteDeclarationUsingStatement(
+            SyntaxNode usingSyntax,
+            BoundLocalDeclaration localDeclaration,
+            BoundBlock tryBlock,
+            Conversion iDisposableConversion,
+            SyntaxToken awaitKeywordOpt,
+            BoundAwaitableInfo? awaitOpt,
+            MethodSymbol? methodSymbol)
         {
+            Debug.Assert(localDeclaration.InitializerOpt is { });
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
@@ -205,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValue, localType);
 
-            BoundStatement rewrittenDeclaration = (BoundStatement)Visit(localDeclaration);
+            BoundStatement? rewrittenDeclaration = VisitStatement(localDeclaration);
+            Debug.Assert(rewrittenDeclaration is { });
 
             // If we know that the expression is null, then we know that the null check in the finally block
             // will fail, and the Dispose call will never happen.  That is, the finally block will have no effect.
@@ -252,7 +268,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, SyntaxToken awaitKeywordOpt, BoundAwaitableInfo awaitOpt, MethodSymbol methodOpt)
+        private BoundStatement RewriteUsingStatementTryFinally(
+            SyntaxNode syntax,
+            BoundBlock tryBlock,
+            BoundLocal local,
+            SyntaxToken awaitKeywordOpt,
+            BoundAwaitableInfo? awaitOpt,
+            MethodSymbol? methodOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -344,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local.Dispose(); or await variant
             BoundStatement disposeStatement = new BoundExpressionStatement(syntax, disposeCall);
 
-            BoundExpression ifCondition;
+            BoundExpression? ifCondition;
 
             if (isNullableValueType)
             {
@@ -395,7 +417,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tryFinally;
         }
 
-        private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, MethodSymbol methodOpt, BoundAwaitableInfo awaitOpt, SyntaxToken awaitKeyword)
+        private BoundExpression GenerateDisposeCall(
+            SyntaxNode syntax,
+            BoundExpression disposedExpression,
+            MethodSymbol? methodOpt,
+            BoundAwaitableInfo? awaitOpt,
+            SyntaxToken awaitKeyword)
         {
             Debug.Assert(awaitOpt is null || awaitKeyword != default);
 
@@ -410,14 +437,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // IAsyncDisposable.DisposeAsync()
-                    TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
+                    TryGetWellKnownTypeMember<MethodSymbol>(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
                 }
             }
 
             BoundExpression disposeCall;
             if (methodOpt is null)
             {
-                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
+                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
             }
             else
             {

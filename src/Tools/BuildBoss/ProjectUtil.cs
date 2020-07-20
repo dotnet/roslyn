@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -39,8 +43,6 @@ namespace BuildBoss
 
             OutputType = FindSingleProperty("OutputType")?.Value.Trim().ToLowerInvariant();
         }
-
-        internal bool IsDeploymentProject => IsTestProject || OutputType switch { "exe" => true, "winexe" => true, _ => false };
 
         internal XElement GetTargetFramework() => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault();
 
@@ -130,7 +132,6 @@ namespace BuildBoss
 
             return list;
         }
-
 
         internal List<PackageReference> GetPackageReferences()
         {

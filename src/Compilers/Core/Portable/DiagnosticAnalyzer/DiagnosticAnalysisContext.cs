@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -221,12 +223,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
@@ -460,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -475,19 +477,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
             return TryGetValueCore(key, valueProvider, out value);
         }
 
-        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
             where TKey : class
         {
             throw new NotImplementedException();
@@ -504,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
-        private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactoryOpt;
+        private readonly CompilationAnalysisValueProviderFactory? _compilationAnalysisValueProviderFactoryOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -532,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            CompilationAnalysisValueProviderFactory compilationAnalysisValueProviderFactoryOpt,
+            CompilationAnalysisValueProviderFactory? compilationAnalysisValueProviderFactoryOpt,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
@@ -566,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -581,12 +583,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
@@ -994,7 +996,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ISymbol _owningSymbol;
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
-        private readonly Func<IOperation, ControlFlowGraph> _getControlFlowGraphOpt;
+        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraphOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1116,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
-        private readonly Func<IOperation, ControlFlowGraph> _getControlFlowGraphOpt;
+        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraphOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1226,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxTreeAnalysisContext
     {
         private readonly SyntaxTree _tree;
-        private readonly Compilation _compilationOpt;
+        private readonly Compilation? _compilationOpt;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
@@ -1247,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        internal Compilation Compilation => _compilationOpt;
+        internal Compilation? Compilation => _compilationOpt;
 
         public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
@@ -1290,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxNodeAnalysisContext
     {
         private readonly SyntaxNode _node;
-        private readonly ISymbol _containingSymbol;
+        private readonly ISymbol? _containingSymbol;
         private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
@@ -1305,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="ISymbol"/> for the declaration containing the syntax node.
         /// </summary>
-        public ISymbol ContainingSymbol => _containingSymbol;
+        public ISymbol? ContainingSymbol => _containingSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>.
@@ -1315,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="SyntaxNode"/>.
         /// </summary>
-        public Compilation Compilation => _semanticModel?.Compilation;
+        public Compilation? Compilation => _semanticModel?.Compilation;
 
         /// <summary>
         /// Options specified for the analysis.
@@ -1327,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol? containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _node = node;
             _containingSymbol = containingSymbol;
@@ -1369,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
-        private readonly Func<IOperation, ControlFlowGraph> _getControlFlowGraphOpt;
+        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraphOpt;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>

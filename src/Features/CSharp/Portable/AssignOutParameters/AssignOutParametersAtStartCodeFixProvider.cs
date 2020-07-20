@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -7,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
@@ -14,12 +18,24 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class AssignOutParametersAtStartCodeFixProvider : AbstractAssignOutParametersCodeFixProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public AssignOutParametersAtStartCodeFixProvider()
+        {
+        }
+
         protected override void TryRegisterFix(CodeFixContext context, Document document, SyntaxNode container, SyntaxNode location)
         {
             // Don't offer if we're already the starting statement of the container. This case will
             // be handled by the AssignOutParametersAboveReturnCodeFixProvider class.
             if (location is ExpressionSyntax)
             {
+                return;
+            }
+
+            if (location is LocalFunctionStatementSyntax { ExpressionBody: { } })
+            {
+                // This is an expression-bodied local function, which is also handled by the other code fix.
                 return;
             }
 

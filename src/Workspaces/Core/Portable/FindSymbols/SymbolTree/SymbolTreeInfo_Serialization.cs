@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("18");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("20");
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Get the unique key to identify our data.
                     var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                     using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
-                    using (var reader = ObjectReader.TryGetReader(stream))
+                    using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
                     {
                         if (reader != null)
                         {
@@ -107,9 +108,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     Contract.ThrowIfNull(result);
 
                     using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
-                        result.WriteTo(writer);
+                        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                        {
+                            result.WriteTo(writer);
+                        }
+
                         stream.Position = 0;
 
                         await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     return await createAsync().ConfigureAwait(false);
                 }
-            };
+            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -151,6 +155,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var v in kvp.Value)
                 {
                     writer.WriteInt32(v);
+                }
+            }
+
+            if (_receiverTypeNameToExtensionMethodMap == null)
+            {
+                writer.WriteInt32(0);
+            }
+            else
+            {
+                writer.WriteInt32(_receiverTypeNameToExtensionMethodMap.Count);
+                foreach (var key in _receiverTypeNameToExtensionMethodMap.Keys)
+                {
+                    writer.WriteString(key);
+
+                    var values = _receiverTypeNameToExtensionMethodMap[key];
+                    writer.WriteInt32(values.Count);
+
+                    foreach (var value in values)
+                    {
+                        writer.WriteString(value.FullyQualifiedContainerName);
+                        writer.WriteString(value.Name);
+                    }
                 }
             }
         }
@@ -197,9 +223,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
+                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap;
+
+                var keyCount = reader.ReadInt32();
+                if (keyCount == 0)
+                {
+                    receiverTypeNameToExtensionMethodMap = null;
+                }
+                else
+                {
+                    receiverTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+
+                    for (var i = 0; i < keyCount; i++)
+                    {
+                        var typeName = reader.ReadString();
+                        var valueCount = reader.ReadInt32();
+
+                        for (var j = 0; j < valueCount; j++)
+                        {
+                            var containerName = reader.ReadString();
+                            var name = reader.ReadString();
+
+                            receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
+                        }
+                    }
+                }
+
                 var nodeArray = nodes.ToImmutableAndFree();
                 var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
-                return new SymbolTreeInfo(checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap);
+                return new SymbolTreeInfo(
+                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap,
+                    receiverTypeNameToExtensionMethodMap);
             }
             catch
             {

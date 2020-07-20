@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis
 
         // Struct that represents an entry in the line mapping table. Entries sort by the unmapped
         // line.
-        protected struct LineMappingEntry : IComparable<LineMappingEntry>
+        protected readonly struct LineMappingEntry : IComparable<LineMappingEntry>
         {
             // 0-based line in this tree
             public readonly int UnmappedLine;
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             public readonly int MappedLine;
 
             // raw value from #line or #ExternalDirective, may be null
-            public readonly string MappedPathOpt;
+            public readonly string? MappedPathOpt;
 
             // the state of this line
             public readonly PositionState State;
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             public LineMappingEntry(
                 int unmappedLine,
                 int mappedLine,
-                string mappedPathOpt,
+                string? mappedPathOpt,
                 PositionState state)
             {
                 this.UnmappedLine = unmappedLine;

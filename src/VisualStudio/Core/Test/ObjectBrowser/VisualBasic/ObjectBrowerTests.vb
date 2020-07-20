@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
@@ -34,7 +36,6 @@ Namespace N
 End Namespace
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
 
@@ -59,7 +60,6 @@ End Namespace
 Namespace N
 End Namespace
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -86,7 +86,6 @@ Namespace N
 End Namespace
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -108,7 +107,6 @@ Namespace N
 	End Class
 End Namespace
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -135,7 +133,6 @@ Namespace N
 End Namespace
 </Code>
             Dim code = <Code></Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
                 Dim library = state.GetLibrary()
@@ -179,7 +176,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -235,7 +231,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -293,7 +288,6 @@ Class C
 End Class
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -326,7 +320,6 @@ Namespace N
     End Class
 End Namespace
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -2188,6 +2181,107 @@ ServicesVSResources.Parameters_colon1 & vbCrLf &
 "" & vbCrLf &
 ServicesVSResources.Remarks_colon & vbCrLf &
 "Takes i and s.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComments_Returns1()
+            Dim code =
+<Code>
+    <![CDATA[
+Class C
+    ''' <summary>
+    ''' Describes the method.
+    ''' </summary>
+    ''' <returns>Returns a value.</returns>
+    Function M() As Integer
+        Return 0
+    End Function
+End Class
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"Public Function M() As Integer" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Describes the method." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Returns_colon & vbCrLf &
+"Returns a value.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComments_Returns2()
+            Dim code =
+<Code>
+    <![CDATA[
+Class C
+    ''' <summary>
+    ''' Gets a value.
+    ''' </summary>
+    ''' <returns>Returns a value.</returns>
+    ReadOnly Property M As Integer
+End Class
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"Public ReadOnly Property M As Integer" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Gets a value." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Returns_colon & vbCrLf &
+"Returns a value.")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestDescription_XmlDocComments_Value()
+            Dim code =
+<Code>
+    <![CDATA[
+Class C
+    ''' <summary>
+    ''' Gets a value.
+    ''' </summary>
+    ''' <value>An integer value.</value>
+    ReadOnly Property M As Integer
+End Class
+]]>
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyImmediateMemberDescriptions(
+"Public ReadOnly Property M As Integer" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Summary_colon & vbCrLf &
+"Gets a value." & vbCrLf &
+"" & vbCrLf &
+ServicesVSResources.Value_colon & vbCrLf &
+"An integer value.")
             End Using
         End Sub
 

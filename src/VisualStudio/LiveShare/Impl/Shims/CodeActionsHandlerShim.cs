@@ -1,25 +1,34 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    internal class CodeActionsHandlerShim : AbstractLiveShareHandlerShim<CodeActionParams, object[]>
+    internal abstract class CodeActionsHandlerShim : CodeActionsHandler, ILspRequestHandler<CodeActionParams, SumType<Command, CodeAction>[], Solution>
     {
         public const string RemoteCommandNamePrefix = "_liveshare.remotecommand";
         protected const string ProviderName = "Roslyn";
 
-        public CodeActionsHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
-            : base(requestHandlers, Methods.TextDocumentCodeActionName)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+        public CodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(codeFixService, codeRefactoringService, solutionProvider)
         {
         }
 
@@ -36,15 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         /// <param name="requestContext"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async override Task<object[]> HandleAsync(CodeActionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async Task<SumType<Command, CodeAction>[]> HandleAsync(CodeActionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var result = await base.HandleAsync(param, requestContext, cancellationToken).ConfigureAwait(false);
+            var result = await base.HandleRequestAsync(param, requestContext.GetClientCapabilities(), null, cancellationToken).ConfigureAwait(false);
 
-            var commands = new ArrayBuilder<Command>();
+            var commands = new ArrayBuilder<SumType<Command, CodeAction>>();
             foreach (var resultObj in result)
             {
                 var commandArguments = resultObj;
-                var title = resultObj is CodeAction codeAction ? codeAction.Title : ((Command)resultObj).Title;
+                var title = resultObj.Value is CodeAction codeAction ? codeAction.Title : ((Command)resultObj).Title;
                 commands.Add(new Command
                 {
                     Title = title,
@@ -63,7 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
-        public RoslynCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }
@@ -72,7 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
-        public CSharpCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }
@@ -81,7 +94,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
-        public VisualBasicCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }
@@ -90,7 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
-        public TypeScriptCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }

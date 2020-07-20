@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
-        private bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
+        private static bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
         {
             return endToken.IsKind(SyntaxKind.CloseBraceToken) &&
                 endToken.Parent.IsKind(SyntaxKind.Block) &&
@@ -117,10 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // no line operation. no line changes what so ever
-                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
+                var lineOperation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
                 if (lineOperation != null)
                 {
                     // ignore force if same line option
@@ -140,14 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class SmartTokenFormattingRule : NoLineChangeFormattingRule
         {
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
-                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, in nextOperation);
+                var spaceOperation = base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
 
                 // if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
                 // (force space basically means remove all line breaks)

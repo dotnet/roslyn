@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class ErrorKeywordRecommenderTests
@@ -15,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
             Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Error")
         End Function
 
+        <Fact>
         <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ErrorStatementInLambdaTest() As Task

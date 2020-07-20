@@ -1,20 +1,27 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     // Note that this is not threadsafe for concurrent reading and writing.
     internal sealed class MultiDictionary<K, V> : IEnumerable<KeyValuePair<K, MultiDictionary<K, V>.ValueSet>>
+        where K : notnull
     {
         public struct ValueSet : IEnumerable<V>
         {
             public struct Enumerator : IEnumerator<V>
             {
+                [AllowNull]
                 private readonly V _value;
                 private ImmutableHashSet<V>.Enumerator _values;
                 private int _count;
@@ -57,7 +64,7 @@ namespace Roslyn.Utilities
                     throw new NotSupportedException();
                 }
 
-                object IEnumerator.Current => this.Current;
+                object? IEnumerator.Current => this.Current;
 
                 // Note that this property is not guaranteed to throw either before MoveNext()
                 // has been called or after the end of the set has been reached.
@@ -93,7 +100,7 @@ namespace Roslyn.Utilities
             }
 
             // Stores either a single V or an ImmutableHashSet<V>
-            private readonly object _value;
+            private readonly object? _value;
 
             private readonly IEqualityComparer<V> _equalityComparer;
 
@@ -123,7 +130,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            public ValueSet(object value, IEqualityComparer<V> equalityComparer = null)
+            public ValueSet(object? value, IEqualityComparer<V>? equalityComparer = null)
             {
                 _value = value;
                 _equalityComparer = equalityComparer ?? ImmutableHashSet<V>.Empty.KeyComparer;
@@ -151,12 +158,12 @@ namespace Roslyn.Utilities
                 var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    if (_equalityComparer.Equals((V)_value, v))
+                    if (_equalityComparer.Equals((V)_value!, v))
                     {
                         return this;
                     }
 
-                    set = ImmutableHashSet.Create(_equalityComparer, (V)_value);
+                    set = ImmutableHashSet.Create(_equalityComparer, (V)_value!);
                 }
 
                 return new ValueSet(set.Add(v), _equalityComparer);
@@ -167,7 +174,7 @@ namespace Roslyn.Utilities
                 var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    return _equalityComparer.Equals((V)_value, v);
+                    return _equalityComparer.Equals((V)_value!, v);
                 }
 
                 return set.Contains(v);
@@ -188,7 +195,7 @@ namespace Roslyn.Utilities
 
             public V Single()
             {
-                Debug.Assert(_value is V); // Implies value != null
+                RoslynDebug.Assert(_value is V); // Implies value != null
                 return (V)_value;
             }
 
@@ -200,7 +207,7 @@ namespace Roslyn.Utilities
 
         private readonly Dictionary<K, ValueSet> _dictionary;
 
-        private readonly IEqualityComparer<V> _valueComparer;
+        private readonly IEqualityComparer<V>? _valueComparer;
 
         public int Count => _dictionary.Count;
 
@@ -231,7 +238,7 @@ namespace Roslyn.Utilities
             _dictionary = new Dictionary<K, ValueSet>(comparer);
         }
 
-        public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V> valueComparer = null)
+        public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V>? valueComparer = null)
         {
             _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
             _valueComparer = valueComparer;

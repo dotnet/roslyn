@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -67,12 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 tagProducer,
                 eventSource,
-                workspace,
                 asyncListener,
                 notificationService);
 
             var document = workspace.Documents.First();
-            var textBuffer = document.TextBuffer;
+            var textBuffer = document.GetTextBuffer();
             var snapshot = textBuffer.CurrentSnapshot;
             var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
             eventSource.SendUpdateEvent();
 
-            await asyncListener.CreateExpeditedWaitTask();
+            await asyncListener.ExpeditedWaitAsync();
 
             var tags = tagger.GetTags(snapshotSpans);
 
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             var document = workspace.Documents.First();
-            var textBuffer = document.TextBuffer;
+            var textBuffer = document.GetTextBuffer();
             var tagger = tagProvider.CreateTagger<IOutliningRegionTag>(textBuffer);
 
             using var disposable = (IDisposable)tagger;
@@ -114,9 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         }
 
         private static TestTaggerEventSource CreateEventSource()
-        {
-            return new TestTaggerEventSource();
-        }
+            => new TestTaggerEventSource();
 
         private sealed class TestTag : TextMarkerTag
         {
@@ -132,29 +131,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         {
             private readonly Callback _callback;
             private readonly ITaggerEventSource _eventSource;
-            private readonly Workspace _workspace;
-            private readonly bool _disableCancellation;
 
             public TestTaggerProvider(
                 IThreadingContext threadingContext,
                 Callback callback,
                 ITaggerEventSource eventSource,
-                Workspace workspace,
                 IAsynchronousOperationListener asyncListener,
-                IForegroundNotificationService notificationService,
-                bool disableCancellation = false)
+                IForegroundNotificationService notificationService)
                     : base(threadingContext, asyncListener, notificationService)
             {
                 _callback = callback;
                 _eventSource = eventSource;
-                _workspace = workspace;
-                _disableCancellation = disableCancellation;
             }
 
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-            {
-                return _eventSource;
-            }
+                => _eventSource;
 
             protected override Task ProduceTagsAsync(TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             {
@@ -179,9 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             }
 
             public void SendUpdateEvent()
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
 
             public override void Connect()
             {

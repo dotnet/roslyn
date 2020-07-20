@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,29 +20,20 @@ namespace Microsoft.CodeAnalysis.Remote
         private TemporaryWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
         {
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
-            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory>();
+            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
-            foreach (var factory in documentOptionsProviderFactories)
-            {
-                var documentOptionsProvider = factory.Value.TryCreate(this);
-
-                if (documentOptionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(documentOptionsProvider);
-                }
-            }
+            RegisterDocumentOptionProviders(documentOptionsProviderFactories);
         }
 
         public TemporaryWorkspace(Solution solution) : this()
-        {
-            this.SetCurrentSolution(solution);
-        }
+            => this.SetCurrentSolution(solution);
 
-        public TemporaryWorkspace(SolutionInfo solutionInfo) : this()
+        public TemporaryWorkspace(SolutionInfo solutionInfo, SerializableOptionSet options) : this()
         {
             this.OnSolutionAdded(solutionInfo);
+            this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
         }
 
         // for now, temproary workspace is not mutable. consumer can still freely fork solution as they wish

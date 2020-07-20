@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return targetMember;
         }
 
-        private void AddLineBreaks(SourceText text, IList<string> lines, string newLine)
+        private static void AddLineBreaks(IList<string> lines, string newLine)
         {
             for (var i = 0; i < lines.Count; i++)
             {
@@ -132,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
             DocumentOptionSet options,
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
-            AddLineBreaks(text, lines, newLine);
+            AddLineBreaks(lines, newLine);
 
             // Shave off initial three slashes
             lines[0] = lines[0].Substring(3);
@@ -210,7 +211,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
             DocumentOptionSet options,
@@ -222,13 +222,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             if (subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
             {
-                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, options, cancellationToken))
+                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, subjectBuffer, textView, options, cancellationToken))
                 {
                     return true;
                 }
             }
 
-            if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, options, cancellationToken))
+            if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, subjectBuffer, textView, options, cancellationToken))
             {
                 return true;
             }
@@ -240,7 +240,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
             DocumentOptionSet options,
@@ -281,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
-            AddLineBreaks(text, lines, newLine);
+            AddLineBreaks(lines, newLine);
 
             // Shave off initial exterior trivia
             lines[0] = lines[0].Substring(3);
@@ -326,7 +325,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
             DocumentOptionSet options,
@@ -395,7 +393,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
-            int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
             DocumentOptionSet options,
@@ -416,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             Debug.Assert(lines.Count > 2);
 
             var newLine = options.GetOption(FormattingOptions.NewLine);
-            AddLineBreaks(text, lines, newLine);
+            AddLineBreaks(lines, newLine);
 
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
@@ -443,8 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         private static bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
-            int originalCaretPosition,
-            Func<SyntaxTree, SourceText, int, int, ITextBuffer, ITextView, DocumentOptionSet, CancellationToken, bool> insertAction,
+            Func<SyntaxTree, SourceText, int, ITextBuffer, ITextView, DocumentOptionSet, CancellationToken, bool> insertAction,
             CancellationToken cancellationToken)
         {
             var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
@@ -462,18 +458,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
+            return insertAction(syntaxTree, text, caretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
-
             // Ensure the character is actually typed in the editor
             nextHandler();
 
@@ -482,13 +474,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCharacterTyped, CancellationToken.None);
+            CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
         }
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
@@ -505,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 var selectedSpan = args.TextView.Selection
                     .GetSnapshotSpansOnBuffer(args.SubjectBuffer)
-                    .FirstOrNullable();
+                    .FirstOrNull();
 
                 originalPosition = selectedSpan != null
                     ? selectedSpan.Value.Start
@@ -530,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
                 editorOperations.InsertNewLine();
 
-                CompleteComment(args.SubjectBuffer, args.TextView, originalPosition, InsertOnEnterTyped, CancellationToken.None);
+                CompleteComment(args.SubjectBuffer, args.TextView, InsertOnEnterTyped, CancellationToken.None);
 
                 // Since we're wrapping the ENTER key undo transaction, we always complete
                 // the transaction -- even if we didn't generate anything.
@@ -569,18 +559,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public bool ExecuteCommand(InsertCommentCommandArgs args, CommandExecutionContext context)
         {
-            var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
-
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
             {
-                return CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, context.OperationContext.UserCancellationToken);
+                return CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCommandInvoke, context.OperationContext.UserCancellationToken);
             }
         }
 
         public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
@@ -607,9 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

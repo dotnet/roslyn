@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -11,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestBase
+Imports Roslyn.Test.Utilities.TestMetadata
 Imports Xunit
 
 Friend Module CompilationUtils
@@ -111,7 +114,7 @@ Friend Module CompilationUtils
                                                                references As IEnumerable(Of MetadataReference),
                                                                Optional options As VisualBasicCompilationOptions = Nothing,
                                                                Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateEmptyCompilationWithReferences(source, {MscorlibRef}.Concat(references), options, parseOptions:=parseOptions)
+        Return CreateEmptyCompilationWithReferences(source, {CType(Net40.mscorlib, MetadataReference)}.Concat(references), options, parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -127,7 +130,7 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlib40(source As XElement,
                                                   outputKind As OutputKind,
                                                   Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateEmptyCompilationWithReferences(source, {MscorlibRef}, New VisualBasicCompilationOptions(outputKind), parseOptions:=parseOptions)
+        Return CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, New VisualBasicCompilationOptions(outputKind), parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -148,7 +151,7 @@ Friend Module CompilationUtils
         Optional assemblyName As String = Nothing) As VisualBasicCompilation
 
         If additionalRefs Is Nothing Then additionalRefs = {}
-        Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
+        Dim references = {CType(Net40.mscorlib, MetadataReference), Net40.System, Net40.MicrosoftVisualBasic}.Concat(additionalRefs)
 
         Return CreateEmptyCompilationWithReferences(source, references, options, parseOptions:=parseOptions, assemblyName:=assemblyName)
     End Function
@@ -168,6 +171,10 @@ Friend Module CompilationUtils
 
     Public ReadOnly XmlReferences As MetadataReference() = {SystemRef, SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}
 
+    Public ReadOnly Net40XmlReferences As MetadataReference() = {Net40.SystemCore, Net40.SystemXml, Net40.SystemXmlLinq}
+
+    Public ReadOnly Net451XmlReferences As MetadataReference() = {Net451.SystemCore, Net451.SystemXml, Net451.SystemXmlLinq}
+
     ''' <summary>
     ''' 
     ''' </summary>
@@ -185,7 +192,7 @@ Friend Module CompilationUtils
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
         If references Is Nothing Then references = {}
-        Dim allReferences = {MscorlibRef, SystemRef, MsvbRef}.Concat(references)
+        Dim allReferences = {CType(Net40.mscorlib, MetadataReference), Net40.System, Net40.MicrosoftVisualBasic}.Concat(references)
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
             parseOptions = options.ParseOptions
         End If

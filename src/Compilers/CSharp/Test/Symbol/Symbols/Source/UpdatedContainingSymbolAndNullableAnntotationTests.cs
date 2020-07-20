@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class UpdatedContainingSymbolAndNullableAnntotationTests : CSharpTestBase
+    public class UpdatedContainingSymbolAndNullableAnnotationTests : CSharpTestBase
     {
         [Fact]
         public void LocalSymbols()
@@ -30,10 +32,10 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
             var varDeclarators = root.DescendantNodes().OfType<VariableDeclaratorSyntax>();
 
-            var local1 = (SourceLocalSymbol)model.GetDeclaredSymbol(varDeclarators.First());
-            var local2 = (SourceLocalSymbol)model.GetDeclaredSymbol(varDeclarators.ElementAt(1));
+            var local1 = model.GetDeclaredSymbol(varDeclarators.First()).GetSymbol<SourceLocalSymbol>();
+            var local2 = model.GetDeclaredSymbol(varDeclarators.ElementAt(1)).GetSymbol<SourceLocalSymbol>();
             // Using a different method as the parent is an accurate enough simulation for these tests of equality.
-            var m2 = (Symbol)model.GetDeclaredSymbol(root.DescendantNodes().OfType<MethodDeclarationSyntax>().ElementAt(1));
+            Symbol m2 = model.GetDeclaredSymbol(root.DescendantNodes().OfType<MethodDeclarationSyntax>().ElementAt(1)).GetSymbol();
 
             var wrappedLocal1 = UpdatedContainingSymbolAndNullableAnnotationLocal.CreateForTest(local1, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.Annotated));
             var wrappedLocal1a = UpdatedContainingSymbolAndNullableAnnotationLocal.CreateForTest(local1, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.Annotated));

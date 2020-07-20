@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -14,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
+        private static readonly SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
             new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
 
         private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
@@ -27,15 +30,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, Checksum checksum, CancellationToken cancellationToken)
+            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
             var result = TryLoadOrCreateAsync(
                 project.Solution,
                 checksum,
-                loadOnly: false,
+                loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, names, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Cache of project to the checksum for it so that we don't have to expensively recompute
         /// this each time we get a project.
         /// </summary>
-        private static ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
+        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
             new ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>>();
 
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
@@ -79,25 +82,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var parseOptionsChecksum = projectStateChecksums.ParseOptions;
             var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
 
-            var allChecksums = ArrayBuilder<Checksum>.GetInstance();
-            try
-            {
-                allChecksums.AddRange(textChecksums);
-                allChecksums.Add(compilationOptionsChecksum);
-                allChecksums.Add(parseOptionsChecksum);
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var allChecksums);
 
-                // Include serialization format version in our checksum.  That way if the 
-                // version ever changes, all persisted data won't match the current checksum
-                // we expect, and we'll recompute things.
-                allChecksums.Add(SerializationFormatChecksum);
+            allChecksums.AddRange(textChecksums);
+            allChecksums.Add(compilationOptionsChecksum);
+            allChecksums.Add(parseOptionsChecksum);
 
-                var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
-                return checksum;
-            }
-            finally
-            {
-                allChecksums.Free();
-            }
+            // Include serialization format version in our checksum.  That way if the 
+            // version ever changes, all persisted data won't match the current checksum
+            // we expect, and we'll recompute things.
+            allChecksums.Add(SerializationFormatChecksum);
+
+            return Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
         }
 
         internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
@@ -117,7 +113,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return CreateSymbolTreeInfo(
                 project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
-                inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
+                inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
+                simpleMethods: null);
         }
 
         // generate nodes for the global namespace an all descendants
@@ -145,11 +142,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static readonly Func<ISymbol, bool> s_useSymbolNoPrivate =
             s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
-
-        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivateOrInternal =
-            s => s.CanBeReferencedByName &&
-            s.DeclaredAccessibility != Accessibility.Private &&
-            s.DeclaredAccessibility != Accessibility.Internal;
 
         // generate nodes for symbols that share the same name, and all their descendants
         private static void GenerateSourceNodes(
@@ -183,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
+        private static readonly Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
             (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
 
         private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)

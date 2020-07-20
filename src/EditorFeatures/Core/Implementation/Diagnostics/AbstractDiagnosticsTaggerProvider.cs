@@ -1,6 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
-        private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+        private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
         {
             if (e.Solution == null || e.DocumentId == null)
             {
@@ -104,7 +110,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected internal abstract bool IsEnabled { get; }
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
-        protected internal abstract ITagSpan<TTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
+        protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
+
+        /// <summary>
+        /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
+        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
+        /// </summary>
+        /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
+        /// <returns>an array of locations that should have the tag applied.</returns>
+        protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+            => diagnosticData.DataLocation is object ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 
         protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
@@ -134,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // This can happen for buffers used in the preview workspace where some feature
             // is generating code that it doesn't want errors shown for.
             var buffer = editorSnapshot.TextBuffer;
-            var suppressedDiagnosticsSpans = default(NormalizedSnapshotSpanCollection);
+            var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
             var eventArgs = _diagnosticService.GetDiagnosticsUpdatedEventArgs(
@@ -151,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private void ProduceTags(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
-            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans,
+            NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
             UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
         {
             try
@@ -198,17 +213,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         //    So we'll eventually reach a point where the diagnostics exactly match the
                         //    editorSnapshot.
 
-                        var diagnosticSpan = diagnosticData.GetExistingOrCalculatedTextSpan(sourceText)
-                                                           .ToSnapshotSpan(diagnosticSnapshot)
-                                                           .TranslateTo(editorSnapshot, SpanTrackingMode.EdgeExclusive);
-
-                        if (diagnosticSpan.IntersectsWith(requestedSpan) &&
-                            !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
+                        var diagnosticSpans = this.GetLocationsToTag(diagnosticData)
+                            .Select(location => GetDiagnosticSnapshotSpan(location, diagnosticSnapshot, editorSnapshot, sourceText));
+                        foreach (var diagnosticSpan in diagnosticSpans)
                         {
-                            var tagSpan = this.CreateTagSpan(isLiveUpdate, diagnosticSpan, diagnosticData);
-                            if (tagSpan != null)
+                            if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                             {
-                                context.AddTag(tagSpan);
+                                var tagSpan = this.CreateTagSpan(workspace, isLiveUpdate, diagnosticSpan, diagnosticData);
+                                if (tagSpan != null)
+                                {
+                                    context.AddTag(tagSpan);
+                                }
                             }
                         }
                     }
@@ -221,9 +236,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // stop crashing on such occations
                 return;
             }
+
+            static SnapshotSpan GetDiagnosticSnapshotSpan(DiagnosticDataLocation diagnosticDataLocation, ITextSnapshot diagnosticSnapshot,
+                ITextSnapshot editorSnapshot, SourceText sourceText)
+            {
+                return DiagnosticData.GetExistingOrCalculatedTextSpan(diagnosticDataLocation, sourceText)
+                    .ToSnapshotSpan(diagnosticSnapshot)
+                    .TranslateTo(editorSnapshot, SpanTrackingMode.EdgeExclusive);
+            }
         }
 
-        private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
+        private static bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)
             => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
     }
 }

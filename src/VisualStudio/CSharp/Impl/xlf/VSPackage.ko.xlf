@@ -78,29 +78,30 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
+Use enhanced colors;
+Editor Color Scheme;</source>
         <target state="translated">닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 
 커서 아래의 관련 구성 요소 강조; 
 잘못된 정규식 보고;
 전체 솔루션 분석 사용;
 외부 프로세스에서 편집기 기능 분석 수행;
-디컴파일된 소스에 탐색을 사용하도록 설정;
+디컴파일된 소스 탐색 사용;
 Using 지시문;
 using 정렬 시 system 지시문 먼저 배치;
 using 지시문 그룹 구분;
-참조 어셈블리의 형식에 using 제안;
-NuGet 패키지의 형식에 using 제안;
+참조 어셈블리의 형식에 대해 using 제안;
+NuGet 패키지의 형식에 대해 using 제안;
 강조 표시;
 커서 아래의 기호에 대한 참조 강조;
 커서 아래의 관련 키워드 강조;
 개요;
 개요 모드로 파일 열기;
 프로시저 줄 구분 기호 표시;
-선언 수준 구문에 대한 개요 표시;
-코드 수준 구문에 대한 개요 표시;
-주석 및 전처리기 영역에 대한 개요 표시;
-정의로 축소 시 영역 축소;
+선언 수준 구문의 개요 표시;
+코드 수준 구문의 개요 표시;
+주석 및 전처리기 영역의 개요 표시;
+정의로 접을 때 영역 접기;
 페이딩;
 사용하지 않는 using 페이드 아웃;
 접근할 수 없는 코드 페이드 아웃;
@@ -110,11 +111,11 @@ NuGet 패키지의 형식에 using 제안;
 편집기 도움말;
 ///에 대해 XML 문서 주석 생성;
 /* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입;
-이름 바꾸기 추적 미리 보기 표시;
-&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할;
+이름 바꾸기 추적용 미리 보기 표시;
+&amp;lt;Enter&amp;gt; 키를 누르면 문자열 리터럴 분할;
 string.Format 호출에서 잘못된 자리 표시자 보고;
 메서드 추출;
-사용자 지정 구조체에 ref 또는 out 추가 안 함;
+사용자 지정 구조체에 ref 또는 out 배치 안 함;
 인터페이스 또는 추상 클래스 구현;
 속성, 이벤트 및 메서드 삽입 시;
 동일한 종류의 다른 멤버와 함께;
@@ -124,7 +125,8 @@ throw되는 속성 선호;
 자동 속성 선호;
 regex;
 정규식;
-향상된 색 사용;</target>
+향상된 색 사용;
+편집기 색 구성표;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -265,13 +267,14 @@ for 문의 세미콜론 앞에 공백 삽입;
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">줄 바꿈 서식 옵션 변경;블록 한 줄에 두기;문과 멤버 선언을 같은 줄에 두기</target>
+        <target state="translated">래핑 서식 옵션 변경;블록 한 줄에 두기;문과 멤버 선언을 같은 줄에 두기</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -282,8 +285,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택; 완성 목록;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택; 완성 목록;
 문자를 입력하면 완성 목록 표시;
 문자를 삭제하면 완성 목록 표시;
 완성 목록 항목에서 일치하는 부분 강조 표시;
@@ -316,7 +320,7 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">줄 바꿈</target>
+        <target state="translated">래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="111">

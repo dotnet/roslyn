@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -235,9 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         }
 
         int IVsDropdownBarClient.OnItemSelected(int iCombo, int iIndex)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         int IVsDropdownBarClient.SetDropdownBar(IVsDropdownBar pDropdownBar)
         {
@@ -378,14 +378,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         }
 
         private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
-        {
-            CaretMoved?.Invoke(this, e);
-        }
+            => CaretMoved?.Invoke(this, e);
 
         private void OnViewGotAggregateFocus(object sender, EventArgs e)
-        {
-            ViewFocused?.Invoke(this, e);
-        }
+            => ViewFocused?.Invoke(this, e);
 
         ITextView INavigationBarPresenter.TryGetCurrentView()
         {

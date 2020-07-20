@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ChangeSignatureCodeRefactoringProvider();
 
-        protected override string GetLanguage()
+        protected internal override string GetLanguage()
             => LanguageNames.CSharp;
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
@@ -186,7 +188,7 @@ class C
         MyDelegate d1 = null;
         d1 = (r) => { System.Console.WriteLine(""Test""); };
         d1 = r => { System.Console.WriteLine(""Test""); };
-        d1 =r=>{ System.Console.WriteLine(""Test""); };
+        d1 = r => { System.Console.WriteLine(""Test""); };
     }
 }";
             var updatedSignature = Array.Empty<int>();
@@ -200,7 +202,7 @@ class C
         MyDelegate d1 = null;
         d1 = () => { System.Console.WriteLine(""Test""); };
         d1 = () => { System.Console.WriteLine(""Test""); };
-        d1 =()=>{ System.Console.WriteLine(""Test""); };
+        d1 = () => { System.Console.WriteLine(""Test""); };
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);

@@ -1,19 +1,20 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
-            Using Workspace = TestWorkspace.CreateVisualBasic(code)
-                Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
-
+        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
+            Using workspace = CreateWorkspace(code, testHost)
+                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Return GetSyntacticClassificationsAsync(document, span)
             End Using
         End Function
@@ -4253,7 +4254,6 @@ End Class"
                 Punctuation.CloseParen)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDeclareAnsiAutoUnicodeCommentsAfterLineContinuation() As Task
             Dim code =
@@ -4469,7 +4469,6 @@ End Class"
                 Keyword("End"),
                 Keyword("Sub"))
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreserveCommentsAfterLineContinuation() As Task

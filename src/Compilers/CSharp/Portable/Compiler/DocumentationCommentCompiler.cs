@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -77,7 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyName, Stream xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+#nullable enable
+        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string? assemblyName, Stream? xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree? filterTree = null, TextSpan? filterSpanWithinTree = null)
+#nullable restore
         {
             StreamWriter writer = null;
             if (xmlDocStream != null && xmlDocStream.CanWrite)
@@ -235,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (ShouldSkip(symbol))
             {
                 return;
             }
@@ -367,6 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private static bool ShouldSkip(Symbol symbol)
+        {
+            return symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol is SynthesizedSimpleProgramEntryPointSymbol || symbol is SimpleProgramNamedTypeSymbol;
         }
 
         /// <summary>
@@ -544,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)symbol != null);
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (ShouldSkip(symbol))
             {
                 return false;
             }

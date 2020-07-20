@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (_lazyOtherNullability == null)
             {
-                _lazyOtherNullability = WithNullabilityCore(includeNullability);
+                Interlocked.CompareExchange(ref _lazyOtherNullability, WithNullabilityCore(includeNullability), null);
             }
             Debug.Assert(_lazyOtherNullability.IncludeNullability == includeNullability);
             Debug.Assert(_lazyOtherNullability._lazyOtherNullability == this);
@@ -58,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract ConversionsBase WithNullabilityCore(bool includeNullability);
 
-        public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+        public abstract Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
+        public abstract Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
@@ -97,7 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion fastConversion = FastClassifyConversion(sourceType, destination);
                 if (fastConversion.Exists)
                 {
-                    return fastConversion.IsImplicit ? fastConversion : Conversion.NoConversion;
+                    if (fastConversion.IsImplicit)
+                    {
+                        return fastConversion;
+                    }
                 }
                 else
                 {
@@ -109,13 +117,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            conversion = GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
             {
                 return conversion;
             }
 
-            return GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
+            // The switch expression conversion is "lowest priority", so that if there is a conversion from the expression's
+            // type it will be preferred over the switch expression conversion.  Technically, we would want the language
+            // specification to say that the switch expression conversion only "exists" if there is no implicit conversion
+            // from the type, and we accomplish that by making it lowest priority.
+            return GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -572,9 +584,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.Boxing;
             }
 
-            if (HasImplicitPointerConversion(source, destination))
+            if (HasImplicitPointerToVoidConversion(source, destination))
             {
                 return Conversion.PointerToVoid;
+            }
+
+            if (HasImplicitPointerConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return Conversion.ImplicitPointer;
             }
 
             var tupleConversion = ClassifyImplicitTupleConversion(source, destination, ref useSiteDiagnostics);
@@ -713,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NoConversion:
                     impliedExplicitConversion = Conversion.NoConversion;
                     break;
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
                     impliedExplicitConversion = Conversion.PointerToPointer;
                     break;
 
@@ -897,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.MethodGroup:
-                    Conversion methodGroupConversion = GetMethodGroupConversion((BoundMethodGroup)sourceExpression, destination, ref useSiteDiagnostics);
+                    Conversion methodGroupConversion = GetMethodGroupDelegateConversion((BoundMethodGroup)sourceExpression, destination, ref useSiteDiagnostics);
                     if (methodGroupConversion.Exists)
                     {
                         return methodGroupConversion;
@@ -920,8 +937,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.UnconvertedAddressOfOperator when destination is FunctionPointerTypeSymbol funcPtrType:
+                    var addressOfConversion = GetMethodGroupFunctionPointerConversion(((BoundUnconvertedAddressOfOperator)sourceExpression).Operand, funcPtrType, ref useSiteDiagnostics);
+                    if (addressOfConversion.Exists)
+                    {
+                        return addressOfConversion;
+                    }
+                    break;
+
                 case BoundKind.ThrowExpression:
                     return Conversion.ImplicitThrow;
+
+                case BoundKind.UnconvertedObjectCreationExpression:
+                    return Conversion.ObjectCreation;
             }
 
             return Conversion.NoConversion;
@@ -935,15 +963,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // It has already been subjected to a switch expression conversion.
                     return Conversion.NoConversion;
                 case BoundUnconvertedSwitchExpression switchExpression:
+                    var innerConversions = ArrayBuilder<Conversion>.GetInstance(switchExpression.SwitchArms.Length);
                     foreach (var arm in switchExpression.SwitchArms)
                     {
-                        if (!this.ClassifyConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics).IsImplicit)
+                        var nestedConversion = this.ClassifyImplicitConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics);
+                        if (!nestedConversion.Exists)
                         {
+                            innerConversions.Free();
                             return Conversion.NoConversion;
                         }
+
+                        innerConversions.Add(nestedConversion);
                     }
 
-                    return Conversion.SwitchExpression;
+                    return Conversion.MakeSwitchExpression(innerConversions.ToImmutableAndFree());
                 default:
                     return Conversion.NoConversion;
             }
@@ -980,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of implicit conversions is extended to include...
             // SPEC: ... from the null literal to any pointer type.
 
-            if (destination is PointerTypeSymbol)
+            if (destination.IsPointerOrFunctionPointer())
             {
                 return Conversion.NullToPointer;
             }
@@ -1098,7 +1131,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return sbyte.MinValue <= value && value <= sbyte.MaxValue;
                     case SpecialType.System_Int16:
                         return short.MinValue <= value && value <= short.MaxValue;
+                    case SpecialType.System_IntPtr when destination.IsNativeIntegerType:
+                        return true;
                     case SpecialType.System_UInt32:
+                    case SpecialType.System_UIntPtr when destination.IsNativeIntegerType:
                         return uint.MinValue <= value;
                     case SpecialType.System_UInt64:
                         return (int)ulong.MinValue <= value;
@@ -1858,7 +1894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
 
-            if (otherType.TypeKind == TypeKind.Pointer)
+            if (otherType.IsPointerOrFunctionPointer())
             {
                 return true;
             }
@@ -2002,12 +2038,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = source.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(arguments.Length))
             {
                 return Conversion.NoConversion;
             }
 
-            var targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var targetElementTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
             // check arguments against flattened list of target element types 
@@ -2075,8 +2111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> sourceTypes;
             ImmutableArray<TypeWithAnnotations> destTypes;
 
-            if (!source.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out sourceTypes) ||
-                !destination.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out destTypes) ||
+            if (!source.TryGetElementTypesWithAnnotationsIfTupleType(out sourceTypes) ||
+                !destination.TryGetElementTypesWithAnnotationsIfTupleType(out destTypes) ||
                 sourceTypes.Length != destTypes.Length)
             {
                 return Conversion.NoConversion;
@@ -2194,7 +2230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // An implicit dynamic conversion exists from an expression of type dynamic to any type T.
 
             Debug.Assert((object)destination != null);
-            return expressionType?.Kind == SymbolKind.DynamicType && !destination.IsPointerType();
+            return expressionType?.Kind == SymbolKind.DynamicType && !destination.IsPointerOrFunctionPointer();
         }
 
         private static bool HasExplicitDynamicConversion(TypeSymbol source, TypeSymbol destination)
@@ -2204,7 +2240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
-            return source.Kind == SymbolKind.DynamicType && !destination.IsPointerType();
+            return source.Kind == SymbolKind.DynamicType && !destination.IsPointerOrFunctionPointer();
         }
 
         private bool HasArrayConversionToInterface(ArrayTypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2287,7 +2323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasImplicitReferenceConversion(source.Type, destination.Type, ref useSiteDiagnostics);
         }
 
-        private bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -2781,7 +2817,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeParameters: { Length: 1 }
                 };
             }
-
         }
 
         // Spec 6.1.10
@@ -2879,7 +2914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (destination.Kind == SymbolKind.DynamicType)
             {
-                return !source.IsPointerType();
+                return !source.IsPointerOrFunctionPointer();
             }
 
             if (IsBaseClass(source, destination, ref useSiteDiagnostics))
@@ -2895,7 +2930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool HasImplicitPointerConversion(TypeSymbol source, TypeSymbol destination)
+        internal static bool HasImplicitPointerToVoidConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -2903,10 +2938,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of implicit conversions is extended to include...
             // SPEC: ... from any pointer type to the type void*.
 
-            PointerTypeSymbol pd = destination as PointerTypeSymbol;
-            PointerTypeSymbol ps = source as PointerTypeSymbol;
-            return (object)pd != null && (object)ps != null && pd.PointedAtType.IsVoidType();
+            return source.IsPointerOrFunctionPointer() && destination is PointerTypeSymbol { PointedAtType: { SpecialType: SpecialType.System_Void } };
         }
+
+#nullable enable
+        internal bool HasImplicitPointerConversion(TypeSymbol? source, TypeSymbol? destination, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        {
+            if (!(source is FunctionPointerTypeSymbol { Signature: { } sourceSig })
+                || !(destination is FunctionPointerTypeSymbol { Signature: { } destinationSig }))
+            {
+                return false;
+            }
+
+            if (sourceSig.ParameterCount != destinationSig.ParameterCount ||
+                sourceSig.CallingConvention != destinationSig.CallingConvention)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < sourceSig.ParameterCount; i++)
+            {
+                var sourceParam = sourceSig.Parameters[i];
+                var destinationParam = destinationSig.Parameters[i];
+
+                if (sourceParam.RefKind != destinationParam.RefKind)
+                {
+                    return false;
+                }
+
+                if (!hasConversion(sourceParam.RefKind, destinationSig.Parameters[i].TypeWithAnnotations, sourceSig.Parameters[i].TypeWithAnnotations, ref useSiteDiagnostics))
+                {
+                    return false;
+                }
+            }
+
+            return sourceSig.RefKind == destinationSig.RefKind
+                   && hasConversion(sourceSig.RefKind, sourceSig.ReturnTypeWithAnnotations, destinationSig.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
+
+            bool hasConversion(RefKind refKind, TypeWithAnnotations sourceType, TypeWithAnnotations destinationType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            {
+                switch (refKind)
+                {
+                    case RefKind.None:
+                        return (!IncludeNullability || HasTopLevelNullabilityImplicitConversion(sourceType, destinationType))
+                               && (HasIdentityOrImplicitReferenceConversion(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
+                                   || HasImplicitPointerToVoidConversion(sourceType.Type, destinationType.Type)
+                                   || HasImplicitPointerConversion(sourceType.Type, destinationType.Type, ref useSiteDiagnostics));
+
+                    default:
+                        return (!IncludeNullability || HasTopLevelNullabilityIdentityConversion(sourceType, destinationType))
+                               && HasIdentityConversion(sourceType.Type, destinationType.Type);
+                }
+            }
+        }
+#nullable restore
 
         private bool HasIdentityOrReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -3284,7 +3369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (destination.IsPointerType())
+            if (destination.IsPointerOrFunctionPointer())
             {
                 return false;
             }
@@ -3352,7 +3437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            return source is PointerTypeSymbol && destination is PointerTypeSymbol;
+            return source.IsPointerOrFunctionPointer() && destination.IsPointerOrFunctionPointer();
         }
 
         private static bool HasPointerToIntegerConversion(TypeSymbol source, TypeSymbol destination)
@@ -3360,7 +3445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (!(source is PointerTypeSymbol))
+            if (!source.IsPointerOrFunctionPointer())
             {
                 return false;
             }
@@ -3391,7 +3476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (!(destination is PointerTypeSymbol))
+            if (!destination.IsPointerOrFunctionPointer())
             {
                 return false;
             }

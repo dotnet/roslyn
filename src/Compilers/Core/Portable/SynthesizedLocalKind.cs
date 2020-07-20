@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// Synthesized local variables are either 
     /// 1) Short-lived (temporary)
-    ///    The lifespan of an temporary variable shall not cross a statement boundary (a PDB sequence point).
+    ///    The lifespan of a temporary variable shall not cross a statement boundary (a PDB sequence point).
     ///    These variables are not tracked by EnC and don't have names.
     ///  
     /// 2) Long-lived

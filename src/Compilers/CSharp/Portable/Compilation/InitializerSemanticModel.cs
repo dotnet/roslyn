@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      int speculatedPosition = 0) :
             base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, parentRemappedSymbolsOpt, speculatedPosition)
         {
-            Debug.Assert(!(syntax is ConstructorInitializerSyntax));
+            Debug.Assert(!(syntax is ConstructorInitializerSyntax || syntax is PrimaryConstructorBaseTypeSyntax));
         }
 
         /// <summary>
@@ -100,11 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.EnumMemberDeclaration:
                     rootSyntax = ((EnumMemberDeclarationSyntax)rootSyntax).EqualsValue.Value;
-                    break;
-
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.ArgumentList:
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
@@ -205,11 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.Root == node ||     /*enum or parameter initializer*/
                            this.Root == node.Parent /*field initializer*/;
 
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.ArgumentList:
-                    return this.Root == node;
-
                 default:
                     return false;
             }
@@ -230,6 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+        {
+            speculativeModel = null;
+            return false;
+        }
+
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             speculativeModel = null;
             return false;
@@ -269,5 +267,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
+
+#if DEBUG
+        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+        {
+            NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
+        }
+#endif
     }
 }

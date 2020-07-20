@@ -72,12 +72,62 @@ the compiler didn't look for the name in base interfaces of the interface. Looku
 hierarchy or through usings. We now look in base interfaces and find types declared within them, if any match the name. The type
 could be different than the one that compiler used to find.
 
-10. https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-09-11.md In C# `8.0` no warning is reported at the production or dereference of a maybe-null value for a type that is a type parameter that cannot be annotated with `?`, except if the value was produced by `default(T)`.
-In Visual Studio version 16.4, the nullable analysis will be more stringent for such values. Whenever such a value is produced, as warning will be reported. For instance, when invoking a method that returns a `[MaybeNull]T`.
-
-11. https://github.com/dotnet/roslyn/issues/38427 C# `7.0` incorrectly allowed duplicate type constraints with tuple name differences. In *Visual Studio 2019 version 16.4* we will make it an error.
+10. https://github.com/dotnet/roslyn/issues/38427 C# `7.0` incorrectly allowed duplicate type constraints with tuple name differences. In *Visual Studio 2019 version 16.4* this is an error.
     ```C#
     class C<T> where T : I<(int a, int b)>, I<(int c, int d)> { } // error
     ```
 
-12. Previously, the language version was not checked for `this ref` and `this in` orderings of parameter modifiers. In *Visual Studio 2019 version 16.4* these orderings produce an error with langversion below 7.2. See https://github.com/dotnet/roslyn/issues/38486
+11. Previously, the language version was not checked for `this ref` and `this in` orderings of parameter modifiers. In *Visual Studio 2019 version 16.4* these orderings produce an error with langversion below 7.2. See https://github.com/dotnet/roslyn/issues/38486
+
+12. https://github.com/dotnet/roslyn/issues/40092 Previously, the compiler allowed `extern event` declarations to have initializers, in violation of the C# language specification. In *Visual Studio 2019 version 16.5* such declarations produce compile errors.
+    ```C#
+    class C
+    {
+        extern event System.Action E = null; // error
+    }
+    ```
+
+13. https://github.com/dotnet/roslyn/issues/10492 Under some circumstances, the compiler would accept an expression that does not obey the rules of the language grammar.  Examples include
+    - `e is {} + c`
+    - `e is T t + c`
+
+    These all have in common that the left operand is of looser precedence than the `+` operator, but the left operand does not end in an expression so it cannot "consume" the addition.  Such expressions will no longer be permitted in Visual Studio 2019 version 16.5 and later.
+
+14. In Visual Studio version 15.0 and onwards, the compiler would allow compiling some malformed definitions of the `System.ValueTuple` types. For instance, one with a private `Item1` field. In *Visual Studio 2019 version 16.5* such definitions produce warnings.
+
+15. In Visual Studio version 15.0 and onwards, the compiler APIs would produce non-generic tuple symbols (`Arity` would be 0, would have no type arguments, would be original definitions). In *Visual Studio 2019 version 16.5* a 2-tuple symbol has `Arity` 2, and a 9-tuple symbol has `Arity` 8 (since it is a `ValueTuple'8`).
+
+
+16. In *Visual Studio 2019 version 16.5* and language version 8.0 and later, the compiler will no longer accept `throw null` when there is no type `System.Exception`.
+
+17. https://github.com/dotnet/roslyn/issues/39852 Previously the compiler would allow an invocation of an implicit index or range indexer to specify any named argument. In *Visual Studio 2019 version 16.5* argument names are no longer permitted for these invocations.
+
+18. https://github.com/dotnet/roslyn/issues/36039 In *Visual Studio 2019 version 16.3* and onwards, the compiler only honored nullability flow annotation attributes for callers of an API. In *Visual Studio 2019 version 16.5* the compiler honors those attributes within member bodies.
+For instance, returning `default` from a method declared with a `[MaybeNull] T` return type will no longer warn.
+Similarly, a value from a `[DisallowNull] ref string? p` parameter will be assumed to be not-null when first read.
+On the other hand, we'll warn for returning a `null` from a method declared with `[NotNull] string?` return type, and we'll treat the value from a `[AllowNull] ref string p` parameter as maybe-null.
+Conditional attributes are treated leniently. For instance, no warning will be produced for assigning a maybe-null value to an `[MaybeNullWhen(...)] out string p` parameter.
+
+19. https://github.com/dotnet/roslyn/issues/36039 In *Visual Studio 2019 version 16.3* and onwards, the compiler did not check the usage of nullable flow annotation attributes, such as `[MaybeNull]` or `[NotNull]`, in overrides or implementations. In *Visual Studio 2019 version 16.5*, those usages are checked to respect null discipline. For example:
+``` csharp
+public class Base<T>
+{
+    [return: NotNull]
+    public virtual T M() { ... }
+}
+public class Derived : Base<string?>
+{
+    public override string? M() { ... } // Derived.M doesn't honor the nullability declaration made by Base.M with its [NotNull] attribute
+}
+```
+
+19. https://github.com/dotnet/roslyn/pull/44841 In *C# 9* and onwards the language views ambiguities between the `record` identifier as being
+    either a type syntax or a record declaration as choosing the record declaration. The following examples will now be record declarations:
+
+    ```C#
+    abstract class C
+    {
+        record R2() { }
+        abstract record R3();
+    }
+    ```

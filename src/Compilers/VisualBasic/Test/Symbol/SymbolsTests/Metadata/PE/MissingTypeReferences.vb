@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -25,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestReferences.SymbolsTests.MissingTypes.MDMissingType,
                                      TestReferences.SymbolsTests.MissingTypes.MDMissingTypeLib,
-                                     TestReferences.NetFx.v4_0_21006.mscorlib})
+                                     TestMetadata.Net40.mscorlib})
 
             TestMissingTypeReferencesHelper2(assemblies)
         End Sub
@@ -475,6 +478,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(missingAssembly.Equals(missingAssembly))
             Assert.NotEqual(New Object(), missingAssembly)
             Assert.False(missingAssembly.Equals(Nothing))
+
+            Assert.Empty(DirectCast(missingAssembly, IAssemblySymbol).GetForwardedTypes())
         End Sub
 
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -81,10 +84,38 @@ public class N : D.K<M>
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var baseLine = System.Xml.Linq.XElement.Load(new StringReader(Resources.EmitSimpleBaseLine1));
-                System.Xml.Linq.XElement dumpXML = DumpTypeInfo(module);
+                var dump = DumpTypeInfo(module).ToString();
 
-                Assert.Equal(baseLine.ToString(), dumpXML.ToString());
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+<Global>
+  <type name=""&lt;Module&gt;"" />
+  <type name=""A"" Of=""T"" base=""System.Object"">
+    <field name=""x1"" type=""A&lt;T&gt;"" />
+    <field name=""x2"" type=""A&lt;D&gt;"" />
+    <type name=""B"" base=""A&lt;T&gt;"">
+      <field name=""y1"" type=""A&lt;T&gt;.B"" />
+      <field name=""y2"" type=""A&lt;D&gt;.B"" />
+      <type name=""C"" base=""A&lt;T&gt;.B"" />
+    </type>
+    <type name=""H"" Of=""S"" base=""System.Object"">
+      <type name=""I"" base=""A&lt;T&gt;.H&lt;S&gt;"" />
+    </type>
+  </type>
+  <type name=""D"" base=""System.Object"">
+    <type name=""K"" Of=""T"" base=""System.Object"">
+      <type name=""L"" base=""D.K&lt;T&gt;"" />
+    </type>
+  </type>
+  <type name=""F"" base=""A&lt;D&gt;"" />
+  <type name=""G"" base=""A&lt;NS1.E&gt;.B"" />
+  <type name=""J"" base=""A&lt;D&gt;.H&lt;D&gt;"" />
+  <type name=""M"" base=""System.Object"" />
+  <type name=""N"" base=""D.K&lt;M&gt;"" />
+  <NS1>
+    <type name=""E"" base=""D"" />
+  </NS1>
+</Global>
+", dump);
             }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 

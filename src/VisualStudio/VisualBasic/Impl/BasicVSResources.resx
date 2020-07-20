@@ -126,9 +126,6 @@
   <data name="IntelliSense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
-  <data name="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere" xml:space="preserve">
-    <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
-  </data>
   <data name="Automatic_insertion_of_Interface_and_MustOverride_members" xml:space="preserve">
     <value>Automatic _insertion of Interface and MustOverride members</value>
   </data>
@@ -161,6 +158,7 @@
   </data>
   <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>_Generate XML documentation comments for '''</value>
+    <comment>{Locked="'''"} "'''" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Highlighting" xml:space="preserve">
     <value>Highlighting</value>
@@ -300,7 +298,7 @@
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
     <value>Show items from unimported namespaces (experimental)</value>
   </data>
-  <data name="Visual_Basic_language_server_client" xml:space="preserve">
-    <value>Visual Basic Language Server Client</value>
+  <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
+    <value>Show remarks in Quick Info</value>
   </data>
 </root>

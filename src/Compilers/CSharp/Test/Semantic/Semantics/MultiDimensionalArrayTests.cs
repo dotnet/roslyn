@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -528,14 +531,14 @@ Test2
             var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
 
             var m2 = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("M2");
-            var szArray = (IArrayTypeSymbol)m2.Parameters.First().Type;
+            var szArray = (ArrayTypeSymbol)m2.Parameters.First().Type;
             Assert.Equal("T[]", szArray.ToTestDisplayString());
             Assert.True(szArray.IsSZArray);
             Assert.Equal(1, szArray.Rank);
             Assert.True(szArray.Sizes.IsEmpty);
             Assert.True(szArray.LowerBounds.IsDefault);
 
-            var mdArray = (IArrayTypeSymbol)m2.Parameters.Last().Type;
+            var mdArray = (ArrayTypeSymbol)m2.Parameters.Last().Type;
             Assert.Equal("T[*]", mdArray.ToTestDisplayString());
             Assert.False(mdArray.IsSZArray);
             Assert.Equal(1, mdArray.Rank);
@@ -1086,119 +1089,119 @@ System.Double
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var test = compilation.GetTypeByMetadataName("Test");
-            var array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType;
+            var array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test2").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test2").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test3").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test3").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test4").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test4").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test5").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test5").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test6").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test6").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 5 }, array.Sizes);
             Assert.True(array.LowerBounds.IsDefault);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test7").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test7").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test8").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test8").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 7 }, array.Sizes);
             Assert.Equal(new[] { 0, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test9").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test9").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test10").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test10").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test11").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test11").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 5 }, array.Sizes);
             Assert.Equal(new[] { 1, 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test12").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test12").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test13").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test13").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 7 }, array.Sizes);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test14").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test14").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test15").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test15").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test16").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test16").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test17").ReturnType;
+            array = (ArrayTypeSymbol)test.GetMember<MethodSymbol>("Test17").ReturnType;
             Assert.Equal("System.Double[*]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(1, array.Rank);
@@ -1684,8 +1687,8 @@ class C
             Assert.Equal(1, a2.Rank);
             Assert.False(a2.IsSZArray);
 
-            Assert.True(((TypeSymbol)p.GetMember<MethodSymbol>("Test3").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
-            Assert.True(((TypeSymbol)p.GetMember<MethodSymbol>("Test4").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
+            Assert.True(((ITypeSymbol)p.GetMember<MethodSymbol>("Test3").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
+            Assert.True(((ITypeSymbol)p.GetMember<MethodSymbol>("Test4").GetAttributes().Single().ConstructorArguments.Single().Value).IsErrorType());
 
             CompileAndVerify(compilation, expectedOutput:
 @"System.Int32[]

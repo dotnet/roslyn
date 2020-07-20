@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
         private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpMakeMethodSynchronousCodeFixProvider()
         {
         }
@@ -40,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             }
         }
 
-        private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
+        private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, knownTypes);
             var newModifiers = FixMethodModifiers(method.Modifiers, ref newReturnType);
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
+        private static SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, localFunction.ReturnType, knownTypes);
             var newModifiers = FixMethodModifiers(localFunction.Modifiers, ref newReturnType);
@@ -72,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt))
             {
                 // If the return type is IAsyncEnumerable<T>, then make the new return type IEnumerable<T>.
-                newReturnType = knownTypes._iEnumerableOfTType.ConstructWithNullability(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                newReturnType = knownTypes._iEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
             else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTTypeOpt))
             {
                 // If the return type is IAsyncEnumerator<T>, then make the new return type IEnumerator<T>.
-                newReturnType = knownTypes._iEnumeratorOfTType.ConstructWithNullability(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                newReturnType = knownTypes._iEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
 
             return newReturnType;
@@ -115,19 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             return newModifiers;
         }
 
-        private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
-        {
-            return lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
-        }
+        private static SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
+            => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
 
-        private SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
-        {
-            return lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
-        }
+        private static SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
+            => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
 
-        private SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
-        {
-            return method.WithAsyncKeyword(default).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
-        }
+        private static SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
+            => method.WithAsyncKeyword(default).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
     }
 }

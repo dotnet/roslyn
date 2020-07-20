@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -904,15 +906,16 @@ public class H
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            compilation.VerifyIL("H..cctor",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}
-");
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("H");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
 
@@ -10673,7 +10676,8 @@ public class MyClass {
         [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
-        [Fact]
+        [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
+        [Fact] // https://github.com/dotnet/coreclr/issues/22046
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -10696,8 +10700,25 @@ class C
         Console.WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
-@"0.0000000000000000000000000031
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
+0.0000000000000000000000000031
+
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+0.1000000000000000000000000001");
+            }
+            else if (ExecutionConditionUtil.IsDesktop)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
 0.0000000000000000000000000030
 
 0.0000000000000000000000000001
@@ -10708,6 +10729,7 @@ class C
 
 0.1000000000000000000000000000
 0.1000000000000000000000000000");
+            }
         }
 
         [Fact]
@@ -11339,7 +11361,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/runtime/issues/1611")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         [WorkItem(34198, "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
@@ -14518,9 +14540,9 @@ class C
                 result.Diagnostics.Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (14,22): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (14,27): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //         switch (s) { case "A": break; case "B": break; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""A"":").WithArguments("System.String", "op_Equality").WithLocation(14, 22)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""A""").WithArguments("System.String", "op_Equality").WithLocation(14, 27)
                 );
             }
         }
@@ -14697,7 +14719,7 @@ using System;
             var source = @"
 enum MyEnum { first, second, last }
 struct MyStruct { int intStructMember; }
-public class Test
+public unsafe class Test
 {
     static bool boolMember = false;
     static char charMember = '\0';
@@ -14709,13 +14731,37 @@ public class Test
     static uint uintMember = 0;
     static long longMember = 0L;
     static ulong ulongMember = 0;
-    static decimal decimalMember = default(decimal);
+    static nint nintMember = 0;
+    static nuint nuintMember = 0;
+    static decimal decimalMember = 0m;
     static string strMember = null;
     static object objMember = null;
     static float floatMember = 0.0F;
     static double doubleMember = 0.0D;
     static MyEnum enumMember = MyEnum.first;
-    MyStruct structMember = default(MyStruct);
+
+    static bool boolMember2 = default(bool);
+    static char charMember2 = default(char);
+    static sbyte sbyteMember2 = default(sbyte);
+    static byte byteMember2 = default(byte);
+    static short shortMember2 = default(short);
+    static ushort ushortMember2 = default(ushort);
+    static int intMember2 = default(int);
+    static uint uintMember2 = default(uint);
+    static long longMember2 = default(long);
+    static ulong ulongMember2 = default(ulong);
+    static nint nintMember2 = default(nint);
+    static nuint nuintMember2 = default(nuint);
+    static decimal decimalMember2 = default(decimal);
+    static string strMember2 = default(string);
+    static object objMember2 = default(object);
+    static float floatMember2 = default(float);
+    static double doubleMember2 = default(double);
+    static MyEnum enumMember2 = default(MyEnum);
+    static MyStruct structMember2 = default(MyStruct);
+    static System.IntPtr intPtrMember2 = default(System.IntPtr);
+    static System.UIntPtr uintPtrMember2 = default(System.UIntPtr);
+    static void* voidPtrMember2 = default(void*);
 }
 
 class c1
@@ -14727,15 +14773,18 @@ class c1
 
 ";
 
-            CompileAndVerify(source, expectedOutput: @"").
-                VerifyIL("Test..cctor()",
-@"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}                                                                                           
-"); ;
+            CompileAndVerify(
+                source,
+                expectedOutput: "",
+                symbolValidator: validator,
+                options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(876784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876784")]

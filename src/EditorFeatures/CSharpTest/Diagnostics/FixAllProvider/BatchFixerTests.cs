@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -32,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSyntaxNodeAction<SyntaxKind>(AnalyzeNode, SyntaxKind.IdentifierName);
-            }
+                => context.RegisterSyntaxNodeAction<SyntaxKind>(AnalyzeNode, SyntaxKind.IdentifierName);
 
             private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                 }
             }
 
-            public async override Task RegisterCodeFixesAsync(CodeFixContext context)
+            public override async Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
                 if (root.FindNode(context.Span, getInnermostNodeForTie: true) is SimpleNameSyntax node)
@@ -85,9 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             }
 
             public override FixAllProvider GetFixAllProvider()
-            {
-                return WellKnownFixAllProviders.BatchFixer;
-            }
+                => WellKnownFixAllProviders.BatchFixer;
         }
 
         #region "Fix all occurrences tests"

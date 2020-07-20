@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports System.Text
@@ -2588,7 +2590,7 @@ End Class
         Assert.Equal(diagnosticsA.Count, diagnosticsB.Count)
 
         For i = 0 To diagnosticsA.Count - 1
-            Assert.Equal(diagnosticsA(i).Stringize(), diagnosticsB(i).Stringize())
+            Assert.Equal(diagnosticsA(i).Inspect(), diagnosticsB(i).Inspect())
         Next
     End Sub
 

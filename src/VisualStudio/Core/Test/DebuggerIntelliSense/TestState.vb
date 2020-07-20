@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -22,17 +24,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Private Shared ReadOnly s_roles As ImmutableArray(Of String) = ImmutableArray.Create(PredefinedTextViewRoles.Editable, "DEBUGVIEW", PredefinedTextViewRoles.Interactive)
 
         Private Sub New(workspaceElement As XElement,
-                        isImmediateWindow As Boolean,
-                        Optional cursorDocumentElement As XElement = Nothing)
+                        isImmediateWindow As Boolean)
 
             MyBase.New(
                 workspaceElement,
-                extraCompletionProviders:=Nothing,
                 excludedTypes:=Nothing,
                 extraExportedTypes:=Nothing,
                 workspaceKind:=WorkspaceKind.Debugger,
                 includeFormatCommandHandler:=False,
-                cursorDocumentElement:=If(cursorDocumentElement, <Document>$$</Document>),
+                makeSeparateBufferForCursor:=True,
                 roles:=s_roles)
 
             Dim languageServices = Workspace.CurrentSolution.Projects.First().LanguageServices
@@ -78,18 +78,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
         Public Shared Function CreateVisualBasicTestState(
                 workspaceElement As XElement,
-                isImmediateWindow As Boolean,
-                Optional cursorDocumentElement As XElement = Nothing) As TestState
+                isImmediateWindow As Boolean) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow, cursorDocumentElement)
+            Return New TestState(workspaceElement, isImmediateWindow)
         End Function
 
         Public Shared Function CreateCSharpTestState(
                 workspaceElement As XElement,
-                isImmediateWindow As Boolean,
-                Optional cursorDocumentElement As XElement = Nothing) As TestState
+                isImmediateWindow As Boolean) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow, cursorDocumentElement)
+            Return New TestState(workspaceElement, isImmediateWindow)
         End Function
 
         Public Function GetCurrentViewLineText() As String

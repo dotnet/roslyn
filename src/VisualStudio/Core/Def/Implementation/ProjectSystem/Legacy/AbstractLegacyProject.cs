@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,11 +9,10 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
-using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -39,6 +40,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         /// </summary>
         private readonly string _projectDirectory = null;
 
+        /// <summary>
+        /// Whether we should ignore the output path for this project because it's a special project.
+        /// </summary>
+        private readonly bool _ignoreOutputPath;
+
         private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         #region Mutable fields that should only be used from the UI thread
@@ -51,17 +57,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string projectSystemName,
             IVsHierarchy hierarchy,
             string language,
+            bool isVsIntellisenseProject,
             IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            string externalErrorReportingPrefix,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt)
-            : base(threadingContext)
+            string externalErrorReportingPrefix)
+            : base(threadingContext, assertIsForeground: true)
         {
             Contract.ThrowIfNull(hierarchy);
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             Workspace = componentModel.GetService<VisualStudioWorkspace>();
+            var workspaceImpl = (VisualStudioWorkspaceImpl)Workspace;
 
             var projectFilePath = hierarchy.TryGetProjectFilePath();
 
@@ -73,6 +79,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (projectFilePath != null)
             {
                 _projectDirectory = Path.GetDirectoryName(projectFilePath);
+            }
+
+            if (isVsIntellisenseProject)
+            {
+                // IVsIntellisenseProjects are usually used for contained language cases, which means these projects don't have any real
+                // output path that we should consider. Since those point to the same IVsHierarchy as another project, we end up with two projects
+                // with the same output path, which potentially breaks conversion of metadata references to project references. However they're
+                // also used for database projects and a few other cases where there there isn't a "primary" IVsHierarchy.
+                // As a heuristic here we'll ignore the output path if we already have another project tied to the IVsHierarchy.
+                foreach (var projectId in Workspace.CurrentSolution.ProjectIds)
+                {
+                    if (Workspace.GetHierarchy(projectId) == hierarchy)
+                    {
+                        _ignoreOutputPath = true;
+                        break;
+                    }
+                }
             }
 
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
@@ -89,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     ProjectGuid = GetProjectIDGuid(hierarchy),
                 });
 
-            ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
+            workspaceImpl.AddProjectRuleSetFileToInternalMaps(
                 VisualStudioProject,
                 () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
 
@@ -100,22 +123,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // (e.g. through a <defaultnamespace> msbuild property)
             VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
 
+            if (TryGetPropertyValue(hierarchy, AdditionalPropertyNames.MaxSupportedLangVersion, out var maxLangVer))
+            {
+                VisualStudioProject.MaxLangVersion = maxLangVer;
+            }
+
+            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzers, out var runAnayzers))
+            {
+                VisualStudioProject.RunAnalyzers = runAnayzers;
+            }
+
+            if (TryGetBoolPropertyValue(hierarchy, AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, out var runAnayzersDuringLiveAnalysis))
+            {
+                VisualStudioProject.RunAnalyzersDuringLiveAnalysis = runAnayzersDuringLiveAnalysis;
+            }
+
             Hierarchy = hierarchy;
             ConnectHierarchyEvents();
             RefreshBinOutputPath();
 
-            // TODO: https://github.com/dotnet/roslyn/issues/36065
-            // The ctor of ExternalErrorDiagnosticUpdateSource throws when running in tests since UIContextImpl calls:
-            //   (IVsMonitorSelection)ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection))),
-            // which returns null.
-            try
-            {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
-            }
-            catch (Exception)
-            {
-            }
+            workspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 
+            _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, language, workspaceImpl);
             _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
             _batchScopeCreator.StartTrackingProject(VisualStudioProject, Hierarchy);
         }
@@ -123,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         public string AssemblyName => VisualStudioProject.AssemblyName;
 
         public string GetOutputFileName()
-            => VisualStudioProject.IntermediateOutputFilePath;
+            => VisualStudioProject.CompilationOutputAssemblyFilePath;
 
         public virtual void Disconnect()
         {
@@ -207,6 +236,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void RefreshBinOutputPath()
         {
+            // These projects are created against the same hierarchy as the "main" project that
+            // hosts the rest of the code; if we query the IVsHierarchy for the output path
+            // we'll end up with duplicate output paths which can break P2P referencing. Since the output
+            // path doesn't make sense for these, we'll ignore them.
+            if (_ignoreOutputPath)
+            {
+                return;
+            }
+
             if (!(Hierarchy is IVsBuildPropertyStorage storage))
             {
                 return;
@@ -259,22 +297,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             return Guid.Empty;
-        }
-
-        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
-        {
-            try
-            {
-                if (hierarchy.TryGetProject(out var project))
-                {
-                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -335,9 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         // from native to managed can end up resulting in boxed ints instead.  Handle both here so 
         // we're resilient to however the IVsHierarchy was actually implemented.
         private static uint UnboxVSItemId(object id)
-        {
-            return id is uint ? (uint)id : unchecked((uint)(int)id);
-        }
+            => id is uint ? (uint)id : unchecked((uint)(int)id);
 
         private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
         {
@@ -398,6 +418,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             return null;
+        }
+
+        private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, out string propertyValue)
+        {
+            if (!(hierarchy is IVsBuildPropertyStorage storage))
+            {
+                propertyValue = null;
+                return false;
+            }
+
+            return ErrorHandler.Succeeded(storage.GetPropertyValue(propertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, out propertyValue));
+        }
+
+        private static bool TryGetBoolPropertyValue(IVsHierarchy hierarchy, string propertyName, out bool? propertyValue)
+        {
+            if (!TryGetPropertyValue(hierarchy, propertyName, out var stringPropertyValue))
+            {
+                propertyValue = null;
+                return false;
+            }
+
+            propertyValue = bool.TryParse(stringPropertyValue, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+            return true;
         }
     }
 }

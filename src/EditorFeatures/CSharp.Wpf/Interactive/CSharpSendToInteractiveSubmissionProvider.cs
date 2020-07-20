@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Interactive;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -17,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         : AbstractSendToInteractiveSubmissionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSendToInteractiveSubmissionProvider()
         {
         }
@@ -24,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         protected override bool CanParseSubmission(string code)
         {
             ParseOptions options = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);
-            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code, options);
+            var tree = SyntaxFactory.ParseSyntaxTree(code, options);
             return tree.HasCompilationUnitRoot &&
                 !tree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
         protected override IEnumerable<TextSpan> GetExecutableSyntaxTreeNodeSelection(TextSpan selectionSpan, SyntaxNode root)
         {
-            SyntaxNode expandedNode = GetSyntaxNodeForSubmission(selectionSpan, root);
+            var expandedNode = GetSyntaxNodeForSubmission(selectionSpan, root);
             return expandedNode != null
                 ? new TextSpan[] { expandedNode.Span }
                 : Array.Empty<TextSpan>();
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         /// </summary>
         /// <param name="selectionSpan">Selection that user has originally made.</param>
         /// <param name="root">Root of the syntax tree.</param>
-        private SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
+        private static SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
         {
             GetSelectedTokens(selectionSpan, root, out var startToken, out var endToken);
 
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 || node.IsKind(SyntaxKind.UsingDirective);
         }
 
-        private void GetSelectedTokens(
+        private static void GetSelectedTokens(
             TextSpan selectionSpan,
             SyntaxNode root,
             out SyntaxToken startToken,

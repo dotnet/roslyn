@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -1368,6 +1369,49 @@ End Class
 
 Interface IA
     Sub Main(args() As String)
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
+
+        <WorkItem(43952, "https://github.com/dotnet/roslyn/issues/43952")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_IgnoreWithEvents() As Task
+            Dim markup = <text>Class C$$
+    Public WithEvents X As Object
+End Class</text>.NormalizedValue()
+            Await TestExtractInterfaceCommandVisualBasicAsync(markup, expectedSuccess:=False)
+        End Function
+
+        <WorkItem(43952, "https://github.com/dotnet/roslyn/issues/43952")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_IgnoreWithEvents2() As Task
+            Dim markup = <text>Class C$$
+    Public WithEvents X As Object
+
+    Sub Method()
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>Class C
+    Implements IC
+
+    Public WithEvents X As Object
+
+    Sub Method() Implements IC.Method
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>Interface IC
+    Sub Method()
 End Interface
 </text>.NormalizedValue()
 

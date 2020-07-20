@@ -1,14 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public abstract class RecommenderTests : TestBase
     {
+        protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
+
         protected string keywordText;
         internal Func<int, CSharpSyntaxContext, Task<IEnumerable<RecommendedKeyword>>> RecommendKeywordsAsync;
 
@@ -51,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var compilation = CSharpCompilation.Create(
                 "test",
                 syntaxTrees: new[] { tree },
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                references: new[] { TestMetadata.Net451.mscorlib });
 
             if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
             {
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 }
                 else
                 {
-                    var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
+                    var result = (await RecommendKeywordsAsync(position, context))?.SingleOrDefault();
                     Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)
@@ -93,14 +99,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         private Task VerifyInFrontOfCommentAsync(string text, int cursorPosition, bool absent, CSharpParseOptions options, int? matchPriority)
-        {
-            return VerifyInFrontOfCommentAsync(text, cursorPosition, absent, string.Empty, options: options, matchPriority: matchPriority);
-        }
+            => VerifyInFrontOfCommentAsync(text, cursorPosition, absent, string.Empty, options: options, matchPriority: matchPriority);
 
         private Task VerifyInFrontOfComment_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-        {
-            return VerifyInFrontOfCommentAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
-        }
+            => VerifyInFrontOfCommentAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
 
         private Task VerifyAtPositionAsync(
             string text,
@@ -118,14 +120,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         private Task VerifyAtPositionAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-        {
-            return VerifyAtPositionAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
-        }
+            => VerifyAtPositionAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
 
         private Task VerifyAtPosition_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-        {
-            return VerifyAtPositionAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
-        }
+            => VerifyAtPositionAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
 
         private async Task VerifyAtEndOfFileAsync(
             string text,
@@ -149,14 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         private Task VerifyAtEndOfFileAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-        {
-            return VerifyAtEndOfFileAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
-        }
+            => VerifyAtEndOfFileAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
 
         private Task VerifyAtEndOfFile_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-        {
-            return VerifyAtEndOfFileAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
-        }
+            => VerifyAtEndOfFileAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
 
         internal async Task VerifyKeywordAsync(string text, CSharpParseOptions options = null, CSharpParseOptions scriptOptions = null)
         {
@@ -199,16 +193,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
         }
 
-        protected string AddInsideMethod(string text)
+        protected static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
         {
-            return
-@"class C
-{
-  void F()
-  {
-    " + text +
-@"  }
-}";
+            if (topLevelStatement)
+            {
+                return returnType switch
+                {
+                    "void" => text,
+                    "int" => text,
+                    _ => throw new ArgumentException("Unsupported return type", nameof(returnType)),
+                };
+            }
+
+            var builder = new StringBuilder();
+            if (isAsync && returnType != "void")
+            {
+                builder.AppendLine("using System.Threading.Tasks;");
+            }
+
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.Append("  ");
+
+            if (isAsync)
+            {
+                builder.Append("async ");
+                if (returnType == "void")
+                {
+                    builder.Append("Task");
+                }
+                else
+                {
+                    builder.Append($"Task<{returnType}>");
+                }
+            }
+            else
+            {
+                builder.Append(returnType);
+            }
+
+            builder.AppendLine(" F()");
+            builder.AppendLine("  {");
+            builder.Append("    ").Append(text);
+            builder.AppendLine("  }");
+            builder.Append("}");
+
+            return builder.ToString();
         }
     }
 }

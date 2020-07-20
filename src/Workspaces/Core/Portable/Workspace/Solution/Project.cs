@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -66,6 +69,11 @@ namespace Microsoft.CodeAnalysis
         /// The path to the reference assembly output file, or null if it is not known.
         /// </summary>
         public string? OutputRefFilePath => _projectState.OutputRefFilePath;
+
+        /// <summary>
+        /// Compilation output file paths.
+        /// </summary>
+        public CompilationOutputInfo CompilationOutputInfo => _projectState.CompilationOutputInfo;
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -183,41 +191,31 @@ namespace Microsoft.CodeAnalysis
         /// True if the project contains a document with the specified ID.
         /// </summary>
         public bool ContainsDocument(DocumentId documentId)
-        {
-            return _projectState.ContainsDocument(documentId);
-        }
+            => _projectState.ContainsDocument(documentId);
 
         /// <summary>
         /// True if the project contains an additional document with the specified ID.
         /// </summary>
         public bool ContainsAdditionalDocument(DocumentId documentId)
-        {
-            return _projectState.ContainsAdditionalDocument(documentId);
-        }
+            => _projectState.ContainsAdditionalDocument(documentId);
 
         /// <summary>
         /// True if the project contains an <see cref="AnalyzerConfigDocument"/> with the specified ID.
         /// </summary>
         public bool ContainsAnalyzerConfigDocument(DocumentId documentId)
-        {
-            return _projectState.ContainsAnalyzerConfigDocument(documentId);
-        }
+            => _projectState.ContainsAnalyzerConfigDocument(documentId);
 
         /// <summary>
         /// Get the documentId in this project with the specified syntax tree.
         /// </summary>
         public DocumentId? GetDocumentId(SyntaxTree? syntaxTree)
-        {
-            return _solution.GetDocumentId(syntaxTree, this.Id);
-        }
+            => _solution.GetDocumentId(syntaxTree, this.Id);
 
         /// <summary>
         /// Get the document in this project with the specified syntax tree.
         /// </summary>
         public Document? GetDocument(SyntaxTree? syntaxTree)
-        {
-            return _solution.GetDocument(syntaxTree, this.Id);
-        }
+            => _solution.GetDocument(syntaxTree, this.Id);
 
         /// <summary>
         /// Get the document in this project with the specified document Id.
@@ -259,19 +257,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal DocumentState? GetDocumentState(DocumentId documentId)
-        {
-            return _projectState.GetDocumentState(documentId);
-        }
+            => _projectState.GetDocumentState(documentId);
 
         internal TextDocumentState? GetAdditionalDocumentState(DocumentId documentId)
-        {
-            return _projectState.GetAdditionalDocumentState(documentId);
-        }
+            => _projectState.GetAdditionalDocumentState(documentId);
 
         internal AnalyzerConfigDocumentState? GetAnalyzerConfigDocumentState(DocumentId documentId)
-        {
-            return _projectState.GetAnalyzerConfigDocumentState(documentId);
-        }
+            => _projectState.GetAnalyzerConfigDocumentState(documentId);
 
         internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
         {
@@ -286,9 +278,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            return (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id)!);
-        }
+            => (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id)!);
 
         private static readonly Func<DocumentId, Project, Document> s_createDocumentFunction = CreateDocument;
         private static Document CreateDocument(DocumentId documentId, Project project)
@@ -320,29 +310,25 @@ namespace Microsoft.CodeAnalysis
         /// or create a new one otherwise.
         /// </summary>
         public bool TryGetCompilation([NotNullWhen(returnValue: true)] out Compilation? compilation)
-        {
-            return _solution.State.TryGetCompilation(this.Id, out compilation);
-        }
+            => _solution.State.TryGetCompilation(this.Id, out compilation);
 
         /// <summary>
         /// Get the <see cref="Compilation"/> for this project asynchronously.
         /// </summary>
         /// <returns>
-        /// Returns the produced <see cref="Compilation"/>, or <see langword="null"/> if the project language of this project doesn't support producing compilations.
+        /// Returns the produced <see cref="Compilation"/>, or <see langword="null"/> if <see
+        /// cref="SupportsCompilation"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
         /// </returns>
         public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
-        {
-            return _solution.State.GetCompilationAsync(_projectState, cancellationToken);
-        }
+            => _solution.State.GetCompilationAsync(_projectState, cancellationToken);
 
         /// <summary>
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
         /// </summary>
         // TODO: make this public
         internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)
-        {
-            return _solution.State.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
-        }
+            => _solution.State.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
 
         /// <summary>
         /// Gets an object that lists the added, changed and removed documents between this project and the specified project.
@@ -366,26 +352,20 @@ namespace Microsoft.CodeAnalysis
         /// The version of the most recently modified document.
         /// </summary>
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken = default)
-        {
-            return _projectState.GetLatestDocumentVersionAsync(cancellationToken);
-        }
+            => _projectState.GetLatestDocumentVersionAsync(cancellationToken);
 
         /// <summary>
         /// The most recent version of the project, its documents and all dependent projects and documents.
         /// </summary>
         public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default)
-        {
-            return _solution.State.GetDependentVersionAsync(this.Id, cancellationToken);
-        }
+            => _solution.State.GetDependentVersionAsync(this.Id, cancellationToken);
 
         /// <summary>
         /// The semantic version of this project including the semantics of referenced projects.
         /// This version changes whenever the consumable declarations of this project and/or projects it depends on change.
         /// </summary>
         public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default)
-        {
-            return _solution.State.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
-        }
+            => _solution.State.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
 
         /// <summary>
         /// The semantic version of this project not including the semantics of referenced projects.
@@ -402,138 +382,106 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of this project updated to have the new assembly name.
         /// </summary>
         public Project WithAssemblyName(string assemblyName)
-        {
-            return this.Solution.WithProjectAssemblyName(this.Id, assemblyName).GetProject(this.Id)!;
-        }
+            => this.Solution.WithProjectAssemblyName(this.Id, assemblyName).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to have the new default namespace.
         /// </summary>
         public Project WithDefaultNamespace(string defaultNamespace)
-        {
-            return this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetProject(this.Id)!;
-        }
+            => this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to have the specified compilation options.
         /// </summary>
         public Project WithCompilationOptions(CompilationOptions options)
-        {
-            return this.Solution.WithProjectCompilationOptions(this.Id, options).GetProject(this.Id)!;
-        }
+            => this.Solution.WithProjectCompilationOptions(this.Id, options).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to have the specified parse options.
         /// </summary>
         public Project WithParseOptions(ParseOptions options)
-        {
-            return this.Solution.WithProjectParseOptions(this.Id, options).GetProject(this.Id)!;
-        }
+            => this.Solution.WithProjectParseOptions(this.Id, options).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to include the specified project reference
         /// in addition to already existing ones.
         /// </summary>
         public Project AddProjectReference(ProjectReference projectReference)
-        {
-            return this.Solution.AddProjectReference(this.Id, projectReference).GetProject(this.Id)!;
-        }
+            => this.Solution.AddProjectReference(this.Id, projectReference).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to include the specified project references
         /// in addition to already existing ones.
         /// </summary>
         public Project AddProjectReferences(IEnumerable<ProjectReference> projectReferences)
-        {
-            return this.Solution.AddProjectReferences(this.Id, projectReferences).GetProject(this.Id)!;
-        }
+            => this.Solution.AddProjectReferences(this.Id, projectReferences).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified project reference.
         /// </summary>
         public Project RemoveProjectReference(ProjectReference projectReference)
-        {
-            return this.Solution.RemoveProjectReference(this.Id, projectReference).GetProject(this.Id)!;
-        }
+            => this.Solution.RemoveProjectReference(this.Id, projectReference).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to replace existing project references 
         /// with the specified ones.
         /// </summary>
         public Project WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
-        {
-            return this.Solution.WithProjectReferences(this.Id, projectReferences).GetProject(this.Id)!;
-        }
+            => this.Solution.WithProjectReferences(this.Id, projectReferences).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to include the specified metadata reference
         /// in addition to already existing ones.
         /// </summary>
         public Project AddMetadataReference(MetadataReference metadataReference)
-        {
-            return this.Solution.AddMetadataReference(this.Id, metadataReference).GetProject(this.Id)!;
-        }
+            => this.Solution.AddMetadataReference(this.Id, metadataReference).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to include the specified metadata references
         /// in addition to already existing ones.
         /// </summary>
         public Project AddMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
-        {
-            return this.Solution.AddMetadataReferences(this.Id, metadataReferences).GetProject(this.Id)!;
-        }
+            => this.Solution.AddMetadataReferences(this.Id, metadataReferences).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified metadata reference.
         /// </summary>
         public Project RemoveMetadataReference(MetadataReference metadataReference)
-        {
-            return this.Solution.RemoveMetadataReference(this.Id, metadataReference).GetProject(this.Id)!;
-        }
+            => this.Solution.RemoveMetadataReference(this.Id, metadataReference).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to replace existing metadata reference
         /// with the specified ones.
         /// </summary>
         public Project WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
-        {
-            return this.Solution.WithProjectMetadataReferences(this.Id, metadataReferences).GetProject(this.Id)!;
-        }
+            => this.Solution.WithProjectMetadataReferences(this.Id, metadataReferences).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to include the specified analyzer reference 
         /// in addition to already existing ones.
         /// </summary>
         public Project AddAnalyzerReference(AnalyzerReference analyzerReference)
-        {
-            return this.Solution.AddAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id)!;
-        }
+            => this.Solution.AddAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to include the specified analyzer references
         /// in addition to already existing ones.
         /// </summary>
         public Project AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
-        {
-            return this.Solution.AddAnalyzerReferences(this.Id, analyzerReferences).GetProject(this.Id)!;
-        }
+            => this.Solution.AddAnalyzerReferences(this.Id, analyzerReferences).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified analyzer reference.
         /// </summary>
         public Project RemoveAnalyzerReference(AnalyzerReference analyzerReference)
-        {
-            return this.Solution.RemoveAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id)!;
-        }
+            => this.Solution.RemoveAnalyzerReference(this.Id, analyzerReference).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this project updated to replace existing analyzer references 
         /// with the specified ones.
         /// </summary>
         public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferencs)
-        {
-            return this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetProject(this.Id)!;
-        }
+            => this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetProject(this.Id)!;
 
         /// <summary>
         /// Creates a new document in a new instance of this project.
@@ -597,31 +545,76 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project RemoveDocument(DocumentId documentId)
         {
+            // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
+            // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
             return this.Solution.RemoveDocument(documentId).GetProject(this.Id)!;
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified documents.
+        /// </summary>
+        public Project RemoveDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            CheckIdsContainedInProject(documentIds);
+
+            return this.Solution.RemoveDocuments(documentIds).GetRequiredProject(this.Id);
         }
 
         /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified additional document.
         /// </summary>
         public Project RemoveAdditionalDocument(DocumentId documentId)
+            // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
+            // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
+            => this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id)!;
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified additional documents.
+        /// </summary>
+        public Project RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            return this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id)!;
+            CheckIdsContainedInProject(documentIds);
+
+            return this.Solution.RemoveAdditionalDocuments(documentIds).GetRequiredProject(this.Id);
         }
 
         /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified analyzer config document.
         /// </summary>
         public Project RemoveAnalyzerConfigDocument(DocumentId documentId)
+            // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
+            // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
+            => this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id)!;
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>s.
+        /// </summary>
+        public Project RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            return this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id)!;
+            CheckIdsContainedInProject(documentIds);
+
+            return this.Solution.RemoveAnalyzerConfigDocuments(documentIds).GetRequiredProject(this.Id);
+        }
+
+        private void CheckIdsContainedInProject(ImmutableArray<DocumentId> documentIds)
+        {
+            foreach (var documentId in documentIds)
+            {
+                // Dealing with nulls is handled by the caller of this
+                if (documentId?.ProjectId != this.Id)
+                {
+                    throw new ArgumentException(string.Format(WorkspacesResources._0_is_in_a_different_project, documentId));
+                }
+            }
         }
 
         internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
             => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
 
         private string GetDebuggerDisplay()
-        {
-            return this.Name;
-        }
+            => this.Name;
+
+        internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
+            => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
     }
 }

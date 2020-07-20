@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -17,18 +19,21 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
-    public class FormattingEngineTests : FormattingEngineTestBase
+    public class FormattingEngineTests : CSharpFormattingEngineTestBase
     {
-        private static Dictionary<OptionKey, object> SmartIndentButDoNotFormatWhileTyping()
+        public FormattingEngineTests(ITestOutputHelper output) : base(output) { }
+
+        private static Dictionary<OptionKey2, object> SmartIndentButDoNotFormatWhileTyping()
         {
-            return new Dictionary<OptionKey, object>
+            return new Dictionary<OptionKey2, object>
             {
-                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
-                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
-                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
             };
         }
 
@@ -507,7 +512,8 @@ class Program
             using var workspace = TestWorkspace.CreateCSharp(code);
             var subjectDocument = workspace.Documents.Single();
             var spans = subjectDocument.SelectedSpans;
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.AllowDisjointSpanMerging, true)));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
@@ -1162,9 +1168,9 @@ class C : Attribute
     class C1<U>
 {
 }";
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
@@ -1193,9 +1199,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1225,9 +1231,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1257,9 +1263,9 @@ class C : Attribute
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1315,9 +1321,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1347,9 +1353,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1375,11 +1381,6 @@ class C
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
-            {
-                { new OptionKey(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
-
             AssertFormatAfterTypeChar(code, expected);
         }
 
@@ -1404,11 +1405,6 @@ class C
     {
 }
 ";
-
-            var optionSet = new Dictionary<OptionKey, object>
-            {
-                { new OptionKey(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
 
             AssertFormatAfterTypeChar(code, expected);
         }
@@ -2052,7 +2048,191 @@ class MyClass
             await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
         }
 
-        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression()
+        {
+            var code = @"[|
+record C(int Property)
+{
+    void M()
+    {
+        _ = this  with  {  Property  =  1  } ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property)
+{
+    void M()
+    {
+        _ = this with { Property = 1 };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression_MultiLine()
+        {
+            var code = @"[|
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this  with
+{
+Property  =  1,
+Property2  =  2
+} ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this with
+        {
+            Property = 1,
+            Property2 = 2
+        };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression_MultiLine_UserPositionedBraces()
+        {
+            var code = @"[|
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this  with
+            {
+                Property  =  1,
+                Property2  =  2
+            } ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this with
+        {
+            Property = 1,
+            Property2 = 2
+        };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_KeepMultipleLinesBetweenGroups()
+        {
+            var code = @"$$
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_DoNotGroupIfNotSorted()
+        {
+            var code = @"$$
+using System.B;
+using System.A;
+using MS.B;
+using MS.A;
+";
+
+            var expected = @"$$
+using System.B;
+using System.A;
+using MS.B;
+using MS.A;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_GroupIfSorted()
+        {
+            var code = @"$$
+using System.A;
+using System.B;
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+using System.A;
+using System.B;
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
+        {
+            var code = @"$$
+using MS.A;
+using MS.B;
+using System.A;
+using System.B;
+";
+
+            var expected = @"$$
+using MS.A;
+using MS.B;
+
+using System.A;
+using System.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);
             if (changedOptionSet != null)
@@ -2063,16 +2243,16 @@ class MyClass
                     options = options.WithChangedOption(entry.Key, entry.Value);
                 }
 
-                workspace.Options = options;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
             }
 
             var subjectDocument = workspace.Documents.Single();
 
             var commandHandler = workspace.GetService<FormatCommandHandler>();
             var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.GetTextBuffer(), typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
-            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
 
             Assert.Equal(expected, newSnapshot.GetText());
         }

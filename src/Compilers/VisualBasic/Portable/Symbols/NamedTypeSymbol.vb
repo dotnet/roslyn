@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -7,6 +9,7 @@ Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -18,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class NamedTypeSymbol
         Inherits TypeSymbol
-        Implements INamedTypeSymbol
+        Implements INamedTypeSymbol, INamedTypeSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -1004,30 +1007,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function DeriveUseSiteErrorInfoFromTypeArguments() As DiagnosticInfo
             Dim argsErrorInfo As DiagnosticInfo = Nothing
+            Dim currentType As NamedTypeSymbol = Me
 
-            For Each arg As TypeSymbol In Me.TypeArgumentsNoUseSiteDiagnostics
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
+            Do
+                For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
+                    Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
 
-                If errorInfo IsNot Nothing Then
-                    If errorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                        Return errorInfo
+                    If errorInfo IsNot Nothing Then
+                        If errorInfo.Code = ERRID.ERR_UnsupportedType1 Then
+                            Return errorInfo
+                        End If
+
+                        If argsErrorInfo Is Nothing Then
+                            argsErrorInfo = errorInfo
+                        End If
                     End If
-
-                    If argsErrorInfo Is Nothing Then
-                        argsErrorInfo = errorInfo
-                    End If
-                End If
-            Next
-
-            If Me.HasTypeArgumentsCustomModifiers Then
-                Dim modifiersErrorInfo As DiagnosticInfo = Nothing
-
-                For i As Integer = 0 To Me.Arity - 1
-                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)))
                 Next
 
-                Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
-            End If
+                If currentType.HasTypeArgumentsCustomModifiers Then
+                    Dim modifiersErrorInfo As DiagnosticInfo = Nothing
+
+                    For i As Integer = 0 To currentType.Arity - 1
+                        modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(currentType.GetTypeArgumentCustomModifiers(i)))
+                    Next
+
+                    If modifiersErrorInfo IsNot Nothing Then
+                        If modifiersErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
+                            Return modifiersErrorInfo
+                        End If
+
+                        If argsErrorInfo Is Nothing Then
+                            argsErrorInfo = modifiersErrorInfo
+                        End If
+                    End If
+                End If
+
+                currentType = currentType.ContainingType
+            Loop While currentType IsNot Nothing AndAlso Not currentType.IsDefinition
 
             Return argsErrorInfo
         End Function
@@ -1112,6 +1128,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_EnumUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.EnumUnderlyingType
+            Get
+                Return Me.EnumUnderlyingType
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeSymbolInternal_EnumUnderlyingType As INamedTypeSymbolInternal Implements INamedTypeSymbolInternal.EnumUnderlyingType
             Get
                 Return Me.EnumUnderlyingType
             End Get
@@ -1212,6 +1234,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
+            Get
+                Return Nothing
+            End Get
+        End Property
+
 #End Region
 
 #Region "ISymbol"
@@ -1272,8 +1300,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             If Not IsUnboundGenericType AndAlso
-                ContainingSymbol?.Kind = SymbolKind.Namespace AndAlso
-                ContainingNamespace?.ContainingNamespace?.IsGlobalNamespace = True AndAlso
+                (ContainingSymbol?.Kind = SymbolKind.Namespace).GetValueOrDefault() AndAlso
+                (ContainingNamespace.ContainingNamespace?.IsGlobalNamespace).GetValueOrDefault() AndAlso
                 Name = TupleTypeSymbol.TupleTypeName AndAlso
                 ContainingNamespace.Name = MetadataHelpers.SystemString Then
 

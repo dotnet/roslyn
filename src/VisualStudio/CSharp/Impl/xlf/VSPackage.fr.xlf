@@ -78,7 +78,8 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
+Use enhanced colors;
+Editor Color Scheme;</source>
         <target state="translated">Afficher les diagnostics pour les fichiers fermés ;
 Coloriser l'expression régulière ; 
 Surligner les composants liés sous le curseur ; 
@@ -124,7 +125,8 @@ préférer les propriétés de levée d'exceptions ;
 préférer les propriétés automatiques ;
 regex ;
 expression régulière ;
-Utiliser des couleurs améliorées ;</target>
+Utiliser des couleurs améliorées ;
+Modèle de couleurs de l'éditeur ;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -265,13 +267,14 @@ Insérer un espace avant et après les opérateurs binaires ;</target>
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">Modifier les options de mise en forme pour le retour à la ligne ; Laisser un bloc sur une seule ligne ; Laisser les instructions et les déclarations de membre sur la même ligne</target>
+        <target state="translated">Changer les options de mise en forme pour l'enveloppement ; Laisser un bloc sur une seule ligne ; Laisser les instructions et les déclarations de membre sur la même ligne</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -282,8 +285,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Changer les paramètres de la liste de complétion;Présélectionner le dernier membre utilisé;Listes de complétion;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">Changer les paramètres de la liste de complétion;Présélectionner le dernier membre utilisé;Listes de complétion;
 Afficher la liste de complétion après la saisie d'un caractère ;
 Afficher la liste de complétion après la suppression d'un caractère ;
 Mettre en surbrillance les parties correspondantes des éléments de liste de complétion ;
@@ -316,7 +320,7 @@ Afficher les suggestions de nom ;</target>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Retour à la ligne</target>
+        <target state="translated">Enveloppement</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
@@ -361,7 +365,7 @@ Afficher les suggestions de nom ;</target>
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">Style d'affectation de noms;Styles de nom;Règle d'affectation de noms;Conventions d'affectation de noms</target>
+        <target state="translated">Style de nommage;Styles de nom;Règle de nommage;Conventions de nommage</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">

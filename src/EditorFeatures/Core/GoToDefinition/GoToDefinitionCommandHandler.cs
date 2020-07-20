@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,13 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         ICommandHandler<GoToDefinitionCommandArgs>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GoToDefinitionCommandHandler()
         {
         }
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
@@ -37,14 +40,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
                 ? CommandState.Available
-                : CommandState.Unavailable;
+                : CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
-            if (service != null)
+
+            // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
+            // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
+            // This can be removed once typescript implements LSP support for goto def.
+            if (service != null && document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace)
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))
@@ -57,13 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         }
 
         // Internal for testing purposes only.
-        internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
+        internal static bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
             => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
 
-        internal bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
+        internal static bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
             => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
 
-        internal bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        internal static bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
         {
             string errorMessage = null;
 

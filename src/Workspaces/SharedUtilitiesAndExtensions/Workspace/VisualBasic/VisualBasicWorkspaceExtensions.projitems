@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharLanguageServiceFactory.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentListSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CallStatementSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CastExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationUnitSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\IsStatementTerminatingTokenVisitor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTokenExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\VisualBasicSyntaxContext.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\VisualBasicSyntaxContextExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxGeneratorVisitor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamespaceOrTypeSymbolExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\NameSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectCreationExpressionExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParameterSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolDisplayPartExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxKindExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxListExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBlockSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxGeneratorVisitor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicMoveDeclarationNearReferenceService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicRemoveUnnecessaryImportsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicAddImportsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicGeneratedCodeRecognitionService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicCommandLineParserService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSemanticFactsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSymbolDeclarationService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsServiceFactory.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxGeneratorInternal.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxKindsServiceFactory.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\VisualBasicSimplificationHelpers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ModifierCollectionFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxIterator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\PossibleDeclarationTypes.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxKindSet.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Shared.Utilities" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
+    <Import Include="Roslyn.Utilities" />
+    <Import Include="Roslyn.Utilities.Contract" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" GenerateSource="true" Link="VisualBasicWorkspaceExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

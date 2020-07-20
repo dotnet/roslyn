@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
-        private async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private static async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             Assert.False(extensionManager.IsIgnored(provider));
         }
 
-        private void DisplayText(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private static void DisplayText(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
@@ -61,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, textBuffer, provider, codeActions.First());
-            var text = suggestedAction.DisplayText;
+            _ = suggestedAction.DisplayText;
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }
 
-        private async Task ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private static async Task ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, textBuffer, provider, codeActions.First());
-            var actionSets = await suggestedAction.GetActionSetsAsync(CancellationToken.None);
+            _ = await suggestedAction.GetActionSetsAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }
@@ -85,12 +87,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             out VisualStudio.Text.ITextBuffer textBuffer)
         {
             var document = GetDocument(workspace);
+            textBuffer = workspace.GetTestDocument(document.Id).GetTextBuffer();
             var span = document.GetSyntaxRootAsync().Result.Span;
             var context = new CodeRefactoringContext(document, span, (a) => codeActions.Add(a), CancellationToken.None);
             provider.ComputeRefactoringsAsync(context).Wait();
             var action = codeActions.Single();
             extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
-            textBuffer = document.GetTextAsync().Result.Container.GetTextBuffer();
         }
     }
 }

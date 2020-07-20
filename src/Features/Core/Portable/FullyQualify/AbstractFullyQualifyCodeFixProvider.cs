@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -76,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                                           .Distinct()
                                           .Take(MaxResults);
 
-                var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
-                var codeActions = CreateActions(document, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
+                var codeActions = CreateActions(document, node, semanticModel, proposedContainers).ToImmutableArray();
 
                 if (codeActions.Length > 1)
                 {
@@ -96,12 +97,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         private IEnumerable<CodeAction> CreateActions(
             Document document, SyntaxNode node, SemanticModel semanticModel,
-            IEnumerable<INamespaceOrTypeSymbol> proposedContainers,
-            ISymbolDisplayService displayService)
+            IEnumerable<INamespaceOrTypeSymbol> proposedContainers)
         {
             foreach (var container in proposedContainers)
             {
-                var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
+                var containerName = container.ToMinimalDisplayString(semanticModel, node.SpanStart);
 
                 var name = GetNodeName(document, node);
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 var codeAction = new MyCodeAction(
                     $"{containerName}.{memberName}",
-                    c => ProcessNode(document, node, containerName, c));
+                    c => ProcessNodeAsync(document, node, containerName, c));
 
                 yield return codeAction;
             }
@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private static string GetNodeName(Document document, SyntaxNode node)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
+            syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out _);
             return name;
         }
 
-        private async Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
         {
             var newRoot = await ReplaceNodeAsync(node, containerName, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
@@ -148,19 +148,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
             var looksGeneric = syntaxFacts.LooksGeneric(node);
 
-            var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+            var symbols = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                 project, SearchQuery.Create(name, IgnoreCase),
                 SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
-            var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
 
             // also lookup type symbols with the "Attribute" suffix.
             var inAttributeContext = syntaxFacts.IsAttributeName(node);
             if (inAttributeContext)
             {
-                var attributeSymbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                var attributeSymbols = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                     project, SearchQuery.Create(name + "Attribute", IgnoreCase),
                     SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
-                symbols = symbols.Concat(attributeSymbolAndProjectIds.SelectAsArray(t => t.Symbol));
+                symbols = symbols.Concat(attributeSymbols);
             }
 
             var validSymbols = symbols
@@ -243,11 +242,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 return ImmutableArray<SymbolResult>.Empty;
             }
 
-            var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+            var symbols = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                 project, SearchQuery.Create(name, IgnoreCase),
                 SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
-
-            var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
 
             // There might be multiple namespaces that this name will resolve successfully in.
             // Some of them may be 'better' results than others.  For example, say you have
@@ -297,10 +294,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return BindsWithoutErrors(ns, rightName + "Attribute", isAttributeName: false);
         }
 
-        private bool HasAccessibleTypes(INamespaceSymbol @namespace, SemanticModel model, CancellationToken cancellationToken)
-        {
-            return Enumerable.Any(@namespace.GetAllTypes(cancellationToken), t => t.IsAccessibleWithin(model.Compilation.Assembly));
-        }
+        private static bool HasAccessibleTypes(INamespaceSymbol @namespace, SemanticModel model, CancellationToken cancellationToken)
+            => Enumerable.Any(@namespace.GetAllTypes(cancellationToken), t => t.IsAccessibleWithin(model.Compilation.Assembly));
 
         private static IEnumerable<SymbolResult> GetContainers(
             ImmutableArray<SymbolResult> symbols, Compilation compilation)
@@ -320,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
         }
 
-        private IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(IEnumerable<SymbolResult> symbols)
+        private static IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(IEnumerable<SymbolResult> symbols)
         {
             symbols ??= SpecializedCollections.EmptyList<SymbolResult>();
             symbols = symbols.Distinct()

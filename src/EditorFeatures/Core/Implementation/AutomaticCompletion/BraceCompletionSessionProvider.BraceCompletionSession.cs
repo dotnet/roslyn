@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Threading;
@@ -91,7 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 }
 
                 OpeningPoint = snapshot.CreateTrackingPoint(openingSnapshotPoint, PointTrackingMode.Positive);
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                 if (!_session.CheckOpeningPoint(this, cancellationToken))
                 {
@@ -187,7 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 // Brace completion is not cancellable.
                 var cancellationToken = CancellationToken.None;
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                 var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
                 if (!HasForwardTyping && _session.AllowOverType(this, cancellationToken))
@@ -256,9 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             public void PreReturn(out bool handledCommand)
-            {
-                handledCommand = false;
-            }
+                => handledCommand = false;
 
             public void PostReturn()
             {
@@ -284,9 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             public void PostTab() { }
 
             public void PreDelete(out bool handledCommand)
-            {
-                handledCommand = false;
-            }
+                => handledCommand = false;
 
             public void PostDelete() { }
 
@@ -348,9 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             internal ITextUndoTransaction CreateUndoTransaction()
-            {
-                return _undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion);
-            }
+                => _undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion);
 
             private void MoveCaretToClosingPoint()
             {

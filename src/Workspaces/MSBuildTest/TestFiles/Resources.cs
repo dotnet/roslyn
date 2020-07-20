@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -40,8 +42,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             }
         }
 
-        private readonly static Func<string, byte[]> s_bytesLoader = LoadBytes;
-        private readonly static Func<string, string> s_textLoader = LoadText;
+        private static readonly Func<string, byte[]> s_bytesLoader = LoadBytes;
+        private static readonly Func<string, string> s_textLoader = LoadText;
         private static Dictionary<string, byte[]> s_bytesCache;
         private static Dictionary<string, string> s_textCache;
 
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CircularProjectReferences_CircularCSharpProject2 => GetText("CircularProjectReferences.CircularCSharpProject2.csproj");
                 public static string CSharpProject => GetText("ProjectFiles.CSharp.CSharpProject.csproj");
                 public static string DuplicateFile => GetText("ProjectFiles.CSharp.DuplicateFile.csproj");
-                public static string DuplicateProjectReference => GetText("ProjectFiles.CSharp.DuplicateProjectReference.csproj");
+                public static string DuplicateReferences => GetText("ProjectFiles.CSharp.DuplicateReferences.csproj");
                 public static string DuplicatedGuidLibrary1 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary1.csproj");
                 public static string DuplicatedGuidLibrary2 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary2.csproj");
                 public static string DuplicatedGuidLibrary3 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary3.csproj");
@@ -138,6 +140,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreApp2AndTwoLibraries_Library1 => GetText("NetCoreApp2AndTwoLibraries.Library1.csproj");
                 public static string NetCoreApp2AndTwoLibraries_Library2 => GetText("NetCoreApp2AndTwoLibraries.Library2.csproj");
                 public static string NetCoreMultiTFM_Project => GetText("NetCoreMultiTFM.Project.csproj");
+                public static string NetCoreMultiTFM_ExtensionWithConditionOnTFM_Project => GetText("NetCoreMultiTFM_ExtensionWithConditionOnTFM.Project.csproj");
+                public static string NetCoreMultiTFM_ExtensionWithConditionOnTFM_ProjectTestProps => GetText("NetCoreMultiTFM_ExtensionWithConditionOnTFM.Project.csproj.test.props");
                 public static string NetCoreMultiTFM_ProjectReference_Library => GetText("NetCoreMultiTFM_ProjectReference.Library.csproj");
                 public static string NetCoreMultiTFM_ProjectReference_Project => GetText("NetCoreMultiTFM_ProjectReference.Project.csproj");
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.csharplib.csharplib.csproj");

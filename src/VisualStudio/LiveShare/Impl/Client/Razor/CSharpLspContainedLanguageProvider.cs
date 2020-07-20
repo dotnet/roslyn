@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging;
@@ -18,43 +23,35 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
-        private readonly CSharpLspRazorProject _razorProject;
+        private readonly CSharpLspRazorProjectFactory _razorProjectFactory;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspContainedLanguageProvider(IContentTypeRegistryService contentTypeRegistry,
             SVsServiceProvider serviceProvider,
-            CSharpLspRazorProject razorProject,
-            RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+            CSharpLspRazorProjectFactory razorProjectFactory)
         {
             _contentTypeRegistry = contentTypeRegistry ?? throw new ArgumentNullException(nameof(contentTypeRegistry));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _razorProject = razorProject ?? throw new ArgumentNullException(nameof(razorProject));
-            _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
+            _razorProjectFactory = razorProjectFactory ?? throw new ArgumentNullException(nameof(razorProjectFactory));
         }
 
         public IContentType GetContentType(string filePath)
-        {
-            return _contentTypeRegistry.GetContentType(StringConstants.CSharpLspContentTypeName);
-        }
+            => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpLspContentTypeName);
 
         public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)
         {
-            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var project = _razorProject.GetProject(filePath);
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+            var projectId = _razorProjectFactory.GetProject(filePath);
 
-            var languageService = CSharpLspLanguageService.FromServiceProvider(_serviceProvider);
-#pragma warning disable CS0618 // Type or member is obsolete - this is liveshare.
-            return new ContainedLanguage<CSharpLspPackage, CSharpLspLanguageService>(bufferCoordinator,
+            return new ContainedLanguage(
+                bufferCoordinator,
                 componentModel,
-                project,
-                new RazorProjectHierarchy(filePath),
-                (uint)VSConstants.VSITEMID.Nil,
-                languageService,
-                CodeAnalysis.SourceCodeKind.Regular,
-                vbHelperFormattingRule: null,
-                workspace: _remoteLanguageServiceWorkspace);
-#pragma warning restore CS0618 // Type or member is obsolete - this is liveshare.
+                _razorProjectFactory.Workspace,
+                projectId,
+                project: null,
+                filePath,
+                CSharpLspLanguageService.LanguageServiceGuid);
         }
     }
 }

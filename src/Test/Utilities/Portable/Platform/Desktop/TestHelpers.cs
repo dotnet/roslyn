@@ -1,4 +1,11 @@
-﻿#if NET472
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+#if NET472
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,8 +82,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestReferences.NetStandard20.NetStandard,
-                    TestReferences.NetStandard20.SystemRuntimeRef,
+                    TestMetadata.NetStandard20.netstandard,
+                    TestMetadata.NetStandard20.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
@@ -237,7 +244,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.Microsoft_Win32_Primitives),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_AppContext),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Console),
-                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard10.System_ValueTuple),
+                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_ValueTuple),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Diagnostics_FileVersionInfo),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Diagnostics_Process),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Diagnostics_StackTrace),
@@ -252,7 +259,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Net_Sockets),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Reflection_TypeExtensions),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime),
-                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard11.System_Runtime_InteropServices_RuntimeInformation),
+                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime_InteropServices_RuntimeInformation),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime_Serialization_Primitives),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_AccessControl),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_Claims),
@@ -263,7 +270,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_Cryptography_X509Certificates),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Security_Principal_Windows),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Threading_Thread),
-                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard10.System_Threading_Tasks_Extensions),
+                    MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Threading_Tasks_Extensions),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Xml_ReaderWriter),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Xml_XmlDocument),
                     MetadataReference.CreateFromImage(TestResources.NetFX.netstandard13.System_Xml_XPath),
@@ -275,7 +282,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             return analyzerImage;
         }
 
-        public static string GetMSBuildDirectory()
+        public static string? GetMSBuildDirectory()
         {
             var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
             using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))

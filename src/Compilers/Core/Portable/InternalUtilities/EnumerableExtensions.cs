@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -7,12 +9,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Roslyn.Utilities
 {
@@ -129,7 +134,10 @@ namespace Roslyn.Utilities
             return source as ISet<T> ?? new HashSet<T>(source);
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source)
+        public static IReadOnlyCollection<T> ToCollection<T>(this IEnumerable<T> sequence)
+            => (sequence is IReadOnlyCollection<T> collection) ? collection : sequence.ToList();
+
+        public static T? FirstOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -140,7 +148,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault();
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        public static T? FirstOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
             where T : struct
         {
             if (source == null)
@@ -151,7 +159,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault(v => predicate(v!.Value));
         }
 
-        public static T? LastOrNullable<T>(this IEnumerable<T> source)
+        public static T? LastOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -190,7 +198,7 @@ namespace Roslyn.Utilities
                 return str.Length == 0;
             }
 
-            foreach (var t in source)
+            foreach (var _ in source)
             {
                 return false;
             }
@@ -276,6 +284,54 @@ namespace Roslyn.Utilities
             return true;
         }
 
+        public static int IndexOf<T>(this IEnumerable<T> sequence, T value)
+        {
+            return sequence switch
+            {
+                IList<T> list => list.IndexOf(value),
+                IReadOnlyList<T> readOnlyList => IndexOf(readOnlyList, value, EqualityComparer<T>.Default),
+                _ => EnumeratingIndexOf(sequence, value, EqualityComparer<T>.Default)
+            };
+        }
+
+        public static int IndexOf<T>(this IEnumerable<T> sequence, T value, IEqualityComparer<T> comparer)
+        {
+            return sequence switch
+            {
+                IReadOnlyList<T> readOnlyList => IndexOf(readOnlyList, value, comparer),
+                _ => EnumeratingIndexOf(sequence, value, comparer)
+            };
+        }
+
+        private static int EnumeratingIndexOf<T>(this IEnumerable<T> sequence, T value, IEqualityComparer<T> comparer)
+        {
+            int i = 0;
+            foreach (var item in sequence)
+            {
+                if (comparer.Equals(item, value))
+                {
+                    return i;
+                }
+
+                i++;
+            }
+
+            return -1;
+        }
+
+        public static int IndexOf<T>(this IReadOnlyList<T> list, T value, IEqualityComparer<T> comparer)
+        {
+            for (int i = 0, length = list.Count; i < length; i++)
+            {
+                if (comparer.Equals(list[i], value))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> sequence)
         {
             if (sequence == null)
@@ -350,7 +406,7 @@ namespace Roslyn.Utilities
             return sequence.Any(predicate);
         }
 
-        public static bool Contains(this IEnumerable<string> sequence, string s)
+        public static bool Contains(this IEnumerable<string?> sequence, string? s)
         {
             foreach (var item in sequence)
             {
@@ -555,6 +611,26 @@ namespace System.Linq
             }
 
             return true;
+        }
+
+        [return: MaybeNull]
+        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
+        {
+            using (var e = source.GetEnumerator())
+            {
+                if (!e.MoveNext())
+                {
+                    return default!;
+                }
+
+                var result = e.Current;
+                while (e.MoveNext())
+                {
+                    result = func(result, e.Current);
+                }
+
+                return result;
+            }
         }
     }
 }

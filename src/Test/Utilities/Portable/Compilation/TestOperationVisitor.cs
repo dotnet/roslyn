@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (root != null)
             {
                 Assert.Null(root.Parent);
-                var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+                var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
 
                 foreach (IOperation descendant in root.DescendantsAndSelf())
                 {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            explictNodeMap.Add(descendant.Syntax, descendant);
+                            explicitNodeMap.Add(descendant.Syntax, descendant);
                         }
                         catch (ArgumentException)
                         {
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Same(operation.Operation, operation.Children.Single());
         }
 
-        internal override void VisitWith(IWithOperation operation)
+        internal override void VisitWithStatement(IWithStatementOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             AssertEx.Equal(new[] { operation.Value, operation.Body }, operation.Children);
@@ -1107,6 +1107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitPatternCommon(IPatternOperation pattern)
         {
             Assert.NotNull(pattern.InputType);
+            Assert.NotNull(pattern.NarrowedType);
             Assert.Null(pattern.Type);
             Assert.False(pattern.ConstantValue.HasValue);
         }
@@ -1116,6 +1117,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.ConstantPattern, operation.Kind);
             VisitPatternCommon(operation);
             Assert.Same(operation.Value, operation.Children.Single());
+        }
+
+        public override void VisitRelationalPattern(IRelationalPatternOperation operation)
+        {
+            Assert.Equal(OperationKind.RelationalPattern, operation.Kind);
+            Assert.True(operation.OperatorKind switch
+            {
+                Operations.BinaryOperatorKind.LessThan => true,
+                Operations.BinaryOperatorKind.LessThanOrEqual => true,
+                Operations.BinaryOperatorKind.GreaterThan => true,
+                Operations.BinaryOperatorKind.GreaterThanOrEqual => true,
+                _ => false,
+            });
+            VisitPatternCommon(operation);
+            Assert.Same(operation.Value, operation.Children.Single());
+        }
+
+        public override void VisitBinaryPattern(IBinaryPatternOperation operation)
+        {
+            Assert.Equal(OperationKind.BinaryPattern, operation.Kind);
+            VisitPatternCommon(operation);
+            Assert.True(operation.OperatorKind switch { Operations.BinaryOperatorKind.Or => true, Operations.BinaryOperatorKind.And => true, _ => false });
+            var children = operation.Children.ToArray();
+            Assert.Equal(2, children.Length);
+            Assert.Same(operation.LeftPattern, children[0]);
+            Assert.Same(operation.RightPattern, children[1]);
+        }
+
+        public override void VisitNegatedPattern(INegatedPatternOperation operation)
+        {
+            Assert.Equal(OperationKind.NegatedPattern, operation.Kind);
+            VisitPatternCommon(operation);
+            Assert.Same(operation.Pattern, operation.Children.Single());
+        }
+
+        public override void VisitTypePattern(ITypePatternOperation operation)
+        {
+            Assert.Equal(OperationKind.TypePattern, operation.Kind);
+            Assert.NotNull(operation.MatchedType);
+            VisitPatternCommon(operation);
+            Assert.Empty(operation.Children);
         }
 
         public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
@@ -1212,7 +1254,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 case IFieldSymbol field:
                 case IPropertySymbol prop:
-                case IErrorTypeSymbol error:
                     break;
                 case var symbol:
                     Assert.True(false, $"Unexpected symbol {symbol}");
@@ -1466,6 +1507,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.ReDimClause, operation.Kind);
             AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.Children);
+        }
+
+        public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
+        {
+            Assert.NotNull(operation.DeclarationGroup);
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.DeclarationGroup), operation.Children);
+            Assert.True(operation.DeclarationGroup.IsImplicit);
+            Assert.Null(operation.Type);
+            Assert.False(operation.ConstantValue.HasValue);
+            _ = operation.IsAsynchronous;
+            _ = operation.IsImplicit;
+        }
+
+        public override void VisitWith(IWithOperation operation)
+        {
+            Assert.Equal(OperationKind.With, operation.Kind);
+            _ = operation.CloneMethod;
+            IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
+            AssertEx.Equal(children, operation.Children);
         }
     }
 }

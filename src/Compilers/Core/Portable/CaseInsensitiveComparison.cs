@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -83,19 +88,19 @@ namespace Microsoft.CodeAnalysis
                 return (c1 == c2) ? 0 : ToLower(c1) - ToLower(c2);
             }
 
-            public override int Compare(string str1, string str2)
+            public override int Compare(string? str1, string? str2)
             {
-                if ((object)str1 == str2)
+                if ((object?)str1 == str2)
                 {
                     return 0;
                 }
 
-                if ((object)str1 == null)
+                if (str1 is null)
                 {
                     return -1;
                 }
 
-                if ((object)str2 == null)
+                if (str2 is null)
                 {
                     return 1;
                 }
@@ -119,14 +124,14 @@ namespace Microsoft.CodeAnalysis
                 return c1 == c2 || ToLower(c1) == ToLower(c2);
             }
 
-            public override bool Equals(string str1, string str2)
+            public override bool Equals(string? str1, string? str2)
             {
-                if ((object)str1 == str2)
+                if ((object?)str1 == str2)
                 {
                     return true;
                 }
 
-                if ((object)str1 == null || (object)str2 == null)
+                if (str1 is null || str2 is null)
                 {
                     return false;
                 }
@@ -290,7 +295,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static int GetHashCode(string value)
         {
-            Debug.Assert(value != null);
+            RoslynDebug.Assert(value != null);
 
             return s_comparer.GetHashCode(value);
         }
@@ -300,9 +305,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string ToLower(string value)
+        [return: NotNullIfNotNull(parameterName: "value")]
+        public static string? ToLower(string? value)
         {
-            if ((object)value == null)
+            if (value is null)
                 return null;
 
             if (value.Length == 0)

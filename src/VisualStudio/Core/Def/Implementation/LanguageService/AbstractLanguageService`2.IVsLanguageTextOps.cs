@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -104,13 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         public int GetPairExtent(IVsTextLayer textLayer, TextAddress ta, TextSpan[] textSpan)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int GetWordExtent(IVsTextLayer textLayer, TextAddress ta, WORDEXTFLAGS flags, TextSpan[] textSpan)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
     }
 }

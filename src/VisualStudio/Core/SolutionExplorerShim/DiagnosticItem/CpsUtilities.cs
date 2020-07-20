@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -44,6 +46,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (backslashIndex < 0)
             {
                 return null;
+            }
+
+            // If the path does not contain "analyzerdependency\" immediately after the first slash, it
+            // is a newer form of the analyzer tree item's file path (VS16.7) which requires no processing.
+            //
+            // It is theoretically possible that this incorrectly identifies an analyzer assembly
+            // defined under "c:\analyzerdependency\..." as data in the old format, however this is very
+            // unlikely. The side effect of such a problem is that analyzer's diagnostics would not
+            // populate in the tree.
+            if (analyzerNodeCanonicalName.IndexOf(@"analyzerdependency\", backslashIndex + 1, @"analyzerdependency\".Length, StringComparison.OrdinalIgnoreCase) != backslashIndex + 1)
+            {
+                return analyzerNodeCanonicalName;
             }
 
             // Find the slash after "analyzerdependency"

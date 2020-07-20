@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -117,13 +119,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
                 // Spin off tasks to do all our searching in parallel
-                var tasks = new List<Task<ImmutableArray<SymbolReference>>>
-                {
-                    GetReferencesForMatchingTypesAsync(searchScope),
-                    GetReferencesForMatchingNamespacesAsync(searchScope),
-                    GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope),
-                    GetReferencesForMatchingExtensionMethodsAsync(searchScope),
-                };
+                using var _1 = ArrayBuilder<Task<ImmutableArray<SymbolReference>>>.GetInstance(out var tasks);
+                tasks.Add(GetReferencesForMatchingTypesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingNamespacesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope));
+                tasks.Add(GetReferencesForMatchingExtensionMethodsAsync(searchScope));
 
                 // Searching for things like "Add" (for collection initializers) and "Select"
                 // (for extension methods) should only be done when doing an 'exact' search.
@@ -142,14 +142,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                 await Task.WhenAll(tasks).ConfigureAwait(false);
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                var allReferences = ArrayBuilder<SymbolReference>.GetInstance();
+                using var _2 = ArrayBuilder<SymbolReference>.GetInstance(out var allReferences);
                 foreach (var task in tasks)
                 {
                     var taskResult = await task.ConfigureAwait(false);
                     allReferences.AddRange(taskResult);
                 }
 
-                return DeDupeAndSortReferences(allReferences.ToImmutableAndFree());
+                return DeDupeAndSortReferences(allReferences.ToImmutable());
             }
 
             private ImmutableArray<SymbolReference> DeDupeAndSortReferences(ImmutableArray<SymbolReference> allReferences)
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     .ToImmutableArray();
             }
 
-            private void CalculateContext(
+            private static void CalculateContext(
                 TSimpleNameSyntax nameNode, ISyntaxFactsService syntaxFacts, out string name, out int arity,
                 out bool inAttributeContext, out bool hasIncompleteParentMember, out bool looksGeneric)
             {
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, ITypeSymbol typeSymbol)
             {
                 return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                    s => _owner.IsViableExtensionMethod(s.Symbol, typeSymbol));
+                    s => IsViableExtensionMethod(s.Symbol, typeSymbol));
             }
 
             private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
                 {
-                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
+                    var type = GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
                     if (type != null)
                     {
                         return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private ImmutableArray<SymbolReference> GetNamespaceSymbolReferences(
                 SearchScope scope, ImmutableArray<SymbolResult<INamespaceSymbol>> namespaces)
             {
-                var references = ArrayBuilder<SymbolReference>.GetInstance();
+                using var _ = ArrayBuilder<SymbolReference>.GetInstance(out var references);
 
                 foreach (var namespaceResult in namespaces)
                 {
@@ -558,15 +558,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                     var mappedResult = namespaceResult.WithSymbol(MapToCompilationNamespaceIfPossible(namespaceResult.Symbol));
                     var namespaceIsInScope = _namespacesInScope.Contains(mappedResult.Symbol);
                     if (!symbol.IsGlobalNamespace && !namespaceIsInScope)
-                    {
                         references.Add(scope.CreateReference(mappedResult));
-                    }
                 }
 
-                return references.ToImmutableAndFree();
+                return references.ToImmutable();
             }
 
-            private ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
+            private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
             {
                 return symbols.WhereAsArray(s => s.Symbol is T)
                               .SelectAsArray(s => s.WithSymbol((T)s.Symbol));

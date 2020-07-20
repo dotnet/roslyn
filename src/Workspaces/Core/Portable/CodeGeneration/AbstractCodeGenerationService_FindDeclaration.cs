@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected abstract IList<bool> GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken);
 
         private IList<bool> GetAvailableInsertionIndices<TDeclarationNode>(TDeclarationNode destination, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-        {
-            return GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
-        }
+            => GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
 
         public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
         {
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
-            => CanAddTo(destination, solution, cancellationToken, out var availableIndices);
+            => CanAddTo(destination, solution, cancellationToken, out _);
 
         private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,
             out IList<bool> availableIndices, bool checkGeneratedCode = false)
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var declaration = default(SyntaxNode);
+            var declaration = (SyntaxNode)null;
             IList<bool> availableIndices = null;
 
             var symbol = namespaceOrType;
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
-            var fallbackDeclaration = default(SyntaxNode);
+            var fallbackDeclaration = (SyntaxNode)null;
             if (locationOpt != null && locationOpt.IsInSource)
             {
                 var token = locationOpt.FindToken(cancellationToken);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -586,7 +588,6 @@ class C
             Await VerifyHighlightsAsync(input)
         End Function
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestPatternMatchingType2() As Task
             Dim input =
@@ -692,6 +693,87 @@ class C
                     </Document>
                </Project>
            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestHighlightParamAndCommentsCursorOnDefinition() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+        /// &lt; summary &gt;
+        /// &lt; paramref name="{|Reference:x|}"/ &gt;
+        /// &lt; /summary &gt;
+        /// &lt; param name="{|Reference:x|}" &gt; &lt; /param &gt;
+        public int this[int $${|Definition:x|}]
+        {
+            get
+            {
+                return 0;
+            }
+        }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestHighlightParamAndCommentsCursorOnReference() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+        /// &lt; summary &gt;
+        /// &lt; paramref name="$${|Reference:x|}"/ &gt;
+        /// &lt; /summary &gt;
+        /// &lt; param name="{|Reference:x|}" &gt; &lt; /param &gt;
+        public int this[int {|Definition:x|}]
+        {
+            get
+            {
+                return 0;
+            }
+        }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestHighlightParamAndCommentsDefinitionNestedBetweenReferences() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+        /// &lt; summary &gt;
+        /// &lt; paramref name="$${|Reference:x|}"/ &gt;
+        /// &lt; /summary &gt;
+        /// &lt; param name="{|Reference:x|}" &gt; &lt; /param &gt;
+        public int this[int {|Definition:x|}]
+        {
+            get
+            {
+                return {|Reference:x|};
+            }
+        }
+}
+                    </Document>
+                </Project>
+            </Workspace>
 
             Await VerifyHighlightsAsync(input)
         End Function

@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,17 +24,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
-        {
-            registrationService.Register(this);
-        }
+            => registrationService.Register(this);
 
         // for testing
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal EditAndContinueDiagnosticUpdateSource()
         {
         }
 
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
-        public event EventHandler DiagnosticsCleared;
+        public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
+        public event EventHandler? DiagnosticsCleared;
 
         /// <summary>
         /// This implementation reports diagnostics via <see cref="DiagnosticsUpdated"/> event.
@@ -51,9 +54,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Reports given set of diagnostics. 
         /// Categorizes diagnostic into two groups - diagnostics associated with a document and diagnostics associated with a project or solution.
         /// </summary>
-        public void ReportDiagnostics(Solution solution, ProjectId projectIdOpt, IEnumerable<Diagnostic> diagnostics)
+        public void ReportDiagnostics(Workspace workspace, Solution solution, ProjectId? projectId, IEnumerable<Diagnostic> diagnostics)
         {
-            Debug.Assert(solution != null);
+            RoslynDebug.Assert(solution != null);
 
             var updateEvent = DiagnosticsUpdated;
             if (updateEvent == null)
@@ -61,22 +64,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var nonDocumentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var workspace = solution.Workspace;
-            var project = (projectIdOpt != null) ? solution.GetProject(projectIdOpt) : null;
+            using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var documentDiagnosticData);
+            using var _2 = ArrayBuilder<DiagnosticData>.GetInstance(out var nonDocumentDiagnosticData);
+            var options = solution.Options;
+            var project = (projectId != null) ? solution.GetProject(projectId) : null;
 
             foreach (var diagnostic in diagnostics)
             {
-                var documentOpt = solution.GetDocument(diagnostic.Location.SourceTree);
+                var document = solution.GetDocument(diagnostic.Location.SourceTree);
 
-                if (documentOpt != null)
+                if (document != null)
                 {
-                    documentDiagnosticData.Add(DiagnosticData.Create(documentOpt, diagnostic));
+                    documentDiagnosticData.Add(DiagnosticData.Create(diagnostic, document));
+                }
+                else if (project != null)
+                {
+                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(diagnostic, project));
                 }
                 else
                 {
-                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(solution.Workspace, diagnostic, projectIdOpt));
+                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(diagnostic, options));
                 }
             }
 
@@ -84,13 +91,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var (documentId, diagnosticData) in documentDiagnosticData.ToDictionary(data => data.DocumentId))
                 {
-                    var diagnosticGroupId = (this, documentId, projectIdOpt);
+                    var diagnosticGroupId = (this, documentId, projectId);
 
                     updateEvent(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         diagnosticGroupId,
                         workspace,
                         solution,
-                        projectIdOpt,
+                        projectId,
                         documentId: documentId,
                         diagnostics: diagnosticData));
                 }
@@ -98,19 +105,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (nonDocumentDiagnosticData.Count > 0)
             {
-                var diagnosticGroupId = (this, projectIdOpt);
+                var diagnosticGroupId = (this, projectId);
 
                 updateEvent(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     diagnosticGroupId,
                     workspace,
                     solution,
-                    projectIdOpt,
+                    projectId,
                     documentId: null,
                     diagnostics: nonDocumentDiagnosticData.ToImmutable()));
             }
-
-            documentDiagnosticData.Free();
-            nonDocumentDiagnosticData.Free();
         }
     }
 }

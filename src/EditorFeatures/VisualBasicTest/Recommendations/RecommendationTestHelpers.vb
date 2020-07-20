@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -23,10 +25,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
 
             Dim parseOptions = New VisualBasicParseOptions().WithKind(kind)
             Dim tree = DirectCast(SyntaxFactory.ParseSyntaxTree(SourceText.From(source), parseOptions), VisualBasicSyntaxTree)
-            Dim comp = VisualBasicCompilation.Create("Text", syntaxTrees:={tree}, references:={TestReferences.NetFx.v4_0_30319.mscorlib})
+            Dim comp = VisualBasicCompilation.Create("Text", syntaxTrees:={tree}, references:={TestMetadata.Net451.mscorlib})
             Dim semanticModel = comp.GetSemanticModel(tree)
 
-            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync_Test(semanticModel, position, CancellationToken.None)
+            Dim context = Await VisualBasicSyntaxContext.TestAccessor.CreateContextAsync(semanticModel, position, CancellationToken.None)
             Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
         End Function
 

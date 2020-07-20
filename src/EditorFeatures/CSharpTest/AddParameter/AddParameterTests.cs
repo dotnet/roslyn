@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddParameter;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2547,6 +2552,89 @@ class Rsrp
 }
 ";
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(39270, "https://github.com/dotnet/roslyn/issues/39270")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestWithArgThatHasImplicitConversionToParamType1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        [|MyFunc|](param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1) { }
+}",
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        MyFunc(param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1, int newparam) { }
+}");
+        }
+
+        [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TopLevelStatement()
+        {
+            await TestInRegularAndScriptAsync(@"
+[|local|](1, 2, 3);
+
+void local(int x, int y)
+{
+}
+",
+@"
+[|local|](1, 2, 3);
+
+void local(int x, int y, int v)
+{
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TopLevelStatement_Nested()
+        {
+            await TestInRegularAndScriptAsync(@"
+void outer()
+{
+    [|local|](1, 2, 3);
+
+    void local(int x, int y)
+    {
+    }
+}
+",
+@"
+void outer()
+{
+    local(1, 2, 3);
+
+    void local(int x, int y, int v)
+    {
+    }
+}
+");
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -28,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         [ContentType(ContentTypeNames.RoslynContentType)]
         [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
 #pragma warning disable 0169
+#pragma warning disable IDE0051 // Remove unused private members
         private readonly AdornmentLayerDefinition _lineSeparatorLayer;
+#pragma warning restore IDE0051 // Remove unused private members
 #pragma warning restore 0169
 
         [ImportingConstructor]

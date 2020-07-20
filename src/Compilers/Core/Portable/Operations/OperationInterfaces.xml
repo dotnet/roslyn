@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Tree Root="IOperation">
-
 
   <!--
       To regenerate the operation nodes, run eng/generate-compiler-code.cmd
@@ -14,6 +13,10 @@
       UnusedOperationKinds indicates kinds that are currently skipped by the OperationKind
       enum. They can be used by future nodes by inserting those nodes at the correct point
       in the list.
+
+      When implementing new operations, run tests with additional IOperation validation enabled.
+      You can test with `Build.cmd -testIOperation`.
+      Or to repro in VS, you can do `set ROSLYN_TEST_IOPERATION=true` then `devenv`.
         -->
 
   <UnusedOperationKinds>
@@ -64,8 +67,9 @@
           (1) C# local declaration statement
           (2) C# fixed statement
           (3) C# using statement
-          (4) VB Dim statement
-          (5) VB Using statement
+          (4) C# using declaration
+          (5) VB Dim statement
+          (6) VB Using statement
       </para>
     </Comments>
     <Property Name="Declarations" Type="ImmutableArray&lt;IVariableDeclarationOperation&gt;">
@@ -1142,7 +1146,7 @@
         Current usage:
          (1) C# this or base expression.
          (2) VB Me, MyClass, or MyBase expression.
-         (3) C# object or collection initializers.
+         (3) C# object or collection or 'with' expression initializers.
          (4) VB With statements, object or collection initializers.
         </para>
       </summary>
@@ -1745,7 +1749,7 @@
   <Node Name="IIncrementOrDecrementOperation" Base="IOperation">
     <OperationKind>
       <Entry Name="Increment" Value="0x42" ExtraDescription="This is used as an increment operator"/>
-      <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as an decrement operator"/>
+      <Entry Name="Decrement" Value="0x44" ExtraDescription="This is used as a decrement operator"/>
     </OperationKind>
     <Comments>
       <summary>
@@ -2002,9 +2006,8 @@
         Current Usage:
           (1) C# VariableDeclaration
           (2) C# fixed declarations
-          (3) C# using declarations
-          (4) VB Dim statement declaration groups
-          (5) VB Using statement variable declarations
+          (3) VB Dim statement declaration groups
+          (4) VB Using statement variable declarations
       </para>
       <remarks>
         The initializer of this node is applied to all individual declarations in <see cref="Declarators" />. There cannot
@@ -2356,6 +2359,11 @@
     <Property Name="InputType" Type="ITypeSymbol">
       <Comments>
         <summary>The input type to the pattern-matching operation.</summary>
+      </Comments>
+    </Property>
+    <Property Name="NarrowedType" Type="ITypeSymbol">
+      <Comments>
+        <summary>The narrowed type of the pattern-matching operation.</summary>
       </Comments>
     </Property>
   </AbstractNode>
@@ -2878,7 +2886,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IWithOperation" Base="IOperation" Internal="true" ChildrenOrder="Value,Body">
+  <Node Name="IWithStatementOperation" Base="IOperation" Internal="true" ChildrenOrder="Value,Body">
     <Comments>
       <summary>
         Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
@@ -2896,6 +2904,135 @@
     <Property Name="Value" Type="IOperation">
       <Comments>
         <summary>Value to whose members leading-dot-qualified references within the with body bind.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IUsingDeclarationOperation" Base="IOperation">
+    <Comments>
+      <summary>
+        Represents using variable declaration, with scope spanning across the parent <see cref="IBlockOperation"/>.
+        <para>
+        Current Usage:
+         (1) C# using declaration
+         (1) C# asynchronous using declaration
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="DeclarationGroup" Type="IVariableDeclarationGroupOperation">
+      <Comments>
+        <summary>The variables declared by this using declaration.</summary>
+      </Comments>
+    </Property>
+    <Property Name="IsAsynchronous" Type="bool">
+      <Comments>
+        <summary>True if this is an asynchronous using declaration.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="INegatedPatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>
+        Represents a negated pattern.
+        <para>
+          Current usage:
+          (1) C# negated pattern.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Pattern" Type="IPatternOperation">
+      <Comments>
+        <summary>The negated pattern.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IBinaryPatternOperation" Base="IPatternOperation" ChildrenOrder="LeftPattern,RightPattern">
+    <Comments>
+      <summary>
+        Represents a binary ("and" or "or") pattern.
+        <para>
+          Current usage:
+          (1) C# "and" and "or" patterns.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="OperatorKind" Type="BinaryOperatorKind">
+      <Comments>
+        <summary>Kind of binary pattern; either <see cref="BinaryOperatorKind.And"/> or <see cref="BinaryOperatorKind.Or"/>.</summary>
+      </Comments>
+    </Property>
+    <Property Name="LeftPattern" Type="IPatternOperation">
+      <Comments>
+        <summary>The pattern on the left.</summary>
+      </Comments>
+    </Property>
+    <Property Name="RightPattern" Type="IPatternOperation">
+      <Comments>
+        <summary>The pattern on the right.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="ITypePatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>
+        Represents a pattern comparing the input with a given type.
+        <para>
+          Current usage:
+          (1) C# type pattern.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="MatchedType" Type="ITypeSymbol">
+      <Comments>
+        <summary>
+          The type explicitly specified, or null if it was inferred (e.g. using <code>var</code> in C#).
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IRelationalPatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>
+        Represents a pattern comparing the input with a constant value using a relational operator.
+        <para>
+        Current usage:
+         (1) C# relational pattern.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="OperatorKind" Type="BinaryOperatorKind">
+      <Comments>
+        <summary>The kind of the relational operator.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Value" Type="IOperation">
+      <Comments>
+        <summary>Constant value of the pattern operation.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IWithOperation" Base="IOperation" ChildrenOrder="Operand,Initializer">
+    <Comments>
+      <summary>
+        Represents cloning of an object instance.
+        <para>
+          Current usage:
+          (1) C# with expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Operand" Type="IOperation">
+      <Comments>
+        <summary>Operand to be cloned.</summary>
+      </Comments>
+    </Property>
+    <Property Name="CloneMethod" Type="IMethodSymbol">
+      <Comments>
+        <summary>Clone method to be invoked on the value.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+      <Comments>
+        <summary>With collection initializer.</summary>
       </Comments>
     </Property>
   </Node>

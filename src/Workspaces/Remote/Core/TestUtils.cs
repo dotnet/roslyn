@@ -1,16 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 
-namespace Microsoft.CodeAnalysis.Remote.DebugUtil
+#if DEBUG
+using System.Diagnostics;
+using System.Text;
+using Microsoft.CodeAnalysis.Internal.Log;
+#endif
+
+namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class TestUtils
     {
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
         }
 
         internal static async Task AssertChecksumsAsync(
-            AssetService assetService,
+            AssetProvider assetService,
             Checksum checksumFromRequest,
             Solution solutionFromScratch,
             Solution incrementalSolutionBuilt)
@@ -127,6 +131,84 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
             // have this to avoid error on async
             await Task.CompletedTask.ConfigureAwait(false);
 #endif
+        }
+
+        /// <summary>
+        /// create checksum to correspoing object map from solution
+        /// this map should contain every parts of solution that can be used to re-create the solution back
+        /// </summary>
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
+        {
+            var map = new Dictionary<Checksum, object>();
+            await solution.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+            return map;
+        }
+
+        /// <summary>
+        /// create checksum to correspoing object map from project
+        /// this map should contain every parts of project that can be used to re-create the project back
+        /// </summary>
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
+        {
+            var map = new Dictionary<Checksum, object>();
+
+            await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+            return map;
+        }
+
+        public static async Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+        {
+            var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+            await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+
+            foreach (var project in solution.Projects)
+            {
+                await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task AppendAssetMapAsync(this Project project, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+        {
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return;
+            }
+
+            var projectChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            await projectChecksums.FindAsync(project.State, Flatten(projectChecksums), map, cancellationToken).ConfigureAwait(false);
+
+            foreach (var document in project.Documents.Concat(project.AdditionalDocuments).Concat(project.AnalyzerConfigDocuments))
+            {
+                var documentChecksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                await documentChecksums.FindAsync(document.State, Flatten(documentChecksums), map, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static HashSet<Checksum> Flatten(ChecksumWithChildren checksums)
+        {
+            var set = new HashSet<Checksum>();
+            set.AppendChecksums(checksums);
+
+            return set;
+        }
+
+        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumWithChildren checksums)
+        {
+            set.Add(checksums.Checksum);
+
+            foreach (var child in checksums.Children)
+            {
+                if (child is Checksum checksum)
+                {
+                    set.Add(checksum);
+                }
+
+                if (child is ChecksumCollection collection)
+                {
+                    set.AppendChecksums(collection);
+                }
+            }
         }
     }
 }

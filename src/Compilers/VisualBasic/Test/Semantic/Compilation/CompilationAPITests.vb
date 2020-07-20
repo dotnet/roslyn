@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -10,6 +12,7 @@ Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -18,6 +21,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
@@ -272,7 +276,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             listSyntaxTree.Add(t1)
 
             ' System.dll
-            listRef.Add(TestReferences.NetFx.v4_0_30319.System)
+            listRef.Add(Net451.System)
             Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
@@ -518,8 +522,8 @@ End Namespace
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
@@ -827,7 +831,7 @@ End Namespace
             ' Create compilation with args is disordered
             Dim comp1 = VisualBasicCompilation.Create("Compilation")
             Dim Err = "c:\file_that_does_not_exist"
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim ref1 = Net451.mscorlib
             Dim listRef = New List(Of MetadataReference)
             ' this is NOT testing Roslyn
             listRef.Add(ref1)
@@ -1042,8 +1046,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Dim csCompRef = csComp.ToMetadataReference(embedInteropTypes:=True)
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
 
             ' Add VisualBasicCompilationReference
             comp = VisualBasicCompilation.Create("Test1",
@@ -1158,7 +1162,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ResourcesNet451.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -1168,7 +1172,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Null(comp.GetReferencedAssemblySymbol(TestReferences.NetFx.v4_0_30319.System))
+            Assert.Null(comp.GetReferencedAssemblySymbol(Net451.System))
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
@@ -1179,7 +1183,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.System
             Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
@@ -1207,11 +1211,11 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref2 = Net451.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
-            ' Replace an non-existing item with another invalid item
+            ' Replace a non-existing item with another invalid item
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp = comp.ReplaceReference(ref2, ref1)
                                                 End Sub)
@@ -1219,7 +1223,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.Equal(1, comp.References.Count)
         End Sub
 
-        '' Replace an non-existing item with null
+        '' Replace a non-existing item with null
         <WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")>
         <Fact>
         Public Sub NegReference4()
@@ -1239,14 +1243,14 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
                End Sub)
         End Sub
 
-        '' Replace an non-existing item with another valid item
+        '' Replace a non-existing item with another valid item
         <WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")>
         <Fact>
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
                     comp = comp.ReplaceReference(ref1, ref2)
@@ -1255,7 +1259,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim s1 = "Imports System.Text"
             Dim t1 = Parse(s1)
 
-            ' Replace an non-existing item with another valid item and disorder the args
+            ' Replace a non-existing item with another valid item and disorder the args
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp.ReplaceSyntaxTree(newTree:=VisualBasicSyntaxTree.ParseText("Imports System"), oldTree:=t1)
                                                 End Sub)
@@ -1454,10 +1458,11 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
         <Fact()>
         <WorkItem(543292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543292")>
-        Public Sub CompilationStackOverflow()
+        Public Sub CompilationNotSupported()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing))
         End Sub
 
         <Fact>
@@ -2048,15 +2053,6 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ReferenceManagerReuse_WithPreviousSubmission()
-            Dim s1 = VisualBasicCompilation.CreateScriptCompilation("s1")
-            Dim s2 = VisualBasicCompilation.CreateScriptCompilation("s2")
-
-            Dim s3 = s2.WithScriptCompilationInfo(s2.ScriptCompilationInfo.WithPreviousScriptCompilation(s1))
-            Assert.True(s2.ReferenceManagerEquals(s3))
-        End Sub
-
-        <Fact>
         Public Sub ReferenceManagerReuse_WithXmlFileResolver()
             Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
@@ -2174,6 +2170,43 @@ End Class
             Assert.False(arc.ReferenceManagerEquals(ars))
         End Sub
 
+        <Fact>
+        Public Sub ReferenceManagerReuse_WithScriptCompilationInfo()
+            ' Note The following results would change if we optimized sharing more: https://github.com/dotnet/roslyn/issues/43397
+
+            Dim c1 = VisualBasicCompilation.CreateScriptCompilation("c1")
+            Assert.NotNull(c1.ScriptCompilationInfo)
+            Assert.Null(c1.ScriptCompilationInfo.PreviousScriptCompilation)
+
+            Dim c2 = c1.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c2.ScriptCompilationInfo)
+            Assert.True(c2.ReferenceManagerEquals(c1))
+
+            Dim c3 = c2.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.NotNull(c3.ScriptCompilationInfo)
+            Assert.Null(c3.ScriptCompilationInfo.PreviousScriptCompilation)
+            Assert.True(c3.ReferenceManagerEquals(c2))
+
+            Dim c4 = c3.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c4.ScriptCompilationInfo)
+            Assert.True(c4.ReferenceManagerEquals(c3))
+
+            Dim c5 = c4.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.False(c5.ReferenceManagerEquals(c4))
+
+            Dim c6 = c5.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.True(c6.ReferenceManagerEquals(c5))
+
+            Dim c7 = c6.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c2, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c7.ReferenceManagerEquals(c6))
+
+            Dim c8 = c7.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c8.ReferenceManagerEquals(c7))
+
+            Dim c9 = c8.WithScriptCompilationInfo(Nothing)
+            Assert.True(c9.ReferenceManagerEquals(c8))
+        End Sub
+
         Private Class EvolvingTestReference
             Inherits PortableExecutableReference
 
@@ -2245,7 +2278,7 @@ End Class
         <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim metadata = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim metadata = Net451.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)
@@ -2255,6 +2288,19 @@ End Class
             comp2 = comp.AddReferences(metadata)
             Dim reference2 = comp2.GetMetadataReference(assemblySmb)
             Assert.NotNull(reference2)
+        End Sub
+
+        <WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")>
+        <Fact>
+        Public Sub GetMetadataReference_CSharpSymbols()
+            Dim comp As Compilation = CreateCompilation("")
+
+            Dim csComp = CreateCSharpCompilation("", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard))
+            Dim assembly = csComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value
+
+            Assert.Null(comp.GetMetadataReference(DirectCast(assembly.GetISymbol(), IAssemblySymbol)))
+            Assert.Null(comp.GetMetadataReference(csComp.Assembly))
+            Assert.Null(comp.GetMetadataReference(Nothing))
         End Sub
 
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.IO;
@@ -17,20 +21,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 => "The location of dotnet SDK can't be determined (DOTNET_INSTALL_DIR environment variable is unset)";
         }
 
-        public static string ExePath { get; }
+        public static string? ExePath { get; }
 
         static DotNetCoreSdk()
         {
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
-            bool DotNetExeExists(string directory)
+            bool DotNetExeExists(string? directory)
                 => directory != null
                 && File.Exists(Path.Combine(directory, dotNetExeName));
 
             var dotNetInstallDir = Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR");
             if (!DotNetExeExists(dotNetInstallDir))
             {
-                dotNetInstallDir = Environment.GetEnvironmentVariable("PATH")
+                dotNetInstallDir = Environment.GetEnvironmentVariable("PATH")!
                     .Split(Path.PathSeparator)
                     .FirstOrDefault(DotNetExeExists);
             }

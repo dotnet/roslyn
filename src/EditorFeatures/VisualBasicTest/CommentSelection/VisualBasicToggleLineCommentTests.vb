@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -105,7 +107,7 @@ End Class
             ToggleCommentMultiple(markup, expected)
         End Sub
 
-        Private Function ReplaceLineEndings(markup As String) As String
+        Private Shared Function ReplaceLineEndings(markup As String) As String
             ' do this since xml value put only vbLf
             Return markup.Replace(vbLf, vbCrLf)
         End Function

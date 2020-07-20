@@ -1,13 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -19,10 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TempPECompiler(VisualStudioWorkspace workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, ISet<string> filesToInclude, CancellationToken cancellationToken)
         {
@@ -35,22 +40,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 throw new ArgumentException(nameof(outputFileName), "Must specify an output file name.");
             }
 
-            var project = _workspace.CurrentSolution.GetProject(context.Id);
+            var project = _workspace.CurrentSolution.GetRequiredProject(context.Id);
 
-            // Remove all files except the ones we care about
-            var documents = project.Documents;
-            foreach (var document in documents)
+            // Start by fetching the compilation we have already have that will have references correct
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            // Update to just the syntax trees we need to keep
+            var syntaxTrees = new List<SyntaxTree>(capacity: filesToInclude.Count);
+            foreach (var document in project.Documents)
             {
-                if (!filesToInclude.Contains(document.FilePath))
+                if (document.FilePath != null && filesToInclude.Contains(document.FilePath))
                 {
-                    project = project.RemoveDocument(document.Id);
+                    syntaxTrees.Add(await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
+            compilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(syntaxTrees);
+
             // We need to inherit most of the projects options, mainly for VB (RootNamespace, GlobalImports etc.), but we need to override about some specific things surrounding the output
-            var options = project.CompilationOptions
+            compilation = compilation.WithOptions(compilation.Options
                     // copied from the old TempPE compiler used by legacy, for parity.
                     // See: https://github.com/dotnet/roslyn/blob/fab7134296816fc80019c60b0f5bef7400cf23ea/src/VisualStudio/CSharp/Impl/ProjectSystemShim/TempPECompilerService.cs#L58
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
@@ -68,14 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     .WithDelaySign(false)
                     .WithCryptoKeyFile(null)
                     .WithPublicSign(false)
-                    .WithStrongNameProvider(null);
+                    .WithStrongNameProvider(null));
 
-            project = project
-                .WithCompilationOptions(options)
-                // AssemblyName should be set to the filename of the output file because multiple TempPE DLLs can be created for the same project
-                .WithAssemblyName(Path.GetFileName(outputFileName));
-
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            // AssemblyName should be set to the filename of the output file because multiple TempPE DLLs can be created for the same project
+            compilation = compilation.WithAssemblyName(Path.GetFileName(outputFileName));
 
             cancellationToken.ThrowIfCancellationRequested();
 

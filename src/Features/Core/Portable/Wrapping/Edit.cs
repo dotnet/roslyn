@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -6,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
 {
     /// <summary>
     /// Represents an edit between two tokens.  Specifically, provides the new trailing trivia for
-    /// the <see cref="Edit.Left"/> token and the new leading trivia for the <see
-    /// cref="Edit.Right"/> token.
+    /// the <see cref="Left"/> token and the new leading trivia for the <see
+    /// cref="Right"/> token.
     /// </summary>
     internal readonly struct Edit
     {
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             return result.ToStringAndFree();
         }
 
-        private void AppendTrivia(PooledStringBuilder result, SyntaxTriviaList triviaList)
+        private static void AppendTrivia(PooledStringBuilder result, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
             {

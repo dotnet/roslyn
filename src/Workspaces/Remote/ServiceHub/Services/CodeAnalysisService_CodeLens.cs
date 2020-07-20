@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,18 +11,19 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteCodeLensReferencesService
     {
-        public Task<ReferenceCount> GetReferenceCountAsync(DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
+        public Task<ReferenceCount> GetReferenceCountAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                     var document = solution.GetDocument(documentId);
                     if (document == null)
@@ -37,17 +40,16 @@ namespace Microsoft.CodeAnalysis.Remote
                         maxResultCount,
                         cancellationToken).ConfigureAwait(false);
                 }
-
             }, cancellationToken);
         }
 
-        public Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
                     if (document == null)
                     {
@@ -65,13 +67,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
                     if (document == null)
                     {
@@ -86,13 +88,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<string> GetFullyQualifiedName(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public Task<string> GetFullyQualifiedNameAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
                     if (document == null)
                     {
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var syntaxNode = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).FindNode(textSpan);
 
-                    return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId,
+                    return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(solution, documentId,
                         syntaxNode, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
@@ -109,10 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task TrackCodeLensAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
-            {
-                await WorkspaceChangeTracker.TrackAsync(this, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+            return RunServiceAsync(() => WorkspaceChangeTracker.TrackAsync(EndPoint, SolutionService.PrimaryWorkspace, documentId, cancellationToken), cancellationToken);
         }
 
         /// <summary>
@@ -121,13 +120,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// better place for this is in ICodeLensContext but CodeLens OOP doesn't provide a way to call back to codelens OOP from
         /// VS so, this for now will be in Roslyn OOP
         /// </summary>
-        private class WorkspaceChangeTracker
+        private sealed class WorkspaceChangeTracker
         {
             private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(100);
 
             private readonly object _gate;
 
-            private readonly CodeAnalysisService _owner;
+            private readonly RemoteEndPoint _endPoint;
             private readonly Workspace _workspace;
             private readonly DocumentId _documentId;
             private readonly CancellationToken _cancellationToken;
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
             private VersionStamp _lastVersion;
             private ResettableDelay _resettableDelay;
 
-            public static async Task TrackAsync(CodeAnalysisService owner, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public static async Task TrackAsync(RemoteEndPoint endPoint, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 if (document == null)
@@ -146,11 +145,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // if anything under the project this file belong to changes, then invalidate the code lens so that it can refresh
                 var dependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                new WorkspaceChangeTracker(owner, workspace, documentId, dependentVersion, cancellationToken);
+                new WorkspaceChangeTracker(endPoint, workspace, documentId, dependentVersion, cancellationToken);
             }
 
             private WorkspaceChangeTracker(
-                CodeAnalysisService owner,
+                RemoteEndPoint endPoint,
                 Workspace workspace,
                 DocumentId documentId,
                 VersionStamp dependentVersion,
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _gate = new object();
                 _eventSubscribed = false;
 
-                _owner = owner;
+                _endPoint = endPoint;
                 _workspace = workspace;
                 _documentId = documentId;
                 _cancellationToken = cancellationToken;
@@ -172,25 +171,25 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private void ConnectEvents(bool subscription)
             {
-                // this is only place lock is used.
-                // we have a lock here so that subscription and unsubscription of the two events
-                // are happening atomic, but that doesn't mean there is no possiblity of race here
-                // theoradically, there can be a race if connection got disconnected before we subscribe
+                // This is only place lock is used.
+                // We have a lock here so that subscription and unsubscription of the two events
+                // are atomic, but that doesn't mean there is no possibility of race here.
+                // Theoretically, there can be a race if connection got disconnected before we subscribe
                 // to OnRpcDisconnected but already in the subscription code path.
-                // but there is no easy way to solve the problem unless Rpc itself provide things like
+                // There is no easy way to solve the problem unless Rpc itself provide things like
                 // subscribe only if connection still alive or something
                 lock (_gate)
                 {
                     if (subscription)
                     {
-                        _owner.Disconnected += OnDisconnected;
+                        _endPoint.Disconnected += OnDisconnected;
                         _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
                         if (_cancellationToken.IsCancellationRequested)
                         {
                             // while, we are subscribing to this service, caller side closed this connection
                             // unsubscribe from the service
-                            _owner.Disconnected -= OnDisconnected;
+                            _endPoint.Disconnected -= OnDisconnected;
                             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
                             return;
                         }
@@ -201,14 +200,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         if (_eventSubscribed)
                         {
-                            _owner.Disconnected -= OnDisconnected;
+                            _endPoint.Disconnected -= OnDisconnected;
                             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
                         }
                     }
                 }
             }
 
-            private void OnDisconnected(object sender, EventArgs e)
+            private void OnDisconnected(JsonRpcDisconnectedEventArgs args)
             {
                 ConnectEvents(subscription: false);
             }
@@ -241,11 +240,15 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
+                    _lastVersion = newVersion;
+
                     // fire and forget.
                     // ignore any exception such as rpc already disposed (disconnected)
-
-                    _lastVersion = newVersion;
-                    await _owner.InvokeAsync(nameof(IRemoteCodeLensDataPoint.Invalidate), CancellationToken.None).ConfigureAwait(false);
+                    // fire and forget:
+                    _ = _endPoint.TryInvokeAsync(
+                        nameof(IRemoteCodeLensDataPoint.Invalidate),
+                        Array.Empty<object>(),
+                        _cancellationToken);
                 }
             }
         }

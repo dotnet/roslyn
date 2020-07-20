@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -28,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public IList<SnapshotSpan> GetActiveSpansForSnapshot(ITextSnapshot snapshot)
-        {
-            return _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
-        }
+            => _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
 
         public void AddSpans(IEnumerable<ITrackingSpan> spans)
         {
@@ -52,15 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             AddSpans(newTrackingSpans);
         }
 
-        public bool MyOwnChanges(TextContentChangedEventArgs args)
-        {
-            return args.EditTag == s_propagateSpansEditTag;
-        }
+        public static bool MyOwnChanges(TextContentChangedEventArgs args)
+            => args.EditTag == s_propagateSpansEditTag;
 
         public bool TryGetTextChanged(TextContentChangedEventArgs args, out string replacementText)
         {
             // make sure I am not called with my own changes
-            Contract.ThrowIfTrue(this.MyOwnChanges(args));
+            Contract.ThrowIfTrue(MyOwnChanges(args));
 
             // initialize out parameter
             replacementText = null;

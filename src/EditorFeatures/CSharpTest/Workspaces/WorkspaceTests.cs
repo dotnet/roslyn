@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,8 +11,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -23,10 +27,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     [UseExportProvider]
     public partial class WorkspaceTests : TestBase
     {
-        private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
-        {
-            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
-        }
+        private static TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
+            => new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind, disablePartialSolutions);
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                                     .GetExportedValue<AsynchronousOperationListenerProvider>()
                                     .GetWaiter(FeatureAttribute.Workspace);
 
-            await workspaceWaiter.CreateExpeditedWaitTask();
+            await workspaceWaiter.ExpeditedWaitAsync();
         }
 
         [Fact]
@@ -178,7 +180,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             await VerifyRootTypeNameAsync(workspace, "D");
 
@@ -338,7 +340,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             workspace.OnProjectRemoved(project1.Id);
             Assert.False(workspace.IsDocumentOpen(document.Id));
@@ -355,7 +357,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
             workspace.CloseDocument(document.Id);
             workspace.OnProjectRemoved(project1.Id);
         }
@@ -370,7 +372,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             workspace.OnDocumentRemoved(document.Id);
 
@@ -472,7 +474,7 @@ class D { }
             Assert.NotEqual(TypeKind.Error, classC.TypeKind);
 
             // change the class name in document1
-            workspace.OnDocumentOpened(document1.Id, document1.GetOpenTextContainer());
+            workspace.OpenDocument(document1.Id);
             var buffer1 = document1.GetTextBuffer();
 
             // change C to X
@@ -482,6 +484,7 @@ class D { }
             var solutionZ = workspace.CurrentSolution;
             var docZ = solutionZ.GetDocument(document1.Id);
             var docZText = await docZ.GetTextAsync();
+            Assert.Equal("public class X { }", docZText.ToString());
 
             var compilation2Z = await solutionZ.GetProject(id2).GetCompilationAsync();
             var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
@@ -516,8 +519,8 @@ class D { }
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
 
             // open both documents so background compiler works on their compilations
-            workspace.OnDocumentOpened(document1.Id, document1.GetOpenTextContainer());
-            workspace.OnDocumentOpened(document2.Id, document2.GetOpenTextContainer());
+            workspace.OpenDocument(document1.Id);
+            workspace.OpenDocument(document2.Id);
 
             // change C to X
             var buffer1 = document1.GetTextBuffer();
@@ -570,8 +573,8 @@ class D { }
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
 
             // open both documents so background compiler works on their compilations
-            workspace.OnDocumentOpened(document1.Id, document1.GetOpenTextContainer());
-            workspace.OnDocumentOpened(document2.Id, document2.GetOpenTextContainer());
+            workspace.OpenDocument(document1.Id);
+            workspace.OpenDocument(document2.Id);
 
             // change C to X
             var buffer1 = document1.GetTextBuffer();
@@ -618,7 +621,7 @@ class D { }
 
             workspace.AddTestProject(project1);
             var buffer = document.GetTextBuffer();
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             buffer.Insert(0, "class C {}");
 
@@ -644,7 +647,7 @@ class D { }
 
             workspace.AddTestProject(project1);
             var buffer = document.GetTextBuffer();
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             // prove the document has the correct text
             Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync()).ToString());
@@ -1132,7 +1135,7 @@ class D { }
     </Project>
 </Workspace>";
 
-            using var workspace = TestWorkspace.Create(input, exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+            using var workspace = TestWorkspace.Create(input, exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic, openDocuments: true);
             var eventArgs = new List<WorkspaceChangeEventArgs>();
 
             workspace.WorkspaceChanged += (s, e) =>
@@ -1180,6 +1183,99 @@ class D { }
             var version5 = version4.GetNewerVersion(version3);
 
             Assert.Equal(version5, version4);
+        }
+
+        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestSolutionWithOptions()
+        {
+            using var workspace = CreateWorkspace();
+
+            var document = new TestHostDocument("class C { }");
+
+            var project1 = new TestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+
+            var solution = workspace.CurrentSolution;
+            var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            var optionValue = solution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.Default, optionValue);
+
+            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+            var newSolution = solution.WithOptions(newOptions);
+            var newOptionValue = newSolution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, newOptionValue);
+
+            var applied = workspace.TryApplyChanges(newSolution);
+            Assert.True(applied);
+
+            var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
+        }
+
+        [CombinatorialData]
+        [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
+        {
+            // Create workspaces with shared global options to replicate the true global options service shared between workspaces.
+            using var primaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
+            using var secondaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
+
+            var document = new TestHostDocument("class C { }");
+
+            var project1 = new TestHostProject(primaryWorkspace, document, name: "project1");
+
+            primaryWorkspace.AddTestProject(project1);
+            secondaryWorkspace.AddTestProject(project1);
+
+            var beforeSolutionForPrimaryWorkspace = primaryWorkspace.CurrentSolution;
+            var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
+
+            var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            Assert.Equal(BackgroundAnalysisScope.Default, primaryWorkspace.Options.GetOption(optionKey));
+            Assert.Equal(BackgroundAnalysisScope.Default, secondaryWorkspace.Options.GetOption(optionKey));
+
+            // Hook up the option changed event handler.
+            var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
+            optionService.OptionChanged += OptionService_OptionChanged;
+
+            // Change workspace options through primary workspace
+            if (testDeprecatedOptionsSetter)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
+                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+            else
+            {
+                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile));
+            }
+
+            // Verify current solution and option change for both workspaces.
+            VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+            VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
+
+            optionService.OptionChanged -= OptionService_OptionChanged;
+            return;
+
+            void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                // Verify current solution and option change for both workspaces.
+                VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+                VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
+            }
+
+            static void VerifyCurrentSolutionAndOptionChange(Workspace workspace, Solution beforeOptionChangedSolution)
+            {
+                // Verify that workspace.CurrentSolution has been updated with a new solution instance with changed option.
+                var currentSolution = workspace.CurrentSolution;
+                Assert.NotEqual(beforeOptionChangedSolution, currentSolution);
+
+                // Verify workspace.CurrentSolution has changed option.
+                var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+                Assert.Equal(BackgroundAnalysisScope.Default, beforeOptionChangedSolution.Options.GetOption(optionKey));
+                Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentSolution.Options.GetOption(optionKey));
+            }
         }
     }
 }

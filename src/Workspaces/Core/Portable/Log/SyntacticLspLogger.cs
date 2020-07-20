@@ -1,14 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal sealed class SyntacticLspLogger
     {
-        private static readonly HistogramLogAggregator s_lexicalClassificationsLogAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
-        private static readonly HistogramLogAggregator s_syntacticClassificationsRemoteAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
-        private static readonly HistogramLogAggregator s_syntacticTaggerRemoteAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
 
         internal enum RequestType
         {
@@ -18,39 +16,39 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         internal static void LogRequestLatency(RequestType requestType, decimal latency)
-        {
-            switch (requestType)
-            {
-                case RequestType.LexicalClassifications:
-                    s_lexicalClassificationsLogAggregator.IncreaseCount(latency);
-                    break;
-                case RequestType.SyntacticClassifications:
-                    s_syntacticClassificationsRemoteAggregator.IncreaseCount(latency);
-                    break;
-                case RequestType.SyntacticTagger:
-                    s_syntacticTaggerRemoteAggregator.IncreaseCount(latency);
-                    break;
-                default:
-                    break;
-
-            }
-        }
+            => s_histogramLogAggregator.IncreaseCount(requestType, latency);
 
         internal static void ReportTelemetry()
         {
-            ReportTelemetry(FunctionId.Liveshare_LexicalClassifications, RequestType.LexicalClassifications.ToString(), s_lexicalClassificationsLogAggregator);
-            ReportTelemetry(FunctionId.Liveshare_SyntacticClassifications, RequestType.SyntacticClassifications.ToString(), s_syntacticClassificationsRemoteAggregator);
-            ReportTelemetry(FunctionId.Liveshare_SyntacticTagger, RequestType.SyntacticTagger.ToString(), s_syntacticTaggerRemoteAggregator);
 
-            static void ReportTelemetry(FunctionId functionId, string typeName, HistogramLogAggregator aggregator)
+            foreach (var kv in s_histogramLogAggregator)
             {
+                Report((RequestType)kv.Key, kv.Value);
+            }
+
+            static void Report(RequestType requestType, HistogramLogAggregator.HistogramCounter counter)
+            {
+                FunctionId functionId;
+                switch (requestType)
+                {
+                    case RequestType.LexicalClassifications:
+                        functionId = FunctionId.Liveshare_LexicalClassifications;
+                        break;
+                    case RequestType.SyntacticClassifications:
+                        functionId = FunctionId.Liveshare_SyntacticClassifications;
+                        break;
+                    case RequestType.SyntacticTagger:
+                        functionId = FunctionId.Liveshare_SyntacticTagger;
+                        break;
+                    default:
+                        return;
+                }
+
                 Logger.Log(functionId, KeyValueLogMessage.Create(m =>
                 {
-                    foreach (var kv in aggregator)
-                    {
-                        var info = $"{typeName}.{kv.Key}";
-                        m[info] = kv.Value.GetCount();
-                    }
+                    m[$"{requestType.ToString()}.BucketSize"] = counter.BucketSize;
+                    m[$"{requestType.ToString()}.MaxBucketValue"] = counter.MaxBucketValue;
+                    m[$"{requestType.ToString()}.Buckets"] = counter.GetBucketsAsString();
                 }));
             }
         }

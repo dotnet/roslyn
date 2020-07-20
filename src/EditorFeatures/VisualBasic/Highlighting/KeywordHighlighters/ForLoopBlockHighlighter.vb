@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -12,16 +15,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim forBlock = GetForBlockFromNode(node)
             If forBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)
 
             If TypeOf forBlock.ForOrForEachStatement Is ForStatementSyntax Then
                 With DirectCast(forBlock.ForOrForEachStatement, ForStatementSyntax)
@@ -37,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.InKeyword.Span)
                 End With
             Else
-                Contract.Fail("Expected ForStatementSyntax or ForEachStatementSyntax, but was " & forBlock.ForOrForEachStatement.GetTypeDisplayName())
+                throw ExceptionUtilities.UnexpectedValue(forBlock.ForOrForEachStatement)
             End If
 
             highlights.AddRange(
@@ -49,11 +51,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             If nextStatement IsNot Nothing Then
                 highlights.Add(nextStatement.NextKeyword.Span)
             End If
+        End Sub
 
-            Return highlights
-        End Function
-
-        Private Function GetForBlockFromNode(node As SyntaxNode) As ForOrForEachBlockSyntax
+        Private Shared Function GetForBlockFromNode(node As SyntaxNode) As ForOrForEachBlockSyntax
             If node.IsIncorrectContinueStatement(SyntaxKind.ContinueForStatement) OrElse
                node.IsIncorrectExitStatement(SyntaxKind.ExitForStatement) Then
                 Return Nothing
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         ''' statement that is closing multiple loops, the Next statement is attached to the 
         ''' innermost matching loop.
         ''' </summary>
-        Private Function GetNextStatementMatchingForBlock(forBlock As ForOrForEachBlockSyntax) As NextStatementSyntax
+        Private Shared Function GetNextStatementMatchingForBlock(forBlock As ForOrForEachBlockSyntax) As NextStatementSyntax
             Dim forBlockChild = forBlock
 
             While forBlockChild IsNot Nothing
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         ''' innermost. Do not consider the actual names of the loop variables because highlighting 
         ''' should work even if the wrong identifier names are listed. 
         ''' </summary>
-        Private Function GetForBlocksMatchingNextStatement(nextStatement As NextStatementSyntax) As IEnumerable(Of ForOrForEachBlockSyntax)
+        Private Shared Function GetForBlocksMatchingNextStatement(nextStatement As NextStatementSyntax) As IEnumerable(Of ForOrForEachBlockSyntax)
             ' If there are 0 control variables, then one for block is closed by the Next statement
             Dim numExpectedForBlocksMatched = Math.Max(nextStatement.ControlVariables.Count(), 1)
             Return nextStatement.GetAncestors(Of ForOrForEachBlockSyntax).Take(numExpectedForBlocksMatched).Reverse()

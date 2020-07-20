@@ -1,19 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.VisualStudio.CodingConventions;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    extern alias CodeStyle;
-    using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
     using ISyntaxFormattingService = ISyntaxFormattingService;
 
     internal abstract class AbstractFormattingCodeFixProvider : CodeFixProvider
@@ -24,9 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
 
         public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return new FixAll(this);
-        }
+            => new FixAll(this);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -43,8 +44,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return Task.CompletedTask;
         }
 
-        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext);
-
         private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var options = await GetOptionsAsync(context.Document, cancellationToken).ConfigureAwait(false);
@@ -53,21 +52,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        private async Task<OptionSet> GetOptionsAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<OptionSet> GetOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            OptionSet options = CompilerAnalyzerConfigOptions.Empty;
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var analyzerConfigOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
 
-            // The in-IDE workspace supports .editorconfig without special handling. However, the AdhocWorkspace used
-            // in testing requires manual handling of .editorconfig.
-            if (File.Exists(document.FilePath ?? document.Name))
-            {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var codingConventionsManager = new AnalyzerConfigCodingConventionsManager(tree, document.Project.AnalyzerOptions);
-                var codingConventionContext = await codingConventionsManager.GetConventionContextAsync(document.FilePath ?? document.Name, cancellationToken).ConfigureAwait(false);
-                options = ApplyFormattingOptions(options, codingConventionContext);
-            }
-
-            return options;
+            return analyzerConfigOptions;
         }
 
         /// <summary>
@@ -80,15 +70,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             private readonly AbstractFormattingCodeFixProvider _formattingCodeFixProvider;
 
             public FixAll(AbstractFormattingCodeFixProvider formattingCodeFixProvider)
-            {
-                _formattingCodeFixProvider = formattingCodeFixProvider;
-            }
+                => _formattingCodeFixProvider = formattingCodeFixProvider;
 
             protected override string CodeActionTitle => CodeStyleResources.Fix_formatting;
 
             protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
-                var options = await _formattingCodeFixProvider.GetOptionsAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
+                var options = await GetOptionsAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
                 var syntaxRoot = await document.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
                 var updatedSyntaxRoot = Formatter.Format(syntaxRoot, _formattingCodeFixProvider.SyntaxFormattingService, options, fixAllContext.CancellationToken);
                 return updatedSyntaxRoot;

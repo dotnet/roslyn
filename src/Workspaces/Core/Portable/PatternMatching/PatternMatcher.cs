@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
         }
 
-        private PatternMatch? FuzzyMatchPatternChunk(
+        private static PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
             TextChunk patternChunk,
             bool punctuationStripped)
@@ -335,30 +336,23 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
             else
             {
-                var tempMatches = ArrayBuilder<PatternMatch>.GetInstance();
+                using var _ = ArrayBuilder<PatternMatch>.GetInstance(out var tempMatches);
 
-                try
+                foreach (var subWordTextChunk in subWordTextChunks)
                 {
-                    foreach (var subWordTextChunk in subWordTextChunks)
+                    // Try to match the candidate with this word
+                    var result = MatchPatternChunk(
+                        candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                    if (result == null)
                     {
-                        // Try to match the candidate with this word
-                        var result = MatchPatternChunk(
-                            candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
-                        if (result == null)
-                        {
-                            return false;
-                        }
-
-                        tempMatches.Add(result.Value);
+                        return false;
                     }
 
-                    matches.AddRange(tempMatches);
-                    return tempMatches.Count > 0;
+                    tempMatches.Add(result.Value);
                 }
-                finally
-                {
-                    tempMatches.Free();
-                }
+
+                matches.AddRange(tempMatches);
+                return tempMatches.Count > 0;
             }
         }
 
@@ -477,7 +471,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             var patternHumpCount = patternHumps.Count;
             var candidateHumpCount = candidateHumps.Count;
 
-            var matchSpans = ArrayBuilder<TextSpan>.GetInstance();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchSpans);
             while (true)
             {
                 // Let's consider our termination cases
@@ -490,7 +484,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     matchedSpans = _includeMatchedSpans
                         ? new NormalizedTextSpanCollection(matchSpans).ToImmutableArray()
                         : ImmutableArray<TextSpan>.Empty;
-                    matchSpans.Free();
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);
                     return GetCamelCaseKind(camelCaseResult, candidateHumps);
@@ -499,7 +492,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     // No match, since we still have more of the pattern to hit
                     matchedSpans = ImmutableArray<TextSpan>.Empty;
-                    matchSpans.Free();
                     return null;
                 }
 

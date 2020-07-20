@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -213,14 +216,31 @@ class C
 {
     void Goo()
     {
-        unsafe { }
+        /*<bind>*/unsafe
+        {
+            _ = 0;
+        }/*</bind>*/
     }
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
-                // (6,9): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe"));
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = 0;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = 0')
+        Left: 
+          IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(text, expectedOperationTree,
+                compilationOptions: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false),
+                expectedDiagnostics: new DiagnosticDescription[] {
+                    // file.cs(6,19): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                    //         /*<bind>*/unsafe
+                    Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(6, 19)
+                });
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -2521,7 +2541,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             Assert.True(tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().
-                Select(syntax => model.GetTypeInfo(syntax).Type).All(type => ((TypeSymbol)type).IsManagedType));
+                Select(syntax => model.GetTypeInfo(syntax).Type).All(type => type.GetSymbol().IsManagedType));
         }
 
         [Fact]
@@ -3595,9 +3615,9 @@ enum Color
                 // (40,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(() => 1); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1").WithLocation(40, 15),
-                // (41,14): error CS0211: Cannot take the address of the given expression
+                // (41,13): error CS8812: Cannot convert &method group 'M' to non-function pointer type 'int*'.
                 //         p = &M; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M").WithArguments("M", "method group").WithLocation(41, 14),
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "int*").WithLocation(41, 13),
                 // (42,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(new System.Int32()); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()").WithLocation(42, 15),
@@ -4163,16 +4183,16 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
             Assert.Equal(TypeKind.Pointer, type.TypeKind);
-            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)type).PointedAtType.SpecialType);
 
             var declaredSymbol = model.GetDeclaredSymbol(syntax.Ancestors().OfType<VariableDeclaratorSyntax>().First());
             Assert.NotNull(declaredSymbol);
             Assert.Equal(SymbolKind.Local, declaredSymbol.Kind);
             Assert.Equal("p", declaredSymbol.Name);
-            Assert.Equal(type, ((LocalSymbol)declaredSymbol).Type);
+            Assert.Equal(type, ((ILocalSymbol)declaredSymbol).Type);
         }
 
         [Fact]
@@ -4230,12 +4250,12 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
-            Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
+            Assert.Equal(TypeKind.Error, ((IPointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
         [WorkItem(544346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544346")]
@@ -4268,12 +4288,12 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
 
             Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
-            Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
+            Assert.Equal(TypeKind.Error, ((IPointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
         [WorkItem(544346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544346")]
@@ -4290,6 +4310,11 @@ unsafe class C
 }
 ";
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign &method group to an implicitly-typed variable
+                //         var i1 = &M;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "i1 = &M").WithArguments("&method group").WithLocation(6, 13)
+            );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4298,19 +4323,15 @@ unsafe class C
 
             var symbolInfo = model.GetSymbolInfo(syntax);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal("void C.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(syntax);
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
-            Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Null(type);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
-
-            Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
-            Assert.Equal(TypeKind.Error, ((PointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
 
@@ -4441,7 +4462,7 @@ unsafe class C
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
             Assert.NotNull(type);
-            Assert.Same(type, typeInfo.ConvertedType);
+            Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
             Assert.Equal(SpecialType.System_Int32, type.SpecialType);
         }
@@ -4754,26 +4775,26 @@ struct S
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structPointerType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(structPointerType.GetPublicSymbol(), ((ILocalSymbol)receiverSymbol).Type);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
-            Assert.Equal(structPointerType, receiverSummary.Type);
-            Assert.Equal(structPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(structPointerType, receiverSummary.Type.GetSymbol());
+            Assert.Equal(structPointerType, receiverSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
             Assert.Equal(0, receiverSummary.MethodGroup.Length);
 
             var methodGroupSummary = model.GetSemanticInfoSummary(methodGroupSyntax);
-            Assert.Equal(structMethod1, methodGroupSummary.Symbol);
+            Assert.Equal(structMethod1, methodGroupSummary.Symbol.GetSymbol());
             Assert.Equal(CandidateReason.None, methodGroupSummary.CandidateReason);
             Assert.Equal(0, methodGroupSummary.CandidateSymbols.Length);
             Assert.Null(methodGroupSummary.Type);
             Assert.Null(methodGroupSummary.ConvertedType);
             Assert.Equal(ConversionKind.Identity, methodGroupSummary.ImplicitConversion.Kind);
-            Assert.True(methodGroupSummary.MethodGroup.SetEquals(ImmutableArray.Create<IMethodSymbol>(structMethod1, structMethod2), EqualityComparer<IMethodSymbol>.Default));
+            Assert.True(methodGroupSummary.MethodGroup.SetEquals(ImmutableArray.Create<IMethodSymbol>(structMethod1.GetPublicSymbol(), structMethod2.GetPublicSymbol()), EqualityComparer<IMethodSymbol>.Default));
 
             var callSummary = model.GetSemanticInfoSummary(callSyntax);
-            Assert.Equal(structMethod1, callSummary.Symbol);
+            Assert.Equal(structMethod1, callSummary.Symbol.GetSymbol());
             Assert.Equal(CandidateReason.None, callSummary.CandidateReason);
             Assert.Equal(0, callSummary.CandidateSymbols.Length);
             Assert.Equal(SpecialType.System_Void, callSummary.Type.SpecialType);
@@ -4821,24 +4842,24 @@ struct S
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(structType.GetPublicSymbol(), ((ILocalSymbol)receiverSymbol).Type);
             Assert.Equal("s", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
-            Assert.Equal(structType, receiverSummary.Type);
-            Assert.Equal(structType, receiverSummary.ConvertedType);
+            Assert.Equal(structType, receiverSummary.Type.GetSymbol());
+            Assert.Equal(structType, receiverSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
             Assert.Equal(0, receiverSummary.MethodGroup.Length);
 
             var methodGroupSummary = model.GetSemanticInfoSummary(methodGroupSyntax);
-            Assert.Equal(structMethod1, methodGroupSummary.Symbol); // Have enough info for overload resolution.
+            Assert.Equal(structMethod1, methodGroupSummary.Symbol.GetSymbol()); // Have enough info for overload resolution.
             Assert.Null(methodGroupSummary.Type);
             Assert.Null(methodGroupSummary.ConvertedType);
             Assert.Equal(ConversionKind.Identity, methodGroupSummary.ImplicitConversion.Kind);
-            Assert.True(methodGroupSummary.MethodGroup.SetEquals(StaticCast<IMethodSymbol>.From(structMethods), EqualityComparer<IMethodSymbol>.Default));
+            Assert.True(methodGroupSummary.MethodGroup.SetEquals(structMethods.GetPublicSymbols(), EqualityComparer<IMethodSymbol>.Default));
 
             var callSummary = model.GetSemanticInfoSummary(callSyntax);
-            Assert.Equal(structMethod1, callSummary.Symbol); // Have enough info for overload resolution.
+            Assert.Equal(structMethod1, callSummary.Symbol.GetSymbol()); // Have enough info for overload resolution.
             Assert.Equal(SpecialType.System_Void, callSummary.Type.SpecialType);
             Assert.Equal(callSummary.Type, callSummary.ConvertedType);
             Assert.Equal(ConversionKind.Identity, callSummary.ImplicitConversion.Kind);
@@ -5065,24 +5086,24 @@ unsafe class C
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType.GetPublicSymbol(), ((ILocalSymbol)receiverSymbol).Type);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
-            Assert.Equal(intPointerType, receiverSummary.Type);
-            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(intPointerType, receiverSummary.Type.GetSymbol());
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
             Assert.Equal(0, receiverSummary.MethodGroup.Length);
 
             var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
             var indexSymbol = indexSummary.Symbol;
             Assert.Equal(SymbolKind.Local, indexSymbol.Kind);
-            Assert.Equal(intType, ((LocalSymbol)indexSymbol).Type);
+            Assert.Equal(intType.GetPublicSymbol(), ((ILocalSymbol)indexSymbol).Type);
             Assert.Equal("i", indexSymbol.Name);
             Assert.Equal(CandidateReason.None, indexSummary.CandidateReason);
             Assert.Equal(0, indexSummary.CandidateSymbols.Length);
-            Assert.Equal(intType, indexSummary.Type);
-            Assert.Equal(intType, indexSummary.ConvertedType);
+            Assert.Equal(intType, indexSummary.Type.GetSymbol());
+            Assert.Equal(intType, indexSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, indexSummary.ImplicitConversion.Kind);
             Assert.Equal(0, indexSummary.MethodGroup.Length);
 
@@ -5090,8 +5111,8 @@ unsafe class C
             Assert.Null(accessSummary.Symbol);
             Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
             Assert.Equal(0, accessSummary.CandidateSymbols.Length);
-            Assert.Equal(intType, accessSummary.Type);
-            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(intType, accessSummary.Type.GetSymbol());
+            Assert.Equal(intType, accessSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
             Assert.Equal(0, accessSummary.MethodGroup.Length);
         }
@@ -5132,12 +5153,12 @@ unsafe class C
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType.GetPublicSymbol(), ((IFieldSymbol)receiverSymbol).Type);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
-            Assert.Equal(intPointerType, receiverSummary.Type);
-            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(intPointerType, receiverSummary.Type.GetSymbol());
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
             Assert.Equal(0, receiverSummary.MethodGroup.Length);
 
@@ -5149,8 +5170,8 @@ unsafe class C
             Assert.Null(accessSummary.Symbol);
             Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
             Assert.Equal(0, accessSummary.CandidateSymbols.Length);
-            Assert.Equal(intType, accessSummary.Type);
-            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(intType, accessSummary.Type.GetSymbol());
+            Assert.Equal(intType, accessSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
             Assert.Equal(0, accessSummary.MethodGroup.Length);
         }
@@ -5190,12 +5211,12 @@ unsafe class C
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType.GetPublicSymbol(), ((IFieldSymbol)receiverSymbol).Type);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
-            Assert.Equal(intPointerType, receiverSummary.Type);
-            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(intPointerType, receiverSummary.Type.GetSymbol());
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
             Assert.Equal(0, receiverSummary.MethodGroup.Length);
 
@@ -5207,8 +5228,8 @@ unsafe class C
             Assert.Null(accessSummary.Symbol);
             Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
             Assert.Equal(0, accessSummary.CandidateSymbols.Length);
-            Assert.Equal(intType, accessSummary.Type);
-            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(intType, accessSummary.Type.GetSymbol());
+            Assert.Equal(intType, accessSummary.ConvertedType.GetSymbol());
             Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
             Assert.Equal(0, accessSummary.MethodGroup.Length);
         }
@@ -5246,7 +5267,7 @@ unsafe struct S
                 var conv = model.GetConversion(node);
                 Assert.Null(typeInfo.Type);
                 Assert.Equal(TypeKind.Pointer, typeInfo.ConvertedType.TypeKind);
-                Assert.Equal(ConversionKind.NullToPointer, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitNullToPointer, conv.Kind);
             }
         }
 
@@ -5282,14 +5303,14 @@ unsafe struct S
 
                 var type = typeInfo.Type;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
-                Assert.NotEqual(SpecialType.System_Void, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
+                Assert.NotEqual(SpecialType.System_Void, ((IPointerTypeSymbol)type).PointedAtType.SpecialType);
 
                 var convertedType = typeInfo.ConvertedType;
                 Assert.Equal(TypeKind.Pointer, convertedType.TypeKind);
-                Assert.Equal(SpecialType.System_Void, ((PointerTypeSymbol)convertedType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Void, ((IPointerTypeSymbol)convertedType).PointedAtType.SpecialType);
 
                 var conv = model.GetConversion(value);
-                Assert.Equal(ConversionKind.PointerToVoid, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitPointerToVoid, conv.Kind);
             }
         }
 
@@ -5766,13 +5787,13 @@ unsafe class C
                 else
                 {
                     Assert.NotNull(summary.Symbol);
-                    Assert.Equal(MethodKind.BuiltinOperator, ((MethodSymbol)summary.Symbol).MethodKind);
+                    Assert.Equal(MethodKind.BuiltinOperator, ((IMethodSymbol)summary.Symbol).MethodKind);
                 }
 
                 Assert.Equal(0, summary.CandidateSymbols.Length);
                 Assert.Equal(CandidateReason.None, summary.CandidateReason);
-                Assert.Equal(pointerType, summary.Type);
-                Assert.Equal(pointerType, summary.ConvertedType);
+                Assert.Equal(pointerType, summary.Type.GetSymbol());
+                Assert.Equal(pointerType, summary.ConvertedType.GetSymbol());
                 Assert.Equal(Conversion.Identity, summary.ImplicitConversion);
                 Assert.Equal(0, summary.MethodGroup.Length);
                 Assert.Null(summary.Alias);
@@ -6214,7 +6235,7 @@ unsafe class C
                 else
                 {
                     Assert.NotNull(summary.Symbol);
-                    Assert.Equal(MethodKind.BuiltinOperator, ((MethodSymbol)summary.Symbol).MethodKind);
+                    Assert.Equal(MethodKind.BuiltinOperator, ((IMethodSymbol)summary.Symbol).MethodKind);
                 }
 
                 Assert.Equal(0, summary.CandidateSymbols.Length);
@@ -7053,16 +7074,16 @@ unsafe class C
             var model = compilation.GetSemanticModel(tree);
 
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(3).Reverse().ToArray();
-            var declaredSymbols = declarators.Select(syntax => (LocalSymbol)model.GetDeclaredSymbol(syntax)).ToArray();
+            var declaredSymbols = declarators.Select(syntax => (ILocalSymbol)model.GetDeclaredSymbol(syntax)).ToArray();
 
             foreach (var symbol in declaredSymbols)
             {
                 Assert.NotNull(symbol);
-                Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
+                Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.GetSymbol().DeclarationKind);
                 Assert.True(((ILocalSymbol)symbol).IsFixed);
-                TypeSymbol type = symbol.Type;
+                ITypeSymbol type = symbol.Type;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
-                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Char, ((IPointerTypeSymbol)type).PointedAtType.SpecialType);
             }
         }
 
@@ -7102,7 +7123,7 @@ unsafe class C
             var dereferences = tree.GetCompilationUnitRoot().DescendantNodes().Where(syntax => syntax.IsKind(SyntaxKind.PointerIndirectionExpression)).ToArray();
             Assert.Equal(numSymbols, dereferences.Length);
 
-            var declaredSymbols = declarators.Select(syntax => (LocalSymbol)model.GetDeclaredSymbol(syntax)).ToArray();
+            var declaredSymbols = declarators.Select(syntax => (ILocalSymbol)model.GetDeclaredSymbol(syntax)).ToArray();
 
             var initializerSummaries = declarators.Select(syntax => model.GetSemanticInfoSummary(syntax.Initializer.Value)).ToArray();
 
@@ -7111,7 +7132,7 @@ unsafe class C
                 var summary = initializerSummaries[i];
                 Assert.Equal(0, summary.CandidateSymbols.Length);
                 Assert.Equal(CandidateReason.None, summary.CandidateReason);
-                Assert.Equal(charPointerSymbol, summary.ConvertedType);
+                Assert.Equal(charPointerSymbol, summary.ConvertedType.GetSymbol());
                 Assert.Equal(Conversion.Identity, summary.ImplicitConversion);
                 Assert.Equal(0, summary.MethodGroup.Length);
                 Assert.Null(summary.Alias);
@@ -7119,16 +7140,16 @@ unsafe class C
 
             var summary0 = initializerSummaries[0];
             Assert.Null(summary0.Symbol);
-            Assert.Equal(charPointerSymbol, summary0.Type);
+            Assert.Equal(charPointerSymbol, summary0.Type.GetSymbol());
 
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
-            Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type, summary1.Type);
+            Assert.Equal(arraySymbol, summary1.Symbol.GetSymbol());
+            Assert.Equal(arraySymbol.Type, summary1.Type.GetSymbol());
 
             var summary2 = initializerSummaries[2];
             Assert.Null(summary2.Symbol);
-            Assert.Equal(stringSymbol, summary2.Type);
+            Assert.Equal(stringSymbol, summary2.Type.GetSymbol());
 
             var accessSymbolInfos = dereferences.Select(syntax => model.GetSymbolInfo(((PrefixUnaryExpressionSyntax)syntax).Operand)).ToArray();
 
@@ -7186,21 +7207,21 @@ unsafe class C
 
             var summary0 = initializerSummaries[0];
             Assert.Null(summary0.Symbol);
-            Assert.Equal(charPointerSymbol, summary0.Type);
-            Assert.Equal(voidPointerSymbol, summary0.ConvertedType);
+            Assert.Equal(charPointerSymbol, summary0.Type.GetSymbol());
+            Assert.Equal(voidPointerSymbol, summary0.ConvertedType.GetSymbol());
             Assert.Equal(Conversion.PointerToVoid, summary0.ImplicitConversion);
 
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
-            Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type, summary1.Type);
-            Assert.Equal(voidPointerSymbol, summary1.ConvertedType);
+            Assert.Equal(arraySymbol, summary1.Symbol.GetSymbol());
+            Assert.Equal(arraySymbol.Type, summary1.Type.GetSymbol());
+            Assert.Equal(voidPointerSymbol, summary1.ConvertedType.GetSymbol());
             Assert.Equal(Conversion.PointerToVoid, summary1.ImplicitConversion);
 
             var summary2 = initializerSummaries[2];
             Assert.Null(summary2.Symbol);
-            Assert.Equal(stringSymbol, summary2.Type);
-            Assert.Equal(voidPointerSymbol, summary2.ConvertedType);
+            Assert.Equal(stringSymbol, summary2.Type.GetSymbol());
+            Assert.Equal(voidPointerSymbol, summary2.ConvertedType.GetSymbol());
             Assert.Equal(Conversion.PointerToVoid, summary2.ImplicitConversion);
         }
 
@@ -7429,18 +7450,18 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (4,21): error CS1031: Type expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
-            // (4,21): error CS1026: ) expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
-            // (4,21): error CS1003: Syntax error, ',' expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
-            // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));
+                // (4,21): error CS1031: Type expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
+                // (4,21): error CS1026: ) expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
+                // (4,21): error CS1003: Syntax error, ',' expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
+                // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));
         }
 
         #endregion sizeof diagnostic tests
@@ -7499,7 +7520,7 @@ class Program
             foreach (var syntax in syntaxes)
             {
                 var typeSummary = model.GetSemanticInfoSummary(syntax.Type);
-                var type = typeSummary.Symbol as TypeSymbol;
+                var type = typeSummary.Symbol as ITypeSymbol;
 
                 Assert.NotNull(type);
                 Assert.Equal(0, typeSummary.CandidateSymbols.Length);
@@ -7562,7 +7583,7 @@ enum E2 : long
             foreach (var syntax in syntaxes)
             {
                 var typeSummary = model.GetSemanticInfoSummary(syntax.Type);
-                var type = typeSummary.Symbol as TypeSymbol;
+                var type = typeSummary.Symbol as ITypeSymbol;
 
                 Assert.NotNull(type);
                 Assert.Equal(0, typeSummary.CandidateSymbols.Length);
@@ -7623,7 +7644,7 @@ struct Outer
             foreach (var syntax in syntaxes)
             {
                 var typeSummary = model.GetSemanticInfoSummary(syntax.Type);
-                var type = typeSummary.Symbol as TypeSymbol;
+                var type = typeSummary.Symbol as ITypeSymbol;
 
                 Assert.NotNull(type);
                 Assert.Equal(0, typeSummary.CandidateSymbols.Length);
@@ -8175,8 +8196,8 @@ class C
             var countSyntax = arrayTypeSyntax.RankSpecifiers.Single().Sizes.Single();
 
             var stackAllocSummary = model.GetSemanticInfoSummary(stackAllocSyntax);
-            Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)stackAllocSummary.Type).PointedAtType.SpecialType);
-            Assert.Equal(SpecialType.System_Void, ((PointerTypeSymbol)stackAllocSummary.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Char, ((IPointerTypeSymbol)stackAllocSummary.Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Void, ((IPointerTypeSymbol)stackAllocSummary.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(Conversion.PointerToVoid, stackAllocSummary.ImplicitConversion);
             Assert.Null(stackAllocSummary.Symbol);
             Assert.Equal(0, stackAllocSummary.CandidateSymbols.Length);
@@ -8202,7 +8223,7 @@ class C
             Assert.Equal(SpecialType.System_Int16, countSummary.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int32, countSummary.ConvertedType.SpecialType);
             Assert.Equal(Conversion.ImplicitNumeric, countSummary.ImplicitConversion);
-            var countSymbol = (LocalSymbol)countSummary.Symbol;
+            var countSymbol = (ILocalSymbol)countSummary.Symbol;
             Assert.Equal(countSummary.Type, countSymbol.Type);
             Assert.Equal("count", countSymbol.Name);
             Assert.Equal(0, countSummary.CandidateSymbols.Length);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
@@ -37,10 +38,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.DisplayName = value;
         }
 
-        public string ProjectFilePath
+        public string? ProjectFilePath
         {
             get => _visualStudioProject.FilePath;
             set => _visualStudioProject.FilePath = value;
+        }
+
+        public bool IsPrimary
+        {
+            get => _visualStudioProject.IsPrimary;
+            set => _visualStudioProject.IsPrimary = value;
         }
 
         public Guid Guid
@@ -70,8 +77,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _ => null
                 };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace) : null;
+                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
             });
+
+            visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));
 
@@ -126,20 +135,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        internal string? GetIntermediateOutputFilePath()
-        {
-            return _visualStudioProject.IntermediateOutputFilePath;
-        }
+        internal string? CompilationOutputAssemblyFilePath
+            => _visualStudioProject.CompilationOutputAssemblyFilePath;
 
         public ProjectId Id => _visualStudioProject.Id;
 
         public void SetOptions(string commandLineForOptions)
-        {
-            if (_visualStudioProjectOptionsProcessor != null)
-            {
-                _visualStudioProjectOptionsProcessor.CommandLine = commandLineForOptions;
-            }
-        }
+            => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
 
         public string? DefaultNamespace
         {
@@ -161,6 +163,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             else if (name == AdditionalPropertyNames.MaxSupportedLangVersion)
             {
                 _visualStudioProject.MaxLangVersion = value;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzers)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzers = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
+            {
+                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
             }
         }
 
@@ -190,9 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
-        }
+            => _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
 
         public void RemoveSourceFile(string filePath)
         {
@@ -201,9 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
-        {
-            _visualStudioProject.AddAdditionalFile(filePath);
-        }
+            => _visualStudioProject.AddAdditionalFile(filePath);
 
         public void Dispose()
         {
@@ -213,29 +221,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void AddAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.AddAnalyzerReference(referencePath);
-        }
+            => _visualStudioProject.AddAnalyzerReference(referencePath);
 
         public void RemoveAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.RemoveAnalyzerReference(referencePath);
-        }
+            => _visualStudioProject.RemoveAnalyzerReference(referencePath);
 
         public void RemoveAdditionalFile(string filePath)
-        {
-            _visualStudioProject.RemoveAdditionalFile(filePath);
-        }
+            => _visualStudioProject.RemoveAdditionalFile(filePath);
 
         public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
-        {
-            _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
-        }
+            => _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
 
         public void RemoveDynamicFile(string filePath)
-        {
-            _visualStudioProject.RemoveDynamicSourceFile(filePath);
-        }
+            => _visualStudioProject.RemoveDynamicSourceFile(filePath);
 
         public void SetRuleSetFile(string filePath)
         {
@@ -245,9 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();
 
         public void StartBatch()
-        {
-            _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
-        }
+            => _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
 
         public void EndBatch()
         {
@@ -256,23 +252,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void ReorderSourceFiles(IEnumerable<string>? filePaths)
-        {
-            _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
-        }
+            => _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
 
         internal VisualStudioProject GetProject_TestOnly()
-        {
-            return _visualStudioProject;
-        }
+            => _visualStudioProject;
 
         public void AddAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.AddAnalyzerConfigFile(filePath);
-        }
+            => _visualStudioProject.AddAnalyzerConfigFile(filePath);
 
         public void RemoveAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
-        }
+            => _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
     }
 }

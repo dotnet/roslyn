@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -27,8 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
-            bool isAdder)
-            : base(@event.containingType, syntaxReference, locations)
+            bool isAdder,
+            bool isIterator)
+            : base(@event.containingType, syntaxReference, locations, isIterator)
         {
             _event = @event;
 
@@ -74,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _explicitInterfaceImplementations; }
         }
+
+        public sealed override bool AreLocalsZeroed
+            => !_event.HasSkipLocalsInitAttribute && base.AreLocalsZeroed;
 
         public SourceEventSymbol AssociatedEvent
         {

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         public ImmutableArray<TaggedText> TaggedParts { get; }
 
-        private QuickInfoSection(string kind, ImmutableArray<TaggedText> taggedParts)
+        private QuickInfoSection(string? kind, ImmutableArray<TaggedText> taggedParts)
         {
             Kind = kind ?? string.Empty;
             TaggedParts = taggedParts.NullToEmpty();
@@ -32,12 +36,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         /// <param name="kind">The kind of the section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.</param>
         /// <param name="taggedParts">The individual tagged parts of the section.</param>
-        public static QuickInfoSection Create(string kind, ImmutableArray<TaggedText> taggedParts)
-        {
-            return new QuickInfoSection(kind, taggedParts);
-        }
+        public static QuickInfoSection Create(string? kind, ImmutableArray<TaggedText> taggedParts)
+            => new QuickInfoSection(kind, taggedParts);
 
-        private string _text;
+        private string? _text;
 
         /// <summary>
         /// The text of the section without tags.

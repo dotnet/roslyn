@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateConstructorService()
         {
         }
@@ -151,9 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             => argument.GetRefKind();
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
-        {
-            return argument.NameColon != null;
-        }
+            => argument.NameColon != null;
 
         protected override ITypeSymbol GetArgumentType(
             SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
@@ -168,11 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         }
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType.WithoutNullability(), targetType.WithoutNullability()).IsImplicit;
-        }
+            => compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
 
-        internal override IMethodSymbol GetDelegatingConstructor(
+        protected override IMethodSymbol GetDelegatingConstructor(
             State state,
             SemanticDocument document,
             int argumentCount,

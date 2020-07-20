@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -19,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class AnalysisResultBuilder
     {
         private readonly object _gate = new object();
-        private readonly Dictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeOpt;
+        private readonly Dictionary<DiagnosticAnalyzer, TimeSpan>? _analyzerExecutionTimeOpt;
         private readonly HashSet<DiagnosticAnalyzer> _completedAnalyzers;
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts> _analyzerActionCounts;
 
-        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSemanticDiagnosticsOpt = null;
-        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSyntaxDiagnosticsOpt = null;
-        private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> _nonLocalDiagnosticsOpt = null;
+        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localSemanticDiagnosticsOpt = null;
+        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localSyntaxDiagnosticsOpt = null;
+        private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? _nonLocalDiagnosticsOpt = null;
 
         internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var map = new Dictionary<DiagnosticAnalyzer, TimeSpan>(analyzers.Length);
             foreach (var analyzer in analyzers)
             {
-                map[analyzer] = default(TimeSpan);
+                map[analyzer] = default;
             }
 
             return map;
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             lock (_gate)
             {
-                ArrayBuilder<DiagnosticAnalyzer> builder = null;
+                ArrayBuilder<DiagnosticAnalyzer>? builder = null;
                 foreach (var analyzer in analyzers)
                 {
                     if (!_completedAnalyzers.Contains(analyzer))
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             ImmutableArray<Diagnostic> diagnostics,
             bool overwrite,
-            ref Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> lazyLocalDiagnostics)
+            ref Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? lazyLocalDiagnostics)
         {
             if (diagnostics.IsEmpty)
             {
@@ -136,15 +140,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var diagsByTree in diagnostics.GroupBy(d => d.Location.SourceTree))
             {
                 var tree = diagsByTree.Key;
+                Debug.Assert(tree is object);
 
-                Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> allDiagnostics;
+                Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? allDiagnostics;
                 if (!lazyLocalDiagnostics.TryGetValue(tree, out allDiagnostics))
                 {
                     allDiagnostics = new Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>();
                     lazyLocalDiagnostics[tree] = allDiagnostics;
                 }
 
-                ImmutableArray<Diagnostic>.Builder analyzerDiagnostics;
+                ImmutableArray<Diagnostic>.Builder? analyzerDiagnostics;
                 if (!allDiagnostics.TryGetValue(analyzer, out analyzerDiagnostics))
                 {
                     analyzerDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
@@ -169,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _nonLocalDiagnosticsOpt = _nonLocalDiagnosticsOpt ?? new Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>();
 
-            ImmutableArray<Diagnostic>.Builder currentDiagnostics;
+            ImmutableArray<Diagnostic>.Builder? currentDiagnostics;
             if (!_nonLocalDiagnosticsOpt.TryGetValue(analyzer, out currentDiagnostics))
             {
                 currentDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
@@ -223,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void AddAllLocalDiagnostics_NoLock(
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> localDiagnostics,
+            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
             AnalysisScope analysisScope,
             ImmutableArray<Diagnostic>.Builder builder)
         {
@@ -237,11 +242,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void AddLocalDiagnosticsForPartialAnalysis_NoLock(
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> localDiagnostics,
+            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
             AnalysisScope analysisScope,
             ImmutableArray<Diagnostic>.Builder builder)
         {
-            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> diagnosticsForTree;
+            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? diagnosticsForTree;
             if (localDiagnostics != null && localDiagnostics.TryGetValue(analysisScope.FilterTreeOpt, out diagnosticsForTree))
             {
                 AddDiagnostics_NoLock(diagnosticsForTree, analysisScope, builder);
@@ -257,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var analyzer in analysisScope.Analyzers)
             {
-                ImmutableArray<Diagnostic>.Builder diagnosticsByAnalyzer;
+                ImmutableArray<Diagnostic>.Builder? diagnosticsByAnalyzer;
                 if (diagnostics.TryGetValue(analyzer, out diagnosticsByAnalyzer))
                 {
                     builder.AddRange(diagnosticsByAnalyzer);
@@ -282,13 +287,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var analyzerTelemetryInfo = GetTelemetryInfo(analyzers, cancellationToken);
+            var analyzerTelemetryInfo = GetTelemetryInfo(analyzers);
             return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
         }
 
         private static ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> localDiagnosticsOpt)
+            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnosticsOpt)
         {
             if (localDiagnosticsOpt == null)
             {
@@ -318,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> GetImmutable(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
-            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> nonLocalDiagnosticsOpt)
+            Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? nonLocalDiagnosticsOpt)
         {
             if (nonLocalDiagnosticsOpt == null)
             {
@@ -338,8 +343,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> GetTelemetryInfo(
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            CancellationToken cancellationToken)
+            ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
 
@@ -347,9 +351,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var analyzer in analyzers)
                 {
-                    var actionCounts = _analyzerActionCounts[analyzer];
+                    if (!_analyzerActionCounts.TryGetValue(analyzer, out var actionCounts))
+                    {
+                        actionCounts = AnalyzerActionCounts.Empty;
+                    }
+
                     var suppressionActionCounts = analyzer is DiagnosticSuppressor ? 1 : 0;
-                    var executionTime = _analyzerExecutionTimeOpt != null ? _analyzerExecutionTimeOpt[analyzer] : default(TimeSpan);
+                    var executionTime = _analyzerExecutionTimeOpt != null ? _analyzerExecutionTimeOpt[analyzer] : default;
                     var telemetryInfo = new AnalyzerTelemetryInfo(actionCounts, suppressionActionCounts, executionTime);
                     builder.Add(analyzer, telemetryInfo);
                 }

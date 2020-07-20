@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -12,27 +17,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentHoverName)]
-    internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover>
+    internal class HoverHandler : AbstractRequestHandler<TextDocumentPositionParams, Hover?>
     {
-        public async Task<Hover> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public HoverHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+        }
+
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
+        {
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var quickInfoService = document.Project.LanguageServices.GetService<QuickInfoService>();
-            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(keepThreadContext);
+            var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
+            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new Hover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
@@ -45,24 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // local functions
             // TODO - This should return correctly formatted markdown from quick info.
-            // https://github.com/dotnet/roslyn/projects/45#card-20033878
+            // https://github.com/dotnet/roslyn/issues/43387
             static string GetMarkdownString(QuickInfoItem info)
-            {
-                var stringBuilder = new StringBuilder();
-                var description = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.Description.Equals(s.Kind))?.Text ?? string.Empty;
-                var documentation = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.DocumentationComments.Equals(s.Kind))?.Text ?? string.Empty;
-
-                if (!string.IsNullOrEmpty(description))
-                {
-                    stringBuilder.Append(description);
-                    if (!string.IsNullOrEmpty(documentation))
-                    {
-                        stringBuilder.Append("\r\n> ").Append(documentation);
-                    }
-                }
-
-                return stringBuilder.ToString();
-            }
+                => string.Join("\r\n", info.Sections.Select(section => section.Text).Where(text => !string.IsNullOrEmpty(text)));
         }
     }
 }

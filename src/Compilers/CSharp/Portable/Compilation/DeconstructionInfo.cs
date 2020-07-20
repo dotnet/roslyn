@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 
@@ -29,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The Deconstruct method (if any) for this non-terminal position in the deconstruction tree.
         /// </summary>
-        public IMethodSymbol Method
+        public IMethodSymbol? Method
         {
             get
             {
                 return _conversion.Kind == ConversionKind.Deconstruction
-                    ? _conversion.Method
+                    ? _conversion.MethodSymbol
                     : null;
             }
         }

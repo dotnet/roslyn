@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
@@ -10,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static class TelemetryExtensions
     {
         public static Guid GetTelemetryId(this Type type, short scope = 0)
-        {
-            return new Guid(type.GetTelemetryPrefix(), scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        }
+            => new Guid(type.GetTelemetryPrefix(), scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
         public static int GetTelemetryPrefix(this Type type)
         {
@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static Type GetTypeForTelemetry(this Type type)
-        {
-            return type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
-        }
+            => type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
         public static short GetScopeIdForTelemetry(this FixAllScope scope)
             => (short)(scope switch

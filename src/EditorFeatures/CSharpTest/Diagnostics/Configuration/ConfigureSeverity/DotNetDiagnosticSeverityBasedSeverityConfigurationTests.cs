@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -190,6 +192,40 @@ dotnet_diagnostic.XYZ1111.severity = none
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
 dotnet_diagnostic.XYZ1111.severity = none
+
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [WorkItem(45446, "https://github.com/dotnet/roslyn/issues/45446")]
+            public async Task ConfigureEditorconfig_MissingRule_None()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
+dotnet_diagnostic.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
+dotnet_diagnostic.severity = none
 
 # XYZ0001: Title
 dotnet_diagnostic.XYZ0001.severity = none

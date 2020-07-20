@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,11 +15,6 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class CSharpOperationFactory
     {
         private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
-
-        internal static Optional<object> ConvertToOptional(ConstantValue value)
-        {
-            return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
-        }
 
         internal ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)
         {
@@ -34,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Operations
             return ImmutableArray.Create(statement);
         }
 
-        private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, ITypeSymbol type) =>
-            new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type, constantValue: default, isImplicit: true);
+        private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, TypeSymbol type) =>
+            new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type.GetPublicSymbol(), constantValue: null, isImplicit: true);
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     initializerIsImplicit = true;
                 }
 
-                return new CSharpLazyVariableInitializerOperation(this, boundLocalDeclaration.InitializerOpt, _semanticModel, initializerSyntax, type: null, constantValue: default, initializerIsImplicit);
+                return new CSharpLazyVariableInitializerOperation(this, boundLocalDeclaration.InitializerOpt, _semanticModel, initializerSyntax, type: null, constantValue: null, initializerIsImplicit);
             }
 
             return null;
@@ -101,10 +98,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IVariableDeclaratorOperation CreateVariableDeclaratorInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
-            ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
+            ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol.GetPublicSymbol();
             SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
-            Optional<object> constantValue = default;
+            ConstantValue constantValue = null;
             bool isImplicit = false;
 
             return new CSharpLazyVariableDeclaratorOperation(this, boundLocalDeclaration, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -112,10 +109,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
-            return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
+            return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol.GetPublicSymbol(), initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: null, isImplicit: false);
         }
 
-        internal IOperation CreateReceiverOperation(BoundNode instance, ISymbol symbol)
+        internal IOperation CreateReceiverOperation(BoundNode instance, Symbol symbol)
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
@@ -149,12 +146,12 @@ namespace Microsoft.CodeAnalysis.Operations
             //  1. the type of BoundEventAccess is the type of the event symbol.
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
-            IEventSymbol @event = boundEventAssignmentOperator.Event;
+            IEventSymbol @event = boundEventAssignmentOperator.Event.GetPublicSymbol();
             BoundNode instance = boundEventAssignmentOperator.ReceiverOpt;
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new CSharpLazyEventReferenceOperation(this, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
+            return new CSharpLazyEventReferenceOperation(this, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, constantValue: null, isImplicit);
         }
 
         internal IOperation CreateDelegateTargetOperation(BoundNode delegateNode)
@@ -391,44 +388,43 @@ namespace Microsoft.CodeAnalysis.Operations
                         semanticModel: _semanticModel,
                         syntax: syntax,
                         type: type,
-                        constantValue: default,
+                        constantValue: null,
                         isImplicit: true);
 
                 // Find matching declaration for the current argument.
-                PropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty((NamedTypeSymbol)type, i);
+                PropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty(type.GetSymbol<NamedTypeSymbol>(), i);
                 BoundAnonymousPropertyDeclaration anonymousProperty = getDeclaration(declarations, property, ref currentDeclarationIndex);
                 if (anonymousProperty is null)
                 {
                     // No matching declaration, synthesize a property reference to be assigned.
                     target = new PropertyReferenceOperation(
-                        property,
+                        property.GetPublicSymbol(),
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         instance,
                         semanticModel: _semanticModel,
                         syntax: value.Syntax,
-                        type: property.Type,
-                        constantValue: default,
+                        type: property.Type.GetPublicSymbol(),
+                        constantValue: null,
                         isImplicit: true);
                     isImplicitAssignment = true;
                 }
                 else
                 {
-                    target = new PropertyReferenceOperation(anonymousProperty.Property,
+                    target = new PropertyReferenceOperation(anonymousProperty.Property.GetPublicSymbol(),
                                                             ImmutableArray<IArgumentOperation>.Empty,
                                                             instance,
                                                             _semanticModel,
                                                             anonymousProperty.Syntax,
-                                                            anonymousProperty.Type,
-                                                            ConvertToOptional(anonymousProperty.ConstantValue),
+                                                            anonymousProperty.GetPublicTypeSymbol(),
+                                                            anonymousProperty.ConstantValue,
                                                             anonymousProperty.WasCompilerGenerated);
                     isImplicitAssignment = isImplicit;
                 }
 
                 var assignmentSyntax = value.Syntax?.Parent ?? syntax;
                 ITypeSymbol assignmentType = target.Type;
-                Optional<object> constantValue = value.ConstantValue;
                 bool isRef = false;
-                var assignment = new SimpleAssignmentOperation(isRef, target, value, _semanticModel, assignmentSyntax, assignmentType, constantValue, isImplicitAssignment);
+                var assignment = new SimpleAssignmentOperation(isRef, target, value, _semanticModel, assignmentSyntax, assignmentType, value.GetConstantValue(), isImplicitAssignment);
                 builder.Add(assignment);
             }
 

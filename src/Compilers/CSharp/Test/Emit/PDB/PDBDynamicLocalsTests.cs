@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1366,6 +1368,7 @@ class Test
         <entry offset=""0xd0"" hidden=""true"" document=""1"" />
         <entry offset=""0xd4"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""10"" document=""1"" />
         <entry offset=""0xd5"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xd6"" hidden=""true"" document=""1"" />
         <entry offset=""0xd8"" startLine=""40"" startColumn=""9"" endLine=""40"" endColumn=""10"" document=""1"" />
         <entry offset=""0xd9"" startLine=""42"" startColumn=""9"" endLine=""42"" endColumn=""10"" document=""1"" />
         <entry offset=""0xda"" hidden=""true"" document=""1"" />
@@ -1595,6 +1598,7 @@ class Test
         <entry offset=""0x86"" hidden=""true"" document=""1"" />
         <entry offset=""0x8a"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""10"" document=""1"" />
         <entry offset=""0x8b"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8c"" hidden=""true"" document=""1"" />
         <entry offset=""0x8e"" startLine=""40"" startColumn=""9"" endLine=""40"" endColumn=""10"" document=""1"" />
         <entry offset=""0x8f"" startLine=""42"" startColumn=""9"" endLine=""42"" endColumn=""10"" document=""1"" />
         <entry offset=""0x90"" hidden=""true"" document=""1"" />

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -22,14 +24,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 {
     public abstract class AbstractToggleCommentTestBase
     {
-        abstract internal AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
+        internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
 
-        abstract internal TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
+        internal abstract TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
 
         protected void ToggleComment(string markup, string expected)
-        {
-            ToggleCommentMultiple(markup, new string[] { expected });
-        }
+            => ToggleCommentMultiple(markup, new string[] { expected });
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
                 for (var i = 0; i < expectedText.Length; i++)
                 {
                     commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
-                    AssertCommentResult(doc.TextBuffer, textView, expectedText[i]);
+                    AssertCommentResult(doc.GetTextBuffer(), textView, expectedText[i]);
                 }
             }
         }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         {
             using (var workspace = GetWorkspace(subjectBufferMarkup, GetExportProvider()))
             {
-                var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents, LanguageNames.CSharp);
+                var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
                 SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
                 var commandHandler = GetToggleCommentCommandHandler(workspace);
@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         }
 
         private static ExportProvider GetExportProvider()
-            => ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
-                .CreateExportProvider();
+            => TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
         private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
             => textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(contentTypeName)).Single();

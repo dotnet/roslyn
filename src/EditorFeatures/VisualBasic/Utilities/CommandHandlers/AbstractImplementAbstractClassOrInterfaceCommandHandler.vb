@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -74,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
 
             Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
@@ -94,7 +96,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             Dim endConstructGenerationService = document.GetLanguageService(Of IEndConstructGenerationService)()
 
-            Dim applicable As Boolean = False
             Return endConstructGenerationService.TryDo(args.TextView, args.SubjectBuffer, vbLf(0), cancellationToken)
         End Function
 

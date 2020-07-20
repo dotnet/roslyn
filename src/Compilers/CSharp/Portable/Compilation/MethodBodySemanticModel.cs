@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -52,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
+            Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
+            Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
         }
 
         /// <summary>
@@ -82,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ThisConstructorInitializer:
                     return binder.BindConstructorInitializer((ConstructorInitializerSyntax)node, diagnostics);
 
+                case SyntaxKind.PrimaryConstructorBaseType:
+                    return binder.BindConstructorInitializer((PrimaryConstructorBaseTypeSyntax)node, diagnostics);
+
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
@@ -89,8 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.CompilationUnit:
+                case SyntaxKind.RecordDeclaration:
                     return binder.BindMethodBody(node, diagnostics);
             }
 
@@ -143,6 +153,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
         }
 
+        /// <summary>
+        /// Creates a speculative SemanticModel for a constructor initializer that did not appear in the original source code.
+        /// </summary>
+        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, PrimaryConstructorBaseTypeSyntax syntax, Binder rootBinder, int position)
+        {
+            Debug.Assert(parentSemanticModel != null);
+            Debug.Assert(syntax != null);
+            Debug.Assert(rootBinder != null);
+            Debug.Assert(rootBinder.IsSemanticModelBinder);
+
+            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
+        }
+
         internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
         {
             // CONSIDER: Do we want to ensure that speculated method and the original method have identical signatures?
@@ -172,7 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(binder != null);
 
-            var executablebinder = new ExecutableCodeBinder(body, methodSymbol, binder ?? this.RootBinder);
+            Binder executablebinder = new WithNullableContextBinder(SyntaxTree, position, binder ?? this.RootBinder);
+            executablebinder = new ExecutableCodeBinder(body, methodSymbol, executablebinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
             // be influenced by any existing code in the body.
@@ -197,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
             return true;
@@ -214,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
             binder = new ExecutableCodeBinder(expressionBody, methodSymbol, binder);
 
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, expressionBody, binder, position);
@@ -222,14 +248,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
-            if ((MemberSymbol as MethodSymbol)?.MethodKind == MethodKind.Constructor)
+            if (MemberSymbol is MethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Constructor &&
+                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<ConstructorInitializerSyntax>().FirstOrDefault()?.Parent == Root)
             {
                 var binder = this.GetEnclosingBinder(position);
                 if (binder != null)
                 {
-                    var methodSymbol = (MethodSymbol)this.MemberSymbol;
+                    binder = new WithNullableContextBinder(SyntaxTree, position, binder);
                     binder = new ExecutableCodeBinder(constructorInitializer, methodSymbol, binder);
                     speculativeModel = CreateSpeculative(parentModel, methodSymbol, constructorInitializer, binder, position);
+                    return true;
+                }
+            }
+
+            speculativeModel = null;
+            return false;
+        }
+
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
+        {
+            if (MemberSymbol is SynthesizedRecordConstructor primaryCtor &&
+                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == primaryCtor.GetSyntax().PrimaryConstructorBaseType)
+            {
+                var binder = this.GetEnclosingBinder(position);
+                if (binder != null)
+                {
+                    binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+                    binder = new ExecutableCodeBinder(constructorInitializer, primaryCtor, binder);
+                    speculativeModel = CreateSpeculative(parentModel, primaryCtor, constructorInitializer, binder, position);
                     return true;
                 }
             }
@@ -254,5 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
+
+#if DEBUG
+        protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+        {
+            NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
+        }
+#endif
     }
 }

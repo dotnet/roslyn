@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -12,10 +15,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of DirectiveTriviaSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(directive As DirectiveTriviaSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             If TypeOf directive Is RegionDirectiveTriviaSyntax OrElse
                TypeOf directive Is EndRegionDirectiveTriviaSyntax Then
 
@@ -30,12 +34,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                                        DirectCast(directive, EndRegionDirectiveTriviaSyntax),
                                        DirectCast(match, EndRegionDirectiveTriviaSyntax))
 
-                    Return {TextSpan.FromBounds(region.HashToken.SpanStart, region.RegionKeyword.Span.End),
-                            TextSpan.FromBounds(endRegion.HashToken.SpanStart, endRegion.RegionKeyword.Span.End)}
+                    highlights.Add(TextSpan.FromBounds(region.HashToken.SpanStart, region.RegionKeyword.Span.End))
+                    highlights.Add(TextSpan.FromBounds(endRegion.HashToken.SpanStart, endRegion.RegionKeyword.Span.End))
                 End If
             End If
-
-            Return Enumerable.Empty(Of TextSpan)()
-        End Function
+        End Sub
     End Class
 End Namespace

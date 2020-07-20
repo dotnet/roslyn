@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -102,21 +104,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 var options = textView.Options.GlobalOptions;
                 EditorOptionKey<bool> optionKey;
-                Option<bool> roslynOption;
+                bool defaultOption;
                 if (IsDebuggerTextView(textView))
                 {
                     optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
-                    roslynOption = EditorCompletionOptions.UseSuggestionMode_Debugger;
+                    defaultOption = true;
                 }
                 else
                 {
                     optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
-                    roslynOption = EditorCompletionOptions.UseSuggestionMode;
+                    defaultOption = false;
                 }
 
                 if (!options.IsOptionDefined(optionKey, localScopeOnly: false))
                 {
-                    return roslynOption.DefaultValue;
+                    return defaultOption;
                 }
 
                 return options.GetOptionValue(optionKey);
@@ -146,7 +148,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void WaitForActiveView(string expectedView)
         {
-            Retry(GetActiveBufferName, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100));
+            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            Retry(_ => GetActiveBufferName(), (actual, _) => actual == expectedView, TimeSpan.FromMilliseconds(100), cts.Token);
         }
 
         public void Activate()
@@ -465,12 +468,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
-        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen)
+        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen, CancellationToken cancellationToken)
         {
             return Retry(
-                () => FindDialogWorker(dialogAutomationName),
-                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
-                delay: TimeSpan.FromMilliseconds(250));
+                _ => FindDialogWorker(dialogAutomationName),
+                stoppingCondition: (automationElement, _) => isOpen ? automationElement != null : automationElement == null,
+                delay: TimeSpan.FromMilliseconds(250),
+                cancellationToken);
         }
 
         private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
@@ -493,16 +497,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 
-        private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
+        private T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
             var beginTime = DateTime.UtcNow;
             var retval = default(T);
 
             do
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
-                    retval = action();
+                    retval = action(cancellationToken);
                 }
                 catch (COMException)
                 {
@@ -512,7 +518,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     continue;
                 }
 
-                if (stoppingCondition(retval))
+                if (stoppingCondition(retval, cancellationToken))
                 {
                     return retval;
                 }

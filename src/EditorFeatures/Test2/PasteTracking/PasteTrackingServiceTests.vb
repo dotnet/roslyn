@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.PasteTracking
 
@@ -57,13 +59,13 @@ $$
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>
-        Public Async Function PasteTracking_MissingTextSpan_WhenNothingPasted() As Task
+        Public Sub PasteTracking_MissingTextSpan_WhenNothingPasted()
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
 
-                Await testState.AssertMissingPastedTextSpanAsync(class1Document)
+                testState.AssertMissingPastedTextSpan(class1Document.GetTextBuffer())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>
@@ -106,7 +108,7 @@ $$
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>
-        Public Async Function PasteTracking_MissingTextSpan_AfterPasteThenEdit() As Task
+        Public Sub PasteTracking_MissingTextSpan_AfterPasteThenEdit()
             Using testState = New PasteTrackingTestState(SingleFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
 
@@ -114,38 +116,9 @@ $$
 
                 testState.InsertText(class1Document, "Foo")
 
-                Await testState.AssertMissingPastedTextSpanAsync(class1Document)
+                testState.AssertMissingPastedTextSpan(class1Document.GetTextBuffer())
             End Using
-        End Function
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
-        Public Async Function PasteTracking_MissingTextSpan_AfterPasteThenClose() As Task
-            Using testState = New PasteTrackingTestState(SingleFileCode)
-                Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
-
-                testState.SendPaste(class1Document, PastedCode)
-
-                testState.CloseDocument(class1Document)
-
-                Await testState.AssertMissingPastedTextSpanAsync(class1Document)
-            End Using
-        End Function
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
-        Public Async Function PasteTracking_MissingTextSpan_AfterPasteThenCloseThenOpen() As Task
-            Using testState = New PasteTrackingTestState(SingleFileCode)
-                Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
-
-                testState.SendPaste(class1Document, PastedCode)
-                testState.CloseDocument(class1Document)
-
-                testState.OpenDocument(class1Document)
-
-                Await testState.AssertMissingPastedTextSpanAsync(class1Document)
-            End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>
@@ -190,28 +163,7 @@ $$
                 testState.SendPaste(class1Document, PastedCode)
                 Dim expectedClass2TextSpan = testState.SendPaste(class2Document, PastedCode)
 
-                testState.CloseDocument(class1Document)
-
-                Await testState.AssertMissingPastedTextSpanAsync(class1Document)
                 Await testState.AssertHasPastedTextSpanAsync(class2Document, expectedClass2TextSpan)
-            End Using
-        End Function
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
-        Public Async Function PasteTracking_MissingTextSpan_AfterPasteInMultipleFilesThenAllClosed() As Task
-            Using testState = New PasteTrackingTestState(MultiFileCode)
-                Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
-                Dim class2Document = testState.OpenDocument(Project1Name, Class2Name)
-
-                testState.SendPaste(class1Document, PastedCode)
-                testState.SendPaste(class2Document, PastedCode)
-
-                testState.CloseDocument(class1Document)
-                testState.CloseDocument(class2Document)
-
-                Await testState.AssertMissingPastedTextSpanAsync(class1Document)
-                Await testState.AssertMissingPastedTextSpanAsync(class2Document)
             End Using
         End Function
 
@@ -245,23 +197,7 @@ $$
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>
-        Public Async Function PasteTracking_MissingTextSpanForLinkedFile_AfterPasteThenCloseAll() As Task
-            Using testState = New PasteTrackingTestState(MultiFileCode)
-                Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
-                Dim class1LinkedDocument = testState.OpenDocument(Project2Name, Class1Name)
-
-                testState.SendPaste(class1Document, PastedCode)
-
-                testState.CloseDocument(class1Document)
-                testState.CloseDocument(class1LinkedDocument)
-
-                Await testState.AssertMissingPastedTextSpanAsync(class1LinkedDocument)
-            End Using
-        End Function
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
-        Public Async Function PasteTracking_MissingTextSpan_AfterPasteThenLinkedFileEdited() As Task
+        Public Sub PasteTracking_MissingTextSpan_AfterPasteThenLinkedFileEdited()
             Using testState = New PasteTrackingTestState(MultiFileCode)
                 Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
                 Dim class1LinkedDocument = testState.OpenDocument(Project2Name, Class1Name)
@@ -269,11 +205,10 @@ $$
                 testState.SendPaste(class1Document, PastedCode)
                 testState.InsertText(class1LinkedDocument, "Foo")
 
-                Await testState.AssertMissingPastedTextSpanAsync(class1Document)
-                Await testState.AssertMissingPastedTextSpanAsync(class1LinkedDocument)
+                testState.AssertMissingPastedTextSpan(class1Document.GetTextBuffer())
+                testState.AssertMissingPastedTextSpan(class1LinkedDocument.GetTextBuffer())
             End Using
-        End Function
-
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>
@@ -286,8 +221,6 @@ $$
 
                 testState.CloseDocument(class1Document)
                 testState.CloseDocument(class1LinkedDocument)
-
-                Await testState.AssertMissingPastedTextSpanAsync(class1LinkedDocument)
 
                 testState.OpenDocument(class1LinkedDocument)
 

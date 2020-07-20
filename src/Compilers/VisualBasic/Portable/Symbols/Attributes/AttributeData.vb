@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -232,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Else
                 Dim firstArg As TypedConstant = Me.CommonConstructorArguments.FirstOrDefault()
-                Dim firstArgType = DirectCast(firstArg.Type, TypeSymbol)
+                Dim firstArgType = DirectCast(firstArg.TypeInternal, TypeSymbol)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteDiagnostics) Then
                     Return ValidateSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, hasErrors)
@@ -260,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ) As DeclarativeSecurityAction
             Debug.Assert(targetSymbol.Kind = SymbolKind.Assembly OrElse targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method)
 
-            Dim securityAction As Integer = CInt(typedValue.Value)
+            Dim securityAction As Integer = CInt(typedValue.ValueInternal)
             hasErrors = False
             Dim isPermissionRequestAction As Boolean
 
@@ -368,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     PermissionSetAttributeTypeHasRequiredProperty(attrType, filePropName) Then
 
                     ' resolve file prop path
-                    Dim fileName = DirectCast(namedArg.Value.Value, String)
+                    Dim fileName = DirectCast(namedArg.Value.ValueInternal, String)
                     Dim resolver = compilation.Options.XmlReferenceResolver
                     resolvedFilePath = If(resolver IsNot Nothing, resolver.ResolveReference(fileName, baseFilePath:=Nothing), Nothing)
 
@@ -485,6 +487,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not Me.HasErrors)
 
             Return Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
+        End Function
+
+        Private Protected NotOverridable Overrides Function IsStringProperty(memberName As String) As Boolean
+            If AttributeClass IsNot Nothing Then
+                For Each member In AttributeClass.GetMembers(memberName)
+                    Dim prop = TryCast(member, PropertySymbol)
+                    If prop?.Type.SpecialType = SpecialType.System_String Then
+                        Return True
+                    End If
+                Next
+            End If
+
+            Return False
         End Function
 #End Region
 

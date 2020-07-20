@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -47,14 +49,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public override int GetHashCode()
-        {
-            return _name.GetHashCode() + _ordinal;
-        }
+            => _name.GetHashCode() + _ordinal;
 
         public override string ToString()
-        {
-            return $"{{{_name}, {_ordinal}}}";
-        }
+            => $"{{{_name}, {_ordinal}}}";
 
         public string Name
         {
@@ -72,13 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public static bool operator ==(SyntaxNodeKey left, SyntaxNodeKey right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(SyntaxNodeKey left, SyntaxNodeKey right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

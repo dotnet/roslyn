@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 Imports System.Collections.Immutable
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
@@ -11,8 +13,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private ReadOnly _textView As ITextView
         Private _filters As ImmutableArray(Of CompletionFilterWithState)
         Private _presentedItems As ImmutableArray(Of CompletionItemWithHighlight)
-        Private _selectSuggestionItem As Boolean
-        Private _selectedItem As CompletionItem
 
         Public Sub New(textView As ITextView)
             _textView = textView
@@ -44,7 +44,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Sub DoUpdate(presentation As CompletionPresentationViewModel)
             _filters = presentation.Filters
             _presentedItems = presentation.Items
-            _selectSuggestionItem = presentation.SelectSuggestionItem
             If presentation.SelectSuggestionItem Then
                 ProgrammaticallySelectItem(presentation.SuggestionItem, True)
             ElseIf Not presentation.Items.IsDefaultOrEmpty Then
@@ -82,9 +81,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If itemToSelect IsNot Nothing AndAlso Not _presentedItems.Any(Function(n) n.CompletionItem.Equals(itemToSelect)) AndAlso Not thisIsSuggestionItem Then
                 Throw New ArgumentOutOfRangeException(NameOf(itemToSelect))
             End If
-
-            _selectedItem = itemToSelect
-            _selectSuggestionItem = thisIsSuggestionItem
 
             If UiUpdatedEvent IsNot Nothing Then
                 RaiseEvent UiUpdated(Me, New CompletionItemSelectedEventArgs(itemToSelect, thisIsSuggestionItem))
