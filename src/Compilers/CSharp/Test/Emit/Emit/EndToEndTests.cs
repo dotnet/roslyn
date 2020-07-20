@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 // Legacy baselines are indicated by comments
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 190, // 100
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 150, // 100
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 510, // 100
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
