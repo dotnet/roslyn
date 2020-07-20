@@ -200,6 +200,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             return _diagnosticAnalyzerService;
         }
-
     }
 }

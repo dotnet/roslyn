@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return CreateSpan(node)
 
                 Case SyntaxKind.SelectClause
-                    Return TryCreateSpanForSelectClause(DirectCast(node, SelectClauseSyntax), position)
+                    Return TryCreateSpanForSelectClause(DirectCast(node, SelectClauseSyntax))
 
                 Case SyntaxKind.WhereClause
                     Return TryCreateSpanForWhereClause(DirectCast(node, WhereClauseSyntax))
@@ -417,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return TextSpan.FromBounds(clause.Keys.First.SpanStart, clause.Span.End)
         End Function
 
-        Private Function TryCreateSpanForSelectClause(clause As SelectClauseSyntax, position As Integer) As TextSpan?
+        Private Function TryCreateSpanForSelectClause(clause As SelectClauseSyntax) As TextSpan?
             If clause.Variables.Count = 1 Then
                 Return CreateSpan(clause.Variables.Single.Expression)
             End If

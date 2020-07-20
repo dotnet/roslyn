@@ -28,7 +28,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="bar")
 
-
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -48,7 +47,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host,
                renameTo:="bar")
-
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -72,7 +70,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="bar")
 
-
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -91,7 +88,6 @@ End Module
                                </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="bar")
-
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -114,7 +110,6 @@ End Module
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="bar")
-
 
             End Using
         End Sub
@@ -298,7 +293,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Goo")
 
-
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -322,7 +316,6 @@ End Module
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="a")
-
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -348,7 +341,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="a")
 
-
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -372,7 +364,6 @@ End Module
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="a")
-
 
             End Using
         End Sub
@@ -509,7 +500,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Something")
 
-
                 result.AssertLabeledSpansAre("conflict1", "Something", RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("conflict2", "NS1", RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("conflict3", "Something", RelatedLocationType.ResolvedNonReferenceConflict)
@@ -538,7 +528,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Y")
-
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -592,7 +581,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Y")
 
-
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -619,7 +607,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="X")
 
-
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -639,7 +626,6 @@ End Module
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="X")
-
 
                 result.AssertLabeledSpansAre("stmt1", "Console.WriteLine(Global.X.x)", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
@@ -671,7 +657,6 @@ End Namespace
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="M")
-
 
                 result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -804,7 +789,6 @@ End Namespace
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="g")
-
 
                 result.AssertLabeledSpansAre("ctrlvar", "g", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("query", "g", type:=RelatedLocationType.NoConflict)
@@ -948,7 +932,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="T")
 
-
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -968,7 +951,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="T")
-
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -990,7 +972,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="t")
 
-
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -1011,7 +992,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="t")
 
-
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -1030,7 +1010,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="t")
-
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
@@ -1149,7 +1128,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="movenext")
 
-
             End Using
         End Sub
 
@@ -1189,7 +1167,6 @@ End Class
                         ]]></Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="movenext")
-
 
             End Using
         End Sub

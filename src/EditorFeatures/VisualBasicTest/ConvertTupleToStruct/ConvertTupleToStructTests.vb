@@ -1666,6 +1666,81 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeWithInaccessibleSystemHashCode(host As TestHost) As Task
+            Dim text = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Namespace System
+    Friend Class HashCode
+    End Class
+End Namespace
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class Test
+    sub Method()
+        dim t1 = [||](a:=1, b:=2)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>"
+
+            Dim expected = "
+class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+    end sub
+end class
+
+Friend Structure NewStruct
+    Public a As Integer
+    Public b As Integer
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.a = a
+        Me.b = b
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return a = other.a AndAlso
+               b = other.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+        a = Me.a
+        b = Me.b
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, b As Integer)
+        Return (value.a, value.b)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
+        Return New NewStruct(value.a, value.b)
+    End Operator
+End Structure
+"
+
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+        End Function
+
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return Nothing
         End Function

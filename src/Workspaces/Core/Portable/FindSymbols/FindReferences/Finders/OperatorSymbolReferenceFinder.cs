@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private bool IsPotentialReference(
+        private static bool IsPotentialReference(
             ISyntaxFactsService syntaxFacts,
             PredefinedOperator op,
             SyntaxToken token)

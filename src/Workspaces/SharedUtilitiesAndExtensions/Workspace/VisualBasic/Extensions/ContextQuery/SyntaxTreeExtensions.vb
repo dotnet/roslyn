@@ -42,8 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 cancellationToken)
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter - Unused 'SyntaxTree' parameter for consistency with other Context extension methods
         <Extension()>
         Public Function IsPreProcessorKeywordContext(syntaxTree As SyntaxTree, position As Integer, preProcessorTokenOnLeftOfPosition As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+#Enable Warning IDE0060 ' Remove unused parameter
             ' cases:
             '  #|
             '  #d|
@@ -294,8 +296,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return False
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter - Unused 'SyntaxTree' parameter for consistency with other Context extension methods
         <Extension()>
         Friend Function IsEnumMemberNameContext(syntaxTree As SyntaxTree, context As VisualBasicSyntaxContext) As Boolean
+#Enable Warning IDE0060 ' Remove unused parameter
             Dim token = context.TargetToken
 
             ' Check to see if we're inside an enum block
@@ -1057,10 +1061,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         ' Tuple literals aren't recognized by the parser until there is a comma
         ' So a parenthesized expression is a possible tuple context too
+#Disable Warning IDE0060 ' Remove unused parameter - Unused 'SyntaxTree' parameter for consistency with other Context extension methods
         <Extension>
         Friend Function IsPossibleTupleContext(syntaxTree As SyntaxTree,
                                                tokenOnLeftOfPosition As SyntaxToken,
                                                position As Integer) As Boolean
+#Enable Warning IDE0060 ' Remove unused parameter
 
             tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position)
 

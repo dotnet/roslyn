@@ -701,6 +701,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsFieldOrPropertyInitializer(BoundStatement initializer)
         {
             var syntax = initializer.Syntax;
+
+            if (syntax.IsKind(SyntaxKind.Parameter))
+            {
+                // This is an initialization of a generated property based on record parameter.
+                return true;
+            }
+
             if (syntax is ExpressionSyntax { Parent: { } parent } && parent.Kind() == SyntaxKind.EqualsValueClause) // Should be the initial value.
             {
                 Debug.Assert(parent.Parent is { });

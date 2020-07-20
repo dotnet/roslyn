@@ -1103,7 +1103,6 @@ class C
             VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_DontInsertSlashes1()
         {
@@ -1985,7 +1984,6 @@ class C { }";
                 TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
                         .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
             }
-
         }
 
         protected override char DocumentationCommentCharacter

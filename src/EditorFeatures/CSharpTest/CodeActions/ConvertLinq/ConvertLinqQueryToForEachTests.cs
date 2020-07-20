@@ -1105,7 +1105,6 @@ class C
             await TestMissingAsync(source);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task DuplicateIdentifiers()
         {
@@ -4054,7 +4053,6 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task InAnonymousMethod()
         {
@@ -4439,7 +4437,6 @@ class Query
 }";
             await TestInRegularAndScriptAsync(source, output);
         }
-
 
         #endregion
     }

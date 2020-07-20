@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\VisualBasicPopulateSwitchStatementDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessarySuppressionsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />

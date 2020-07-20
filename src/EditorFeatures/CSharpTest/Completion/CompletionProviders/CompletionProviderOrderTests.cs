@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 typeof(ExplicitInterfaceMemberCompletionProvider),
                 typeof(ExplicitInterfaceTypeCompletionProvider),
                 typeof(ObjectCreationCompletionProvider),
-                typeof(ObjectInitializerCompletionProvider),
+                typeof(ObjectAndWithInitializerCompletionProvider),
                 typeof(CSharpSuggestionModeCompletionProvider),
                 typeof(EnumAndCompletionListTagCompletionProvider),
                 typeof(CrefCompletionProvider),

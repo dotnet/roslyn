@@ -33,7 +33,7 @@ class Program
 {
 }$$
 ");
-            var project = new ProjectUtils.Project(ProjectName); ;
+            var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "File2.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "File2.cs");
 

@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
         public Script<TResult> ContinueWith<TResult>(Stream code, ScriptOptions options = null)
         {
-            if (code == null) throw new ArgumentNullException(nameof(code));
+            if (code == null)
+                throw new ArgumentNullException(nameof(code));
             options = options ?? InheritOptions(Options);
             return new Script<TResult>(Compiler, Builder, SourceText.From(code, options.FileEncoding), options, GlobalsType, this);
         }

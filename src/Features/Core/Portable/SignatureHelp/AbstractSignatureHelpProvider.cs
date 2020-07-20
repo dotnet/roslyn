@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
         }
 
-
         private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
         {
             if (parameterNames == null)
@@ -122,7 +121,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         // TODO: remove once Pythia moves to ExternalAccess APIs
         [Obsolete("Use overload without ISymbolDisplayService")]
+#pragma warning disable CA1822 // Mark members as static - see obsolete comment above.
         protected SignatureHelpItem CreateItem(
+#pragma warning restore CA1822 // Mark members as static
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
         }
 
-        protected SignatureHelpItem CreateItem(
+        protected static SignatureHelpItem CreateItem(
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                                                                         .ToList();
 
                 var platformData = new SupportedPlatformData(invalidProjectsForCurrentSymbol, totalProjects, document.Project.Solution.Workspace);
-                finalItems.Add(UpdateItem(item, platformData, expectedSymbol));
+                finalItems.Add(UpdateItem(item, platformData));
             }
 
             return new SignatureHelpItems(
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 itemsForCurrentDocument.SelectedItemIndex);
         }
 
-        private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItemsAsync(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
+        private static async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItemsAsync(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
         {
             var resultSets = new List<Tuple<ProjectId, ISet<ISymbol>>>();
             foreach (var related in relatedDocuments)
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return resultSets;
         }
 
-        private SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData, ISymbol symbol)
+        private static SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData)
         {
             var platformParts = platformData.ToDisplayParts().ToTaggedText();
             if (platformParts.Length == 0)

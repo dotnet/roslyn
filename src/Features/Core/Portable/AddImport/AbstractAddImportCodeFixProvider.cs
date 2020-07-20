@@ -57,11 +57,19 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var installerService = GetPackageInstallerService(document);
             var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
-                ? installerService.GetPackageSources()
+                ? await installerService.TryGetPackageSourcesAsync(allowSwitchToMainThread: false, context.CancellationToken).ConfigureAwait(false)
                 : ImmutableArray<PackageSource>.Empty;
 
+            if (packageSources is null)
+            {
+                // Information about package sources is not available. This code fix cannot provide results for NuGet
+                // packages at this time, but future invocations of the code fix will work. For the current code fix
+                // operation, just treat the package sources as empty.
+                packageSources = ImmutableArray<PackageSource>.Empty;
+            }
+
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources.Value, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {

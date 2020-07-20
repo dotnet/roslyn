@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
-            if (!method.IsImplicitlyDeclared)
+            if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
@@ -564,6 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
 
@@ -589,6 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)syntax;
                     return SkipAttributes(syntax, accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
 

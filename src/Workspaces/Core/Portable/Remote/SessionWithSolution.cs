@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Remote
     [Obsolete("Only used by Razor and LUT", error: false)]
     internal sealed class SessionWithSolution : IDisposable
     {
-        internal readonly KeepAliveSession KeepAliveSession;
+        internal readonly RemoteServiceConnection KeepAliveSession;
         private readonly PinnedRemotableDataScope _scope;
 
-        public static async Task<SessionWithSolution> CreateAsync(KeepAliveSession keepAliveSession, Solution solution, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution> CreateAsync(RemoteServiceConnection connection, Solution solution, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(keepAliveSession);
+            Contract.ThrowIfNull(connection);
             Contract.ThrowIfNull(solution);
 
             var service = solution.Workspace.Services.GetRequiredService<IRemotableDataService>();
@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // set connection state for this session.
                 // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
-                await keepAliveSession.RunRemoteAsync(
-                    WellKnownServiceHubServices.ServiceHubServiceBase_Initialize,
+                await connection.RunRemoteAsync(
+                    "Initialize",
                     solution: null,
                     new object[] { scope.SolutionInfo },
                     cancellationToken).ConfigureAwait(false);
 
                 // transfer ownership of connection and scope to the session object:
-                session = new SessionWithSolution(keepAliveSession, scope);
+                session = new SessionWithSolution(connection, scope);
             }
             finally
             {
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private SessionWithSolution(KeepAliveSession keepAliveSession, PinnedRemotableDataScope scope)
+        private SessionWithSolution(RemoteServiceConnection connection, PinnedRemotableDataScope scope)
         {
-            KeepAliveSession = keepAliveSession;
+            KeepAliveSession = connection;
             _scope = scope;
         }
 

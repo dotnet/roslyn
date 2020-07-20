@@ -176,9 +176,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // name our services more consistently to simplify filtering
 
                         // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + WellKnownServiceHubServices.NamePrefix) &&
+                        if (!name.Contains("-" + RemoteServiceName.Prefix) &&
+                            !name.Contains("-" + RemoteServiceName.IntelliCodeServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.RazorServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.UnitTestingAnalysisServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.LiveUnitTestingBuildServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.UnitTestingSourceLookupServiceName) &&
                             !name.Contains("-CodeLens") &&
-                            !name.Contains("-pythia") &&
                             !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
                             !name.Contains("-hub"))
                         {

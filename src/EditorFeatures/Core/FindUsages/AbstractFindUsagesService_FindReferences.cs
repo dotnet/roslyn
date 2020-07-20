@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
-        public async Task FindReferencesAsync(
+        async Task IFindUsagesService.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
@@ -46,6 +46,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // Don't need ConfigureAwait(true) here 
                 await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
             }
+        }
+
+        Task IFindUsagesLSPService.FindReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            // We don't need to get third party definitions when finding references in LSP.
+            // Currently, 3rd party definitions = XAML definitions, and XAML will provide
+            // references via LSP instead of hooking into Roslyn.
+            // This also means that we don't need to be on the UI thread.
+            return FindLiteralOrSymbolReferencesAsync(document, position, new DefinitionTrackingContext(context));
         }
 
         private async Task FindLiteralOrSymbolReferencesAsync(
@@ -139,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindUsagesServerCallback(solution, context);
 
-                var success = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteFindUsagesService.FindReferencesAsync),
                     solution,
                     new object[]
@@ -150,14 +160,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     },
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
-
-                if (success)
-                    return;
             }
-
-            // Couldn't effectively search in OOP. Perform the search in-process.
-            await FindReferencesInCurrentProcessAsync(
-                context, symbol, project, options).ConfigureAwait(false);
+            else
+            {
+                // Couldn't effectively search in OOP. Perform the search in-process.
+                await FindReferencesInCurrentProcessAsync(
+                    context, symbol, project, options).ConfigureAwait(false);
+            }
         }
 
         private static Task FindReferencesInCurrentProcessAsync(

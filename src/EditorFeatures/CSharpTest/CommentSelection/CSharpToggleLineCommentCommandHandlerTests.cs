@@ -1005,7 +1005,6 @@ class C
 }"
         };
 
-
             ToggleCommentMultiple(markup, expected);
         }
 
@@ -1046,7 +1045,6 @@ class C
     }
 }"
         };
-
 
             ToggleCommentMultiple(markup, expected);
         }

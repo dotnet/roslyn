@@ -73,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic()) _
                 .CreateExportProvider()
 
-
             Dim typeMap = exportProvider.GetExportedValue(Of ClassificationTypeMap)
             Dim formatMap = exportProvider.GetExportedValue(Of IClassificationFormatMapService).GetClassificationFormatMap("tooltip")
 

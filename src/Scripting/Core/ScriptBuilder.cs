@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             try
             {
                 // get compilation diagnostics first.
-                diagnostics.AddRange(compilation.GetParseDiagnostics());
+                diagnostics.AddRange(compilation.GetParseDiagnostics(cancellationToken));
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 

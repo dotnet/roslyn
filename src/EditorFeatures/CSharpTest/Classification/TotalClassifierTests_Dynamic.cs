@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -620,17 +621,27 @@ partial void F(dynamic d)
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsArrayName()
+        [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [CombinatorialData]
+        public async Task DynamicAsArrayName(bool script, bool outOfProcess)
         {
-            await TestAsync(
+            var code =
 @"int[] dynamic = {
     1
-};",
+};";
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                parseOptions,
+                outOfProcess,
                 Keyword("int"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Field("dynamic"),
+                script ? Field("dynamic") : Local("dynamic"),
                 Operators.Equals,
                 Punctuation.OpenCurly,
                 Number("1"),

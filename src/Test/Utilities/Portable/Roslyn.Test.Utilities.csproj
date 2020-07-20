@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.1;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>

@@ -168,6 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override object Display => Expression.Display;
     }
 
+    internal partial class BoundUnconvertedAddressOfOperator
+    {
+        public override object Display => FormattableStringFactory.Create("&{0}", Operand.Display);
+    }
+
     internal partial class BoundUnconvertedObjectCreationExpression
     {
         public override object Display

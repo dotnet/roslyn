@@ -172,7 +172,6 @@ Module Program
 End Module
 </File>
 
-
             Await VerifyRecommendationsMissingAsync(code, AllTypeConversionOperatorKeywords)
         End Function
     End Class

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         protected override ITypeSymbol GetDeconstructInfo(
             SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
-            return semanticModel.GetTypeInfo(node).Type;
+            return semanticModel.GetTypeInfo(node, cancellationToken).Type;
         }
 
         protected override ITypeSymbol GetQueryClauseInfo(
@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return semanticModel.GetTypeInfo(fromClause.Expression, cancellationToken).Type;
         }
 
-        private bool InfoBoundSuccessfully(SymbolInfo symbolInfo)
+        private static bool InfoBoundSuccessfully(SymbolInfo symbolInfo)
             => InfoBoundSuccessfully(symbolInfo.Symbol);
 
-        private bool InfoBoundSuccessfully(QueryClauseInfo semanticInfo)
+        private static bool InfoBoundSuccessfully(QueryClauseInfo semanticInfo)
             => InfoBoundSuccessfully(semanticInfo.OperationInfo);
 
         private static bool InfoBoundSuccessfully(ISymbol operation)
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 : (usingDirectiveString, hasExistingUsing);
         }
 
-        private string GetUsingDirectiveString(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+        private static string GetUsingDirectiveString(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
         {
             var displayString = namespaceOrTypeSymbol.ToDisplayString();
             return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective, generator));
         }
 
-        private NameSyntax RemoveGlobalAliasIfUnnecessary(
+        private static NameSyntax RemoveGlobalAliasIfUnnecessary(
             SemanticModel semanticModel,
             NameSyntax nameSyntax,
             NamespaceDeclarationSyntax namespaceToAddTo)
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return nameSyntax;
         }
 
-        private bool ConflictsWithExistingMember(
+        private static bool ConflictsWithExistingMember(
             SemanticModel semanticModel,
             NamespaceDeclarationSyntax namespaceToAddTo,
             string rightOfAliasName)

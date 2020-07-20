@@ -228,7 +228,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-
         <Fact>
         Public Async Function TestFindRetargetedClass() As Task
             Dim workspaceDefinition =

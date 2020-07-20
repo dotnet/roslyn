@@ -93,11 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // nulls is the job of the nullable walker.
             if (!hasErrors)
             {
-                foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
+                var nodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors);
+                foreach (var n in nodes)
                 {
                     if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
                     {
-                        diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
+                        diagnostics.Add(
+                            ErrorCode.WRN_SwitchExpressionNotExhaustive,
+                            node.SwitchKeyword.GetLocation(),
+                            PatternExplainer.SamplePatternForPathToDagNode(BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false));
                         return true;
                     }
                 }

@@ -44,6 +44,50 @@ End Class",
 End Class")
         End Function
 
+        <WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateIntoContainingType_WithProperties() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Main()
+        Dim f = New C([|4|], 5, 6)
+    End Sub
+End Class",
+"Class C
+    Public Sub New(v1 As Integer, v2 As Integer, v3 As Integer)
+        Me.V1 = v1
+        Me.V2 = v2
+        Me.V3 = v3
+    End Sub
+
+    Public ReadOnly Property V1 As Integer
+    Public ReadOnly Property V2 As Integer
+    Public ReadOnly Property V3 As Integer
+
+    Sub Main()
+        Dim f = New C(4, 5, 6)
+    End Sub
+End Class", index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateIntoContainingType_NoMembers() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Main()
+        Dim f = New C([|4|], 5, 6)
+    End Sub
+End Class",
+"Class C
+    Public Sub New(v1 As Integer, v2 As Integer, v3 As Integer)
+    End Sub
+
+    Sub Main()
+        Dim f = New C(4, 5, 6)
+    End Sub
+End Class", index:=2)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestInvokingFromInsideAnotherConstructor() As Task
             Await TestInRegularAndScriptAsync(
@@ -1919,7 +1963,7 @@ End Class",
         Dim x As Integer = 1
         Dim obj As New C(x)
     End Sub
-End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
+End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>

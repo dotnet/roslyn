@@ -43,13 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ImplicitUserDefined:
                 case AnonymousFunction:
                 case ConversionKind.MethodGroup:
-                case PointerToVoid:
-                case NullToPointer:
+                case ImplicitPointerToVoid:
+                case ImplicitNullToPointer:
                 case InterpolatedString:
                 case SwitchExpression:
                 case Deconstruction:
                 case StackAllocToPointerType:
                 case StackAllocToSpanType:
+                case ImplicitPointer:
                 case ObjectCreation:
                     return true;
 
@@ -62,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Unboxing:
                 case ExplicitDynamic:
                 case ExplicitUserDefined:
-                case PointerToPointer:
-                case PointerToInteger:
-                case IntegerToPointer:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
                 case IntPtr:
                     return false;
 
@@ -91,11 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
-                case PointerToVoid:
-                case PointerToPointer:
-                case PointerToInteger:
-                case IntegerToPointer:
-                case NullToPointer:
+                case ImplicitPointerToVoid:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
+                case ImplicitNullToPointer:
+                case ImplicitPointer:
                     return true;
                 default:
                     return false;

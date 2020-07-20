@@ -66,6 +66,37 @@ namespace Microsoft.CodeAnalysis.Remote
                 ProjectId = project.Id,
             };
 
+        public static bool TryCreate(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken,
+            out SerializableSymbolAndProjectId result)
+        {
+            var project = solution.GetOriginatingProject(symbol);
+            if (project == null)
+            {
+                result = null;
+                return false;
+            }
+
+            return TryCreate(symbol, project, cancellationToken, out result);
+        }
+
+        public static bool TryCreate(
+            ISymbol symbol, Project project, CancellationToken cancellationToken,
+            out SerializableSymbolAndProjectId result)
+        {
+            if (!SymbolKey.CanCreate(symbol, cancellationToken))
+            {
+                result = null;
+                return false;
+            }
+
+            result = new SerializableSymbolAndProjectId
+            {
+                SymbolKeyData = SymbolKey.CreateString(symbol, cancellationToken),
+                ProjectId = project.Id,
+            };
+            return true;
+        }
         public async Task<ISymbol> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
@@ -76,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
             var symbol = SymbolKey.ResolveString(
-                SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
+                SymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 
             if (symbol == null)
             {

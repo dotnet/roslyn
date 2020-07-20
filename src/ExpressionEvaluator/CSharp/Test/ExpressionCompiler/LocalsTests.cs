@@ -4031,7 +4031,6 @@ class Base
                 locals.Free();
             });
 
-
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 2000);

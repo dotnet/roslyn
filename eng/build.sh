@@ -26,6 +26,7 @@ usage()
   echo "Test actions:"     
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
+  echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -58,6 +59,7 @@ pack=false
 publish=false
 test_core_clr=false
 test_mono=false
+test_ioperation=false
 
 configuration="Debug"
 verbosity='minimal'
@@ -121,6 +123,9 @@ while [[ $# > 0 ]]; do
     --testmono)
       test_mono=true
       ;;
+    --testioperation)
+      test_ioperation=true
+      ;;
     --ci)
       ci=true
       ;;
@@ -129,7 +134,7 @@ while [[ $# > 0 ]]; do
       # Bootstrap requires restore
       restore=true
       ;;
-    --runAnalyzers)
+    --runanalyzers)
       run_analyzers=true
       ;;
     --preparemachine)
@@ -233,6 +238,14 @@ function BuildSolution {
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
     disable_parallel_restore=true
+  fi
+
+  if [[ "$test_ioperation" == true ]]; then
+    export ROSLYN_TEST_IOPERATION="true"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
   fi
 
   local test=false

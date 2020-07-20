@@ -832,6 +832,10 @@ Friend Class MockAssemblySymbol
         Return Nothing
     End Function
 
+    Friend Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+        Throw New NotImplementedException()
+    End Function
+
     Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function

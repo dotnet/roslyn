@@ -49,6 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
+                case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                    return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
+                case RecordDeclarationSyntax recordDecl:
+                    return recordDecl;
                 default:
                     return null;
             }
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal CSharpSyntaxNode SyntaxNode
+        internal virtual CSharpSyntaxNode SyntaxNode
         {
             get
             {
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
@@ -642,7 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
-            if (!this.IsExtern || !this.IsStatic)
+            var implementationPart = this.PartialImplementationPart ?? this;
+            if (!implementationPart.IsExtern || !implementationPart.IsStatic)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;

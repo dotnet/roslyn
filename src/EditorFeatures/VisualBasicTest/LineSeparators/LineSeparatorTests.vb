@@ -194,7 +194,6 @@ End Class")
 End Class")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestProperty() As Task
             Await AssertTagsAsync({New TextSpan(164, 9)},

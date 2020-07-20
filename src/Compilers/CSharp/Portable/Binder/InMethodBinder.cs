@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
         private TypeWithAnnotations.Boxed _iteratorElementType;
-        private readonly static TypeWithAnnotations.Boxed SentinelElementType = new TypeWithAnnotations.Boxed(default);
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -76,19 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsNestedFunctionBinder => _methodSymbol.MethodKind == MethodKind.LocalFunction;
 
-        internal void MakeIterator()
-        {
-            if (_iteratorElementType == null)
-            {
-                _iteratorElementType = SentinelElementType;
-            }
-        }
-
         internal override bool IsDirectlyInIterator
         {
             get
             {
-                return _iteratorElementType != null;
+                return _methodSymbol.IsIterator;
             }
         }
 
@@ -137,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
-            if (_iteratorElementType == SentinelElementType)
+            if (_iteratorElementType is null)
             {
                 TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
                 if (elementType.IsDefault)
@@ -145,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementType = TypeWithAnnotations.Create(CreateErrorType());
                 }
 
-                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), SentinelElementType);
+                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), null);
             }
 
             return _iteratorElementType.Value;
@@ -244,9 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
-            var oldLocation = parameter.Locations[0];
+#if DEBUG
+            var locations = parameter.Locations;
+            Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
+            var oldLocation = locations.FirstOrNone();
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
+#endif 
             SymbolKind parameterKind = parameter.Kind;
 
             // Quirk of the way we represent lambda parameters.                

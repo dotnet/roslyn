@@ -88,5 +88,4 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         public override Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
             => _service.GetValueAsync<T>(checksum);
     }
-
 }

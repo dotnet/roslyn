@@ -149,8 +149,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 "<@    @> $$");
         }
 
-
-
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestNotOnBrace2()

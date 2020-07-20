@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         protected RQTypeOrNamespace(IList<string> namespaceNames)
             => NamespaceNames = new ReadOnlyCollection<string>(namespaceNames);
 
-        public INamespaceSymbol NamespaceIdentifier
+        public static INamespaceSymbol NamespaceIdentifier
         {
             // TODO: C# Specific?
             get { return null; /*new CSharpNamespaceIdentifier(NamespaceNames);*/ }

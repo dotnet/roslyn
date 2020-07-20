@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
             // set up listener to wait until diagnostic finish running
-            var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
+            _ = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
 
             var hostDocument = workspace.Projects.First().Documents.First();
 
@@ -211,18 +210,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
             using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
-            var foregroundService = workspace.GetService<IForegroundNotificationService>();
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
             // set up tagger for both buffers
             var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var leftProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
-            var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
+            var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
+            var leftTagger = provider.CreateTagger<IErrorTag>(leftBuffer);
             using var leftDisposable = leftTagger as IDisposable;
             var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var rightProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
-            var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
+            var rightTagger = provider.CreateTagger<IErrorTag>(rightBuffer);
             using var rightDisposable = rightTagger as IDisposable;
             // wait for diagnostics and taggers
             await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);

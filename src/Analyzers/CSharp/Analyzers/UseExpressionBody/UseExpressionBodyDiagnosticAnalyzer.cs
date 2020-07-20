@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private Diagnostic AnalyzeSyntax(
+        private static Diagnostic AnalyzeSyntax(
             OptionSet optionSet, SyntaxNode declaration, UseExpressionBodyHelper helper)
         {
             var preferExpressionBodiedOption = optionSet.GetOption(helper.Option);

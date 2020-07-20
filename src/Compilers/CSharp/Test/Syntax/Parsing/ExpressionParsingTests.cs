@@ -5236,5 +5236,118 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_01()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                // (7,31): error CS1001: Identifier expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                // (7,33): error CS1003: Syntax error, ')' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                // (7,33): error CS1003: Syntax error, ',' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                // (7,34): error CS1026: ) expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 34)
+                );
+        }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_02()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}\F\G{H}_{I.J.K(""L"")}.M"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                    // (7,31): error CS1001: Identifier expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                    // (7,33): error CS1003: Syntax error, ')' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                    // (7,33): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                    // (7,34): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 34),
+                    // (7,35): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",", "").WithLocation(7, 35),
+                    // (7,36): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 36),
+                    // (7,37): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "G").WithArguments(",", "").WithLocation(7, 37),
+                    // (7,38): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 38),
+                    // (7,39): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "H").WithArguments(",", "").WithLocation(7, 39),
+                    // (7,40): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 40),
+                    // (7,41): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(7, 41),
+                    // (7,42): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 42),
+                    // (7,43): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments(",", "").WithLocation(7, 43),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,50): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "L").WithArguments(",", "").WithLocation(7, 50),
+                    // (7,51): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, @""")}.M""").WithArguments(",", "").WithLocation(7, 51)
+                );
+        }
     }
 }

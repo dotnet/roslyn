@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsAttributeArgumentContext(context);
         }
 
-        private bool IsAttributeArgumentContext(CSharpSyntaxContext context)
+        private static bool IsAttributeArgumentContext(CSharpSyntaxContext context)
         {
             return
                 context.IsAnyExpressionContext &&

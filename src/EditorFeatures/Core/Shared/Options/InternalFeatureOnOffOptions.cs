@@ -8,12 +8,13 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
     internal static class InternalFeatureOnOffOptions
     {
-        internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
+        internal const string LocalRegistryPath = StorageOptions.LocalRegistryPath;
 
         public static readonly Option2<bool> BraceMatching = new Option2<bool>(nameof(InternalFeatureOnOffOptions), nameof(BraceMatching), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Brace Matching"));

@@ -68,7 +68,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-
         // TODO: Enable this once the GoToDefinition tests are merged
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()

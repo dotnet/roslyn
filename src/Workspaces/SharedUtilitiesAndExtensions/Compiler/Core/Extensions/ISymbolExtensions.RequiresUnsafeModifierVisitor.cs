@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
             {
-                // The dynamic type is never unsafe (well....you know what I mean
+                // The dynamic type is never unsafe (well....you know what I mean)
                 return false;
             }
 
@@ -70,6 +70,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 return true;
             }
+
+#if !CODE_STYLE
+
+            public override bool VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                if (!_visited.Add(symbol))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+#endif
 
             public override bool VisitProperty(IPropertySymbol symbol)
             {

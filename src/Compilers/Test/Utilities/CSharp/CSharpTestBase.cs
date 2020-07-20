@@ -208,6 +208,15 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string IsExternalInitTypeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
         protected const string IAsyncDisposableDefinition = @"
 namespace System
 {
@@ -846,14 +855,14 @@ namespace System.Runtime.CompilerServices
 
         #region SyntaxTree Factories
 
-        public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null)
+        public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null)
         {
             if ((object)options == null)
             {
                 options = TestOptions.Regular;
             }
 
-            var stringText = StringText.From(text, Encoding.UTF8);
+            var stringText = StringText.From(text, encoding ?? Encoding.UTF8);
             return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
         }
 
@@ -889,7 +898,7 @@ namespace System.Runtime.CompilerServices
 
         public static SyntaxTree ParseWithRoundTripCheck(string text, CSharpParseOptions options = null)
         {
-            var tree = Parse(text, options: options);
+            var tree = Parse(text, options: options ?? TestOptions.RegularPreview);
             var parsedText = tree.GetRoot();
             // we validate the text roundtrips
             Assert.Equal(text, parsedText.ToFullString());
@@ -1745,6 +1754,14 @@ namespace System.Runtime.CompilerServices
             return actualOperation;
         }
 
+        protected static void VerifyOperationTreeForNode(CSharpCompilation compilation, SemanticModel model, SyntaxNode syntaxNode, string expectedOperationTree)
+        {
+            var actualOperation = model.GetOperation(syntaxNode);
+            Assert.NotNull(actualOperation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+        }
+
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
             where TSyntaxNode : SyntaxNode
         {
@@ -1927,7 +1944,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
-            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s, parseOptions), options);
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s, options: parseOptions), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

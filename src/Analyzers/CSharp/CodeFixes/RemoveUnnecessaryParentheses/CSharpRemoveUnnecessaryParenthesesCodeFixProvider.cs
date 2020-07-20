@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             {
                 ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, out _, out _),
 #if !CODE_STYLE
-                ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, out _, out _),
+                ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _),
 #endif
                 _ => false,
             };

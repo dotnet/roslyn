@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 // that are the same name as the analysis
                 var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(
                     document.WithName(_analysis.OriginalDocumentName),
-                    _analysis.OriginalSymbolName,
                     cancellationToken).ConfigureAwait(false);
 
                 if (matchingTypeDeclaration is object)
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Rename
             /// Finds a matching type such that the display name of the type matches the name passed in, ignoring case. Case isn't used because
             /// documents with name "Foo.cs" and "foo.cs" should still have the same type name
             /// </summary>
-            private static async Task<SyntaxNode?> GetMatchingTypeDeclarationAsync(Document document, string name, CancellationToken cancellationToken)
+            private static async Task<SyntaxNode?> GetMatchingTypeDeclarationAsync(Document document, CancellationToken cancellationToken)
             {
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     return null;
                 }
 
-                var matchingDeclaration = await GetMatchingTypeDeclarationAsync(document, originalSymbolName, cancellationToken).ConfigureAwait(false);
+                var matchingDeclaration = await GetMatchingTypeDeclarationAsync(document, cancellationToken).ConfigureAwait(false);
 
                 if (matchingDeclaration is null)
                 {

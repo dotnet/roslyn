@@ -1585,7 +1585,6 @@ i++) { }", "global::System.Boolean", mode);
 for (string? s = [|Goo()|]; ; ) { }", "global::System.String?", mode);
         }
 
-
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing1(TestMode mode)
             => await TestInMethodAsync(@"using ([|Goo()|]) { }", "global::System.IDisposable", mode);

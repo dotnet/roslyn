@@ -421,7 +421,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (RemoveElements(from e in pdb.DescendantsAndSelf()
                                   where e.Name == "scope" && !e.HasElements
-                                  select e)) ;
+                                  select e))
+                ;
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)

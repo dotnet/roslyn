@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
-            private Task<RenameLocations> _underlyingFindRenameLocationsTask;
+            private Task<RenameLocations>? _underlyingFindRenameLocationsTask;
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly bool _isRenamingAttributePrefix;
 
             public bool CanRename { get; }
-            public string LocalizedErrorMessage { get; }
+            public string? LocalizedErrorMessage { get; }
             public TextSpan TriggerSpan { get; }
             public bool HasOverloads { get; }
             public bool ForceRenameOverloads { get; }
@@ -153,10 +156,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             private string GetWithoutAttributeSuffix(string value)
-                => value.GetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive);
+                => value.GetWithoutAttributeSuffix(isCaseSensitive: _document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive)!;
 
             private bool HasAttributeSuffix(string value)
-                => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
+                => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
 
             internal bool IsRenamingAttributeTypeWithAttributeSuffix()
             {
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return replacementText;
             }
 
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet? optionSet, CancellationToken cancellationToken)
             {
                 Task<RenameLocations> renameTask;
                 lock (_gate)
@@ -214,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return GetLocationSetAsync(renameTask, optionSet, cancellationToken);
             }
 
-            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
+            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet? optionSet, CancellationToken cancellationToken)
             {
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)
@@ -248,7 +251,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         return InlineRenameFileRenameInfo.TypeWithMultipleLocations;
                     }
 
-                    if (OriginalNameMatches(_document, RenameSymbol.Name))
+                    // Get the document that the symbol is defined in to compare
+                    // the name with the symbol name. If they match allow
+                    // rename file rename as part of the symbol rename
+                    var symbolSourceDocument = _document.Project.Solution.GetDocument(RenameSymbol.Locations.Single().SourceTree);
+                    if (symbolSourceDocument != null && WorkspacePathUtilities.TypeNameMatchesDocumentName(symbolSourceDocument, RenameSymbol.Name))
                     {
                         return InlineRenameFileRenameInfo.Allowed;
                     }
@@ -257,12 +264,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 return InlineRenameFileRenameInfo.NotAllowed;
-
-                // Local Functions
-
-                static bool OriginalNameMatches(Document document, string name)
-                    => Path.GetFileNameWithoutExtension(document.Name)
-                        .Equals(name, StringComparison.OrdinalIgnoreCase);
             }
         }
     }

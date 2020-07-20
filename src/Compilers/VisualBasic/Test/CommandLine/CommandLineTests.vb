@@ -9936,7 +9936,7 @@ End Class"
                 defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog
 
             ' We use an analyzer that throws an exception on every analyzer callback.
-            ' So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            ' So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
             Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=True)
 
             Dim dir = Temp.CreateDirectory()

@@ -644,7 +644,6 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestInfoDiagnosticSuppressed() As Task
@@ -880,7 +879,6 @@ End Class]]>
                 Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
                     Return Tuple.Create(Of DiagnosticAnalyzer, IConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
-
 
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>

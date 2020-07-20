@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
         }
 
-
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
             CheckNodeInOriginalTreeOrTracked(node);
@@ -337,12 +336,12 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNodes = _modifier(current, generator).ToList();
-                for (int i = 0; i < newNodes.Count; i++)
+                for (var i = 0; i < newNodes.Count; i++)
                 {
                     newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
                 }
 
-                return generator.ReplaceNode(root, current, newNodes);
+                return SyntaxGenerator.ReplaceNode(root, current, newNodes);
             }
         }
 

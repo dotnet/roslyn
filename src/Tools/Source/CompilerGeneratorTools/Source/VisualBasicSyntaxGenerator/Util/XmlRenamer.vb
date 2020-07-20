@@ -163,8 +163,6 @@ Public Class XmlRenamer
     End Sub
 End Class
 
-
-
 Friend Class NameToUpdate
     Public kind As updateKind
     Public typeName As String

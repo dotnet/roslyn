@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
-
             // only emit symbols for non-interactive mode,
             var emitDebugInformation = !_compiler.Arguments.InteractiveMode;
 

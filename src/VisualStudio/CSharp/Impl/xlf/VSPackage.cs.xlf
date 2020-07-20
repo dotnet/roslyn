@@ -80,7 +80,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Zobrazit diagnostiku pro zavřené soubory;
+        <target state="translated">Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz; 
 Zvýrazňovat související komponenty pod kurzorem; 
 Nahlásit neplatné regulární výrazy;
@@ -125,7 +125,8 @@ preferovat vyvolávací vlastnosti;
 preferovat automatické vlastnosti;
 reg. výr.;
 regulární výraz;
-Používat rozšířené barvy;</target>
+Používat rozšířené barvy;
+Barevné schéma editoru;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
+        private static void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
         {
             // create a temporary storage location
             var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);

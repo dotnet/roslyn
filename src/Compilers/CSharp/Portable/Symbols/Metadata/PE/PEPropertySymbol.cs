@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -184,7 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // accessor signatures do not agree, both with each other and with the property,
             // or if it has parameters and is not an indexer or indexed property.
             bool callMethodsDirectly = !DoSignaturesMatch(module, metadataDecoder, propertyParams, _getMethod, getMethodParams, _setMethod, setMethodParams) ||
-                MustCallMethodsDirectlyCore();
+                MustCallMethodsDirectlyCore() ||
+                anyUnexpectedRequiredModifiers(propertyParams);
 
             if (!callMethodsDirectly)
             {
@@ -212,6 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if ((mdFlags & PropertyAttributes.RTSpecialName) != 0)
             {
                 _flags |= Flags.IsRuntimeSpecialName;
+            }
+
+            static bool anyUnexpectedRequiredModifiers(ParamInfo<TypeSymbol>[] propertyParams)
+            {
+                return propertyParams.Any(p => (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute())) ||
+                                               p.CustomModifiers.AnyRequired());
             }
         }
 

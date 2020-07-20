@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private bool IsAfterNameColonArgument(SyntaxToken token)
+        private static bool IsAfterNameColonArgument(SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private bool IsAfterNameEqualsArgument(SyntaxToken token)
+        private static bool IsAfterNameEqualsArgument(SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
+        private static async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
             CompletionContext context, SemanticModel semanticModel,
             SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return q.ToImmutableArray();
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
+        private static async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
             CompletionContext context, SemanticModel semanticModel, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
             var parameterLists = GetParameterLists(semanticModel, context.Position, attributeSyntax, context.CancellationToken);
@@ -198,10 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
+        private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
             => existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
 
-        private ISet<string> GetExistingNamedParameters(AttributeArgumentListSyntax argumentList, int position)
+        private static ISet<string> GetExistingNamedParameters(AttributeArgumentListSyntax argumentList, int position)
         {
             var existingArguments1 =
                 argumentList.Arguments.Where(a => a.Span.End <= position)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return existingArguments1.Concat(existingArguments2).ToSet();
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
             SemanticModel semanticModel,
             int position,
             AttributeSyntax attribute,
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SpecializedCollections.EmptyEnumerable<ImmutableArray<IParameterSymbol>>();
         }
 
-        private IEnumerable<ISymbol> GetAttributeNamedParameters(
+        private static IEnumerable<ISymbol> GetAttributeNamedParameters(
             SemanticModel semanticModel,
             int position,
             AttributeSyntax attribute,
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
             => Task.FromResult(GetTextChange(selectedItem, ch));
 
-        private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
+        private static TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
         {
             var displayText = selectedItem.DisplayText + selectedItem.DisplayTextSuffix;
 

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
-        private bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
+        private static bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.QuestionToken ||
                 token.Kind() == SyntaxKind.ColonToken)

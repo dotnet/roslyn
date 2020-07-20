@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -40,6 +41,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
 {
     int P { get; }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleGetterFromField_InRecord()
+        {
+            await TestInRegularAndScript1Async(
+@"record Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"record Class
+{
+    int P { get; }
+}", new TestParameters(TestOptions.RegularPreview));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]

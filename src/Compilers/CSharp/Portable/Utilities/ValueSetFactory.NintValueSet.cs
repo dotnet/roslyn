@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class NintValueSet : IValueSet<int>, IValueSet
         {
             public readonly static NintValueSet AllValues = new NintValueSet(hasSmall: true, values: NumericValueSet<int, IntTC>.AllValues, hasLarge: true);
+
+            public readonly static NintValueSet NoValues = new NintValueSet(hasSmall: false, values: NumericValueSet<int, IntTC>.NoValues, hasLarge: false);
 
             private readonly IValueSet<int> _values;
 
@@ -42,7 +45,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _hasLarge = hasLarge;
             }
 
-            bool IValueSet.IsEmpty => !_hasSmall && !_hasLarge && _values.IsEmpty;
+            public bool IsEmpty => !_hasSmall && !_hasLarge && _values.IsEmpty;
+
+            ConstantValue? IValueSet.Sample
+            {
+                get
+                {
+                    if (IsEmpty)
+                        throw new ArgumentException();
+
+                    if (!_values.IsEmpty)
+                        return _values.Sample;
+
+                    // We do not support sampling from a nint value set without a specific value. The caller
+                    // must arrange another way to get a sample, since we can return no specific value.  This
+                    // occurs when the value set was constructed from a pattern like `> (nint)int.MaxValue`.
+                    return null;
+                }
+            }
 
             public bool All(BinaryOperatorKind relation, int value)
             {
@@ -53,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _values.All(relation, value);
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => All(relation, value.Int32Value);
+            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || All(relation, value.Int32Value);
 
             public bool Any(BinaryOperatorKind relation, int value)
             {
@@ -64,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _values.Any(relation, value);
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => Any(relation, value.Int32Value);
+            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.Int32Value);
 
             public IValueSet<int> Complement()
             {

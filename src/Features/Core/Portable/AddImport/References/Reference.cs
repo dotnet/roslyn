@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public int CompareTo(Document document, Reference other)
             {
-                int diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
+                var diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
                 if (diff != 0)
                 {
                     return diff;

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 }
             }
 
-            private IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
+            private static IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
                 => namedType.GetMembers()
                             .OfType<IMethodSymbol>()
                             .Where(m => IsSliceLikeMethod(m))

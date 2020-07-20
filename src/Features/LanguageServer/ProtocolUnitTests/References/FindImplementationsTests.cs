@@ -79,7 +79,23 @@ class A : IA
             Assert.Empty(results);
         }
 
+        [Fact, WorkItem(44846, "https://github.com/dotnet/roslyn/issues/44846")]
+        public async Task TestFindImplementationAsync_MultipleLocations()
+        {
+            var markup =
+@"class {|caret:|}{|implementation:A|} { }
+
+class {|implementation:B|} : A { }
+
+class {|implementation:C|} : A { }";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
+            AssertLocationsEqual(locations["implementation"], results);
+        }
+
         private static async Task<LSP.Location[]> RunFindImplementationAsync(Solution solution, LSP.Location caret)
-            => (LSP.Location[])await GetLanguageServer(solution).FindImplementationsAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentImplementationName,
+                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
     }
 }

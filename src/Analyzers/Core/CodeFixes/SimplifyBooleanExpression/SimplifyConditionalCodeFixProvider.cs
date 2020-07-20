@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
                 {
                     var right = diagnostic.Properties.ContainsKey(WhenTrue) ? whenTrue : whenFalse;
                     replacement = generator.LogicalAndExpression(condition, right);
-                };
+                }
 
                 editor.ReplaceNode(
                     expr, generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr)));

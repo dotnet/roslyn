@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
+        private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
         {
             // A parameter list is valid if it has parameters that match in name all the existing
             // named parameters that have been provided.
             return existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
         }
 
-        private ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
+        private static ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
         {
             var existingArguments = argumentList.Arguments.Where(a => a.Span.End <= position && a.NameColon != null)
                                                           .Select(a => a.NameColon.Name.Identifier.ValueText);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return existingArguments.ToSet();
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
             SemanticModel semanticModel,
             int position,
             SyntaxNode invocableNode,
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetElementAccessExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetElementAccessExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             ElementAccessExpressionSyntax elementAccessExpression,
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetConstructorInitializerParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetConstructorInitializerParameterLists(
             SemanticModel semanticModel,
             int position,
             ConstructorInitializerSyntax constructorInitializer,
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetInvocationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetInvocationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             InvocationExpressionSyntax invocationExpression,

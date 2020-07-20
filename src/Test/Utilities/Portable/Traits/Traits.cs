@@ -133,6 +133,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveDocCommentNode = "CodeActions.RemoveDocCommentNode";
+            public const string CodeActionsRemoveInKeyword = "CodeActions.RemoveInKeyword";
+            public const string CodeActionsRemoveUnnecessarySuppressions = "CodeActions.RemoveUnnecessarySuppressions";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
@@ -158,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsSyncNamespace = "CodeActions.SyncNamespace";
             public const string CodeActionsUnsealClass = "CodeActions.UnsealClass";
+            public const string CodeActionsUpdateLegacySuppressions = "CodeActions.UpdateLegacySuppressions";
             public const string CodeActionsUpdateProjectToAllowUnsafe = "CodeActions.UpdateProjectToAllowUnsafe";
             public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";

@@ -3190,5 +3190,51 @@ partial class Goo
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
+
+        [WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestAbstractBase()
+        {
+            await TestInRegularAndScript1Async(
+@"namespace System { public struct HashCode { } }
+
+abstract class Base
+{
+    public abstract override bool Equals(object? obj);
+    public abstract override int GetHashCode();
+}
+
+class Derived : Base
+{
+    [|public int P { get; }|]
+}",
+@"using System;
+
+namespace System { public struct HashCode { } }
+
+abstract class Base
+{
+    public abstract override bool Equals(object? obj);
+    public abstract override int GetHashCode();
+}
+
+class Derived : Base
+{
+    public int P { get; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Derived derived &&
+               P == derived.P;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(P);
+    }
+}",
+index: 1,
+parameters: CSharpLatest);
+        }
     }
 }

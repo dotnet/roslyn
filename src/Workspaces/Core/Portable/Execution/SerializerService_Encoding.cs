@@ -4,11 +4,7 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Roslyn.Utilities;
@@ -17,100 +13,103 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal partial class SerializerService
     {
-        // cache for encoding. 
-        // typical low number, high volumn data cache.
-        private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
+        private enum EncodingId : byte
+        {
+            None = 0,
+            Named = 1,
 
-        private const byte NoEncodingSerialization = 0;
-        private const byte EncodingSerialization = 1;
+            // well-known encodings (parameterized by BOM)
+            UTF8 = 2,
+            UTF8_BOM = 3,
+            UTF32_BE = 4,
+            UTF32_BE_BOM = 5,
+            UTF32_LE = 6,
+            UTF32_LE_BOM = 7,
+            Unicode_BE = 8,
+            Unicode_BE_BOM = 9,
+            Unicode_LE = 10,
+            Unicode_LE_BOM = 11,
 
-        public void WriteTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
+            Count
+        }
+
+        private static readonly Encoding?[] _cachedEncodings = new Encoding[(int)EncodingId.Count];
+
+        public static void WriteTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var kind = GetEncodingKind(encoding);
+            writer.WriteByte((byte)kind);
+
+            if (kind == EncodingId.Named)
+            {
+                writer.WriteString(encoding!.WebName);
+            }
+        }
+
+        private static EncodingId GetEncodingKind(Encoding? encoding)
         {
             if (encoding == null)
             {
-                WriteNoEncodingTo(encoding, writer, cancellationToken);
-                return;
+                return EncodingId.None;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var value = GetEncodingBytes(encoding);
-            if (value == null)
+            switch (encoding.CodePage)
             {
-                // we couldn't serialize encoding, act like there is no encoding.
-                WriteNoEncodingTo(encoding, writer, cancellationToken);
-                return;
-            }
+                case 1200:
+                    Debug.Assert(HasPreamble(Encoding.Unicode));
+                    return (encoding.Equals(Encoding.Unicode) || HasPreamble(encoding)) ? EncodingId.Unicode_LE_BOM : EncodingId.Unicode_LE;
 
-            // write data out
-            writer.WriteByte(EncodingSerialization);
-            writer.WriteValue(value.AsSpan());
-        }
+                case 1201:
+                    Debug.Assert(HasPreamble(Encoding.BigEndianUnicode));
+                    return (encoding.Equals(Encoding.BigEndianUnicode) || HasPreamble(encoding)) ? EncodingId.Unicode_BE_BOM : EncodingId.Unicode_BE;
 
-        private void WriteNoEncodingTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+                case 12000:
+                    Debug.Assert(HasPreamble(Encoding.UTF32));
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingId.UTF32_LE_BOM : EncodingId.UTF32_LE;
 
-            writer.WriteByte(NoEncodingSerialization);
-            writer.WriteString(encoding?.WebName);
-        }
+                case 12001:
+                    Debug.Assert(HasPreamble(Encoding.UTF32));
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingId.UTF32_BE_BOM : EncodingId.UTF32_BE;
 
-        private static byte[]? GetEncodingBytes(Encoding encoding)
-        {
-            try
-            {
-                if (!s_encodingCache.TryGetValue(encoding, out var value))
-                {
-                    // we don't have cache, cache it
-                    var formatter = new BinaryFormatter();
-                    using var stream = SerializableBytes.CreateWritableStream();
+                case 65001:
+                    Debug.Assert(HasPreamble(Encoding.UTF8));
+                    return (encoding.Equals(Encoding.UTF8) || HasPreamble(encoding)) ? EncodingId.UTF8_BOM : EncodingId.UTF8;
 
-                    // unfortunately, this is only way to properly clone encoding
-                    formatter.Serialize(stream, encoding);
-                    value = stream.ToArray();
-
-                    // add if not already exist. otherwise, noop
-                    s_encodingCache.TryAdd(encoding, value);
-                }
-
-                return value;
-            }
-            catch (SerializationException)
-            {
-                // even though Encoding is supposed to be serializable, 
-                // not every Encoding follows the rule strictly.
-                // in such as, behave like there was no encoding
-                return null;
+                default:
+                    return EncodingId.Named;
             }
         }
 
-        public Encoding? ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
+        private static bool HasPreamble(Encoding encoding)
+#if NETCOREAPP
+            => !encoding.Preamble.IsEmpty;
+#else
+            => !encoding.GetPreamble().IsEmpty();
+#endif
+
+        public static Encoding? ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var serialized = reader.ReadByte();
-            if (serialized == EncodingSerialization)
+            var kind = reader.ReadByte();
+            return ((EncodingId)kind) switch
             {
-                var array = (byte[])reader.ReadValue();
-                var formatter = new BinaryFormatter();
-
-                return (Encoding)formatter.Deserialize(new MemoryStream(array));
-            }
-
-            return ReadEncodingFrom(serialized, reader, cancellationToken);
-        }
-
-        private Encoding? ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (serialized != NoEncodingSerialization)
-            {
-                return null;
-            }
-
-            var webName = reader.ReadString();
-            return webName == null ? null : Encoding.GetEncoding(webName);
+                EncodingId.None => null,
+                EncodingId.Named => Encoding.GetEncoding(reader.ReadString()),
+                EncodingId.UTF8 => _cachedEncodings[kind] ??= new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                EncodingId.UTF8_BOM => Encoding.UTF8,
+                EncodingId.UTF32_BE => _cachedEncodings[kind] ??= new UTF32Encoding(bigEndian: true, byteOrderMark: false),
+                EncodingId.UTF32_BE_BOM => _cachedEncodings[kind] ??= new UTF32Encoding(bigEndian: true, byteOrderMark: true),
+                EncodingId.UTF32_LE => _cachedEncodings[kind] ??= new UTF32Encoding(bigEndian: false, byteOrderMark: false),
+                EncodingId.UTF32_LE_BOM => Encoding.UTF32,
+                EncodingId.Unicode_BE => _cachedEncodings[kind] ??= new UnicodeEncoding(bigEndian: true, byteOrderMark: false),
+                EncodingId.Unicode_BE_BOM => Encoding.BigEndianUnicode,
+                EncodingId.Unicode_LE => _cachedEncodings[kind] ??= new UnicodeEncoding(bigEndian: false, byteOrderMark: false),
+                EncodingId.Unicode_LE_BOM => Encoding.Unicode,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
         }
     }
 }

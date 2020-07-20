@@ -64,7 +64,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             End If
         End Sub
 
-
         Private Sub TestAll(markup As String)
             Dim position As Integer = Nothing
             Dim expectedSpans As ImmutableArray(Of TextSpan) = Nothing

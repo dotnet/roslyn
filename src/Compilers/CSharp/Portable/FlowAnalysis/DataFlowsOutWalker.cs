@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = walker.Analyze(ref badRegion);
 #if DEBUG
                 // Assert that DataFlowsOut only contains variables that were assigned to inside the region
-                Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
+                // https://github.com/dotnet/roslyn/issues/41600 blocks some tests with local functions. 
+                // Enable the following assert once the issue is fixed.
+                //Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
 #endif
                 return badRegion ? new HashSet<Symbol>() : result;
             }

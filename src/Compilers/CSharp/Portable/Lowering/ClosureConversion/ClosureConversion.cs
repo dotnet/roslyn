@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSynthesizedMethod(
                             frame.Constructor,
                             FlowAnalysisPass.AppendImplicitReturn(
-                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, Diagnostics),
                                 frame.Constructor));
                     }
 
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSynthesizedMethod(
                         frame.Constructor,
                         FlowAnalysisPass.AppendImplicitReturn(
-                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, diagnostics),
                             frame.Constructor));
 
                     // add cctor
@@ -1301,6 +1301,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
+        }
+
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            if (node.TargetMethod.MethodKind == MethodKind.LocalFunction)
+            {
+                Debug.Assert(node.TargetMethod is { RequiresInstanceReceiver: false, IsStatic: true });
+                ImmutableArray<BoundExpression> arguments = default;
+                ImmutableArray<RefKind> argRefKinds = default;
+
+                RemapLocalFunction(
+                    node.Syntax,
+                    node.TargetMethod,
+                    out BoundExpression receiver,
+                    out MethodSymbol remappedMethod,
+                    ref arguments,
+                    ref argRefKinds);
+
+                Debug.Assert(arguments.IsDefault &&
+                             argRefKinds.IsDefault &&
+                             receiver.Kind == BoundKind.TypeExpression &&
+                             remappedMethod is { RequiresInstanceReceiver: false, IsStatic: true });
+
+                return node.Update(remappedMethod, node.Type);
+            }
+
+            return base.VisitFunctionPointerLoad(node);
         }
 
         public override BoundNode VisitConversion(BoundConversion conversion)

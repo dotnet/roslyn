@@ -37,6 +37,21 @@
         <target state="translated">Voulez-vous continuer ? Le code sera interrompu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Downloading_IntelliSense_index_for_0">
+        <source>Downloading IntelliSense index for {0}</source>
+        <target state="new">Downloading IntelliSense index for {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed">
+        <source>Downloading index failed</source>
+        <target state="new">Downloading index failed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed_0">
+        <source>Downloading index failed:{0}</source>
+        <target state="new">Downloading index failed:{0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">éléments provenant d'espaces de noms non importés</target>
@@ -112,11 +127,6 @@
         <target state="translated">Suppression du document non prise en charge</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="translated">Renommer le _fichier</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Renommer le _fichier (le type ne correspond pas au nom du fichier)</target>
@@ -126,6 +136,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">Renommer le _fichier (non autorisé sur les types partiels)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="new">Rename symbol's _file</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -384,12 +399,12 @@
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
         <source>You cannot rename this element because it is contained in a read-only file.</source>
-        <target state="new">You cannot rename this element because it is contained in a read-only file.</target>
+        <target state="translated">Vous ne pouvez pas renommer cet élément, car il est contenu dans un fichier en lecture seule.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
-        <target state="new">You cannot rename this element because it is in a location that cannot be navigated to.</target>
+        <target state="translated">Vous ne pouvez pas renommer cet élément, car il se trouve dans un emplacement inaccessible.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -404,7 +419,7 @@
       </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
-        <target state="new">'{0}' implemented members</target>
+        <target state="translated">'{0}' membres implémentés</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -649,7 +664,7 @@
       </trans-unit>
       <trans-unit id="external">
         <source>(external)</source>
-        <target state="new">(external)</target>
+        <target state="translated">(externe)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">

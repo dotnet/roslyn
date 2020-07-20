@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
 
-        Private Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
+        Private Shared Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
             Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
                              If(TryCast(symbol, ILocalSymbol)?.Type,
                              If(TryCast(symbol, IParameterSymbol)?.Type,

@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -75,8 +76,10 @@ class C
 }";
 
             CreateCompilation(text).VerifyDiagnostics(
-            // (7,27): error CS0186: Use of null is not valid in this context
-                Diagnostic(ErrorCode.ERR_NullNotValid, "NULL"));
+                // (7,27): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (int x in NULL)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "NULL").WithArguments("object", "GetEnumerator").WithLocation(7, 27)
+                );
         }
 
         [WorkItem(540957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540957")]
@@ -3136,6 +3139,50 @@ ref struct DisposableEnumerator
             Assert.Null(enumeratorInfo.DisposeMethod);
         }
 
+        [Fact]
+        public void TestExtensionGetEnumerator()
+        {
+            var text = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
+}";
+
+            var boundNode = GetBoundForEachStatement(text, options: TestOptions.RegularPreview);
+
+            ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
+            Assert.NotNull(info);
+            Assert.Equal("C", info.CollectionType.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
+            Assert.Equal("C.Enumerator Extensions.GetEnumerator(this C self)", info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
+            Assert.Equal("System.Boolean C.Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            Assert.False(info.NeedsDisposal);
+            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+
+            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal("System.Int32 i", boundNode.IterationVariables.Single().ToTestDisplayString());
+            Assert.Equal("C", boundNode.Expression.Type.ToDisplayString());
+        }
+
         private static BoundForEachStatement GetBoundForEachStatement(string text, CSharpParseOptions options = null, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text, options: options);
@@ -3532,7 +3579,7 @@ class C
         foreach(var item in nonsenseString) {}
 
         Nonsense? nullableNonsense = default;
-        //Should not have error
+        //Should have error
         foreach(var item in nullableNonsense) {}
 
         var nonsenseTuple = (new Nonsense(), 42);
@@ -3568,6 +3615,9 @@ class C
                 // (37,9): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
                 //         Nonsense? nullableNonsense = default;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(37, 9),
+                // (39,29): error CS1579: foreach statement cannot operate on variables of type 'Nonsense?' because 'Nonsense?' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var item in nullableNonsense) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nullableNonsense").WithArguments("Nonsense?", "GetEnumerator").WithLocation(39, 29),
                 // (41,34): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
                 //         var nonsenseTuple = (new Nonsense(), 42);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(41, 34),

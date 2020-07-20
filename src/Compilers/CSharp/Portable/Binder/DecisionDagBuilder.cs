@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Make the tests and variable bindings for the given pattern with the given input.  The pattern's
         /// "output" value is placed in <paramref name="output"/>.  The output is defined as the input
-        /// narrwed according to the pattern's *narrowed type*; see https://github.com/dotnet/csharplang/issues/2850.
+        /// narrowed according to the pattern's *narrowed type*; see https://github.com/dotnet/csharplang/issues/2850.
         /// </summary>
         private Tests MakeTestsAndBindings(
             BoundDagTemp input,
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? variableAccess = declaration.VariableAccess;
             if (variableAccess is { })
             {
-                RoslynDebug.Assert(variableAccess.Type!.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(variableAccess.Type!.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || variableAccess.Type.IsErrorType());
                 bindings.Add(new BoundPatternBinding(variableAccess, input));
             }
             else
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resultForRelation(BinaryOperatorKind relation, ConstantValue value)
             {
                 var input = test.Input;
-                IValueSetFactory? valueFac = ValueSetFactory.ForType(input.Type.EnumUnderlyingTypeOrSelf());
+                IValueSetFactory? valueFac = ValueSetFactory.ForType(input.Type);
                 if (valueFac == null || value.IsBad)
                 {
                     // If it is a type we don't track yet, assume all values are possible

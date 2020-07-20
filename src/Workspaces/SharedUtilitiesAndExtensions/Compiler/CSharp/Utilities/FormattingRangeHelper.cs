@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             while (currentToken.Kind() != SyntaxKind.CloseBraceToken && previousToken.Kind() == SyntaxKind.OpenBraceToken)
             {
-                var pair = previousToken.Parent.GetBracePair();
-                if (pair.Item2.Kind() == SyntaxKind.None || !AreTwoTokensOnSameLine(previousToken, pair.Item2))
+                var (_, closeBrace) = previousToken.Parent.GetBracePair();
+                if (closeBrace.Kind() == SyntaxKind.None || !AreTwoTokensOnSameLine(previousToken, closeBrace))
                 {
                     return ValueTuple.Create(currentToken, tokenRange.Value.Item2);
                 }

@@ -48,6 +48,8 @@
 "ProfileSave"=dword:00000001
 "VSSettingsMigration"=dword:00000001
 
+// The option page configuration is duplicated on CSharpPackage type definition.
+//
 // C# option pages tree:
 //   CSharp
 //     General (from editor)

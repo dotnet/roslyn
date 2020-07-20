@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 return HandleExistingFieldOrProperty(
                     document, parameter, constructorDeclaration,
-                    method, blockStatementOpt, fieldOrProperty);
+                    blockStatementOpt, fieldOrProperty);
             }
 
             return await HandleNoExistingFieldOrPropertyAsync(
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return (fieldAction, propertyAction);
         }
 
-        private ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
+        private static ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
             IBlockOperation? blockStatementOpt,
             ImmutableArray<NamingRule> rules,
             IMethodSymbol method)
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return result.ToImmutable();
         }
 
-        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt, ISymbol fieldOrProperty)
+        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IBlockOperation? blockStatementOpt, ISymbol fieldOrProperty)
         {
             // Found a field/property that this parameter should be assigned to.
             // Just offer the simple assignment to it.
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     document, functionDeclaration, blockStatementOpt, parameter, fieldOrProperty, c)));
         }
 
-        private ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private static ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
         {
             foreach (var (siblingParam, _) in GetSiblingParameters(parameter))
             {
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var trackedRoot = root.TrackNodes(nodesToTrack);
             var currentDocument = document.WithSyntaxRoot(trackedRoot);
 
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
                 var fieldOrProperty = fieldsOrProperties[i];
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 IBlockOperation? currentBlockStatementOpt = null;
                 if (blockStatementOpt != null)
                 {
-                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax));
+                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax), cancellationToken);
                     if (currentBlockStatementOpt == null)
                         continue;
                 }
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private CodeGenerationOptions? GetAddOptions<TSymbol>(
+        private static CodeGenerationOptions? GetAddOptions<TSymbol>(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
             SyntaxNode typeDeclaration, CancellationToken cancellationToken)
             where TSymbol : ISymbol
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
+        private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
         {
             using var _ = ArrayBuilder<(IParameterSymbol, bool before)>.GetInstance(out var siblings);
 
@@ -566,10 +566,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return TryGetLastStatement(blockStatementOpt);
         }
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out _);
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt, out ISymbol? fieldOrProperty)
         {
             if (blockStatementOpt != null)
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private bool ContainsMemberAssignment(
+        private static bool ContainsMemberAssignment(
             IBlockOperation? blockStatementOpt, ISymbol member)
         {
             if (blockStatementOpt != null)

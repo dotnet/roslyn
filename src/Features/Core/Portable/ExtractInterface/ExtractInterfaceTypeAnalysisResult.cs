@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public readonly string ErrorMessage;
 
         public ExtractInterfaceTypeAnalysisResult(
-            AbstractExtractInterfaceService extractInterfaceService,
             Document documentToExtractFrom,
             SyntaxNode typeNode,
             INamedTypeSymbol typeToExtractFrom,

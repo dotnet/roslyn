@@ -406,6 +406,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
+        internal bool IsPrimaryProject(ProjectId projectId)
+        {
+            lock (_gate)
+            {
+                foreach (var (_, projects) in this._projectSystemNameToProjectsMap)
+                {
+                    foreach (var project in projects)
+                    {
+                        if (project.Id == projectId)
+                            return project.IsPrimary;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
             => project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
             }
 
-            var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (!Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
             {
                 Debug.Fail("Could not get analyzer");

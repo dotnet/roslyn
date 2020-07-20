@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
                 }
 
-                private string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
+                private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
                 {
                     if (expression.Parent != null &&
                         expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&

@@ -382,6 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new MissingMetadataTypeSymbol.TopLevel(forwardingModule, ref emittedName, diagnosticInfo);
         }
 
+        internal abstract IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes();
+
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>

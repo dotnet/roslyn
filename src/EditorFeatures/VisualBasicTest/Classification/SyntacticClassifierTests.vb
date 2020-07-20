@@ -4253,7 +4253,6 @@ End Class"
                 Punctuation.CloseParen)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDeclareAnsiAutoUnicodeCommentsAfterLineContinuation() As Task
             Dim code =
@@ -4469,7 +4468,6 @@ End Class"
                 Keyword("End"),
                 Keyword("Sub"))
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreserveCommentsAfterLineContinuation() As Task

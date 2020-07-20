@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
         End Function
 
-        Private Async Function GetReferencesAsync(
+        Private Shared Async Function GetReferencesAsync(
             document As Document,
             modifiedIdentifier As ModifiedIdentifierSyntax,
             cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ReferenceLocation))
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         Private Shared ReadOnly s_initializerAnnotation As New SyntaxAnnotation
         Private Shared ReadOnly s_expressionToInlineAnnotation As New SyntaxAnnotation
 
-        Private Async Function InlineTemporaryAsync(document As Document, modifiedIdentifier As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function InlineTemporaryAsync(document As Document, modifiedIdentifier As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             ' First, annotate the modified identifier so that we can get back to it later.
             Dim updatedDocument = Await document.ReplaceNodeAsync(modifiedIdentifier, modifiedIdentifier.WithAdditionalAnnotations(s_definitionAnnotation), cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return localDeclaration.Parent
         End Function
 
-        Private Function GetUpdatedDeclaration(modifiedIdentifier As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
+        Private Shared Function GetUpdatedDeclaration(modifiedIdentifier As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
 
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Function RemoveDefinition(modifiedIdentifier As ModifiedIdentifierSyntax, newBlock As SyntaxNode) As SyntaxNode
+        Private Shared Function RemoveDefinition(modifiedIdentifier As ModifiedIdentifierSyntax, newBlock As SyntaxNode) As SyntaxNode
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
 

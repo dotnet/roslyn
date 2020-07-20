@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax);
 
             var node = parser.ParseExpression();
-            if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+            if (consumeFullText)
+                node = parser.ConsumeUnexpectedTokens(node);
             return node;
         }
 

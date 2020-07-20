@@ -122,11 +122,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             context.RegisterRefactorings(actions);
         }
 
-        private bool HasOperators(INamedTypeSymbol containingType)
+        private static bool HasOperators(INamedTypeSymbol containingType)
             => HasOperator(containingType, WellKnownMemberNames.EqualityOperatorName) ||
                HasOperator(containingType, WellKnownMemberNames.InequalityOperatorName);
 
-        private bool HasOperator(INamedTypeSymbol containingType, string operatorName)
+        private static bool HasOperator(INamedTypeSymbol containingType, string operatorName)
             => containingType.GetMembers(operatorName)
                              .OfType<IMethodSymbol>()
                              .Any(m => m.MethodKind == MethodKind.UserDefinedOperator &&
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                                        containingType.Equals(m.Parameters[0].Type) &&
                                        containingType.Equals(m.Parameters[1].Type));
 
-        private bool CanImplementIEquatable(
+        private static bool CanImplementIEquatable(
             SemanticModel semanticModel, INamedTypeSymbol containingType,
             [NotNullWhen(true)] out INamedTypeSymbol? constructedType)
         {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             return false;
         }
 
-        private void GetExistingMemberInfo(INamedTypeSymbol containingType, out bool hasEquals, out bool hasGetHashCode)
+        private static void GetExistingMemberInfo(INamedTypeSymbol containingType, out bool hasEquals, out bool hasGetHashCode)
         {
             hasEquals = containingType.GetMembers(EqualsName)
                                       .OfType<IMethodSymbol>()
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 pickMembersOptions.ToImmutable(), generateEquals, generateGetHashCode);
         }
 
-        private async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
+        private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
             Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {

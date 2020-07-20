@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                         Assert.True(remainingErrors.Contains(error), $"Error '{error}' was unexpected");
                         remainingErrors.Remove(error);
                     }
+
+                    // https://github.com/dotnet/roslyn/issues/44220
+                    Assert.NotNull(action.GetDescription());
                 }
 
                 solution = await documentRenameResult.UpdateSolutionAsync(solution, CancellationToken.None);

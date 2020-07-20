@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -5169,6 +5170,110 @@ class C
         return new C();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoWithExpression()
+        {
+            await TestInRegularAndScriptAsync(@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        string [||]x = """";
+        _ = p with { Name = x };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}",
+@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        _ = p with { Name = """" };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        public async Task Call_TopLevelStatement()
+        {
+            var code = @"
+using System;
+
+int [||]x = 1 + 1;
+x.ToString();
+";
+
+            var expected = @"
+using System;
+
+(1 + 1).ToString();
+";
+
+            // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
+            // tested because global statements in script code are field declarations, which are not considered
+            // temporary.
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
+        }
+
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TopLevelStatement()
+        {
+            // Note: we should simplify 'global' as well
+            // https://github.com/dotnet/roslyn/issues/44420
+            var code = @"
+int val = 0;
+int [||]val2 = val + 1;
+System.Console.WriteLine(val2);
+";
+
+            var expected = @"
+int val = 0;
+global::System.Console.WriteLine(val + 1);
+";
+
+            // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
+            // tested because global statements in script code are field declarations, which are not considered
+            // temporary.
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
+        }
+
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TopLevelStatement_InScope()
+        {
+            // Note: we should simplify 'global' as well
+            // https://github.com/dotnet/roslyn/issues/44420
+            await TestAsync(@"
+{
+    int val = 0;
+    int [||]val2 = val + 1;
+    System.Console.WriteLine(val2);
+}
+",
+@"
+{
+    int val = 0;
+    global::System.Console.WriteLine(val + 1);
+}
+",
+                TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
         }
     }
 }

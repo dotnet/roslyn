@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(originalCompilation, newCompilation);
             var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
-            Assert.Equal("Test.generated", Path.GetFileName(generatedTree.FilePath));
+            Assert.Equal($"{typeof(AdditionalFileAddedGenerator).Module.ModuleVersionId}_{typeof(AdditionalFileAddedGenerator).FullName}_Test.generated.cs", Path.GetFileName(generatedTree.FilePath));
         }
 
         [Theory]
@@ -172,9 +172,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 // TODO: context.RegisterForAdditionalFileChanges(UpdateContext);
             }
 
-            private void AddSourceForAdditionalFile(SourceGeneratorContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
+            private static void AddSourceForAdditionalFile(SourceGeneratorContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
-            private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
+            private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
         }
     }
 }

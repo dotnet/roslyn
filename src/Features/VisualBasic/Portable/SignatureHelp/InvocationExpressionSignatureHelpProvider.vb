@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function TryGetInvocationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef expression As InvocationExpressionSyntax) As Boolean
+        Private Shared Function TryGetInvocationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef expression As InvocationExpressionSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, expression) Then
                 Return False
             End If
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim accessibleMembers = New ImmutableArray(Of ISymbol)
             If memberGroup.Length > 0 Then
                 accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
-                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel, cancellationToken))
+                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel))
             End If
 
             If expressionType.IsDelegateType() Then

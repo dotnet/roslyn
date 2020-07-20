@@ -39,7 +39,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
-
                 Dim json = "
                 [
                     {""content"":""a\u000d\u000abc"",""kind"":1},
@@ -240,7 +239,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End If
             clipboard.SetDataObject(data)
         End Sub
-
 
         Private Class MockClipboard
             Implements InteractivePasteCommandHandler.IRoslynClipboard

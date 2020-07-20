@@ -7,6 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal static class UnitTestingExceptionUtilitesHelpers
     {
         public static Exception Unreachable => ExceptionUtilities.Unreachable;

@@ -57,25 +57,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void TestRemoteHostConnect()
-        {
-            using (var remoteHostService = CreateService())
-            {
-                var input = "Test";
-                var output = remoteHostService.Connect(input, uiCultureLCID: 0, cultureLCID: 0, serializedSession: null, cancellationToken: CancellationToken.None);
-
-                Assert.Equal(input, output);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronize()
         {
             var code = @"class Test { void Method() { } }";
 
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
                 var solution = workspace.CurrentSolution;
 
@@ -97,7 +85,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
                 var solution = workspace.CurrentSolution;
 
@@ -114,8 +102,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
                 // sync
-                _ = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.RemoteHostService,
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.RemoteHost,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     solution: null,
                     new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
@@ -150,13 +138,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new TodoCommentsListener();
 
-            using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
-            using var session = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteTodoCommentsService,
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
+            using var connection = await client.CreateConnectionAsync(
+                WellKnownServiceHubService.RemoteTodoCommentsService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = session.RunRemoteAsync(
+            var invokeTask = connection.RunRemoteAsync(
                 nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
@@ -235,13 +223,13 @@ class Test { }");
 
             var callback = new DesignerAttributeListener();
 
-            using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
-            using var session = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteDesignerAttributeService,
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
+            using var connection = await client.CreateConnectionAsync(
+                WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = session.RunRemoteAsync(
+            var invokeTask = connection.RunRemoteAsync(
                 nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
@@ -281,7 +269,7 @@ class Test { }");
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
-            var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
@@ -309,7 +297,7 @@ class Test { }");
         {
             using var workspace = new TestWorkspace();
 
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
             var solution = Populate(workspace.CurrentSolution);
 
@@ -480,13 +468,13 @@ class Test { }");
 
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            Assert.True(await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.RemoteHostService,
+            await client.RunRemoteAsync(
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
-                CancellationToken.None));
+                CancellationToken.None);
         }
 
         private static Solution Populate(Solution solution)

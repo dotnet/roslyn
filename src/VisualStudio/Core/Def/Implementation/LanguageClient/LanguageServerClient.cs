@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private const string ServiceHubClientName = "ManagedLanguage.IDE.LanguageServer";
 
         private readonly IThreadingContext _threadingContext;
-        private readonly Workspace _workspace;
+        private readonly HostWorkspaceServices _services;
         private readonly IEnumerable<Lazy<IOptionPersister>> _lazyOptions;
 
         /// <summary>
@@ -71,13 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             [ImportMany] IEnumerable<Lazy<IOptionPersister>> lazyOptions)
         {
             _threadingContext = threadingContext;
-            _workspace = workspace;
+            _services = workspace.Services;
             _lazyOptions = lazyOptions;
         }
 
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_services, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 // There is no OOP. either user turned it off, or process got killed.
@@ -91,9 +92,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var hubClient = new HubClient(ServiceHubClientName);
 
             var stream = await ServiceHubRemoteHostClient.RequestServiceAsync(
-                _workspace,
+                _services,
                 hubClient,
-                WellKnownServiceHubServices.LanguageServer,
+                WellKnownServiceHubService.LanguageServer,
                 hostGroup,
                 cancellationToken).ConfigureAwait(false);
 
@@ -110,13 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // initialize things on UI thread
             await InitializeOnUIAsync().ConfigureAwait(false);
 
-            // this might get called before solution is fully loaded and before file is opened. 
-            // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
-            // it is not running yet. multiple start is no-op
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)_workspace.Services.GetService<IRemoteHostClientService>()).Enable();
-
             // wait until remote host is available before let platform know that they can activate our LSP
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_services, CancellationToken.None).ConfigureAwait(false);
             if (client == null)
             {
                 // There is no OOP. either user turned it off, or process got killed.
@@ -146,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // experimentation service unfortunately uses JTF to jump to UI thread in certain cases
                 // which can cause deadlock if 2 parties try to enable OOP from BG and then FG before 
                 // experimentation service tries to jump to UI thread.
-                var experimentationService = _workspace.Services.GetService<IExperimentationService>();
+                var experimentationService = _services.GetService<IExperimentationService>();
             }
         }
 

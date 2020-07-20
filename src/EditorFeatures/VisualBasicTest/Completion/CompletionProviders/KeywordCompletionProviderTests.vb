@@ -69,7 +69,6 @@ End Class
             Await VerifyNoItemsExistAsync(code)
         End Function
 
-
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TestNotInUnterminatedString() As Task
             Dim code = <Text>

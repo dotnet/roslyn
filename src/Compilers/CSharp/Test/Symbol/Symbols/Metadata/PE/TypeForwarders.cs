@@ -753,6 +753,8 @@ class Test : Derived
                 // (2,7): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'pe3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // class Test : Derived
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Derived").WithArguments("Base", "pe3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            Assert.Empty(comp3.GetReferencedAssemblySymbol(ref2).Modules[0].ReferencedAssemblySymbols.OfType<MissingAssemblySymbol>().First().GetPublicSymbol().GetForwardedTypes());
         }
 
         [Fact]
@@ -1459,7 +1461,10 @@ namespace NS
                 var assembly = module.ContainingAssembly;
 
                 // Attributes should not actually be emitted.
-                Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
+                }
 
                 var topLevelTypes = new HashSet<string>();
 
@@ -1484,9 +1489,11 @@ namespace NS
                     Assert.NotEqual(TypeKind.Error, type.TypeKind);
                     Assert.Equal("Asm1", type.ContainingAssembly.Name);
                 }
+
+                Assert.Equal(topLevelTypes.OrderBy(s => s), GetNamesOfForwardedTypes(assembly));
             };
 
-            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
+            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
             {
@@ -1501,6 +1508,16 @@ namespace NS
                     i++;
                 }
             }
+        }
+
+        private static IEnumerable<string> GetNamesOfForwardedTypes(AssemblySymbol assembly)
+        {
+            return GetNamesOfForwardedTypes(assembly.GetPublicSymbol());
+        }
+
+        private static IEnumerable<string> GetNamesOfForwardedTypes(IAssemblySymbol assembly)
+        {
+            return assembly.GetForwardedTypes().Select(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
         }
 
         [WorkItem(545911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
@@ -1592,12 +1609,16 @@ public class CF1
             var modCompilation = CreateCompilation(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var modRef1 = modCompilation.EmitToImageReference();
 
+            Assert.Equal(new[] { "CF1" }, GetNamesOfForwardedTypes(modCompilation.Assembly));
+
             string app =
                 @"
                 public class Test { }
                 ";
 
             var appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
+
+            Assert.Equal(new[] { "CF1" }, GetNamesOfForwardedTypes(appCompilation.Assembly));
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             var metadata = module.Module;

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
+    [Obsolete]
     internal sealed class UnitTestingExperimentationServiceAccessor : IUnitTestingExperimentationServiceAccessor
     {
         private readonly IExperimentationService _experimentationService;

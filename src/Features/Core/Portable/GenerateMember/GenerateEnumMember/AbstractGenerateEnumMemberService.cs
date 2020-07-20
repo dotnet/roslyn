@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             }
         }
 
-        private ImmutableArray<CodeAction> GetActions(Document document, State state)
+        private static ImmutableArray<CodeAction> GetActions(Document document, State state)
             => ImmutableArray.Create<CodeAction>(new GenerateEnumMemberCodeAction(document, state));
     }
 }

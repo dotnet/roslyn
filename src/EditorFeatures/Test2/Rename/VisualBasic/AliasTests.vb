@@ -220,7 +220,6 @@ End Module
             End Using
         End Sub
 
-
         <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSimpleTypeAliasFromUse(host As TestHost)

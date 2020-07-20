@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                         return MethodKind.StaticConstructor;
                     case MethodKind.LocalFunction:
                         return MethodKind.LocalFunction;
+                    case MethodKind.FunctionPointerSignature:
+                        return MethodKind.FunctionPointerSignature;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_underlying.MethodKind);
                 }
@@ -136,6 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             get
             {
                 return _underlying.IsEffectivelyReadOnly;
+            }
+        }
+
+        bool IMethodSymbol.IsInitOnly
+        {
+            get
+            {
+                return _underlying.IsInitOnly;
             }
         }
 

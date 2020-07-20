@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -369,6 +371,92 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 default:
                     return Glyph.None;
             }
+        }
+
+        // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
+        public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
+        {
+            var referenceKinds = ArrayBuilder<LSP.ReferenceKind>.GetInstance();
+            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.ValueUsageInfoOpt.Value;
+                if (usageInfo.IsReadFrom())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Read);
+                }
+
+                if (usageInfo.IsWrittenTo())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Write);
+                }
+
+                if (usageInfo.IsReference())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Reference);
+                }
+
+                if (usageInfo.IsNameOnly())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Name);
+                }
+            }
+
+            if (symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Qualified) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Qualified);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeArgument) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.TypeArgument);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeConstraint) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.TypeConstraint);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Base) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.BaseType);
+                }
+
+                // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
+                if ((usageInfo & TypeOrNamespaceUsageInfo.ObjectCreation) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Constructor);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Import) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Import);
+                }
+
+                // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
+                if ((usageInfo & TypeOrNamespaceUsageInfo.NamespaceDeclaration) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Declaration);
+                }
+            }
+
+            return referenceKinds.ToArrayAndFree();
+        }
+
+        public static string ProjectIdToProjectContextId(ProjectId id)
+        {
+            return id.Id + "|" + id.DebugName;
+        }
+
+        public static ProjectId ProjectContextToProjectId(ProjectContext projectContext)
+        {
+            var delimiter = projectContext.Id.IndexOf('|');
+
+            return ProjectId.CreateFromSerialized(
+                Guid.Parse(projectContext.Id.Substring(0, delimiter)),
+                debugName: projectContext.Id.Substring(delimiter + 1));
         }
     }
 }

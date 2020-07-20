@@ -840,7 +840,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             foreach (var candidate in declaringTypeOriginalDefinition.GetMember(member.Name, MemberBindingFlags))
             {
                 var memberType = candidate.MemberType;
-                if (memberType != member.MemberType) continue;
+                if (memberType != member.MemberType)
+                    continue;
 
                 switch (memberType)
                 {

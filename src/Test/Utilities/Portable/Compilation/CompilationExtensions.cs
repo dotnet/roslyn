@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SyntaxNode root = tree.GetRoot();
             SemanticModel model = compilation.GetSemanticModel(tree);
             var declarationsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
+            model.ComputeDeclarationsInNode(root, associatedSymbol: null, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
 
             var actualTextBuilder = new StringBuilder();
             foreach (DeclarationInfo declaration in declarationsBuilder.ToArrayAndFree().Where(d => d.DeclaredSymbol != null).OrderBy(d => d.DeclaredSymbol.ToTestDisplayString()))

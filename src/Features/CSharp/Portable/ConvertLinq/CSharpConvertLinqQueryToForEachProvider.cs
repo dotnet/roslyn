@@ -254,7 +254,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 SyntaxNode currentNode = _source;
                 while (currentNode != null)
                 {
-                    if (currentNode is StatementSyntax) { return true; }
+                    if (currentNode is StatementSyntax)
+                    {
+                        return true;
+                    }
                     if (currentNode is ExpressionSyntax ||
                         currentNode is ArgumentSyntax ||
                         currentNode is ArgumentListSyntax ||

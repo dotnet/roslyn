@@ -233,7 +233,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"if (!a | !b) { b(); } else { a(); }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSingleLine_ParenthesizeAndForPrecedence()
         {

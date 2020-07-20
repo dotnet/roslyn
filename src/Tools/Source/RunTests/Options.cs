@@ -77,6 +77,11 @@ namespace RunTests
         public bool UseProcDump { get; set; }
 
         /// <summary>
+        /// Disable partitioning and parallelization across test assemblies.
+        /// </summary>
+        public bool Sequential { get; set; }
+
+        /// <summary>
         /// The directory which contains procdump.exe. 
         /// </summary>
         public string ProcDumpDirectory { get; set; }
@@ -212,6 +217,11 @@ namespace RunTests
                 else if (comparer.Equals(current, "-useprocdump"))
                 {
                     opt.UseProcDump = false;
+                    index++;
+                }
+                else if (comparer.Equals(current, "-sequential"))
+                {
+                    opt.Sequential = true;
                     index++;
                 }
                 else

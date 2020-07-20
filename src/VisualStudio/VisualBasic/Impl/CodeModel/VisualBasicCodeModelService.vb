@@ -134,7 +134,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.FunctionStatement
                     Return node.FirstAncestorOrSelf(Of MethodBlockSyntax)() Is Nothing
 
-
                 Case Else
                     Return False
             End Select
@@ -1859,7 +1858,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim argument = DirectCast(attributeArgumentNode, ArgumentSyntax)
             Dim attribute = DirectCast(argument.Ancestors.FirstOrDefault(Function(n) n.Kind = SyntaxKind.Attribute), AttributeSyntax)
 
-
             attributeNode = attribute
             index = attribute.ArgumentList.Arguments.IndexOf(DirectCast(attributeArgumentNode, ArgumentSyntax))
         End Sub
@@ -2026,7 +2024,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             If (kind And EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional) <> 0 Then
                 newModifierList.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
-
 
             If (kind And EnvDTE80.vsCMParameterKind.vsCMParameterKindIn) <> 0 AndAlso parameter.Modifiers.Any(SyntaxKind.ByValKeyword) Then
                 ' Ensure that we keep ByVal if it was already present.

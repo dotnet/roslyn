@@ -16,6 +16,11 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <!--
+      Workaround for bug in VSSDK that assumes a pkgdef file exists when CreateVsixContainer is false
+      https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1111713
+    -->
+    <IncludeClientEnabledPkgFile>false</IncludeClientEnabledPkgFile>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Interactive\DesktopHost\InteractiveHost32.csproj">
@@ -67,6 +72,14 @@
   </ItemGroup>
 
   <Import Project="$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets')" />
+
+  <Target Name="NoLocalizeEmptyResx" AfterTargets="EnsureResourceToMergeWithCTO">
+    <ItemGroup>
+      <EmbeddedResource Update="@(EmbeddedResource)" Condition="'%(ManifestResourceName)' == '_EmptyResource'">
+        <XlfInput>false</XlfInput>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
 
   <Target Name="VsixSourceItemsOutputGroup"
           Returns="@(VSIXSourceItem)"

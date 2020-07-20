@@ -121,7 +121,6 @@ End Class
             End Using
         End Sub
 
-
         <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363"), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub TestPeekDefinitionOnLinqVariable()
             Using workspace = TestWorkspace.Create(<Workspace>
@@ -142,7 +141,6 @@ End Module
                 result.AssertNavigatesToIdentifier(0, "Identifier")
             End Using
         End Sub
-
 
         <WpfFact>
         <WorkItem(1091211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
@@ -221,11 +219,14 @@ End Module
             Dim item = items.SingleOrDefault()
 
             If item IsNot Nothing Then
+                Dim callbackMock = New Mock(Of IFindPeekResultsCallback)(MockBehavior.Strict)
+                callbackMock.Setup(Sub(s) s.ReportProgress(It.IsAny(Of Integer)))
+
                 Dim resultSource = item.GetOrCreateResultSource(PredefinedPeekRelationships.Definitions.Name)
                 resultSource.FindResults(PredefinedPeekRelationships.Definitions.Name,
                                          peekResult,
                                          CancellationToken.None,
-                                         New Mock(Of IFindPeekResultsCallback)(MockBehavior.Loose).Object)
+                                         callbackMock.Object)
             End If
 
             Return peekResult

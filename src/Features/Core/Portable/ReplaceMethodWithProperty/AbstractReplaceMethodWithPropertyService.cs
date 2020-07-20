@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     internal abstract class AbstractReplaceMethodWithPropertyService<TMethodDeclarationSyntax> where TMethodDeclarationSyntax : SyntaxNode
     {
+#pragma warning disable CA1822 // Mark members as static - implements interface method for sub-types.
         public async Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context)
+#pragma warning restore CA1822 // Mark members as static
             => await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
 
         protected static string GetWarning(GetAndSetMethods getAndSetMethods)

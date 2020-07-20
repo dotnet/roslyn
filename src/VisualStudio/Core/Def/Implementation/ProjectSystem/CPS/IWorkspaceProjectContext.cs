@@ -20,6 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         bool LastDesignTimeBuildSucceeded { get; set; }
         string BinOutputPath { get; set; }
 
+        /// <summary>
+        /// When this project is one of a multi-targeting group of projects, this value indicates whether or not this
+        /// particular project is the primary one.  The primary project is responsible for certain things when reporting
+        /// data from Roslyn's individual projects back to the project system itself.  For example, designer attributes
+        /// are only associated with the primary project, and should be skipped for other projects.
+        /// </summary>
+        bool IsPrimary { get; set; }
+
         ProjectId Id { get; }
 
         // Options.

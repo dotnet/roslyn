@@ -2,20 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A structure used to lexically order symbols. For performance, it's important that this be 
     /// a STRUCTURE, and be able to be returned from a symbol without doing any additional allocations (even
-    /// if nothing is cached yet.)
+    /// if nothing is cached yet).
     /// </summary>
     internal struct LexicalSortKey
     {
@@ -42,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly LexicalSortKey NotInSource = new LexicalSortKey() { _treeOrdinal = -1, _position = 0 };
 
         public static readonly LexicalSortKey NotInitialized = new LexicalSortKey() { _treeOrdinal = -1, _position = -1 };
+
+        // Put other synthesized members right before synthesized constructors.
+        public static LexicalSortKey GetSynthesizedMemberKey(int offset) => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 2 - offset };
 
         // Dev12 compiler adds synthetic constructors to the child list after adding all other members.
         // Methods are emitted in the children order, but synthetic cctors would be deferred 

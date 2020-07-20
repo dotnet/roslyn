@@ -2100,7 +2100,6 @@ class C
     }
 }", CodeActionIndex);
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestAnnotatedNullableParameters1()
             => TestInRegularAndScript1Async(
@@ -2759,7 +2758,6 @@ class C
     }
 }", CodeActionIndex);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public Task TestExtractNullableObjectWithExplicitCast()
@@ -3874,7 +3872,6 @@ csharp_prefer_static_local_function = true:silent
             await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
         }
 
-
         [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestEditorconfigSetting_StaticLocalFunction_False()
         {
@@ -4743,6 +4740,20 @@ class C
 }";
 
             await TestInRegularAndScript1Async(code, expected);
+        }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_ArgumentInInvocation()
+        {
+            // ExtractLocalFunction currently disabled in the presence of top-level statements
+            // https://github.com/dotnet/roslyn/issues/44260
+
+            var code = @"
+System.Console.WriteLine([|""string""|]);
+";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method },
+                new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
     }
 }

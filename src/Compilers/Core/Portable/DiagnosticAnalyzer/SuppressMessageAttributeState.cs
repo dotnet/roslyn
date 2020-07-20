@@ -324,24 +324,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static IEnumerable<ISymbol> ResolveTargetSymbols(Compilation compilation, string target, TargetScope scope)
+        internal static ImmutableArray<ISymbol> ResolveTargetSymbols(Compilation compilation, string target, TargetScope scope)
         {
             switch (scope)
             {
                 case TargetScope.Namespace:
                 case TargetScope.Type:
                 case TargetScope.Member:
-                    {
-                        var results = new List<ISymbol>();
-                        new TargetSymbolResolver(compilation, scope, target).Resolve(results);
-                        return results;
-                    }
+                    return new TargetSymbolResolver(compilation, scope, target).Resolve(out _);
 
                 case TargetScope.NamespaceAndDescendants:
                     return ResolveTargetSymbols(compilation, target, TargetScope.Namespace);
 
                 default:
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
             }
         }
 
@@ -378,17 +374,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             info.Attribute = attribute;
 
             return true;
-        }
-
-        internal enum TargetScope
-        {
-            None,
-            Module,
-            Namespace,
-            Resource,
-            Type,
-            Member,
-            NamespaceAndDescendants
         }
     }
 }

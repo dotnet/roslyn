@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             }
         }
 
-        private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
+        private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, knownTypes);
             var newModifiers = FixMethodModifiers(method.Modifiers, ref newReturnType);
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
+        private static SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, localFunction.ReturnType, knownTypes);
             var newModifiers = FixMethodModifiers(localFunction.Modifiers, ref newReturnType);
@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             return newModifiers;
         }
 
-        private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
+        private static SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
             => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
 
-        private SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
+        private static SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
             => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
 
-        private SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
+        private static SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
             => method.WithAsyncKeyword(default).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
     }
 }

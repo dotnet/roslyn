@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -16603,7 +16604,7 @@ BC40001: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), 
         End Sub
 
         <Fact>
-        Public Sub OverridenMethodWithDifferentTupleNamesInParameters()
+        Public Sub OverriddenMethodWithDifferentTupleNamesInParameters()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

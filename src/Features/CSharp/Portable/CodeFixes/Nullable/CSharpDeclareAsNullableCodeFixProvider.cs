@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 context.Diagnostics);
         }
 
-        private string GetEquivalenceKey(SyntaxNode node, SemanticModel model)
+        private static string GetEquivalenceKey(SyntaxNode node, SemanticModel model)
         {
             return IsRemoteApiUsage(node, model) ? AssigningNullLiteralRemotelyEquivalenceKey :
                 node.IsKind(SyntaxKind.ConditionalAccessExpression) ? ConditionalOperatorEquivalenceKey :
@@ -280,6 +280,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return propertyDeclarationSyntax.Type;
             }
 
+            // string x;
+            // Unassigned value that's not marked as null
+            if (node is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax _ } declarationSyntax } &&
+                declarationSyntax.Variables.Count == 1)
+            {
+                return declarationSyntax.Type;
+            }
+
             // void M(string x = null) { }
             if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax? optionalParameter))
             {
@@ -332,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             static TypeSyntax? TryGetParameterTypeSyntax(IParameterSymbol? parameterSymbol)
             {
                 if (parameterSymbol is object &&
-                    parameterSymbol.DeclaringSyntaxReferences[0].GetSyntax() is ParameterSyntax parameterSyntax &&
+                    parameterSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is ParameterSyntax parameterSyntax &&
                     parameterSymbol.ContainingSymbol is IMethodSymbol method &&
                     method.GetAllMethodSymbolsOfPartialParts().Length == 1)
                 {
@@ -351,7 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 SyntaxKind.DefaultLiteralExpression,
                 SyntaxKind.ConditionalExpression,
                 SyntaxKind.ConditionalAccessExpression,
-                SyntaxKind.PropertyDeclaration);
+                SyntaxKind.PropertyDeclaration,
+                SyntaxKind.VariableDeclarator);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

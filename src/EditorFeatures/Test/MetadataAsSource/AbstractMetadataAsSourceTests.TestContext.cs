@@ -257,7 +257,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 using var reader = File.OpenRead(file.FilePath);
                 var stringText = EncodedStringText.Create(reader);
 
-
                 Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container));
 
                 return stringText.Container.GetRelatedDocuments().Single();

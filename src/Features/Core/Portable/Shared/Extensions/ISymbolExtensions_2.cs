@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -130,6 +129,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case SymbolKind.PointerType:
                     return ((IPointerTypeSymbol)symbol).PointedAtType.GetGlyph();
 
+                case SymbolKind.FunctionPointerType:
+                    return Glyph.Intrinsic;
+
                 case SymbolKind.Property:
                     {
                         var propertySymbol = (IPropertySymbol)symbol;
@@ -177,37 +179,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        {
-            var documentation = GetDocumentation(symbol, semanticModel.Compilation, cancellationToken);
-
-            return documentation != null
-                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
-                : SpecializedCollections.EmptyEnumerable<TaggedText>();
-        }
+        => formatter.Format(GetDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
+            symbol, semanticModel, position, CrefFormat, cancellationToken);
 
         public static IEnumerable<TaggedText> GetRemarksDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        {
-            var documentation = GetRemarksDocumentation(symbol, semanticModel.Compilation, cancellationToken);
-            return documentation != null
-                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
-                : SpecializedCollections.EmptyEnumerable<TaggedText>();
-        }
+            => formatter.Format(GetRemarksDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
+                symbol, semanticModel, position, CrefFormat, cancellationToken);
 
         public static IEnumerable<TaggedText> GetReturnsDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        {
-            var documentation = GetReturnsDocumentation(symbol, semanticModel.Compilation, cancellationToken);
-            return documentation != null
-                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
-                : SpecializedCollections.EmptyEnumerable<TaggedText>();
-        }
+            => formatter.Format(GetReturnsDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
+                symbol, semanticModel, position, CrefFormat, cancellationToken);
 
         public static IEnumerable<TaggedText> GetValueDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        {
-            var documentation = GetValueDocumentation(symbol, semanticModel.Compilation, cancellationToken);
-            return documentation != null
-                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
-                : SpecializedCollections.EmptyEnumerable<TaggedText>();
-        }
+            => formatter.Format(GetValueDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
+                symbol, semanticModel, position, CrefFormat, cancellationToken);
 
         private static string? GetDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
             => symbol switch
@@ -270,9 +255,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
             this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
-        {
-            return c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
-        }
+            => c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
 
         public static readonly SymbolDisplayFormat CrefFormat =
             new SymbolDisplayFormat(

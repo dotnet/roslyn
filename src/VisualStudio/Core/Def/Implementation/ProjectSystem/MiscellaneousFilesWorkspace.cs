@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
     {
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
-        private readonly IVsTextManager _textManager;
+        private readonly Lazy<IVsTextManager> _lazyTextManager;
 
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
@@ -60,10 +60,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SVsServiceProvider serviceProvider)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
-            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
+            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
-            _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            _lazyTextManager = new Lazy<IVsTextManager>(() =>
+            {
+                _foregroundThreadAffinitization.AssertIsForeground();
+                return (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            });
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -103,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             LanguageInformation languageInformation = null;
 
-            if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+            if (ErrorHandler.Succeeded(_lazyTextManager.Value.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
             {
                 _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
             }

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             }
 
-            private bool IsPrimaryBranch(Document document)
+            private static bool IsPrimaryBranch(Document document)
                 => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
 
             private Task AddVersionCacheAsync(Project project, VersionStamp version, CancellationToken cancellationToken)

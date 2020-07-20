@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return editor.GetChangedRoot();
         }
 
-        private async Task<bool> CanBeSeparateStatementsAsync(
+        private static async Task<bool> CanBeSeparateStatementsAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,

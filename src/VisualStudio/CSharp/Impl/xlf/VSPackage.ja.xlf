@@ -80,7 +80,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">閉じているファイルの診断結果を表示する;
+        <target state="translated">閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
 カーソルの下にある関連コンポーネントをハイライトする;
 無効な正規表現を報告する;
@@ -94,7 +94,7 @@ using を並べ替える際に、system ディレクティブを先頭に配置�
 NuGet パッケージの型に using を提案する;
 強調表示;
 カーソルの下にあるシンボルへの参照をハイライトする;
-カーソルの下にあるキーワードの関連キーワードをハイライトする;
+カーソルの下にある関連キーワードをハイライトする;
 アウトライン;
 ファイルを開くときにアウトライン モードに入る;
 プロシージャ行の区切り記号を表示する;
@@ -125,7 +125,8 @@ string.Format の呼び出しで無効なプレースホルダーをレポート
 自動プロパティを優先する;
 正規表現;
 正規表現;
-拡張された色を使用する;</target>
+拡張された色を使用する;
+エディターの配色;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

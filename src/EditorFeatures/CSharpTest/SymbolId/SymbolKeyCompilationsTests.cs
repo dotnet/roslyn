@@ -88,8 +88,8 @@ public void Method()
 }
 ";
 
-            var comp1 = CreateCompilation(src1);
-            var comp2 = CreateCompilation(src2);
+            var comp1 = CreateCompilation(src1, assemblyName: "C2CErrorSymbolUnchanged01");
+            var comp2 = CreateCompilation(src2, assemblyName: "C2CErrorSymbolUnchanged01");
 
             var symbol01 = comp1.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             var symbol02 = comp1.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;

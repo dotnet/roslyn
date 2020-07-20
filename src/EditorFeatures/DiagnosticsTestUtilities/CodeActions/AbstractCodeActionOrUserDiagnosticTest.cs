@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -431,7 +432,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 foreach (var diagnostic in diagnosticsWithTag)
                 {
                     var documentOffset = initialMarkupWithoutSpans.IndexOf(diagnosticsWithTag.First().Location.SourceTree.ToString());
-                    if (documentOffset == -1) continue;
+                    if (documentOffset == -1)
+                        continue;
 
                     segments.Add((documentOffset + diagnostic.Location.SourceSpan.Start, "{|" + markupKey + ":"));
                     segments.Add((documentOffset + diagnostic.Location.SourceSpan.End, "|}"));
@@ -479,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, parameters);
             return await TestOperationsAsync(
                 workspace, expected, operations, conflictSpans, renameSpans,
-                warningSpans, navigationSpans, expectedChangedDocumentId: null, parseOptions: parameters.parseOptions);
+                warningSpans, navigationSpans, expectedChangedDocumentId: null);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
@@ -490,8 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
             ImmutableArray<TextSpan> navigationSpans,
-            DocumentId expectedChangedDocumentId,
-            ParseOptions parseOptions = null)
+            DocumentId expectedChangedDocumentId)
         {
             var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
             var oldSolution = appliedChanges.Item1;
@@ -681,6 +682,60 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected virtual ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => actions;
 
+        internal static void VerifyCodeActionsRegisteredByProvider(CodeFixProvider provider, List<CodeFix> fixes)
+        {
+            if (provider.GetFixAllProvider() == null)
+            {
+                // Only require unique equivalence keys when the fixer supports FixAll
+                return;
+            }
+
+            var diagnosticsAndEquivalenceKeyToTitleMap = new Dictionary<(Diagnostic diagnostic, string equivalenceKey), string>();
+            foreach (var fix in fixes)
+            {
+                VerifyCodeAction(fix.Action, fix.Diagnostics, provider, diagnosticsAndEquivalenceKeyToTitleMap);
+            }
+
+            return;
+
+            static void VerifyCodeAction(
+                CodeAction codeAction,
+                ImmutableArray<Diagnostic> diagnostics,
+                CodeFixProvider provider,
+                Dictionary<(Diagnostic diagnostic, string equivalenceKey), string> diagnosticsAndEquivalenceKeyToTitleMap)
+            {
+                if (!codeAction.NestedCodeActions.IsEmpty)
+                {
+                    // Only validate leaf code actions.
+                    foreach (var nestedAction in codeAction.NestedCodeActions)
+                    {
+                        VerifyCodeAction(nestedAction, diagnostics, provider, diagnosticsAndEquivalenceKeyToTitleMap);
+                    }
+
+                    return;
+                }
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    var key = (diagnostic, codeAction.EquivalenceKey);
+                    var existingTitle = diagnosticsAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
+                    if (existingTitle != codeAction.Title)
+                    {
+                        var messageSuffix = codeAction.EquivalenceKey != null
+                            ? string.Empty
+                            : @"
+Consider using the title as the equivalence key instead of 'null'";
+
+                        Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same diagnostic:
+- Name: '{provider.GetType().Name}'
+- Title 1: '{codeAction.Title}'
+- Title 2: '{existingTitle}'
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'{messageSuffix}");
+                    }
+                }
+            }
+        }
+
         protected static ImmutableArray<CodeAction> FlattenActions(ImmutableArray<CodeAction> codeActions)
         {
             return codeActions.SelectMany(a => a.NestedCodeActions.Length > 0
@@ -690,8 +745,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
             => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
-
-
 
         /// <summary>
         /// Tests all the code actions for the given <paramref name="input"/> string.  Each code

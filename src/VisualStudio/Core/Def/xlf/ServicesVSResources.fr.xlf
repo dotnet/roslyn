@@ -47,6 +47,11 @@
         <target state="translated">Toutes les méthodes</target>
         <note />
       </trans-unit>
+      <trans-unit id="All_sources">
+        <source>All sources</source>
+        <target state="new">All sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
         <target state="translated">Autoriser :</target>
@@ -164,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
-        <target state="new">Editor Color Scheme</target>
+        <target state="translated">Modèle de couleurs de l'éditeur</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
         <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
-        <target state="new">Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</target>
+        <target state="translated">Les options relatives au modèle de couleurs de l'éditeur sont disponibles uniquement quand vous utilisez un thème de couleur fourni en bundle avec Visual Studio. Vous pouvez configurer le thème de couleur à partir de la page d'options Environnement &gt; Général.</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -180,6 +185,11 @@
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="new">Enter a call site value or choose a different value injection kind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_repository">
+        <source>Entire repository</source>
+        <target state="new">Entire repository</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_solution">
@@ -217,6 +227,21 @@
         <target state="new">Index</target>
         <note>Index of parameter in original signature</note>
       </trans-unit>
+      <trans-unit id="Infer_from_context">
+        <source>Infer from context</source>
+        <target state="new">Infer from context</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_organization">
+        <source>Indexed in organization</source>
+        <target state="new">Indexed in organization</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_repo">
+        <source>Indexed in repo</source>
+        <target state="new">Indexed in repo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="new">Inserting call site value '{0}'</target>
@@ -237,6 +262,11 @@
         <target state="new">Introduce undefined TODO variables</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Item_origin">
+        <source>Item origin</source>
+        <target state="new">Item origin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">Conserver toutes les parenthèses dans :</target>
@@ -255,6 +285,26 @@
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">Analyse en temps réel (extension VSIX)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_items">
+        <source>Loaded items</source>
+        <target state="new">Loaded items</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_solution">
+        <source>Loaded solution</source>
+        <target state="new">Loaded solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local">
+        <source>Local</source>
+        <target state="new">Local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_metadata">
+        <source>Local metadata</source>
+        <target state="new">Local metadata</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -447,6 +497,11 @@
         <target state="translated">Méthodes non publiques</target>
         <note />
       </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="new">None</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
         <target state="new">Omit (only for optional parameters)</target>
@@ -465,6 +520,11 @@
       <trans-unit id="Optional_with_default_value_colon">
         <source>Optional with default value:</source>
         <target state="new">Optional with default value:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Others</source>
+        <target state="new">Others</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
@@ -549,7 +609,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="new">Prefer simplified boolean expressions</target>
+        <target state="translated">Préférer les expressions booléennes simplifiées</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -564,7 +624,7 @@
       </trans-unit>
       <trans-unit id="Razor_CSharp_Language_Server_Client">
         <source>Razor C# Language Server Client</source>
-        <target state="new">Razor C# Language Server Client</target>
+        <target state="translated">Client Razor du serveur de langage C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -580,6 +640,11 @@
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Signaler les expressions régulières non valides</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repository">
+        <source>Repository</source>
+        <target state="new">Repository</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
@@ -669,7 +734,7 @@
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
-        <target state="new">Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</target>
+        <target state="translated">Certaines couleurs du modèle de couleurs sont substituées à la suite des changements apportés dans la page d'options Environnement &gt; Polices et couleurs. Choisissez Utiliser les valeurs par défaut dans la page Polices et couleurs pour restaurer toutes les personnalisations.</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -744,7 +809,7 @@
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
-        <target state="new">Value:</target>
+        <target state="translated">Valeur :</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
@@ -759,12 +824,22 @@
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">
         <source>Visual Studio 2017</source>
-        <target state="new">Visual Studio 2017</target>
+        <target state="translated">Visual Studio 2017</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2019">
         <source>Visual Studio 2019</source>
-        <target state="new">Visual Studio 2019</target>
+        <target state="translated">Visual Studio 2019</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_duplicate_parameter_name">
+        <source>Warning: duplicate parameter name</source>
+        <target state="new">Warning: duplicate parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_type_does_not_bind">
+        <source>Warning: type does not bind</source>
+        <target state="new">Warning: type does not bind</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">

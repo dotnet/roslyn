@@ -3503,7 +3503,6 @@ class C
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-
         [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void AfterElementBindingExpression()

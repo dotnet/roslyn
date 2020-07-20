@@ -135,7 +135,6 @@ namespace BuildBoss
             return list;
         }
 
-
         internal List<PackageReference> GetPackageReferences()
         {
             var list = new List<PackageReference>();

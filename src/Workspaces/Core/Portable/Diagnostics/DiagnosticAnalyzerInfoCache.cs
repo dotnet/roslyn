@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
             }
 
-            bool telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
+            var telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
             return new DiagnosticDescriptorsInfo(descriptors, telemetryAllowed);
         }
 

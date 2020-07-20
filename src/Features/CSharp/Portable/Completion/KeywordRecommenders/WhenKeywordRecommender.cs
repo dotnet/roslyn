@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
 
                 isVar = typeSyntax.IsVar;
-                symbols = semanticModel.LookupName(typeSyntax, namespacesAndTypesOnly: false, cancellationToken);
+                symbols = semanticModel.LookupName(typeSyntax, cancellationToken);
             }
             else
             {

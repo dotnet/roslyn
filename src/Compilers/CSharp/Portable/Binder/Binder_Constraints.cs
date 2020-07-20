@@ -137,7 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (i != 0)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                            if (!reportedOverrideWithConstraints)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, syntax.GetFirstToken().GetLocation());
+                            }
 
                             if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
                             {
@@ -175,7 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (i != 0)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                            if (!reportedOverrideWithConstraints)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, syntax.GetFirstToken().GetLocation());
+                            }
 
                             if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
                             {
@@ -233,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConstraintContextualKeyword.Unmanaged:
                                     if (i != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, typeSyntax.GetLocation());
                                         continue;
                                     }
 
@@ -247,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConstraintContextualKeyword.NotNull:
                                     if (i != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_NotNullConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, typeSyntax.GetLocation());
                                     }
 
                                     constraints |= TypeParameterConstraintKind.NotNull;
@@ -510,6 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case TypeKind.Array:
                     case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
                         // "Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
                         Error(diagnostics, ErrorCode.ERR_BadConstraintType, syntax.GetLocation());
                         return false;

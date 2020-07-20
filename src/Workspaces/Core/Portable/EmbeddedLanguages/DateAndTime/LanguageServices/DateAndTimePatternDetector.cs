@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
         /// format string passed into an method call.  If so, <paramref name="argumentNode"/> and <paramref
         /// name="invocationExpression"/> will be the argument and invocatoin the string literal was passed as.
         /// </summary>
-        public static bool IsPossiblyDateAndTimeToken(
+        public static bool IsPossiblyDateAndTimeArgumentToken(
             SyntaxToken token, ISyntaxFacts syntaxFacts,
             [NotNullWhen(true)] out SyntaxNode? argumentNode,
             [NotNullWhen(true)] out SyntaxNode? invocationExpression)
@@ -131,34 +131,43 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent!.Parent);
 
-        public bool IsDateAndTimeToken(SyntaxToken token, CancellationToken cancellationToken)
+        public bool IsDateAndTimeToken(SyntaxToken token, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            if (!IsPossiblyDateAndTimeToken(
+            if (IsPossiblyDateAndTimeArgumentToken(
                     token, _info.SyntaxFacts,
                     out var argumentNode, out var invocationOrCreation))
             {
-                return false;
-            }
+                // if we couldn't determine the arg name or arg index, can't proceed.
+                var (argName, argIndex) = GetArgumentNameOrIndex(argumentNode);
+                if (argName == null && argIndex == null)
+                    return false;
 
-            // if we couldn't determine the arg name or arg index, can't proceed.
-            var (argName, argIndex) = GetArgumentNameOrIndex(argumentNode);
-            if (argName == null && argIndex == null)
-                return false;
+                // If we had a specified arg name and it isn't 'format', then it's not a DateTime
+                // 'format' param we care about.
+                if (argName != null && argName != FormatName)
+                    return false;
 
-            // If we had a specified arg name and it isn't 'format', then it's not a DateTime
-            // 'format' param we care about.
-            if (argName != null && argName != FormatName)
-                return false;
-
-            var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
-            var method = symbolInfo.Symbol;
-            if (TryAnalyzeInvocation(method, argName, argIndex))
-                return true;
-
-            foreach (var candidate in symbolInfo.CandidateSymbols)
-            {
-                if (TryAnalyzeInvocation(candidate, argName, argIndex))
+                var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
+                var method = symbolInfo.Symbol;
+                if (TryAnalyzeInvocation(method, argName, argIndex))
                     return true;
+
+                foreach (var candidate in symbolInfo.CandidateSymbols)
+                {
+                    if (TryAnalyzeInvocation(candidate, argName, argIndex))
+                        return true;
+                }
+            }
+            else if (token.RawKind == syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
+            {
+                var interpolationFormatClause = token.Parent!;
+                var interpolation = interpolationFormatClause.Parent!;
+                if (interpolation!.RawKind == syntaxFacts.SyntaxKinds.Interpolation)
+                {
+                    var expression = syntaxFacts.GetExpressionOfInterpolation(interpolation);
+                    var type = _semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+                    return IsDateTimeType(type);
+                }
             }
 
             return false;
@@ -187,10 +196,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
                IsDateTimeType(method.ContainingType) &&
                AnalyzeStringLiteral(method, argName, argIndex);
 
-        private bool IsDateTimeType(INamedTypeSymbol containingType)
-            => _dateTimeType.Equals(containingType) || _dateTimeOffsetType.Equals(containingType);
+        private bool IsDateTimeType(ITypeSymbol? type)
+            => _dateTimeType.Equals(type) || _dateTimeOffsetType.Equals(type);
 
-        private bool AnalyzeStringLiteral(IMethodSymbol method, string? argName, int? argIndex)
+        private static bool AnalyzeStringLiteral(IMethodSymbol method, string? argName, int? argIndex)
         {
             Debug.Assert(argName != null || argIndex != null);
 

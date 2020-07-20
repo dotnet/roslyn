@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal readonly struct UnitTestingSolutionStateWrapper
     {
         internal SolutionState UnderlyingObject { get; }

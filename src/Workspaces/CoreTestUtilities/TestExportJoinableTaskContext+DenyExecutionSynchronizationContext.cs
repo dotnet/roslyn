@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 => new DenyExecutionSynchronizationContext(UnderlyingContext.CreateCopy(), MainThread, _failedTransfer);
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            private void ThrowFailedTransferExceptionForCapture()
+            private static void ThrowFailedTransferExceptionForCapture()
                 => throw new InvalidOperationException($"Code cannot switch to the main thread without configuring the {nameof(IThreadingContext)}.");
         }
     }

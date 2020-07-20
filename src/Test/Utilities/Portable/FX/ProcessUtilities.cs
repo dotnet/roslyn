@@ -23,7 +23,8 @@ namespace Roslyn.Test.Utilities
             string stdInput = null,
             bool redirectStandardInput = false)
         {
-            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
+            if (fileName == null)
+                throw new ArgumentNullException(nameof(fileName));
 
             var startInfo = new ProcessStartInfo
             {

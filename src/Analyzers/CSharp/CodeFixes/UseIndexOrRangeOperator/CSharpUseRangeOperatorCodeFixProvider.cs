@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private SyntaxNode UpdateInvocation(
+        private static SyntaxNode UpdateInvocation(
             SemanticModel semanticModel, SyntaxNode currentRoot,
             InvocationExpressionSyntax currentInvocation,
             SyntaxGenerator generator,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static InvocationExpressionSyntax GetInvocationExpression(Diagnostic d, CancellationToken cancellationToken)
             => (InvocationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-        private ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
+        private static ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
         {
             var invocation = result.Invocation;
             var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
         }
 
-        private RangeExpressionSyntax CreateRangeExpression(Result result, SyntaxGenerator generator)
+        private static RangeExpressionSyntax CreateRangeExpression(Result result, SyntaxGenerator generator)
             => result.Kind switch
             {
                 ResultKind.Computed => CreateComputedRange(result),
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-        private RangeExpressionSyntax CreateComputedRange(Result result)
+        private static RangeExpressionSyntax CreateComputedRange(Result result)
         {
             // We have enough information now to generate `start..end`.  However, this will often
             // not be what the user wants.  For example, generating `start..expr.Length` is not as
