@@ -20,12 +20,10 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     {
         protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, option: null, new LocalizableResourceString(
-                       nameof(AnalyzersResources.Convert_gettype_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)), new LocalizableResourceString(
                        nameof(AnalyzersResources.Convert_gettype_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
-            var csharpTitle = new LocalizableResourceString(nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             var csharpMessage = new LocalizableResourceString(nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-            CSharpDescriptor = CreateDescriptorWithId(DescriptorId, csharpTitle, csharpMessage);
+            CSharpDescriptor = CreateDescriptorWithId(DescriptorId, csharpMessage, csharpMessage);
         }
         internal DiagnosticDescriptor VBDescriptor => Descriptor;
 
