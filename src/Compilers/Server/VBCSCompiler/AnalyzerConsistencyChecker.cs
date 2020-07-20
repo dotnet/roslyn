@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     if (!ignorableReferenceNames.Any(name => missingDependency.Name.StartsWith(name)))
                     {
-                        CompilerServerLogger.Log($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
+                        CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
                         return false;
                     }
                 }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
-                    CompilerServerLogger.Log($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
+                    CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
                     return false;
                 }
             }
