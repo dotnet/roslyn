@@ -486,31 +486,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Also, the NuGet APIs may throw on some projects that don't implement the 
             // full set of DTE APIs they expect.  So we filter down to just C# and VB here
             // as we know these languages are safe to build up this index for.
+            ProjectState? newState = null;
+
             if (project?.Language == LanguageNames.CSharp ||
                 project?.Language == LanguageNames.VisualBasic)
             {
                 var projectGuid = _workspace.GetProjectGuid(projectId);
                 if (projectGuid != Guid.Empty)
                 {
-                    _projectToInstalledPackageAndVersion[projectId] = await GetCurrentProjectStateAsync(
+                    newState = await GetCurrentProjectStateAsync(
                         nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
-                    return;
                 }
             }
 
-            // For anything else, clear out the data we've stored as this project is gone, not the right language, or
-            // isn't something we can get nuget information for.
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out _);
+            // If we weren't able to get the nuget state for the project (i.e. it's not a c#/vb project, or we got a
+            // crash attempting to get nuget information).  Mark this project as something that nuget-add-import is not
+            // supported for.
+            _projectToInstalledPackageAndVersion[projectId] = newState ?? ProjectState.Disabled;
         }
 
-        private static async Task<ProjectState> GetCurrentProjectStateAsync(
+        private static async Task<ProjectState?> GetCurrentProjectStateAsync(
             INuGetProjectService nugetService,
             Guid projectGuid,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
 
                 var installedPackages = new MultiDictionary<string, string>();
@@ -520,11 +522,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         installedPackages.Add(installedPackage.Id, installedPackage.Version);
                 }
 
-                return new ProjectState(isEnabled: true, installedPackages);
+                return new ProjectState(installedPackages);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return new ProjectState(isEnabled: false, new MultiDictionary<string, string>());
+                return null;
             }
         }
 
@@ -532,7 +534,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
             return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&
-                installedPackages.InstalledPackageToVersion.ContainsKey(packageName);
+                installedPackages.IsInstalled(packageName);
         }
 
         public ImmutableArray<string> GetInstalledVersions(string packageName)
@@ -541,9 +543,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             var installedVersions = new HashSet<string>();
             foreach (var state in _projectToInstalledPackageAndVersion.Values)
-            {
-                installedVersions.AddRange(state.InstalledPackageToVersion[packageName]);
-            }
+                installedVersions.AddRange(state.GetInstalledVersions(packageName));
 
             // Order the versions with a weak heuristic so that 'newer' versions come first.
             // Essentially, we try to break the version on dots, and then we use a LogicalComparer
@@ -588,7 +588,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             foreach (var kvp in this._projectToInstalledPackageAndVersion)
             {
                 var state = kvp.Value;
-                var versionSet = state.InstalledPackageToVersion[packageName];
+                var versionSet = state.GetInstalledVersions(packageName);
                 if (versionSet.Contains(version))
                 {
                     var project = solution.GetProject(kvp.Key);
