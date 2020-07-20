@@ -5223,7 +5223,7 @@ class C
 
                 state.SendBackspace()
                 state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
 
             End Using
         End Function

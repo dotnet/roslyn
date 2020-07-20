@@ -440,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.MinusEqualsToken:
                 case SyntaxKind.CaretEqualsToken:
                 case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
                     return true;
 
                 default:
