@@ -31,7 +31,7 @@
     <MicrosoftCodeAnalysisNetAnalyzersVersion>3.3.0-beta1.20352.4</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <CodeStyleLayerCodeAnalysisVersion>3.6.0-2.final</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20358.1</MicrosoftCodeAnalysisTestingVersion>
-    <CodeStyleAnalyzerVersion>3.7.0-3.20271.4</CodeStyleAnalyzerVersion>
+    <CodeStyleAnalyzerVersion>3.8.0-1.20330.5</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.8.5</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
