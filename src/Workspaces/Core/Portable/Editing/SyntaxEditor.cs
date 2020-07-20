@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 var newNode = _modifier(current, generator);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);
 
-                Contract.ThrowIfNull(current, $"GetCurrentNode returned null result with the following node: {this.Node}");
+                Contract.ThrowIfNull(current, $"GetCurrentNode returned null with the following node: {this.Node}");
                 return generator.ReplaceNode(root, current, newNode);
             }
         }
