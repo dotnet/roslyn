@@ -27,18 +27,22 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly ITextView _textView;
 
         /// <summary>
-        /// _cache stores the parameter hint tags in a global location 
+        /// stores the parameter hint tags in a global location 
         /// </summary>
         private readonly List<ITagSpan<IntraTextAdornmentTag>> _cache;
 
         /// <summary>
-        /// Stores the snapshot of the state at which things change on the screen 
+        /// Stores the snapshot associated with the cached tags in <see cref="_cache" /> 
         /// </summary>
         private ITextSnapshot? _cacheSnapshot;
 
         private readonly IClassificationFormatMap _formatMap;
+
+        /// <summary>
+        /// Lazy initialized, use <see cref="Format"/> for access
+        /// </summary>
         private TextFormattingRunProperties? _format;
-        private readonly IClassificationType _hint;
+        private readonly IClassificationType _hintClassification;
         private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _buffer = buffer;
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
-            _hint = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
+            _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
             _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
         }
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             get
             {
                 _threadAffinitizedObject.AssertIsForeground();
-                _format ??= _formatMap.GetTextProperties(_hint);
+                _format ??= _formatMap.GetTextProperties(_hintClassification);
                 return _format;
             }
         }
@@ -100,17 +104,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 _cache.Clear();
                 _cacheSnapshot = snapshot;
 
-                // Thye fullspan is really only the size of the textview plus 100 lines, not the entire file
+                // Calling into the InlineParameterNameHintsDataTaggerProvider which only responds with the current
+                // active view and disregards and requests for tags not in that view
                 var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
-                var requestSpans = new NormalizedSnapshotSpanCollection(fullSpan);
-                var dataTags = _tagAggregator.GetTags(requestSpans);
-                foreach (var tag in dataTags)
+                var dataTags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
+                foreach (var dataTag in dataTags)
                 {
                     // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                     // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
                     // occuring 
-                    var dataTagSpans = tag.Span.GetSpans(snapshot);
-                    var textTag = tag.Tag;
+                    var dataTagSpans = dataTag.Span.GetSpans(snapshot);
+                    var textTag = dataTag.Tag;
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];

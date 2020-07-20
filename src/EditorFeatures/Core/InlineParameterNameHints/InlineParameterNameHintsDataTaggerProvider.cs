@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
             if (visibleSpanOpt == null)
             {
-                // Couldn't find anything visible, just fall back to classifying everything.
+                // Couldn't find anything visible, just fall back to tagging all hint locations
                 return base.GetSpansToTag(textView, subjectBuffer);
             }
 

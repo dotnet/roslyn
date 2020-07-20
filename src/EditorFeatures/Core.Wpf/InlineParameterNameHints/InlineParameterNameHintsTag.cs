@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
@@ -36,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
             var block = new TextBlock
             {
+                FontFamily = format.Typeface.FontFamily,
+                FontSize = format.FontRenderingEmSize - (0.25 * format.FontRenderingEmSize),
+                FontStyle = FontStyles.Normal,
+                Foreground = format.ForegroundBrush,
+                Padding = new Thickness(0),
                 Text = text + ":",
                 VerticalAlignment = VerticalAlignment.Center,
-                FontStyle = FontStyles.Normal,
-                FontFamily = format.Typeface.FontFamily,
-                FontSize = format.FontRenderingEmSize - (0.25 * format.FontHintingEmSize),
-                Padding = new Thickness(0),
-                Foreground = format.ForegroundBrush
             };
 
             // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
@@ -50,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             // adornment to the text
             var border = new Border
             {
-                Child = block,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center,
                 Background = format.BackgroundBrush,
-                Padding = new Thickness(1),
-                Margin = new Thickness(0, 0, 5, 0),
-                Height = lineHeight - (0.25 * lineHeight),
+                Child = block,
                 CornerRadius = new CornerRadius(2),
+                Height = lineHeight - (0.25 * lineHeight),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 0, 5, 0),
+                Padding = new Thickness(1),
+                VerticalAlignment = VerticalAlignment.Center,
             };
 
             border.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
