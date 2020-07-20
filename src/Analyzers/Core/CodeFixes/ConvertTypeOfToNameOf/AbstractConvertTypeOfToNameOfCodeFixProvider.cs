@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        internal static string _codeFixTitle;
+        public AbstractConvertTypeOfToNameOfCodeFixProvider()
+        {
+            _codeFixTitle = GetCodeFixTitle(AnalyzersResources.Convert_gettype_to_nameof, AnalyzersResources.Convert_typeof_to_nameof);
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId);
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
@@ -56,10 +62,12 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected abstract ITypeSymbol GetSymbolType(SemanticModel model, SyntaxNode node);
 
+        protected abstract string GetCodeFixTitle(string visualbasic, string csharp);
+
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Convert_typeof_to_nameof, createChangedDocument, AnalyzersResources.Convert_typeof_to_nameof)
+                : base(_codeFixTitle, createChangedDocument, _codeFixTitle)
             {
             }
         }

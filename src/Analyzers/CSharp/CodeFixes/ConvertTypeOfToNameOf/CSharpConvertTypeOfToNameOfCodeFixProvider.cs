@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         {
         }
 
+        protected override string GetCodeFixTitle(string visualbasic, string csharp)
+        {
+            return csharp;
+        }
+
         protected override ITypeSymbol? GetSymbolType(SemanticModel model, SyntaxNode node)
         {
             if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression })

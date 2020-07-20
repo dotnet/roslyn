@@ -20,6 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function GetCodeFixTitle(visualbasic As String, csharp As String) As String
+            Return visualbasic
+        End Function
+
         Protected Overrides Function GetSymbolType(semanticModel As SemanticModel, node As SyntaxNode) As ITypeSymbol
             Dim expression = DirectCast(node, MemberAccessExpressionSyntax).Expression
             Dim type = DirectCast(expression, GetTypeExpressionSyntax).Type
