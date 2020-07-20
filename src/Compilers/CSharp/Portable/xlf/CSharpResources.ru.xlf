@@ -862,6 +862,11 @@
         <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedVarianceStaticMemmber">
+        <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
+        <target state="new">Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
         <target state="translated">"{0}": невозможно одновременно задать класс ограничения и ограничение "unmanaged"</target>
@@ -1484,6 +1489,11 @@
       <trans-unit id="IDS_FeatureUsingDeclarations">
         <source>using declarations</source>
         <target state="translated">объявления using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
+        <source>variance safety for static interface members</source>
+        <target state="new">variance safety for static interface members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">

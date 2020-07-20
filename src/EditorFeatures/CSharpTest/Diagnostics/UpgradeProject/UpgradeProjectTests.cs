@@ -946,5 +946,19 @@ class Test
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
         }
+
+        [Fact]
+        public async Task UpgradeProjectForVarianceSafetyForStaticInterfaceMembers_CS8880()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+interface I2<out T1>
+{
+    static T1 M1([|T1|] x) => x;
+}
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
     }
 }
