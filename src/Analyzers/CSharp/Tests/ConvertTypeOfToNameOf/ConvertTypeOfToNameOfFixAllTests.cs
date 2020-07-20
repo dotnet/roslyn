@@ -212,7 +212,7 @@ class Test3
 {
     static void Main()
     {
-        var typeName1 = typeof(Test1).Name; var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
+        var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
     }
 }
         </Document>
@@ -254,7 +254,7 @@ class Test3
 {
     static void Main()
     {
-        var typeName1 = nameof(Test1); var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
+        var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
     }
 }
         </Document>
