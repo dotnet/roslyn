@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             var symbolType = GetSymbolType(semanticModel, nodeToReplace);
             var typeExpression = editor.Generator.TypeExpression(symbolType);
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
-            editor.ReplaceNode(nodeToReplace, nameOfSyntax.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation));
+            editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
         protected abstract ITypeSymbol GetSymbolType(SemanticModel model, SyntaxNode node);

@@ -56,7 +56,7 @@ end class
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)>
         Public Async Function ClassLibraryTypeWithImport() As Task
             Dim text = "
-import System
+Imports System
 
 class Test
     sub Method()
@@ -65,11 +65,11 @@ class Test
 end class
 "
             Dim expected = "
-import System
+Imports System
 
 class Test
     sub Method()
-        dim typeName = [||]NameOf(String)
+        dim typeName = [||]NameOf([String])
     end sub
 end class
 "
@@ -79,7 +79,7 @@ end class
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)>
         Public Async Function NestedCall() As Task
             Dim text = "
-import System
+Imports System
 
 class Test
     sub Method()
@@ -91,11 +91,11 @@ class Test
 end class
 "
             Dim expected = "
-import System
+Imports System
 
 class Test
     sub Method()
-        dim typeName = Foo([||]NameOf(String))
+        dim typeName = Foo([||]NameOf([String]))
     end sub
 
     sub Foo(ByVal typeName As String)
