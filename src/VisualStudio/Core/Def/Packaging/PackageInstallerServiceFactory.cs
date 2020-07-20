@@ -225,8 +225,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             lock (_gate)
             {
-                // Reset the task for loading package sources.  The next time someone asks for it we'll recompute it.
-                _packageSourcesTask = null;
+                // If the existing _packageSourcesTask is null, that means no one has asked us about package sources
+                // yet.  So no need for us to do anything if that's true.  We'll just continue waiting until first
+                // asked.  However, if it's not null, that means we have already been asked.  In that case, proactively
+                // get the new set of sources so they're ready for the next time we're asked.
+                if (_packageSourcesTask != null)
+                    _packageSourcesTask = Task.Run(() => GetPackageSourcesAsync());
             }
 
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
