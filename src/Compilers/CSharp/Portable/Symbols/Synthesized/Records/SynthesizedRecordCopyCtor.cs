@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        public override Accessibility DeclaredAccessibility => Accessibility.Protected;
+        public override Accessibility DeclaredAccessibility => ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
