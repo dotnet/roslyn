@@ -505,24 +505,18 @@ namespace Analyzer.Utilities
         public static string? GetMSBuildPropertyValue(
             this AnalyzerOptions options,
             string optionName,
-            DiagnosticDescriptor rule,
-            ISymbol symbol,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetMSBuildPropertyValue(optionName, rule, tree, compilation, cancellationToken)
-            : null;
-
-        public static string? GetMSBuildPropertyValue(
-            this AnalyzerOptions options,
-            string optionName,
-            DiagnosticDescriptor rule,
-            SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken)
         {
+            // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
+            // So, we default to first syntax tree.
+            if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
+            {
+                return null;
+            }
+
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
-            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule,
+            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule: null,
                 tryParseValue: (string value, out string? result) => { result = value; return true; },
                 defaultValue: null, OptionKind.BuildProperty);
         }
