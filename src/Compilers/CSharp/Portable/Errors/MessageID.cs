@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRecords = MessageBase + 12782,
         IDS_FeatureNullPointerConstantPattern = MessageBase + 12783,
         IDS_FeatureModuleInitializers = MessageBase + 12784,
+        IDS_FeatureConstantInterpolatedStrings = MessageBase + 12785,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -334,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRecords:
                 case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
+                case MessageID.IDS_FeatureConstantInterpolatedStrings: //semantic check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
