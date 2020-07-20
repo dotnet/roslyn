@@ -520,7 +520,7 @@ namespace A
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
         private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: FeaturesTestCompositions.Features);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options

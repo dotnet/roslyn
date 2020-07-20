@@ -29,10 +29,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             _exportProvider = host;
             _workspace = workspace;
-            _services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
-                .Concat(host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-                            .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata)))
-                .ToImmutableArray();
+
+            var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>();
+            var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
+                .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata));
+
+            _services = services.Concat(factories).ToImmutableArray();
         }
 
         public override HostServices HostServices

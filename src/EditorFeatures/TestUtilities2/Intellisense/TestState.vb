@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
         Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeatures.
-            AddExcludedParts(
+            AddExcludedPartTypes(
                 GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
                 GetType(FormatCommandHandler)).
             AddParts(
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             includeFormatCommandHandler As Boolean) As TestComposition
 
             Dim composition = CompositionWithoutCompletionTestParts.
-                AddExcludedParts(excludedTypes).
+                AddExcludedPartTypes(excludedTypes).
                 AddParts(extraExportedTypes)
 
             If includeFormatCommandHandler Then

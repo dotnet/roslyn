@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -37,8 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
     public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(CompletionProvider));
+
         protected readonly Mock<ICompletionSession> MockCompletionSession;
         protected TWorkspaceFixture WorkspaceFixture;
+        private ExportProvider _lazyExportProvider;
 
         protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
         {
@@ -46,6 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             this.WorkspaceFixture = workspaceFixture;
         }
+
+        protected ExportProvider ExportProvider
+            => _lazyExportProvider ??= GetComposition().ExportProviderFactory.CreateExportProvider();
+
+        protected virtual TestComposition GetComposition()
+            => s_baseComposition.AddParts(GetCompletionProviderType());
 
         public override void Dispose()
         {
@@ -166,36 +174,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private static readonly Dictionary<Type, TestComposition> s_compositions = new Dictionary<Type, TestComposition>();
-        private ExportProvider _exportProvider;
-
-        protected ExportProvider ExportProvider
-        {
-            get
-            {
-                if (_exportProvider == null)
-                {
-                    TestComposition composition;
-                    lock (s_compositions)
-                    {
-                        composition = s_compositions.GetOrAdd(GetType(), type => GetComposition());
-                    }
-
-                    _exportProvider = composition.ExportProviderFactory.CreateExportProvider();
-                }
-
-                return _exportProvider;
-            }
-        }
-
         protected void SetExperimentOption(string experimentName, bool enabled)
         {
             var mockExperimentService = ExportProvider.GetExportedValue<TestExperimentationService>();
             mockExperimentService.SetExperimentOption(experimentName, enabled);
         }
-
-        protected virtual TestComposition GetComposition()
-            => EditorTestCompositions.EditorFeatures.AddExcludedParts(typeof(CompletionProvider)).AddParts(GetCompletionProviderType());
 
         private static bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {

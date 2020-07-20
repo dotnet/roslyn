@@ -7,42 +7,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 {
     [UseExportProvider]
     public abstract class AbstractKeywordHighlighterTests
     {
-        private static readonly Dictionary<Type, TestComposition> s_compositions = new Dictionary<Type, TestComposition>();
-        private TestComposition _composition;
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IHighlighter));
+        private TestComposition _lazyComposition;
 
         protected TestComposition Composition
-        {
-            get
-            {
-                if (_composition == null)
-                {
-                    lock (s_compositions)
-                    {
-                        _composition = s_compositions.GetOrAdd(
-                            GetHighlighterType(),
-                            type => EditorTestCompositions.EditorFeatures.AddExcludedParts(typeof(IHighlighter)).AddParts(type));
-                    }
-                }
-
-                return _composition;
-            }
-        }
+            => _lazyComposition ??= s_baseComposition.AddParts(GetHighlighterType());
 
         internal abstract Type GetHighlighterType();
+
         protected abstract IEnumerable<ParseOptions> GetOptions();
         protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
 

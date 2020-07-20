@@ -16,8 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
     <[UseExportProvider]>
     Public Class PreviewChangesTests
 
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
-            GetType(StubVsEditorAdaptersFactoryService))
+        Private Shared ReadOnly s_composition As TestComposition = VisualStudioTestCompositions.LanguageServices
 
         <WpfFact>
         Public Sub TestListStructure()

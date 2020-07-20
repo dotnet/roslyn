@@ -224,7 +224,7 @@ End Class</text>
         </Document>
     </Project>
 </Workspace>,
-            composition:=EditorTestCompositions.EditorFeatures.AddExcludedParts(GetType(CommitConnectionListener)))
+            composition:=EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(GetType(CommitConnectionListener)))
         End Function
     End Class
 End Namespace

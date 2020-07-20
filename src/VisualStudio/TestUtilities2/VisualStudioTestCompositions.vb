@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(StubStreamingFindUsagesPresenter)).
             AddParts(
                 GetType(MockWorkspaceEventListenerProvider)). ' avoid running Solution Crawler
-            AddExcludedParts(
+            AddExcludedPartTypes(
                 GetType(HACK_ThemeColorFixer),
                 GetType(INotificationService),      ' EditorNotificationServiceFactory is used 
                 GetType(VisualStudioWaitIndicator)) ' TestWaitIndicator is used instead

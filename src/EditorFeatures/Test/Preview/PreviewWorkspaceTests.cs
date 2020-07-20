@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithExplicitHostServices()
         {
-            var assembly = typeof(ISolutionCrawlerService).Assembly;
-            using var previewWorkspace = new PreviewWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Concat(assembly)));
+            var hostServices = FeaturesTestCompositions.Features.GetHostServices();
+            using var previewWorkspace = new PreviewWorkspace(hostServices);
             Assert.NotNull(previewWorkspace.CurrentSolution);
         }
 

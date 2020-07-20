@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
@@ -22,6 +23,39 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public sealed class TestComposition
     {
         public static readonly TestComposition Empty = new TestComposition(ImmutableHashSet<Assembly>.Empty, ImmutableHashSet<Type>.Empty, ImmutableHashSet<Type>.Empty);
+
+        private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = new Dictionary<CacheKey, IExportProviderFactory>();
+
+        private readonly struct CacheKey : IEquatable<CacheKey>
+        {
+            private readonly ImmutableArray<Assembly> _assemblies;
+            private readonly ImmutableArray<Type> _parts;
+            private readonly ImmutableArray<Type> _excludedPartTypes;
+
+            public CacheKey(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> parts, ImmutableHashSet<Type> excludedPartTypes)
+            {
+                _assemblies = assemblies.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName)).ToImmutableArray();
+                _parts = parts.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName)).ToImmutableArray();
+                _excludedPartTypes = excludedPartTypes.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName)).ToImmutableArray();
+            }
+
+            public override bool Equals(object? obj)
+                => obj is CacheKey key && Equals(key);
+
+            public bool Equals(CacheKey other)
+                => _parts.SequenceEqual(other._parts) &&
+                   _excludedPartTypes.SequenceEqual(other._excludedPartTypes) &&
+                   _assemblies.SequenceEqual(other._assemblies);
+
+            public override int GetHashCode()
+                => Hash.Combine(Hash.Combine(Hash.CombineValues(_assemblies), Hash.CombineValues(_parts)), Hash.CombineValues(_excludedPartTypes));
+
+            public static bool operator ==(CacheKey left, CacheKey right)
+                => left.Equals(right);
+
+            public static bool operator !=(CacheKey left, CacheKey right)
+                => !(left == right);
+        }
 
         /// <summary>
         /// Assemblies to include in the composition.
@@ -47,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Parts = parts;
             ExcludedPartTypes = excludedPartTypes;
 
-            _exportProviderFactory = new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(GetCatalog()));
+            _exportProviderFactory = new Lazy<IExportProviderFactory>(GetOrCreateFactory);
         }
 
         /// <summary>
@@ -62,17 +96,44 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public IExportProviderFactory ExportProviderFactory => _exportProviderFactory.Value;
 
+        private IExportProviderFactory GetOrCreateFactory()
+        {
+            var key = new CacheKey(Assemblies, Parts, ExcludedPartTypes);
+
+            lock (s_factoryCache)
+            {
+                if (s_factoryCache.TryGetValue(key, out var existing))
+                {
+                    return existing;
+                }
+            }
+
+            var newFactory = ExportProviderCache.CreateExportProviderFactory(GetCatalog());
+
+            lock (s_factoryCache)
+            {
+                if (s_factoryCache.TryGetValue(key, out var existing))
+                {
+                    return existing;
+                }
+
+                s_factoryCache.Add(key, newFactory);
+            }
+
+            return newFactory;
+        }
+
         private ComposableCatalog GetCatalog()
-            => ExportProviderCache.GetOrCreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
+            => ExportProviderCache.CreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
 
         public TestComposition Add(TestComposition composition)
-            => WithAssemblies(composition.Assemblies).WithParts(composition.Parts).WithExcludedPartTypes(composition.ExcludedPartTypes);
+            => AddAssemblies(composition.Assemblies).AddParts(composition.Parts).AddExcludedPartTypes(composition.ExcludedPartTypes);
 
         public TestComposition AddAssemblies(params Assembly[]? assemblies)
             => AddAssemblies((IEnumerable<Assembly>?)assemblies);
 
         public TestComposition AddAssemblies(IEnumerable<Assembly>? assemblies)
-            => WithAssemblies(Assemblies.Union(assemblies ?? Array.Empty<Assembly>());
+            => WithAssemblies(Assemblies.Union(assemblies ?? Array.Empty<Assembly>()));
 
         public TestComposition AddParts(IEnumerable<Type>? types)
             => WithParts(Parts.Union(types ?? Array.Empty<Type>()));
@@ -80,14 +141,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TestComposition AddParts(params Type[]? types)
             => AddParts((IEnumerable<Type>?)types);
 
-        public TestComposition AddExcludedParts(IEnumerable<Type>? types)
+        public TestComposition AddExcludedPartTypes(IEnumerable<Type>? types)
             => WithExcludedPartTypes(Parts.Union(types ?? Array.Empty<Type>()));
 
-        public TestComposition AddExcludedParts(params Type[]? types)
-            => AddExcludedParts((IEnumerable<Type>?)types);
+        public TestComposition AddExcludedPartTypes(params Type[]? types)
+            => AddExcludedPartTypes((IEnumerable<Type>?)types);
 
         public TestComposition Remove(TestComposition composition)
-            => WithAssemblies(composition.Assemblies).WithParts(composition.Parts).WithExcludedPartTypes(composition.ExcludedPartTypes);
+            => RemoveAssemblies(composition.Assemblies).RemoveParts(composition.Parts).RemoveExcludedPartTypes(composition.ExcludedPartTypes);
 
         public TestComposition RemoveAssemblies(params Assembly[]? assemblies)
             => RemoveAssemblies((IEnumerable<Assembly>?)assemblies);
@@ -101,14 +162,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TestComposition RemoveParts(params Type[]? types)
             => RemoveParts((IEnumerable<Type>?)types);
 
-        public TestComposition RemoveExcludedParts(IEnumerable<Type>? types)
+        public TestComposition RemoveExcludedPartTypes(IEnumerable<Type>? types)
             => WithExcludedPartTypes(Parts.Except(types ?? Array.Empty<Type>()));
 
-        public TestComposition RemoveExcludedParts(params Type[]? types)
-            => RemoveExcludedParts((IEnumerable<Type>?)types);
+        public TestComposition RemoveExcludedPartTypes(params Type[]? types)
+            => RemoveExcludedPartTypes((IEnumerable<Type>?)types);
 
         public TestComposition WithAssemblies(ImmutableHashSet<Assembly> assemblies)
-            => (assemblies == Assemblies) ? this : new TestComposition(assemblies, Parts, ExcludedPartTypes);
+        {
+            if (assemblies == Assemblies)
+            {
+                return this;
+            }
+
+            var testAssembly = assemblies.FirstOrDefault(IsTestAssembly);
+            Contract.ThrowIfFalse(testAssembly == null, $"Test assemblies are not allowed in test composition: {testAssembly}. Specify explicit test parts instead.");
+
+            return new TestComposition(assemblies, Parts, ExcludedPartTypes);
+
+            static bool IsTestAssembly(Assembly assembly)
+            {
+                var name = assembly.GetName().Name!;
+                return
+                    name.EndsWith(".Tests", StringComparison.OrdinalIgnoreCase) ||
+                    name.EndsWith(".UnitTests", StringComparison.OrdinalIgnoreCase) ||
+                    name.IndexOf("Test.Utilities", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+        }
 
         public TestComposition WithParts(ImmutableHashSet<Type> parts)
             => (parts == Parts) ? this : new TestComposition(Assemblies, parts, ExcludedPartTypes);

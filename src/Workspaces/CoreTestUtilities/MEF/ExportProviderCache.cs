@@ -23,19 +23,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
 
-        // Cache the catalog and export provider factory for MefHostServices.DefaultAssemblies
-        private static readonly ComposableCatalog s_defaultHostCatalog =
-            CreateAssemblyCatalog(MefHostServices.DefaultAssemblies);
-
-        private static readonly IExportProviderFactory s_defaultHostExportProviderFactory =
-            CreateExportProviderFactory(s_defaultHostCatalog);
-
-        // Cache the catalog and export provider factory for RoslynServices.RemoteHostAssemblies
-        private static readonly ComposableCatalog s_remoteHostCatalog =
-            CreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies);
-
-        private static readonly IExportProviderFactory s_remoteHostExportProviderFactory =
-            CreateExportProviderFactory(s_remoteHostCatalog);
+        private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty.AddAssemblies(MefHostServices.DefaultAssemblies);
+        internal static readonly TestComposition RemoteHostExportProviderComposition = TestComposition.Empty.AddAssemblies(RoslynServices.RemoteHostAssemblies);
 
         private static bool _enabled;
 
@@ -58,27 +47,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static ComposableCatalog GetOrCreateAssemblyCatalog(Assembly assembly)
-            => GetOrCreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
-
-        public static ComposableCatalog GetOrCreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
+        public static IExportProviderFactory GetOrCreateExportProviderFactory(IEnumerable<Assembly> assemblies)
         {
             if (assemblies is ImmutableArray<Assembly> assembliesArray)
             {
                 if (assembliesArray == MefHostServices.DefaultAssemblies)
                 {
-                    return s_defaultHostCatalog;
+                    return s_defaultHostExportProviderComposition.ExportProviderFactory;
                 }
                 else if (assembliesArray == RoslynServices.RemoteHostAssemblies)
                 {
-                    return s_remoteHostCatalog;
+                    return RemoteHostExportProviderComposition.ExportProviderFactory;
                 }
             }
 
-            return CreateAssemblyCatalog(assemblies, resolver);
+            return CreateExportProviderFactory(CreateAssemblyCatalog(assemblies));
         }
 
-        private static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
+        public static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
         {
             var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
@@ -109,24 +95,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static PartDiscovery CreatePartDiscovery(Resolver resolver)
             => PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
 
-        public static ComposableCatalog WithParts(this ComposableCatalog @this, ComposableCatalog catalog)
-            => @this.AddParts(catalog.DiscoveredParts);
-
         public static ComposableCatalog WithParts(this ComposableCatalog catalog, IEnumerable<Type> types)
-            => catalog.WithParts(CreateTypeCatalog(types));
-
-        public static ComposableCatalog WithParts(this ComposableCatalog catalog, params Type[] types)
-            => WithParts(catalog, (IEnumerable<Type>)types);
-
-        public static ComposableCatalog WithPart(this ComposableCatalog catalog, Type t)
-            => catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
-
-        /// <summary>
-        /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
-        /// parts assignable to type <paramref name="t"/> removed from the catalog.
-        /// </summary>
-        public static ComposableCatalog WithoutPartsOfType(this ComposableCatalog catalog, Type t)
-            => catalog.WithoutPartsOfTypes(SpecializedCollections.SingletonEnumerable(t));
+            => catalog.AddParts(CreateTypeCatalog(types).DiscoveredParts);
 
         /// <summary>
         /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
@@ -143,21 +113,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static IExportProviderFactory GetOrCreateExportProviderFactory(ComposableCatalog catalog)
-        {
-            if (catalog == s_defaultHostCatalog)
-            {
-                return s_defaultHostExportProviderFactory;
-            }
-            else if (catalog == s_remoteHostCatalog)
-            {
-                return s_remoteHostExportProviderFactory;
-            }
-
-            return CreateExportProviderFactory(catalog);
-        }
-
-        private static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
+        public static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
         {
             var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
@@ -55,11 +56,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// the test is failed.
         /// </summary>
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
-
-        // Cache the export provider factory for RoslynServices.RemoteHostAssemblies
-        private static readonly Lazy<IExportProviderFactory> s_remoteHostExportProviderFactory = new Lazy<IExportProviderFactory>(
-            CreateRemoteHostExportProviderFactory,
-            LazyThreadSafetyMode.ExecutionAndPublication);
 
         private readonly Lazy<MefHostServices> _remoteHostServices = new Lazy<MefHostServices>(
             CreateRemoteHostServices,
@@ -161,29 +157,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private MefHostServices CreateMefHostServices(IEnumerable<Assembly> assemblies, bool requestingDefaultAssemblies)
+        private MefHostServices CreateMefHostServices(IEnumerable<Assembly> assemblies)
         {
-            if (requestingDefaultAssemblies && ExportProviderCache.ExportProviderForCleanup != null)
+            ExportProvider exportProvider;
+
+            if (assemblies is ImmutableArray<Assembly> array &&
+                array == MefHostServices.DefaultAssemblies &&
+                ExportProviderCache.ExportProviderForCleanup != null)
             {
-                if (_hostServices == null)
+                if (_hostServices != null)
                 {
-                    var hostServices = new ExportProviderMefHostServices(ExportProviderCache.ExportProviderForCleanup);
-                    Interlocked.CompareExchange(ref _hostServices, hostServices, null);
+                    return _hostServices;
                 }
 
-                return _hostServices;
+                exportProvider = ExportProviderCache.ExportProviderForCleanup;
+            }
+            else
+            {
+                exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(assemblies).CreateExportProvider();
             }
 
-            var catalog = ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies);
             Interlocked.CompareExchange(
-                ref _hostServices,
-                new ExportProviderMefHostServices(ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()),
-                null);
+                    ref _hostServices,
+                    new ExportProviderMefHostServices(exportProvider),
+                    null);
 
             return _hostServices;
         }
 
-        private static MefHostServices DenyMefHostServicesCreationBetweenTests(IEnumerable<Assembly> assemblies, bool requestingDefaultAssemblies)
+        private static MefHostServices DenyMefHostServicesCreationBetweenTests(IEnumerable<Assembly> assemblies)
         {
             // If you hit this, one of three situations occurred:
             //
@@ -196,15 +198,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             throw new InvalidOperationException("Cannot create host services after test tear down.");
         }
 
-        private static IExportProviderFactory CreateRemoteHostExportProviderFactory()
-        {
-            var configuration = CompositionConfiguration.Create(ExportProviderCache.GetOrCreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).WithCompositionService());
-            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-            return runtimeComposition.CreateExportProviderFactory();
-        }
-
         private static MefHostServices CreateRemoteHostServices()
-            => new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.Value.CreateExportProvider());
+            => new ExportProviderMefHostServices(ExportProviderCache.RemoteHostExportProviderComposition.ExportProviderFactory.CreateExportProvider());
 
         private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
         {

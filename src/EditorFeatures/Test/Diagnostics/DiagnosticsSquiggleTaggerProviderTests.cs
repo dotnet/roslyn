@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     public class DiagnosticsSquiggleTaggerProviderTests
     {
         private static readonly TestComposition s_compositionWithMockDiagnosticService =
-            EditorTestCompositions.EditorFeatures.AddExcludedParts(typeof(IDiagnosticService)).AddParts(typeof(MockDiagnosticService));
+            EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IDiagnosticService)).AddParts(typeof(MockDiagnosticService));
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task Test_TagSourceDiffer()
