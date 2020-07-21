@@ -4,6 +4,7 @@
 
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
             // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
             // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
-            // adornment to the text
+            // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
             var border = new Border
             {
                 Background = format.BackgroundBrush,
@@ -53,12 +54,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 CornerRadius = new CornerRadius(2),
                 Height = lineHeight - (0.25 * lineHeight),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 0, 5, 0),
+                Margin = new Thickness(0, -0.20 * lineHeight, 5, 0),
                 Padding = new Thickness(1),
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            border.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             return border;
         }
     }
