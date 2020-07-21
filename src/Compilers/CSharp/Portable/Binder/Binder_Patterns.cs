@@ -487,6 +487,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool operandCouldBeNull = false)
         {
             RoslynDebug.Assert((object)expressionType != null);
+
+            // Short-circuit a common case.  This also improves recovery for some error
+            // cases, e.g. when the type is void.
+            if (expressionType.Equals(patternType, TypeCompareKind.AllIgnoreOptions))
+            {
+                conversion = Conversion.Identity;
+                return true;
+            }
+
             if (expressionType.IsDynamic())
             {
                 // if operand is the dynamic type, we do the same thing as though it were object
