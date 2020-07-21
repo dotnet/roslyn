@@ -29,6 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             </Workspace>
 
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService),
                 GetType(CompletionItemNonExclusiveCompletionProvider),
                 GetType(CompletionItemExclusiveCompletionProvider),
                 GetType(CompletionItemExclusive2CompletionProvider))

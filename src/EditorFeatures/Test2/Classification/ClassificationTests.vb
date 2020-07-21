@@ -32,7 +32,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 </Project>
             </Workspace>
 
-            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationEditorClassificationService))
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(NoCompilationEditorClassificationService))
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
@@ -91,7 +94,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 </Project>
             </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(NoCompilationContentTypeDefinitions))
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim project = workspace.CurrentSolution.Projects.First(Function(p) p.Language = LanguageNames.CSharp)
                 Dim classificationService = project.LanguageServices.GetService(Of IClassificationService)()
 

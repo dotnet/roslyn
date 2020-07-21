@@ -192,7 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
+            // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
+            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeaturesWpf);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 

@@ -1399,7 +1399,7 @@ class C
 
         private static void MakeDocumentActive(Document document)
         {
-            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Workspace.Services.GetService<IDocumentTrackingService>();
+            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
             documentTrackingService.SetActiveDocument(document.Id);
         }
 
@@ -1411,11 +1411,13 @@ class C
 
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
+            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService));
+
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
             public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(composition: EditorTestCompositions.EditorFeatures, workspaceKind: workspaceKind, disablePartialSolutions: disablePartialSolutions)
+                : base(composition: s_composition, workspaceKind: workspaceKind, disablePartialSolutions: disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
                 _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);

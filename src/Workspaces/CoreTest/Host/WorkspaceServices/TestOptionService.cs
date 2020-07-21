@@ -16,15 +16,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class TestOptionService
     {
-        public static OptionServiceFactory.OptionService GetService(IOptionProvider? optionProvider = null)
+        public static OptionServiceFactory.OptionService GetService(Workspace workspace, IOptionProvider? optionProvider = null)
         {
-            var features = new Dictionary<string, object>();
-            features.Add("Features", new List<string>(new[] { "Test Features" }));
             return new OptionServiceFactory.OptionService(new GlobalOptionService(new[]
                 {
                     new Lazy<IOptionProvider, LanguageMetadata>(() => optionProvider ??= new TestOptionsProvider(), new LanguageMetadata(LanguageNames.CSharp))
                 },
-                Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: new AdhocWorkspace().Services);
+                Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: workspace.Services);
         }
 
         internal class TestOptionsProvider : IOptionProvider

@@ -68,7 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "GetBaseClassName Tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestGetBaseClassName_NonexistingClass()
             Dim code As String = <text>Class c
 End Class</text>.Value
@@ -127,7 +127,7 @@ End Class</text>.Value
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestGetBaseClassName_FullyQualifiedNames()
             Dim code As String = <text>
 Namespace N
@@ -146,7 +146,7 @@ End Namespace</text>.Value
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestGetBaseClassName_MinimallyQualifiedNames()
             Dim code As String = <text>
 Namespace N
@@ -165,7 +165,7 @@ End Namespace</text>.Value
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestGetBaseClassName_EscapedKeyword()
             Dim code As String = <text>
 Class [Class]
@@ -291,7 +291,7 @@ End Class</text>.Value
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestCreateUniqueEventName_NameCollisionFromBaseClass()
             Dim code As String = <text>
 Public Partial Class _Default

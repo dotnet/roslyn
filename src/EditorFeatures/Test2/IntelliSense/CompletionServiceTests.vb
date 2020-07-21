@@ -23,7 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Project>
             </Workspace>
 
-            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(TestCompletionProvider))
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(TestCompletionProvider))
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First

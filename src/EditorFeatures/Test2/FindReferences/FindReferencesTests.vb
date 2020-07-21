@@ -18,6 +18,10 @@ Imports Xunit.Abstractions
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <[UseExportProvider]>
     Partial Public Class FindReferencesTests
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
+            GetType(NoCompilationContentTypeDefinitions),
+            GetType(NoCompilationContentTypeLanguageService))
+
         Private Const DefinitionKey As String = "Definition"
         Private Const ValueUsageInfoKey As String = "ValueUsageInfo."
         Private Const TypeOrNamespaceUsageInfoKey As String = "TypeOrNamespaceUsageInfo."
@@ -56,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return
             End If
 
-            Using workspace = TestWorkspace.Create(element)
+            Using workspace = TestWorkspace.Create(element, composition:=s_composition)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
 
@@ -253,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
 
             options = If(options, FindReferencesSearchOptions.Default)
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = TestWorkspace.Create(definition, composition:=s_composition)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)

@@ -52,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         ' Do not call directly. Use TestStateFactory
         Friend Sub New(workspaceElement As XElement,
-                       excludedTypes As List(Of Type),
-                       extraExportedTypes As List(Of Type),
+                       excludedTypes As IEnumerable(Of Type),
+                       extraExportedTypes As IEnumerable(Of Type),
                        includeFormatCommandHandler As Boolean,
                        workspaceKind As String,
                        Optional makeSeparateBufferForCursor As Boolean = False,

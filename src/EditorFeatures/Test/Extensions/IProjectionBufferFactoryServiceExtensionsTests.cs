@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void TestCreateProjectionBuffer()
         {
-            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var composition = EditorTestCompositions.Editor.AddParts(typeof(IProjectionBufferFactoryServiceExtensions));
+            var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
             var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
             var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
 @"  line 1
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void TestCreateProjectionBufferWithoutIndentation()
         {
-            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var composition = EditorTestCompositions.Editor.AddParts(typeof(IProjectionBufferFactoryServiceExtensions));
+            var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
             var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
             var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
 @"  line 1

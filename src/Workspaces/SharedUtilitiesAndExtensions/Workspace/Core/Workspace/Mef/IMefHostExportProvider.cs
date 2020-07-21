@@ -18,5 +18,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     {
         public static TExtension GetExportedValue<TExtension>(this IMefHostExportProvider provider)
             => provider.GetExports<TExtension>().Single().Value;
+
+        public static IEnumerable<TExtension> GetExportedValues<TExtension>(this IMefHostExportProvider provider)
+            => provider.GetExports<TExtension>().Select(l => l.Value);
     }
 }

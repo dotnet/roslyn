@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -22,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
             GetType(MockDocumentNavigationServiceFactory),
+            GetType(MockPreviewDialogService),
             GetType(TestExperimentationService))
 
         Private Function GetSessionInfo(workspace As TestWorkspace) As (document As Document, textSpan As TextSpan)
