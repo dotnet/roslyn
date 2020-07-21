@@ -61,6 +61,7 @@ namespace Analyzer.Utilities
         /// </summary>
         private readonly ConcurrentDictionary<string, INamedTypeSymbol?> _fullNameToTypeMap;
 
+#if !NETSTANDARD1_3 // Assuming we're on .NET Standard 2.0 or later, cache the type names that are probably compile time constants.
         /// <summary>
         /// Static cache of full type names (with namespaces) to namespace name parts,
         /// so we can query <see cref="IAssemblySymbol.NamespaceNames"/>.
@@ -74,6 +75,7 @@ namespace Analyzer.Utilities
         /// </remarks>
         private static readonly ConcurrentDictionary<string, string[]> _fullTypeNameToNamespaceNames =
             new ConcurrentDictionary<string, string[]>(StringComparer.Ordinal);
+#endif
 
         /// <summary>
         /// Attempts to get the type by the full type name.
