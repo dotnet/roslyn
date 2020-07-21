@@ -35,10 +35,12 @@ namespace myNamespace
     }
 }";
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35701")]
+        [WpfTheory, CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateThroughCommand()
+        public void EncapsulateThroughCommand([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
+
             SetUpEditor(TestSource);
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
