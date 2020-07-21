@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class Extensions
     {
-        public static Uri GetURI(this Document document)
+        public static Uri GetURI(this TextDocument document)
         {
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
@@ -96,7 +96,78 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents[0];
         }
 
-        public static async Task<int> GetPositionFromLinePositionAsync(this Document document, LinePosition linePosition, CancellationToken cancellationToken)
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        {
+            // TODO: we need to normalize this. but for now, we check both absolute and local path
+            //       right now, based on who calls this, solution might has "/" or "\\" as directory
+            //       separator
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
+
+            if (!documentIds.Any())
+            {
+                documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+            }
+
+            return documentIds.SelectAsArray(id => solution.GetRequiredTextDocument(id));
+        }
+
+        public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
+        {
+            var documents = solutionProvider.GetTextDocuments(uri);
+
+            // If we don't have a client name, then we're done filtering
+            if (clientName == null)
+            {
+                return documents;
+            }
+
+            // We have a client name, so we need to filter to only documents that match that name
+            return documents.WhereAsArray(document =>
+            {
+                var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+
+                // When a client name is specified, only return documents that have a matching client name.
+                // Allows the razor lsp server to return results only for razor documents.
+                // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
+                // is fixed (so that the razor language server is only asked about razor buffers).
+                return Equals(documentPropertiesService?.DiagnosticsLspClientName, clientName);
+            });
+        }
+
+        public static TextDocument? GetTextDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
+        {
+            var documents = solutionProvider.GetTextDocuments(documentIdentifier.Uri);
+
+            if (documents.Length == 0)
+            {
+                return null;
+            }
+
+            if (documents.Length > 1)
+            {
+                // We have more than one document; try to find the one that matches the right context
+                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier)
+                {
+                    if (vsDocumentIdentifier.ProjectContext != null)
+                    {
+                        var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
+                        var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
+
+                        if (matchingDocument != null)
+                        {
+                            return matchingDocument;
+                        }
+                    }
+                }
+            }
+
+            // We either have only one document or have multiple, but none of them  matched our context. In the
+            // latter case, we'll just return the first one arbitrarily since this might just be some temporary mis-sync
+            // of client and server state.
+            return documents[0];
+        }
+
+        public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);

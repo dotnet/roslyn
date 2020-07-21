@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly IDiagnosticService _diagnosticService;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
-        private readonly LanguageServerProtocol _protocol;
+        private readonly ILanguageServerProtocol _protocol;
         private readonly CodeAnalysis.Workspace _workspace;
 
         private VSClientCapabilities _clientCapabilities;
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public InProcLanguageServer(Stream inputStream,
             Stream outputStream,
-            LanguageServerProtocol protocol,
+            ILanguageServerProtocol protocol,
             CodeAnalysis.Workspace workspace,
             IDiagnosticService diagnosticService,
             string? clientName)
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var openDocuments = _workspace.GetOpenDocumentIds();
             foreach (var documentId in openDocuments)
             {
-                var document = solution.GetDocument(documentId);
+                var document = solution.GetTextDocument(documentId);
                 if (document != null)
                 {
                     await PublishDiagnosticsAsync(document).ConfigureAwait(false);
@@ -275,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
-        internal async Task PublishDiagnosticsAsync(CodeAnalysis.Document document)
+        internal async Task PublishDiagnosticsAsync(CodeAnalysis.TextDocument document)
         {
             // Retrieve all diagnostics for the current document grouped by their actual file uri.
             var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
@@ -348,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
         }
 
-        private async Task<Dictionary<Uri, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> GetDiagnosticsAsync(CodeAnalysis.Document document, CancellationToken cancellationToken)
+        private async Task<Dictionary<Uri, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> GetDiagnosticsAsync(CodeAnalysis.TextDocument document, CancellationToken cancellationToken)
         {
             var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken)
                                                 .Where(IncludeDiagnostic);
@@ -367,7 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 group => group.Select(diagnostic => ConvertToLspDiagnostic(diagnostic, text)).ToImmutableArray());
             return fileUriToDiagnostics;
 
-            static Uri GetDiagnosticUri(Document document, DiagnosticData diagnosticData)
+            static Uri GetDiagnosticUri(TextDocument document, DiagnosticData diagnosticData)
             {
                 Contract.ThrowIfNull(diagnosticData.DataLocation, "Diagnostic data location should not be null here");
 

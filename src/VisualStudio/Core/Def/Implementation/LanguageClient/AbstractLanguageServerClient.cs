@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         private readonly string? _diagnosticsClientName;
         private readonly IDiagnosticService _diagnosticService;
-        private readonly LanguageServerProtocol _languageServerProtocol;
+        private readonly ILanguageServerProtocol _languageServerProtocol;
         private readonly Workspace _workspace;
         private InProcLanguageServer? _languageServer;
 
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractLanguageServerClient(LanguageServerProtocol languageServerProtocol,
+        public AbstractLanguageServerClient(ILanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             string? diagnosticsClientName)

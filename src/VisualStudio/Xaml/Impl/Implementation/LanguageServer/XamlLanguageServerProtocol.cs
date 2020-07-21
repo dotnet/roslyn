@@ -11,27 +11,29 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
     /// <summary>
-    /// Implements Language Server Protocol
-    /// TODO - Make this public when we're ready.
+    /// Implements the Language Server Protocol for XAML
     /// </summary>
     [Shared]
-    [Export(typeof(LanguageServerProtocol))]
-    internal sealed class LanguageServerProtocol : ILanguageServerProtocol
+    [Export(typeof(XamlLanguageServerProtocol))]
+    internal sealed class XamlLanguageServerProtocol : ILanguageServerProtocol
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
-            => _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == null));
+        public XamlLanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            => _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == StringConstants.XamlLanguageName));
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
