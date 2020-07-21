@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundBlock RewriteNullChecking(BoundBlock block)
         {
+            if (block is null)
+            {
+                return null;
+            }
+
             var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
             if (statementList.IsDefault)
             {
