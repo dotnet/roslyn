@@ -428,6 +428,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // both old and new has items in them. update existing items
                     RoslynDebug.Assert(oldAnalysisResult.DocumentIds != null);
+                    RoslynDebug.Assert(newAnalysisResult.DocumentIds != null);
 
                     // first remove ones no longer needed.
                     var documentsToRemove = oldAnalysisResult.DocumentIds.Except(newAnalysisResult.DocumentIds);

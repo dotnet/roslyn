@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool WouldNotifyToSpecificSymbol(
-            DefinitionItem definitionItem, string rqName, Solution solution, CancellationToken cancellationToken,
+            DefinitionItem definitionItem, string? rqName, Solution solution, CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
         {
             AssertIsForeground();
@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private bool TryGetNavigationAPIRequiredArguments(
             DefinitionItem definitionItem,
-            string rqName,
+            string? rqName,
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out IVsHierarchy? hierarchy,
             out uint itemID,

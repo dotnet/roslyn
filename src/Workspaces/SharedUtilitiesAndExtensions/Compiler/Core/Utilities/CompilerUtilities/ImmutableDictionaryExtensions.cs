@@ -43,7 +43,8 @@ namespace Roslyn.Utilities
         }
 
 #nullable enable
-        public static ImmutableDictionary<TKey, TValue> ToImmutableDictionaryOrEmpty<TSource, TKey, TValue>(this IEnumerable<TSource>? source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector) where TKey : notnull
+        public static ImmutableDictionary<TKey, TValue> ToImmutableDictionaryOrEmpty<TSource, TKey, TValue>(this IEnumerable<TSource>? source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
+            where TKey : notnull
         {
             if (source is null)
             {

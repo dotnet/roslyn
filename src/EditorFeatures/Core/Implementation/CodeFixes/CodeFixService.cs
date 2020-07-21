@@ -266,6 +266,68 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(EditorFeaturesResources.Removal_of_document_not_supported);
         }
 
+        private bool TryGetWorkspaceFixersMap(Document document, [NotNullWhen(true)] out Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>? fixerMap)
+        {
+            if (_lazyWorkspaceFixersMap == null)
+            {
+                var workspaceFixersMap = _getWorkspaceFixersMap(document.Project.Solution.Workspace);
+                Interlocked.CompareExchange(ref _lazyWorkspaceFixersMap, workspaceFixersMap, null);
+            }
+
+            return _lazyWorkspaceFixersMap.TryGetValue(document.Project.Language, out fixerMap);
+        }
+
+        private bool TryGetWorkspaceFixersPriorityMap(Document document, [NotNullWhen(true)] out Lazy<ImmutableDictionary<CodeFixProvider, int>>? fixersPriorityMap)
+        {
+            if (_lazyFixerPriorityMap == null)
+            {
+                var fixersPriorityByLanguageMap = _getFixerPriorityMap(document.Project.Solution.Workspace);
+                Interlocked.CompareExchange(ref _lazyFixerPriorityMap, fixersPriorityByLanguageMap, null);
+            }
+
+            return _lazyFixerPriorityMap.TryGetValue(document.Project.Language, out fixersPriorityMap);
+        }
+
+        private bool TryGetWorkspaceFixer(
+            Lazy<CodeFixProvider, CodeChangeProviderMetadata> lazyFixer,
+            Workspace workspace,
+            bool logExceptionWithInfoBar,
+            [NotNullWhen(returnValue: true)] out CodeFixProvider? fixer)
+        {
+            try
+            {
+                fixer = lazyFixer.Value;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Gracefully handle exceptions in creating fixer instance.
+                // Log exception and show info bar, if needed.
+                if (logExceptionWithInfoBar)
+                {
+                    var errorReportingService = workspace.Services.GetRequiredService<IErrorReportingService>();
+                    var message = lazyFixer.Metadata.Name != null
+                        ? string.Format(EditorFeaturesResources.Error_creating_instance_of_CodeFixProvider_0, lazyFixer.Metadata.Name)
+                        : EditorFeaturesResources.Error_creating_instance_of_CodeFixProvider;
+
+                    errorReportingService.ShowErrorInfoInActiveView(
+                        message,
+                        new InfoBarUI(
+                            WorkspacesResources.Show_Stack_Trace,
+                            InfoBarUI.UIKind.HyperLink,
+                            () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+
+                    foreach (var errorLogger in _errorLoggers)
+                    {
+                        errorLogger.Value.LogException(this, ex);
+                    }
+                }
+
+                fixer = null;
+                return false;
+            }
+        }
+
         private async Task AppendFixesAsync(
             Document document,
             TextSpan span,
@@ -303,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     allFixers.AddRange(projectFixers);
                 }
 
-                if (hasAnySharedFixer && fixerMap.Value.TryGetValue(diagnosticId, out var workspaceFixers))
+                if (hasAnySharedFixer && fixerMap!.Value.TryGetValue(diagnosticId, out var workspaceFixers))
                 {
                     if (isInteractive)
                     {
@@ -642,14 +704,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (hasAnyProjectFixer)
             {
-                allFixers = allFixers.AddRange(projectFixers);
+                allFixers = allFixers.AddRange(projectFixers!);
             }
 
             var dx = await diagnostic.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
             if (hasConfigurationFixer)
             {
-                foreach (var lazyConfigurationProvider in lazyConfigurationProviders.Value)
+                foreach (var lazyConfigurationProvider in lazyConfigurationProviders!.Value)
                 {
                     if (lazyConfigurationProvider.IsFixableDiagnostic(dx))
                     {
