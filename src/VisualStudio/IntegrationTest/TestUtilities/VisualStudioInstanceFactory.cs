@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             try
             {
-                bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
+                var shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
                 await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
 
                 return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
