@@ -4,8 +4,10 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -16,25 +18,41 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// The provider that is used as a middleman to create the tagger so that the data tag
     /// can be used to create the UI tag
     /// </summary>
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IntraTextAdornmentTag))]
     [Name(nameof(InlineParameterNameHintsTaggerProvider))]
-    internal class InlineParameterNameHintsTaggerProvider : ITaggerProvider
+    internal class InlineParameterNameHintsTaggerProvider : IViewTaggerProvider
     {
-        private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
+        private readonly IViewTagAggregatorFactoryService _viewTagAggregatorFactoryService;
+        public readonly IClassificationFormatMapService ClassificationFormatMapService;
+        public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
+        public readonly IThreadingContext ThreadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService)
+        public InlineParameterNameHintsTaggerProvider(IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
+                                                       IClassificationFormatMapService classificationFormatMapService,
+                                                       IClassificationTypeRegistryService classificationTypeRegistryService,
+                                                       IThreadingContext threadingContext)
         {
-            _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
+            _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
+            this.ClassificationFormatMapService = classificationFormatMapService;
+            this.ClassificationTypeRegistryService = classificationTypeRegistryService;
+            this.ThreadingContext = threadingContext;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
-            return new InlineParameterNameHintsTagger(buffer, tagAggregator) as ITagger<T>;
+            // Determining of the textView's buffer does not match the buffer in order to skip showing the hints for
+            // the interactive window
+            if (buffer != textView.TextBuffer)
+            {
+                return null;
+            }
+
+            var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(textView);
+            return new InlineParameterNameHintsTagger(this, textView, buffer, tagAggregator) as ITagger<T>;
         }
     }
 }

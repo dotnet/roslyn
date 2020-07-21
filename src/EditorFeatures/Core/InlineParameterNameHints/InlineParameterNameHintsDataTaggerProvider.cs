@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// <summary>
     /// The TaggerProvider that calls upon the service in order to locate the spans and names
     /// </summary>
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(InlineParameterNameHintDataTag))]
     [Name(nameof(InlineParameterNameHintsDataTaggerProvider))]
-    internal class InlineParameterNameHintsDataTaggerProvider : AsynchronousTaggerProvider<InlineParameterNameHintDataTag>
+    internal class InlineParameterNameHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineParameterNameHintDataTag>
     {
         private readonly IAsynchronousOperationListener _listener;
 
@@ -53,7 +53,25 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // TaggerDelay is NearImmediate because we want the renaming and tag creation to be instantaneous
-            return TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.NearImmediate, _listener);
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, textChangeDelay: TaggerDelay.Short, scrollChangeDelay: TaggerDelay.NearImmediate),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.NearImmediate, _listener));
+        }
+
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        {
+            this.AssertIsForeground();
+
+            // Find the visible span some 100 lines +/- what's actually in view.  This way
+            // if the user scrolls up/down, we'll already have the results.
+            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
+            if (visibleSpanOpt == null)
+            {
+                // Couldn't find anything visible, just fall back to tagging all hint locations
+                return base.GetSpansToTag(textView, subjectBuffer);
+            }
+
+            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<InlineParameterNameHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
