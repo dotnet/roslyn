@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 IValueSet fromTestPassing = valueFac.Related(relation.Operator(), value);
                 IValueSet fromTestFailing = fromTestPassing.Complement();
-                if (values.TryGetValue(test.Input, out IValueSet tempValuesBeforeTest))
+                if (values.TryGetValue(test.Input, out IValueSet? tempValuesBeforeTest))
                 {
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                 public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
                     => _backing = analyzerConfigOptions.AnalyzerOptions;
 
-                public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
+                public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value) => _backing.TryGetValue(key, out value);
             }
         }
 

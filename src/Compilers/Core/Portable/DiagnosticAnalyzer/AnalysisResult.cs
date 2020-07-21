@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<T, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localDiagnostics,
             ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers,
             ImmutableArray<Diagnostic>.Builder builder)
+            where T : notnull
         {
             foreach (var diagnosticsByTree in localDiagnostics)
             {
