@@ -79,9 +79,11 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/34637"), Trait(Traits.Feature, Traits.Features.LineCommit)]
-        private void CommitOnSave()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        private void CommitOnSave([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"Module Module1
     Sub Main()
     End Sub
