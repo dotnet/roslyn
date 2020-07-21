@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                 }
             }
 
-#pragma warning disable IDE0059 // Unnecessary assignment of a value - TODO: File a bug for investigation of this functionality.
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - https://github.com/dotnet/roslyn/issues/46168
             foreach (var fileFullPath in ruleSetDeletions)
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
             {
