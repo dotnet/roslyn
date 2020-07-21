@@ -62,17 +62,18 @@ namespace Analyzer.Utilities
         private readonly ConcurrentDictionary<string, INamedTypeSymbol?> _fullNameToTypeMap;
 
         /// <summary>
-        /// Global cache of full type names (with namespaces) to namespace name parts and simple type name (without namespace),
-        /// so we can query <see cref="IAssemblySymbol.NamespaceNames"/> and <see cref="IAssemblySymbol.TypeNames"/>.
+        /// Static cache of full type names (with namespaces) to namespace name parts,
+        /// so we can query <see cref="IAssemblySymbol.NamespaceNames"/>.
         /// </summary>
         /// <remarks>
-        /// Example: "System.Collections.Generic.List`1" => ( [ "System", "Collections", "Generic" ], "List" )
+        /// Example: "System.Collections.Generic.List`1" => [ "System", "Collections", "Generic" ]
         /// 
         /// https://github.com/dotnet/roslyn/blob/9e786147b8cb884af454db081bb747a5bd36a086/src/Compilers/CSharp/Portable/Symbols/AssemblySymbol.cs#L455
-        /// suggests the TypeNames collection can be checked to avoid expensive operations.
+        /// suggests the TypeNames collection can be checked to avoid expensive operations. But realizing TypeNames seems to be
+        /// as memory intensive as unnecessary calls GetTypeByMetadataName() in some cases. So we'll go with namespace names.
         /// </remarks>
-        private static readonly ConcurrentDictionary<string, (string[] NamespaceNames, string SimpleTypeName)> _fullTypeNameToSimpleInfo =
-            new ConcurrentDictionary<string, (string[] NamespaceNames, string SimpleTypeName)>(StringComparer.Ordinal);
+        private static readonly ConcurrentDictionary<string, string[]> _fullTypeNameToNamespaceNames =
+            new ConcurrentDictionary<string, string[]>(StringComparer.Ordinal);
 
         /// <summary>
         /// Attempts to get the type by the full type name.
@@ -88,59 +89,42 @@ namespace Analyzer.Utilities
                 fullTypeName,
                 fullyQualifiedMetadataName =>
                 {
-                    // Caching null results in our cache is intended.
-
-#pragma warning disable RS0030 // Do not used banned APIs
-                    // Use of Compilation.GetTypeByMetadataName is allowed here (this is our wrapper for it which
-                    // includes fallback handling for cases where GetTypeByMetadataName returns null).
-                    INamedTypeSymbol? type = null; // Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
-#pragma warning restore RS0030 // Do not used banned APIs
+                    // Caching null results is intended.
 
                     // sharwell says: Suppose you reference assembly A with public API X.Y, and you reference assembly B with
                     // internal API X.Y. Even though you can use X.Y from assembly A, compilation.GetTypeByMetadataName will 
                     // fail outright because it finds two types with the same name.
 
-                    // A way to test the fallback code. :-D
-                    type = null;
+                    INamedTypeSymbol? type = null;
 
                     string[]? namespaceNames = null;
-                    string? typeName = null;
-                    if (type is null)
-                    {
-#if NETSTANDARD1_3 // Probably in 2.9.x branch; just cache everything.
-                        // TODO paulming: Statically caching everything is a bad idea.
-                        (namespaceNames, typeName) = _fullTypeNameToSimpleInfo.GetOrAdd(
-                            fullTypeName,
-                            GetSimpleNameInfoFromFullTypeName);
+#if NETSTANDARD1_3 // Probably in 2.9.x branch; just don't cache.
+                    namespaceNames = GetNamespaceNamesFromFullTypeName(fullTypeName);
 #else // Assuming we're on .NET Standard 2.0 or later, cache the type names that are probably compile time constants.
-                        if (string.IsInterned(fullTypeName) != null)
-                        {
-                            (namespaceNames, typeName) = _fullTypeNameToSimpleInfo.GetOrAdd(
-                                fullTypeName,
-                                GetSimpleNameInfoFromFullTypeName);
-                        }
-                        else
-                        {
-                            (namespaceNames, typeName) = GetSimpleNameInfoFromFullTypeName(fullTypeName);
-                        }
+                    if (string.IsInterned(fullTypeName) != null)
+                    {
+                        namespaceNames = _fullTypeNameToNamespaceNames.GetOrAdd(
+                            fullTypeName,
+                            GetNamespaceNamesFromFullTypeName);
+                    }
+                    else
+                    {
+                        namespaceNames = GetNamespaceNamesFromFullTypeName(fullTypeName);
+                    }
 #endif
 
-                        if (IsSubsetOfCollection(namespaceNames, Compilation.Assembly.NamespaceNames)
-                            /*&& Compilation.Assembly.TypeNames.Contains(typeName)*/)
-                        {
-                            type = Compilation.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
-                        }
+                    if (IsSubsetOfCollection(namespaceNames, Compilation.Assembly.NamespaceNames))
+                    {
+                        type = Compilation.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
                     }
 
                     if (type is null)
                     {
                         RoslynDebug.Assert(namespaceNames != null);
-                        RoslynDebug.Assert(typeName != null);
 
                         foreach (IAssemblySymbol? referencedAssembly in _referencedAssemblies.Value)
                         {
-                            if (!IsSubsetOfCollection(namespaceNames, referencedAssembly.NamespaceNames!)
-                                /*|| !referencedAssembly.TypeNames.Contains(typeName)*/)
+                            if (!IsSubsetOfCollection(namespaceNames, referencedAssembly.NamespaceNames!))
                             {
                                 continue;
                             }
@@ -206,26 +190,52 @@ namespace Analyzer.Utilities
                 && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);
         }
 
-        private static (string[] NamespaceNames, string SimpleTypeName) GetSimpleNameInfoFromFullTypeName(string fullTypeName)
+        private static string[] GetNamespaceNamesFromFullTypeName(string fullTypeName)
         {
-            int plusIndex = fullTypeName.LastIndexOf('+');   // For nested types.
-            int dotIndex = fullTypeName.LastIndexOf('.');
-            int backTickIndex = fullTypeName.LastIndexOf('`');
-
-            int typeStartIndex = Math.Max(dotIndex, plusIndex) + 1;   // Exclude the '+' or '.'; LastIndexOf() returns -1 if not found.
-            int typeEndIndex = backTickIndex >= 0 && backTickIndex > typeStartIndex ? backTickIndex : fullTypeName.Length;
-
-            string[] namespaceNames;
-            if (dotIndex >= 0)
+            int dotCount = 0;
+            int lastDotIndex = -1;
+            for (int i = 0; i < fullTypeName.Length; i++)
             {
-                namespaceNames = fullTypeName.Substring(0, dotIndex >= 0 ? dotIndex : fullTypeName.Length).Split('.');
-            }
-            else
-            {
-                namespaceNames = Array.Empty<string>();
+                switch (fullTypeName[i])
+                {
+                    case '.':
+                        lastDotIndex = i;
+                        dotCount++;
+                        break;
+
+                    // Dunno if Compilation.GetTypeByMetadataName() or IAssemblySymbol.GetTypeByMetadataName() will ever 
+                    // support something like "System.Collections.Generic.List<System.String>", but if they do, we'll be ready.
+                    case '`':
+                    case '+':
+                    case '<':
+                    case '>':
+                    case '[':
+                    case ']':
+                    case '*':
+                    case ',':
+                        goto ExitLoop;
+                }
             }
 
-            return (namespaceNames, fullTypeName[typeStartIndex..typeEndIndex]);
+            ExitLoop:
+            if (dotCount == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            string[] namespaceNames = new string[dotCount];
+            int namespaceIndex = 0;
+            int prevStartIndex = 0;
+            for (int i = 0; i <= lastDotIndex; i++)
+            {
+                if (fullTypeName[i] == '.')
+                {
+                    namespaceNames[namespaceIndex++] = fullTypeName[prevStartIndex..i];
+                    prevStartIndex = i + 1;
+                }
+            }
+
+            return namespaceNames;
         }
 
         private static bool IsSubsetOfCollection<T>(T[] set1, ICollection<T> set2)
