@@ -76,7 +76,8 @@ End Class
                            </Project>
                        </Workspace>
 
-            AssertCommitsStatement(test, expectCommit:=False)
+            AssertCommitsStatement(test, _ ' Test that Roslyn supports VB16 Continuation Comments After Line Continuation internally
+                                   expectCommit:=False)
         End Sub
 
         <WpfFact>
