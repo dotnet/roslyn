@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -47,12 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         continue;
                     }
 
-                    var definitionText = await definition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    locations.Add(new LSP.Location
-                    {
-                        Uri = definition.Document.GetURI(),
-                        Range = ProtocolConversions.TextSpanToRange(definition.SourceSpan, definitionText),
-                    });
+                    var location = await ProtocolConversions.TextSpanToLocationAsync(definition.Document, definition.SourceSpan, cancellationToken).ConfigureAwait(false);
+                    locations.AddIfNotNull(location);
                 }
             }
             else if (document.SupportsSemanticModel && _metadataAsSourceFileService != null)
