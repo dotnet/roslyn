@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 520, // 100
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 450, // 270
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 170
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
