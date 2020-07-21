@@ -95,6 +95,33 @@ class TestClass {|#0:{|}
 
         [Fact]
         [WorkItem(411, "https://github.com/dotnet/roslyn-sdk/issues/411")]
+        public async Task TestCSharpNestedMarkupBraceWithCombinedSyntaxInSecondFile()
+        {
+            var testCode1 = string.Empty;
+            var testCode2 = @"
+class TestClass {|#0:{|}
+  void TestMethod() {|#1:{|} }
+}
+";
+
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: false)
+            {
+                TestState =
+                {
+                    Sources = { testCode1, testCode2 },
+                },
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(HighlightBracesAnalyzer.DescriptorOuter).WithLocation(0),
+                    new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0),
+                    new DiagnosticResult(HighlightBracesAnalyzer.DescriptorOuter).WithLocation(1),
+                    new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(1),
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(411, "https://github.com/dotnet/roslyn-sdk/issues/411")]
         public async Task TestCSharpNestedMarkupBraceWithCombinedSyntaxAndAdditionalLocations()
         {
             var testCode = @"

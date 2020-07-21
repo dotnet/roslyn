@@ -267,8 +267,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 throw new InvalidOperationException("Inheritance processing must complete before markup processing.");
             }
 
-            (var expected, var testSources) = ProcessMarkupSources(Sources, ExpectedDiagnostics, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
-            var (additionalExpected, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var markupLocations = ImmutableDictionary<string, FileLinePositionSpan>.Empty;
+            (var expected, var testSources) = ProcessMarkupSources(Sources, ExpectedDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+
+            for (var i = 0; i < additionalExpected.Length; i++)
+            {
+                additionalExpected[i] = additionalExpected[i].WithAppliedMarkupLocations(markupLocations);
+            }
 
             var result = new SolutionState(_defaultPrefix, _defaultExtension);
             result.MarkupHandling = MarkupMode.None;
@@ -284,6 +290,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private (DiagnosticResult[] expectedDiagnostics, (string filename, SourceText content)[] sources) ProcessMarkupSources(
             IEnumerable<(string filename, SourceText content)> sources,
             IEnumerable<DiagnosticResult> explicitDiagnostics,
+            ref ImmutableDictionary<string, FileLinePositionSpan> markupLocations,
             MarkupOptions markupOptions,
             DiagnosticDescriptor? defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
@@ -302,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var sourceFiles = new List<(string filename, SourceText content)>();
             var diagnostics = new List<DiagnosticResult>(explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)));
-            var markupLocations = ImmutableDictionary<string, FileLinePositionSpan>.Empty;
             foreach ((var filename, var content) in sources)
             {
                 TestFileMarkupParser.GetPositionsAndSpans(content.ToString(), out var output, out var positions, out var namedSpans);
@@ -358,11 +364,6 @@ namespace Microsoft.CodeAnalysis.Testing
                         diagnostics.Add(diagnostic.Value);
                     }
                 }
-            }
-
-            for (var i = 0; i < diagnostics.Count; i++)
-            {
-                diagnostics[i] = diagnostics[i].WithAppliedMarkupLocations(markupLocations);
             }
 
             return (diagnostics.ToArray(), sourceFiles.ToArray());
