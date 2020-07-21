@@ -1174,16 +1174,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 Use a lista suspensa para exibir e mudar entre outros projetos aos quais este arquivo possa pertencer.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">Erro ao ler arquivo de conjunto de regras {0} - {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
         <source>AnalyzerChangedOnDisk</source>
         <target state="translated">AnalyzerChangedOnDisk</target>

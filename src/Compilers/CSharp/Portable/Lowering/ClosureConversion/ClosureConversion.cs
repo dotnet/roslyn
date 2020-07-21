@@ -1188,6 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It needs to run before the exception variable is accessed.
             // To ensure that, we will make exception variable a sequence that performs prologue as its side-effects.
             BoundExpression rewrittenExceptionSource = null;
+            var rewrittenFilterPrologue = (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt);
             var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
             {
@@ -1205,12 +1206,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (prologue.Count > 0)
             {
                 Debug.Assert(rewrittenFilter != null);
-                rewrittenFilter = new BoundSequence(
-                    rewrittenFilter.Syntax,
-                    ImmutableArray.Create<LocalSymbol>(),
-                    prologue.ToImmutable(),
-                    rewrittenFilter,
-                    rewrittenFilter.Type);
+                var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(prologue.Count);
+                foreach (var p in prologue)
+                {
+                    prologueBuilder.Add(new BoundExpressionStatement(p.Syntax, p) { WasCompilerGenerated = true });
+                }
+                if (rewrittenFilterPrologue != null)
+                {
+                    prologueBuilder.AddRange(rewrittenFilterPrologue.Statements);
+                }
+
+                rewrittenFilterPrologue = new BoundStatementList(rewrittenFilter.Syntax, prologueBuilder.ToImmutableAndFree());
             }
 
             // done with this.
@@ -1225,6 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenCatchLocals,
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBlock,
                 node.IsSynthesizedAsyncCatchAll);

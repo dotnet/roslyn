@@ -385,6 +385,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateFilter()
         {
+            // The exception filter prologue is introduced during lowering, so should be null here.
+            Debug.Assert(_catchBlock.ExceptionFilterPrologueOpt is null);
             return _operationFactory.Create(_catchBlock.ExceptionFilterOpt);
         }
 

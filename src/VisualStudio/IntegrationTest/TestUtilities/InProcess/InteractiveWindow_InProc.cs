@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 firstNewLineIndex = replText.IndexOf(Environment.NewLine, lastSubmissionTextIndex);
             }
 
-            string lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
+            var lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
 
             return lastReplInputWithReplSubmissionText.Replace(ReplSubmissionText, string.Empty);
         }
@@ -223,12 +223,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void WaitForPredicate(Func<string> getValue, Func<string, bool> isExpectedValue)
         {
             var beginTime = DateTime.UtcNow;
-            string value;
-            while (!isExpectedValue(value = getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            while (!isExpectedValue(getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
                 Thread.Sleep(50);
             }
 
+            string value;
             if (!isExpectedValue(value = getValue()))
             {
                 throw new Exception($"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. Actual content:{Environment.NewLine}[[{value}]]");

@@ -4153,6 +4153,239 @@ public class C
 ");
         }
 
+        [Fact]
+        public void SwitchExpressionAsExceptionFilter_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    const string K1 = ""frog"";
+    const string K2 = ""toad"";
+    public static void M(string msg)
+    {
+        try
+        {
+            T(msg);
+        }
+        catch (Exception e) when (e.Message switch
+            {
+                K1 => true,
+                K2 => true,
+                _ => false,
+            })
+        {
+            throw new Exception(e.Message);
+        }
+        catch
+        {
+        }
+    }
+    static void T(string msg)
+    {
+        throw new Exception(msg);
+    }
+    static void Main()
+    {
+        Try(K1);
+        Try(K2);
+        Try(""fox"");
+    }
+    static void Try(string s)
+    {
+        try { M(s); } catch (Exception ex) { Console.WriteLine(ex.Message); }
+    }
+}
+";
+            var expectedOutput =
+@"frog
+toad";
+            foreach (var compilationOptions in new[] { TestOptions.ReleaseExe, TestOptions.DebugExe })
+            {
+                var compilation = CreateCompilation(source, options: compilationOptions);
+                compilation.VerifyDiagnostics();
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                if (compilationOptions.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    compVerifier.VerifyIL("C.M(string)", @"
+{
+  // Code size      108 (0x6c)
+  .maxstack  2
+  .locals init (System.Exception V_0, //e
+                bool V_1,
+                string V_2,
+                bool V_3)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  ldarg.0
+    IL_0003:  call       ""void C.T(string)""
+    IL_0008:  nop
+    IL_0009:  nop
+    IL_000a:  leave.s    IL_006b
+  }
+  filter
+  {
+    IL_000c:  isinst     ""System.Exception""
+    IL_0011:  dup
+    IL_0012:  brtrue.s   IL_0018
+    IL_0014:  pop
+    IL_0015:  ldc.i4.0
+    IL_0016:  br.s       IL_0056
+    IL_0018:  stloc.0
+    IL_0019:  ldloc.0
+    IL_001a:  callvirt   ""string System.Exception.Message.get""
+    IL_001f:  stloc.2
+    IL_0020:  ldc.i4.1
+    IL_0021:  brtrue.s   IL_0024
+    IL_0023:  nop
+    IL_0024:  ldloc.2
+    IL_0025:  ldstr      ""frog""
+    IL_002a:  call       ""bool string.op_Equality(string, string)""
+    IL_002f:  brtrue.s   IL_0040
+    IL_0031:  ldloc.2
+    IL_0032:  ldstr      ""toad""
+    IL_0037:  call       ""bool string.op_Equality(string, string)""
+    IL_003c:  brtrue.s   IL_0044
+    IL_003e:  br.s       IL_0048
+    IL_0040:  ldc.i4.1
+    IL_0041:  stloc.1
+    IL_0042:  br.s       IL_004c
+    IL_0044:  ldc.i4.1
+    IL_0045:  stloc.1
+    IL_0046:  br.s       IL_004c
+    IL_0048:  ldc.i4.0
+    IL_0049:  stloc.1
+    IL_004a:  br.s       IL_004c
+    IL_004c:  ldc.i4.1
+    IL_004d:  brtrue.s   IL_0050
+    IL_004f:  nop
+    IL_0050:  ldloc.1
+    IL_0051:  stloc.3
+    IL_0052:  ldloc.3
+    IL_0053:  ldc.i4.0
+    IL_0054:  cgt.un
+    IL_0056:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0058:  pop
+    IL_0059:  nop
+    IL_005a:  ldloc.0
+    IL_005b:  callvirt   ""string System.Exception.Message.get""
+    IL_0060:  newobj     ""System.Exception..ctor(string)""
+    IL_0065:  throw
+  }
+  catch object
+  {
+    IL_0066:  pop
+    IL_0067:  nop
+    IL_0068:  nop
+    IL_0069:  leave.s    IL_006b
+  }
+  IL_006b:  ret
+}
+");
+                }
+                else
+                {
+                    compVerifier.VerifyIL("C.M(string)", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  2
+  .locals init (System.Exception V_0, //e
+                bool V_1,
+                string V_2)
+  .try
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""void C.T(string)""
+    IL_0006:  leave.s    IL_0058
+  }
+  filter
+  {
+    IL_0008:  isinst     ""System.Exception""
+    IL_000d:  dup
+    IL_000e:  brtrue.s   IL_0014
+    IL_0010:  pop
+    IL_0011:  ldc.i4.0
+    IL_0012:  br.s       IL_0046
+    IL_0014:  stloc.0
+    IL_0015:  ldloc.0
+    IL_0016:  callvirt   ""string System.Exception.Message.get""
+    IL_001b:  stloc.2
+    IL_001c:  ldloc.2
+    IL_001d:  ldstr      ""frog""
+    IL_0022:  call       ""bool string.op_Equality(string, string)""
+    IL_0027:  brtrue.s   IL_0038
+    IL_0029:  ldloc.2
+    IL_002a:  ldstr      ""toad""
+    IL_002f:  call       ""bool string.op_Equality(string, string)""
+    IL_0034:  brtrue.s   IL_003c
+    IL_0036:  br.s       IL_0040
+    IL_0038:  ldc.i4.1
+    IL_0039:  stloc.1
+    IL_003a:  br.s       IL_0042
+    IL_003c:  ldc.i4.1
+    IL_003d:  stloc.1
+    IL_003e:  br.s       IL_0042
+    IL_0040:  ldc.i4.0
+    IL_0041:  stloc.1
+    IL_0042:  ldloc.1
+    IL_0043:  ldc.i4.0
+    IL_0044:  cgt.un
+    IL_0046:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0048:  pop
+    IL_0049:  ldloc.0
+    IL_004a:  callvirt   ""string System.Exception.Message.get""
+    IL_004f:  newobj     ""System.Exception..ctor(string)""
+    IL_0054:  throw
+  }
+  catch object
+  {
+    IL_0055:  pop
+    IL_0056:  leave.s    IL_0058
+  }
+  IL_0058:  ret
+}
+");
+                }
+            }
+        }
+
+        [Fact]
+        public void SwitchExpressionAsExceptionFilter_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch when ((3 is int i) switch { true when M(() => i) => true, _ => false })
+        {
+            Console.WriteLine(""correct"");
+        }
+    }
+    static bool M(Func<int> func)
+    {
+        func();
+        return true;
+    }
+}
+";
+            var expectedOutput = @"correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
         #endregion Miscellaneous
 
         #region Target Typed Switch

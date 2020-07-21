@@ -214,15 +214,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
         End Sub
 
-        Private Shared Function AreValidEventPrototypeFlags(flags As PrototypeFlags) As Boolean
-            ' Unsupported flags for events
-            If (flags And PrototypeFlags.Initializer) <> 0 Then
-                Return False
-            End If
-
-            Return AreValidPrototypeFlags(flags)
-        End Function
-
         Private Shared Function AreValidFunctionPrototypeFlags(flags As PrototypeFlags) As Boolean
             ' Unsupported flags for functions
             If (flags And PrototypeFlags.Initializer) <> 0 Then
