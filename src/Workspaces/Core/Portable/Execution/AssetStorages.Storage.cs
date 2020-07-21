@@ -56,7 +56,10 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public void KeepAlive(object obj)
             {
-                _keepAliveObjects.Add(obj);
+                lock (_keepAliveObjects)
+                {
+                    _keepAliveObjects.Add(obj);
+                }
             }
         }
 
