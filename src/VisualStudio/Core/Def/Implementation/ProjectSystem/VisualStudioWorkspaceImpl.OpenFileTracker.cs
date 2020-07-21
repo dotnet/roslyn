@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
             }
 
-            private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)
+            private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy hierarchy)
+            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
