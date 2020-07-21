@@ -56,7 +56,6 @@
     <ProjectReference Include="..\..\VisualStudio\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\VisualStudio\Xaml\Impl\Microsoft.VisualStudio.LanguageServices.Xaml.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\VisualStudio\Razor\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\ExpressionEvaluator\CSharp\Source\ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionCompiler.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\ExpressionEvaluator\VisualBasic\Source\ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.vbproj" PrivateAssets="all" />
@@ -86,7 +85,7 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.FSharp\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Razor.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.InteractiveHost\$(Configuration)\net472\Microsoft.CodeAnalysis.InteractiveHost.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.InteractiveHost\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.InteractiveHost.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.LanguageServer.Protocol\$(Configuration)\net472\Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.Razor.ServiceHub\$(Configuration)\net472\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.ServiceHub\$(Configuration)\net472\Microsoft.CodeAnalysis.Remote.ServiceHub.dll" TargetDir="" />
@@ -102,7 +101,6 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.CSharp\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Implementation\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.LiveShare\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.LiveShare.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.SolutionExplorer\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.VisualBasic\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Xaml\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Xaml.dll" TargetDir="" />

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             if (s_loggingStream != null)
             {
-                Log("Exception '{0}' occurred during '{1}'. Stack trace:\r\n{2}", exception.Message, reason, exception.StackTrace);
+                LogError("Exception '{0}' occurred during '{1}'. Stack trace:\r\n{2}", exception.Message, reason, exception.StackTrace);
 
                 int innerExceptionLevel = 0;
 
@@ -124,6 +124,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 s_loggingStream.Flush();
             }
         }
+
+        public static void LogError(string message) => Log($"Error: {message}");
+
+        public static void LogError(string format, params object?[] arguments) => Log($"Error: {format}", arguments);
 
         private static int GetCurrentProcessId()
         {

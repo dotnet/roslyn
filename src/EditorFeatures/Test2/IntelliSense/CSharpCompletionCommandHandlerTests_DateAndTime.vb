@@ -49,6 +49,47 @@ class c
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionListIsShownWithDefaultFormatStringAfterTypingFormattingComponentColon(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        _ = $"Text {d$$}";
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(":")
+                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("_ = $""Text {d:G}"";", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionListIsNotShownAfterTypingColonWithinFormattingComponent(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+<Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        _ = $"Text {d:hh$$");
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(":")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ExplicitInvoke(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[

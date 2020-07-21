@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         public int SyntaxTreeActionsCount { get; set; } = 0;
 
         /// <summary>
+        /// Count of registered additional file actions.
+        /// </summary>
+        public int AdditionalFileActionsCount { get; set; } = 0;
+
+        /// <summary>
         /// Count of registered semantic model actions.
         /// </summary>
         public int SemanticModelActionsCount { get; set; } = 0;
@@ -117,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             CompilationActionsCount = actionCounts.CompilationActionsCount;
 
             SyntaxTreeActionsCount = actionCounts.SyntaxTreeActionsCount;
+            AdditionalFileActionsCount = actionCounts.AdditionalFileActionsCount;
             SemanticModelActionsCount = actionCounts.SemanticModelActionsCount;
             SymbolActionsCount = actionCounts.SymbolActionsCount;
             SymbolStartActionsCount = actionCounts.SymbolStartActionsCount;

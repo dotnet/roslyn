@@ -525,6 +525,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Nom de groupe non valide : les noms de groupe doivent commencer par un caractère alphabétique</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="new">Make class 'abstract'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
         <target state="translated">Rendre statique</target>

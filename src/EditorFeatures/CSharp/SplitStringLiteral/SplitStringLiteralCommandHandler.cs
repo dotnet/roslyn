@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             return false;
         }
 
-        private bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
+        private static bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
         {
             var snapshot = line.Snapshot;
             for (int i = line.Start; i < caretPosition; i++)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             return false;
         }
 
-        private int? SplitStringLiteral(
+        private static int? SplitStringLiteral(
             Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);

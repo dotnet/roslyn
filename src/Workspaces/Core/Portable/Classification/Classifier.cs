@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             CancellationToken cancellationToken = default)
         {
-            var semanticModel = await document.GetSemanticModelForSpanAsync(textSpan, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
         }
 

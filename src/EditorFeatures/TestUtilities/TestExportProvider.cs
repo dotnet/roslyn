@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     /// </summary>
     public static class TestExportProvider
     {
-        private static Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
+        private static readonly Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
-        private static Lazy<IExportProviderFactory> s_lazyExportProviderFactoryWithCSharpAndVisualBasic =
+        private static readonly Lazy<IExportProviderFactory> s_lazyExportProviderFactoryWithCSharpAndVisualBasic =
             new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic));
 
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
             => ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
 
-        private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
+        private static readonly Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
                         .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog())
                         .WithDefaultFakes());
 
-        private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
+        private static readonly Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
             new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic

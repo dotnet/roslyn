@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     {
         private readonly struct InitializedRemoteService
         {
-            public readonly RemoteService Service;
+            public readonly RemoteService? Service;
             public readonly RemoteExecutionResult InitializationResult;
 
             public InitializedRemoteService(RemoteService service, RemoteExecutionResult initializationResult)
