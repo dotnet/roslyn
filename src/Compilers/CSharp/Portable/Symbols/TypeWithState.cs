@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeWithState Create(TypeSymbol? type, NullableFlowState defaultState)
         {
             if (defaultState == NullableFlowState.MaybeDefault &&
-                (type is null || type.IsTypeParameterDisallowingAnnotation()))
+                (type is null || type.IsTypeParameterDisallowingAnnotationInCSharp8()))
             {
                 Debug.Assert(type?.IsNullableTypeOrTypeParameter() != true);
                 return new TypeWithState(type, defaultState);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeWithState(TypeSymbol? type, NullableFlowState state)
         {
             Debug.Assert(state == NullableFlowState.NotNull || type?.CanContainNull() != false);
-            Debug.Assert(state != NullableFlowState.MaybeDefault || type is null || type.IsTypeParameterDisallowingAnnotation());
+            Debug.Assert(state != NullableFlowState.MaybeDefault || type is null || type.IsTypeParameterDisallowingAnnotationInCSharp8());
             Type = type;
             State = state;
         }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithAnnotations ToTypeWithAnnotations(CSharpCompilation compilation, bool asAnnotatedType = false)
         {
-            if (Type?.IsTypeParameterDisallowingAnnotation() == true)
+            if (Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
             {
                 var type = TypeWithAnnotations.Create(Type, NullableAnnotation.NotAnnotated);
                 return State == NullableFlowState.MaybeDefault ? type.SetIsAnnotated(compilation) : type;

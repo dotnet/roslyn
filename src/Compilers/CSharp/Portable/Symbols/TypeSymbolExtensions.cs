@@ -54,10 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T where T : IComparable? => true
         /// </summary>
         /// <remarks>
-        /// The method name is somewhat misleading since it refers to the C#8 behavior.
         /// In C#9, annotations are allowed regardless of constraints.
         /// </remarks>
-        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
+        public static bool IsTypeParameterDisallowingAnnotationInCSharp8(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
             {

@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
                     format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
-                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
+                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotationInCSharp8())))
                 {
                     return str + "!";
                 }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (NullableAnnotation != NullableAnnotation.Oblivious)
             {
-                if (!typeSymbol.IsTypeParameterDisallowingAnnotation())
+                if (!typeSymbol.IsTypeParameterDisallowingAnnotationInCSharp8())
                 {
                     newAnnotation = NullableAnnotation;
                 }
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, NullableAnnotation.NotAnnotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull };
                 }
-                if (type.IsTypeParameterDisallowingAnnotation())
+                if (type.IsTypeParameterDisallowingAnnotationInCSharp8())
                 {
                     return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, _ => NullableFlowState.NotNull };
                 }

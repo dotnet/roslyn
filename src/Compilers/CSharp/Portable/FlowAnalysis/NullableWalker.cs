@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 case NullableFlowState.MaybeNull:
                     // https://github.com/dotnet/roslyn/issues/46044: Skip the following check if /langversion > 8?
-                    if (type.Type.IsTypeParameterDisallowingAnnotation())
+                    if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8())
                     {
                         return false;
                     }
@@ -6445,7 +6445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (fromExplicitCast && targetTypeWithNullability.NullableAnnotation.IsAnnotated() && !targetType.IsNullableType())
                 {
                     // An explicit cast to a nullable reference type introduces nullability
-                    resultState = targetType?.IsTypeParameterDisallowingAnnotation() == true ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                    resultState = targetType?.IsTypeParameterDisallowingAnnotationInCSharp8() == true ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
                 }
 
                 var resultType = TypeWithState.Create(targetType, resultState);
@@ -6458,14 +6458,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (state)
                 {
                     case NullableFlowState.MaybeNull:
-                        if (operandType.Type?.IsTypeParameterDisallowingAnnotation() != true &&
-                            targetType.Type?.IsTypeParameterDisallowingAnnotation() == true)
+                        if (operandType.Type?.IsTypeParameterDisallowingAnnotationInCSharp8() != true &&
+                            targetType.Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
                         {
                             return NullableFlowState.MaybeDefault;
                         }
                         break;
                     case NullableFlowState.MaybeDefault:
-                        if (targetType.Type?.IsTypeParameterDisallowingAnnotation() == false)
+                        if (targetType.Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == false)
                         {
                             return NullableFlowState.MaybeNull;
                         }
@@ -6501,7 +6501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (state == NullableFlowState.MaybeNull)
                 {
                     var type = operandType.Type;
-                    if (type is null || !type.IsTypeParameterDisallowingAnnotation())
+                    if (type is null || !type.IsTypeParameterDisallowingAnnotationInCSharp8())
                     {
                         return NullableFlowState.MaybeDefault;
                     }

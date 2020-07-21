@@ -993,7 +993,7 @@ hasRelatedInterfaces:
                 switch (typeWithAnnotations.NullableAnnotation)
                 {
                     case NullableAnnotation.Annotated:
-                        return type.IsTypeParameterDisallowingAnnotation() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                        return type.IsTypeParameterDisallowingAnnotationInCSharp8() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
                     case NullableAnnotation.Oblivious:
                         return NullableFlowState.NotNull;
                 }

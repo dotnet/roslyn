@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static CSDiagnosticInfo? GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(LanguageVersion languageVersion, in TypeWithAnnotations type)
         {
-            if (type.Type.IsTypeParameterDisallowingAnnotation())
+            if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8())
             {
                 // Check IDS_FeatureDefaultTypeParameterConstraint feature since `T?` and `where ... : default`
                 // are treated as a single feature, even though the errors reported for the two cases are distinct.
