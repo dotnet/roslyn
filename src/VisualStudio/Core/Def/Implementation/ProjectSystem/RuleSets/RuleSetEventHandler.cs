@@ -88,9 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                 }
             }
 
-            foreach (var renamePair in ruleSetRenames)
+            foreach (var path in ruleSetRenames.Values)
             {
-                UpdateCodeAnalysisRuleSetPropertiesInAllProjects(renamePair.Key, renamePair.Value);
+                UpdateCodeAnalysisRuleSetPropertiesInAllProjects(path);
             }
 
             return VSConstants.S_OK;
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                         if (rgpProjects[i] is IVsHierarchy hierarchy &&
                             hierarchy.TryGetProject(out var project))
                         {
-                            UpdateCodeAnalysisRuleSetPropertiesInProject(project, fileFullPath, string.Empty);
+                            UpdateCodeAnalysisRuleSetPropertiesInProject(project, string.Empty);
                         }
                     }
                 }
@@ -186,9 +186,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                 }
             }
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - https://github.com/dotnet/roslyn/issues/46168
             foreach (var fileFullPath in ruleSetDeletions)
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             {
-                UpdateCodeAnalysisRuleSetPropertiesInAllProjects(fileFullPath, string.Empty);
+                UpdateCodeAnalysisRuleSetPropertiesInAllProjects(string.Empty);
             }
         }
 
@@ -196,16 +198,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
         {
         }
 
-        private void UpdateCodeAnalysisRuleSetPropertiesInAllProjects(string oldFileFullPath, string newFileFullPath)
+        private void UpdateCodeAnalysisRuleSetPropertiesInAllProjects(string newFileFullPath)
         {
             var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
             foreach (EnvDTE.Project project in dte.Solution.Projects)
             {
-                UpdateCodeAnalysisRuleSetPropertiesInProject(project, oldFileFullPath, newFileFullPath);
+                UpdateCodeAnalysisRuleSetPropertiesInProject(project, newFileFullPath);
             }
         }
 
-        private static void UpdateCodeAnalysisRuleSetPropertiesInProject(EnvDTE.Project project, string oldRuleSetFilePath, string newRuleSetFilePath)
+        private static void UpdateCodeAnalysisRuleSetPropertiesInProject(EnvDTE.Project project, string newRuleSetFilePath)
         {
             if (project.Kind == PrjKind.prjKindCSharpProject ||
                 project.Kind == PrjKind.prjKindVBProject)
@@ -216,13 +218,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                     var projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
                     foreach (EnvDTE.Configuration config in project.ConfigurationManager)
                     {
-                        UpdateCodeAnalysisRuleSetPropertyInConfiguration(config, oldRuleSetFilePath, newRuleSetFilePath, projectDirectoryFullPath);
+                        UpdateCodeAnalysisRuleSetPropertyInConfiguration(config, newRuleSetFilePath, projectDirectoryFullPath);
                     }
                 }
             }
         }
 
-        private static void UpdateCodeAnalysisRuleSetPropertyInConfiguration(EnvDTE.Configuration config, string oldRuleSetFilePath, string newRuleSetFilePath, string projectDirectoryFullPath)
+        private static void UpdateCodeAnalysisRuleSetPropertyInConfiguration(EnvDTE.Configuration config, string newRuleSetFilePath, string projectDirectoryFullPath)
         {
             var properties = config.Properties;
             try
@@ -236,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                     {
                         var codeAnalysisRuleSetFullPath = FileUtilities.ResolveRelativePath(codeAnalysisRuleSetFileName, projectDirectoryFullPath);
                         codeAnalysisRuleSetFullPath = FileUtilities.NormalizeAbsolutePath(codeAnalysisRuleSetFullPath);
-                        oldRuleSetFilePath = FileUtilities.NormalizeAbsolutePath(codeAnalysisRuleSetFullPath);
+                        var oldRuleSetFilePath = FileUtilities.NormalizeAbsolutePath(codeAnalysisRuleSetFullPath);
 
                         if (codeAnalysisRuleSetFullPath.Equals(oldRuleSetFilePath, StringComparison.OrdinalIgnoreCase))
                         {

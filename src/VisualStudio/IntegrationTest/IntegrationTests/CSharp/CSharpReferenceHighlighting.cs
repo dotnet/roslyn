@@ -21,8 +21,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpReferenceHighlighting))
+        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpReferenceHighlighting))
         {
         }
 
