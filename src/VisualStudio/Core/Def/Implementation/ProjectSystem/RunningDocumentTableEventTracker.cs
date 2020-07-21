@@ -128,7 +128,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public int OnBeforeSave(uint docCookie)
             => VSConstants.E_NOTIMPL;
 
-        public bool IsFileOpen(string fileName) => _runningDocumentTable.IsFileOpen(fileName);
+        public bool IsFileOpen(string fileName)
+        {
+            _foregroundAffinitization.AssertIsForeground();
+            return _runningDocumentTable.IsFileOpen(fileName);
+        }
 
         /// <summary>
         /// Attempts to get a text buffer from the specified moniker.
