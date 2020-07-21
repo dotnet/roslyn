@@ -2766,5 +2766,32 @@ class B : C
 {
 }", parameters: new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(44507, "https://github.com/dotnet/roslyn/issues/44507")]
+        public async Task DoNotSuggestVarInSwitchExpressionWithDelegateType()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    private void M(object sender, EventArgs e)
+    {
+        var x = 1;
+        [||]Action<object, EventArgs> a = x switch
+        {
+            0 => (sender, e) => f1(sender, e),
+            1 => (sender, e) => f2(sender, e),
+            _ => throw new ArgumentException()
+        };
+
+        a(sender, e);
+    }
+
+    private readonly Action<object, EventArgs> f1;
+    private readonly Action<object, EventArgs> f2;
+}", parameters: new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
