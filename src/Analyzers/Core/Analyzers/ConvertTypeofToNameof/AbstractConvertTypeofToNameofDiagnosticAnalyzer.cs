@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
 
-        protected abstract Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor);
+        protected abstract Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor, CompilationOptions options);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                 return;
             }
             var location = parent.GetLocation();
-            context.ReportDiagnostic(LanguageReportDiagnostic(location, CSharpDescriptor, VBDescriptor));
+            context.ReportDiagnostic(LanguageReportDiagnostic(location, CSharpDescriptor, VBDescriptor, context.Compilation.Options));
 
         }
 

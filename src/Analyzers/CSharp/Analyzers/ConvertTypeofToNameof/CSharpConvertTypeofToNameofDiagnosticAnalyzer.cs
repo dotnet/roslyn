@@ -40,9 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
             return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax _ };
         }
 
-        protected override Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor)
+        protected override Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor, CompilationOptions options)
         {
-            return Diagnostic.Create(cSharpDescriptor, location);
+            return DiagnosticHelper.Create(visualBasicDescriptor,
+                                           location,
+                                           visualBasicDescriptor.GetEffectiveSeverity(options),
+                                           additionalLocations: null,
+                                           properties: null);
         }
     }
 }
