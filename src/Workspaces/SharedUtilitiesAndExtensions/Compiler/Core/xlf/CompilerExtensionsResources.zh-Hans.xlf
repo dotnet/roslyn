@@ -192,6 +192,11 @@
         <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
+      <trans-unit id="Suppression_preferences">
+        <source>Suppression preferences</source>
+        <target state="new">Suppression preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
         <target state="translated">符号规范</target>

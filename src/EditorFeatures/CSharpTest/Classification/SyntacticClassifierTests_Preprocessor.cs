@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -329,7 +330,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 aoeu
 aoeu
 #endif";
-            var start = code.IndexOf("#endif", StringComparison.Ordinal);
             await TestAsync(code,
                 PPKeyword("#"),
                 PPKeyword("if"),
@@ -375,7 +375,7 @@ aeu";
         [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
-        public async Task PP_If8(bool script, bool outOfProcess)
+        public async Task PP_If8(bool script, TestHost testHost)
         {
             var code =
 @"#if
@@ -392,7 +392,7 @@ aeu";
                 code,
                 code,
                 parseOptions,
-                outOfProcess,
+                testHost,
                 PPKeyword("#"),
                 PPKeyword("if"),
                 PPKeyword("#"),
@@ -408,7 +408,7 @@ aeu";
         [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
-        public async Task PP_If9(bool script, bool outOfProcess)
+        public async Task PP_If9(bool script, TestHost testHost)
         {
             var code =
 @"#if //Goo1
@@ -425,7 +425,7 @@ aeu";
                 code,
                 code,
                 parseOptions,
-                outOfProcess,
+                testHost,
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Comment("//Goo1"),

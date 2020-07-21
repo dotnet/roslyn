@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override void EnqueueLocal(Diagnostic diagnostic, DiagnosticAnalyzer analyzer, bool isSyntaxDiagnostic)
             {
-                Debug.Assert(diagnostic.Location.IsInSource);
+                Debug.Assert(diagnostic.Location.Kind == LocationKind.SourceFile || diagnostic.Location.Kind == LocationKind.ExternalFile);
                 if (isSyntaxDiagnostic)
                 {
                     EnqueueCore(ref _lazyLocalSyntaxDiagnostics, diagnostic, analyzer);

@@ -102,11 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             var tracker = new RenameTrackingTaggerProvider(
                 Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                _historyRegistry,
-                Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
                 Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
-                SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
                 Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());

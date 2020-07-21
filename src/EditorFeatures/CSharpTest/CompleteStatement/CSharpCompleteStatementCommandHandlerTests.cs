@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 {
     public class CSharpCompleteStatementCommandHandlerTests : AbstractCompleteStatementTests
     {
-        private string CreateTestWithMethodCall(string code)
+        private static string CreateTestWithMethodCall(string code)
         {
             return
 @"class C

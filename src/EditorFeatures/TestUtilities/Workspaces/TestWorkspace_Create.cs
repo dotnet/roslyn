@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var documentElements = new List<XElement>();
             var index = 0;
-            var extension = "";
+            string extension;
 
             for (var i = 0; i < files.Length; i++)
             {

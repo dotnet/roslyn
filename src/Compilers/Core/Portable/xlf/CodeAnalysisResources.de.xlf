@@ -39,6 +39,11 @@
         <target state="translated">Der hintName der hinzugefügten Quelldatei muss innerhalb eines Generators eindeutig sein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">Die unterdrückte Diagnose-ID "{0}" entspricht nicht der unterdrückbaren ID "{1}" für den angegebenen Deskriptor zur Unterdrückung.</target>
