@@ -241,7 +241,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedCodeCheck))
+            if (TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedCodeCheck)
+                || analyzers.All(analyzer => AnalyzerInfo.HasConfiguredGeneratedCodeAnalysis(analyzer)))
             {
                 return;
             }

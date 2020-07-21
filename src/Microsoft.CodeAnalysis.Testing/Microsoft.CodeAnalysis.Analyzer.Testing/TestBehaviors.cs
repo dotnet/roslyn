@@ -21,6 +21,10 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Skip the generated code exclusion check.
         /// </summary>
         /// <remarks>
+        /// <para>This flag is only used in cases where one or more analyzers does not explicitly configure generated
+        /// code analysis via the <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags)"/>
+        /// API.</para>
+        ///
         /// <para>By default, the analyzer test framework verifies that analyzer which report diagnostics do not report
         /// diagnostics in generated code. While some analyzers, e.g. security analyzers, are expected to report
         /// diagnostics in all code, most analyzers are expected to only report diagnostics in user-created code.</para>
