@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="needs-review-translation">_Generar comentarios de documentación XML con '''</target>
+        <target state="translated">_Generar comentarios de documentación XML con '''</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">

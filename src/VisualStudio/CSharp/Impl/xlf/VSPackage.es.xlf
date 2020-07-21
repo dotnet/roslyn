@@ -287,9 +287,10 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
+        <target state="translated">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
 Mostrar lista de finalización después de escribir un carácter;
 Mostrar lista de finalización después de eliminar un carácter;
+Mostrar lista de finalización en las listas de argumentos automáticamente (experimental);
 Resaltar partes coincidentes de elementos de la lista de finalización;
 Mostrar filtros de elementos de finalización;
 Comportamiento de los fragmentos de código;
@@ -300,7 +301,8 @@ Comportamiento de la tecla Entrar;
 No agregar nunca una línea nueva al presionar Entrar;
 Agregar solo una nueva línea con Entrar al final de palabras;
 Agregar siempre una línea nueva al presionar Entrar;
-Mostrar sugerencias de nombre;</target>
+Mostrar sugerencias de nombre;
+Mostrar elementos de espacios de nombres no importados (experimental);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
