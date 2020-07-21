@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+extern alias InteractiveHost;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +14,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Test.Utilities;
 using Xunit;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -91,7 +93,7 @@ namespace ResetInteractiveTestsDocument
                 ProjectNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
                 NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
                 ProjectDirectory = "pj",
-                Is64Bit = true,
+                Platform = InteractiveHostPlatform.Desktop64,
             };
 
             await resetInteractive.ExecuteAsync(testHost.Window, "Interactive C#");
@@ -102,7 +104,7 @@ namespace ResetInteractiveTestsDocument
 
             if (buildSucceeds)
             {
-                Assert.True(testHost.Evaluator.ResetOptions.Is64Bit);
+                Assert.Equal(InteractiveHostPlatform.Desktop64, testHost.Evaluator.ResetOptions.Platform);
             }
             else
             {

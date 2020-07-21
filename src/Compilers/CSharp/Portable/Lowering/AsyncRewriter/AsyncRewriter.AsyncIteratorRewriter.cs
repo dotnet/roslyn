@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -149,15 +150,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Produces:
                 // .ctor(int state)
                 // {
+                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 //     this.state = state;
                 //     this.initialThreadId = {managedThreadId};
-                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 // }
                 Debug.Assert(stateMachineType.Constructor is IteratorConstructor);
 
                 F.CurrentFunction = stateMachineType.Constructor;
                 var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 bodyBuilder.Add(F.BaseInitialization());
+
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
+
                 bodyBuilder.Add(F.Assignment(F.InstanceField(stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
 
                 var managedThreadId = MakeCurrentThreadId();
@@ -167,8 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
-                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
-                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
 
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
@@ -248,10 +251,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
             {
+                var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+                bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
+
                 // return local;
-                return F.Block(F.Return(F.Local(stateMachineVariable)));
+                bodyBuilder.Add(
+                    F.Return(
+                        F.Local(stateMachineVariable)));
+
+                return F.Block(bodyBuilder.ToImmutableAndFree());
             }
 
             /// <summary>

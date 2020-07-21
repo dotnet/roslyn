@@ -169,7 +169,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Services.Test.Utilit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf", "src\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj", "{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\DesktopHost\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost32", "src\Interactive\HostProcess\InteractiveHost32.csproj", "{EBA4DFA1-6DED-418F-A485-A3B608978906}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost.UnitTests", "src\Interactive\HostTest\InteractiveHost.UnitTests.csproj", "{8CEE3609-A5A9-4A9B-86D7-33118F5D6B34}"
 EndProject
@@ -192,8 +192,6 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.VisualStudio.LanguageServices.UnitTests", "src\VisualStudio\Core\Test\Microsoft.VisualStudio.LanguageServices.UnitTests.vbproj", "{A1455D30-55FC-45EF-8759-3AEBDB13D940}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup", "src\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj", "{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.InteractiveComponents", "src\VisualStudio\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.csproj", "{2169F526-8A88-435D-8732-486ACA095A6A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.DiagnosticsWindow", "src\VisualStudio\VisualStudioDiagnosticsToolWindow\Roslyn.VisualStudio.DiagnosticsWindow.csproj", "{A486D7DE-F614-409D-BB41-0FFDF582E35C}"
 EndProject
@@ -308,8 +306,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Func
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.FunctionResolver.UnitTests", "src\ExpressionEvaluator\Core\Test\FunctionResolver\Microsoft.CodeAnalysis.FunctionResolver.UnitTests.csproj", "{DD317BE1-42A1-4795-B1D4-F370C40D649A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient", "src\VisualStudio\Razor\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.csproj", "{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub", "src\Workspaces\Remote\Razor\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.csproj", "{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup.Dependencies", "src\VisualStudio\Setup.Dependencies\Roslyn.VisualStudio.Setup.Dependencies.csproj", "{1688E1E5-D510-4E06-86F3-F8DB10B1393D}"
@@ -346,7 +342,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Pool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests", "src\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj", "{037F06F0-3BE8-42D0-801E-2F74FC380AB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\DesktopHost\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\HostProcess\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.IntegrationService", "src\VisualStudio\IntegrationTest\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj", "{764D2C19-0187-4837-A2A3-96DDC6EF4CE2}"
 EndProject
@@ -827,10 +823,6 @@ Global
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2169F526-8A88-435D-8732-486ACA095A6A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1007,10 +999,6 @@ Global
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1306,7 +1294,6 @@ Global
 		{91C574AD-0352-47E9-A019-EE02CC32A396} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{A1455D30-55FC-45EF-8759-3AEBDB13D940} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-		{2169F526-8A88-435D-8732-486ACA095A6A} = {19148439-436F-4CDA-B493-70AF4FFC13E9}
 		{A486D7DE-F614-409D-BB41-0FFDF582E35C} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{B617717C-7881-4F01-AB6D-B1B6CC0483A0} = {4C81EBB2-82E1-4C81-80C4-84CC40FA281B}
 		{FD6BA96C-7905-4876-8BCC-E38E2CA64F31} = {913A4C08-898E-49C7-9692-0EF9DC56CF6E}
@@ -1360,7 +1347,6 @@ Global
 		{69F853E5-BD04-4842-984F-FC68CC51F402} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{6FC8E6F5-659C-424D-AEB5-331B95883E29} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
 		{DD317BE1-42A1-4795-B1D4-F370C40D649A} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
-		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{1688E1E5-D510-4E06-86F3-F8DB10B1393D} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{F040CEC5-5E11-4DBD-9F6A-250478E28177} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}

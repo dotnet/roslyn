@@ -12,13 +12,12 @@ using Microsoft.CodeAnalysis.CSharp.Execution;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Remote;
-using Roslyn.Test.Utilities.Remote;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -38,8 +37,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
 
             var options = workspace.CurrentSolution.Options
-                .WithChangedOption(Microsoft.VisualStudio.LanguageServices.Remote.RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
-                .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
+                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
@@ -76,7 +75,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
 
             var options = workspace.CurrentSolution.Options
-                .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
+                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 

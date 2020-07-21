@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
             expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             Assert.True(expectedLines.Length % 2 == 0);
             var expectedMap = new Dictionary<string, string>();
-            for (int i = 0; i < expectedLines.Length; i += 2)
+            for (var i = 0; i < expectedLines.Length; i += 2)
             {
                 expectedMap.Add(expectedLines[i].Trim(), expectedLines[i + 1].Trim());
             }
@@ -382,6 +382,12 @@ dotnet_diagnostic.IDE0076.severity = %value%
 # IDE0077
 dotnet_diagnostic.IDE0077.severity = %value%
 
+# IDE0078
+csharp_style_prefer_pattern_matching = true:silent
+
+# IDE0079
+dotnet_diagnostic.IDE0079.severity = %value%
+
 # IDE0080
 dotnet_diagnostic.IDE0080.severity = %value%
 
@@ -530,6 +536,12 @@ dotnet_diagnostic.IDE0076.severity = %value%
 
 # IDE0077
 dotnet_diagnostic.IDE0077.severity = %value%
+
+# IDE0079
+dotnet_diagnostic.IDE0079.severity = %value%
+
+# IDE0081
+dotnet_diagnostic.IDE0081.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -903,6 +915,12 @@ No editorconfig based code style option
 # IDE0077
 No editorconfig based code style option
 
+# IDE0078, PreferPatternMatching
+csharp_style_prefer_pattern_matching = true:silent
+
+# IDE0079
+No editorconfig based code style option
+
 # IDE0080
 No editorconfig based code style option
 
@@ -1083,6 +1101,12 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 No editorconfig based code style option
 
 # IDE0077
+No editorconfig based code style option
+
+# IDE0079
+No editorconfig based code style option
+
+# IDE0081
 No editorconfig based code style option
 
 # IDE1006

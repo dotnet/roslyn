@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             ' unless those conflicts are inside the local declaration.
             If conflicts.Count() = declaratorConflicts.Count() Then
                 ' Certain semantic conflicts can be detected only after the reference rewriter has inlined the expression
-                Dim newDocument = Await DetectSemanticConflicts(updatedDocument,
+                Dim newDocument = Await DetectSemanticConflictsAsync(updatedDocument,
                                                                 semanticModel,
                                                                 semanticModelBeforeInline,
                                                                 originalInitializerSymbolInfo,
@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return expression.AncestorsAndSelf().OfType(Of ExpressionSyntax).Last().FirstAncestorOrSelf(Of StatementSyntax)()
         End Function
 
-        Private Shared Async Function DetectSemanticConflicts(
+        Private Shared Async Function DetectSemanticConflictsAsync(
             inlinedDocument As Document,
             newSemanticModelForInlinedDocument As SemanticModel,
             semanticModelBeforeInline As SemanticModel,

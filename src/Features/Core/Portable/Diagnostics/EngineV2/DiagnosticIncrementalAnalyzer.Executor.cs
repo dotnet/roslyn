@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Returns null if the diagnostics need to be computed.
         /// </summary>
         private async Task<DocumentAnalysisData?> TryGetCachedDocumentAnalysisDataAsync(
-            Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
+            TextDocument document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             DocumentAnalysisExecutor executor, StateSet stateSet, CancellationToken cancellationToken)
         {
             var kind = executor.AnalysisScope.Kind;
-            var document = executor.AnalysisScope.Document;
+            var document = executor.AnalysisScope.TextDocument;
 
             // get log title and functionId
             GetLogFunctionIdAndTitle(kind, out var functionId, out var title);
