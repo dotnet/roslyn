@@ -18,11 +18,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfTheory, CombinatorialData]
-        public void VerifyPreviousAndNextHistory([CombinatorialRange(0, 10)] int iteration)
+        [WpfFact]
+        public void VerifyPreviousAndNextHistory()
         {
-            _ = iteration;
-
             VisualStudio.InteractiveWindow.SubmitText("1 + 2");
             VisualStudio.InteractiveWindow.SubmitText("1.ToString()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
