@@ -31,9 +31,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/26204"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void GenerateMethodInClosedFile()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void GenerateMethodInClosedFile([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
+
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
 public class Foo
