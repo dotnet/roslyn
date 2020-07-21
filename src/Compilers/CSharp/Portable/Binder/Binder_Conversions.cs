@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
             }
 
+            if (conversion.Kind == ConversionKind.ConditionalExpression)
+            {
+                return ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+            }
+
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
             {
                 TypeSymbol? type = source.Type;
@@ -133,6 +138,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsObjectCreation)
             {
                 return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+            }
+
+            if (source.Kind == BoundKind.UnconvertedConditionalOperator)
+            {
+                TypeSymbol? type = source.Type;
+                if (type is null)
+                {
+                    Debug.Assert(!conversion.Exists);
+                    type = CreateErrorType();
+                    hasErrors = true;
+                }
+
+                source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
+                {
+                    return source;
+                }
             }
 
             if (conversion.IsUserDefined)
@@ -221,11 +243,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Rewrite the subexpressions in a conditional expression to convert the whole thing to the destination type.
+        /// </summary>
+        private BoundExpression ConvertConditionalExpression(
+            BoundUnconvertedConditionalOperator source,
+            TypeSymbol destination,
+            Conversion? conversionIfTargetTyped,
+            DiagnosticBag diagnostics,
+            bool hasErrors = false)
+        {
+            bool targetTyped = conversionIfTargetTyped is { };
+            Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
+            ImmutableArray<Conversion> underlyingConversions = conversionIfTargetTyped.GetValueOrDefault().UnderlyingConversions;
+            var condition = source.Condition;
+            hasErrors |= source.HasErrors || destination.IsErrorType();
+
+            var trueExpr =
+                targetTyped
+                ? CreateConversion(source.Consequence.Syntax, source.Consequence, underlyingConversions[0], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                : GenerateConversionForAssignment(destination, source.Consequence, diagnostics);
+            var falseExpr =
+                targetTyped
+                ? CreateConversion(source.Alternative.Syntax, source.Alternative, underlyingConversions[1], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
+            var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
+            hasErrors |= constantValue?.IsBad == true;
+            if (targetTyped && !destination.IsErrorType())
+                MessageID.IDS_FeatureTargetTypedConditional.CheckFeatureAvailability(diagnostics, source.Syntax);
+
+            return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
+                .WithSuppression(source.IsSuppressed);
+        }
+
+        /// <summary>
         /// Rewrite the expressions in the switch expression arms to add a conversion to the destination type.
         /// </summary>
         private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, Conversion? conversionIfTargetTyped, DiagnosticBag diagnostics, bool hasErrors = false)
         {
-            bool targetTyped = conversionIfTargetTyped != null;
+            bool targetTyped = conversionIfTargetTyped is { };
             Conversion conversion = conversionIfTargetTyped ?? Conversion.Identity;
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
             ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;

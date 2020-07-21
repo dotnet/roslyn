@@ -138,18 +138,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var result in results)
             {
-                var text = await result.NavigableItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
                 symbols.Add(new VSSymbolInformation()
                 {
                     Name = result.Name,
                     ContainerName = result.AdditionalInformation,
                     Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
-                    Location = new LSP.Location()
-                    {
-                        Uri = result.NavigableItem.Document.GetURI(),
-                        Range = ProtocolConversions.TextSpanToRange(result.NavigableItem.SourceSpan, text)
-                    },
+                    Location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false),
                     Icon = new VisualStudio.Text.Adornments.ImageElement(result.NavigableItem.Glyph.GetImageId())
                 });
             }
