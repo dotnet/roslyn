@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
         {
-            var documents = solutionProvider.GetTextDocuments(uri);
+            var documents = solutionProvider.GetTextDocuments(uri, clientName);
 
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static TextDocument? GetTextDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
         {
-            var documents = solutionProvider.GetTextDocuments(documentIdentifier.Uri);
+            var documents = solutionProvider.GetTextDocuments(documentIdentifier.Uri, clientName);
 
             if (documents.Length == 0)
             {
