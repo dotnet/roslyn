@@ -2184,8 +2184,8 @@ public record C(int i)
                 "void C.M()",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C..ctor(C )",
+                "System.Boolean C.Equals(C? other)",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Int32 i)",
                 }, cMembers.ToTestDisplayStrings());
 
