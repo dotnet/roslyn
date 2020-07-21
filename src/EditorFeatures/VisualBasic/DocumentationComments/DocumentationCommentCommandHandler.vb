@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             Return member.GetFirstToken().LeadingTrivia.Any(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
-        Private Function SupportsDocumentationCommentReturnsClause(member As DeclarationStatementSyntax) As Boolean
+        Private Shared Function SupportsDocumentationCommentReturnsClause(member As DeclarationStatementSyntax) As Boolean
             If member Is Nothing Then
                 Return False
             End If
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
                    lastTextToken.TrailingTrivia.Count = 0
         End Function
 
-        Private Function GetTextTokensFollowingExteriorTrivia(xmlText As XmlTextSyntax) As IList(Of SyntaxToken)
+        Private Shared Function GetTextTokensFollowingExteriorTrivia(xmlText As XmlTextSyntax) As IList(Of SyntaxToken)
             Dim result = New List(Of SyntaxToken)
 
             Dim tokenList = xmlText.TextTokens
