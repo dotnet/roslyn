@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
+            // Determining of the textView's buffer does not match the buffer in order to skip showing the hints for
+            // the interactive window
             if (buffer != textView.TextBuffer)
             {
                 return null;
