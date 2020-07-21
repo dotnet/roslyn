@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes = new List<Change>();
         }
 
-        private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode node)
+        private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)
             {
@@ -182,13 +182,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 return;
             }
 
-            var newNodeWithTracking = ApplyTrackingToNewNode(newNode);
-            if (newNodeWithTracking == null)
-            {
-                throw new ArgumentNullException(nameof(newNodeWithTracking));
-            }
-
-            _changes.Add(new ReplaceChange(node, (n, g) => newNodeWithTracking, this));
+            _changes.Add(new ReplaceChange(node, (n, g) => ApplyTrackingToNewNode(newNode), this));
         }
 
         /// <summary>
@@ -314,12 +308,12 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private class ReplaceChange : Change
         {
-            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
+            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> _modifier;
             private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier,
+                Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> modifier,
                 SyntaxEditor editor)
                 : base(node)
             {
