@@ -1180,7 +1180,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
+        [Fact]
         public void TestNullCheckedIterator()
         {
             var source = @"
@@ -1206,13 +1206,13 @@ class C
 {
     // Code size       29 (0x1d)
     .maxstack  3
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.s   -2
-    IL_0010:  newobj     ""C.<GetChars>d__0..ctor(int)""
+    IL_0000:  ldc.i4.s   -2
+    IL_0002:  newobj     ""C.<GetChars>d__0..ctor(int)""
+    IL_0007:  ldarg.1
+    IL_0008:  brtrue.s   IL_0015
+    IL_000a:  ldstr      ""s""
+    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0014:  throw
     IL_0015:  dup
     IL_0016:  ldarg.1
     IL_0017:  stfld      ""string C.<GetChars>d__0.<>3__s""
@@ -1220,7 +1220,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
+        [Fact]
         public void TestNullCheckedIteratorInLocalFunction()
         {
             var source = @"
@@ -1245,13 +1245,13 @@ class Iterators
 {
     // Code size       29 (0x1d)
     .maxstack  3
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.s   -2
-    IL_0010:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0000:  ldc.i4.s   -2
+    IL_0002:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0007:  ldarg.0
+    IL_0008:  brtrue.s   IL_0015
+    IL_000a:  ldstr      ""s""
+    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0014:  throw
     IL_0015:  dup
     IL_0016:  ldarg.0
     IL_0017:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
@@ -1259,7 +1259,7 @@ class Iterators
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
+        [Fact]
         public void TestNullCheckedEnumeratorInLocalFunction()
         {
             var source = @"
@@ -1284,17 +1284,17 @@ class Iterators
 {
     // Code size       28 (0x1c)
     .maxstack  3
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.0
-    IL_000f:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0000:  ldc.i4.0
+    IL_0001:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0006:  ldarg.0
+    IL_0007:  brtrue.s   IL_0014
+    IL_0009:  ldstr      ""s""
+    IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0013:  throw
     IL_0014:  dup
     IL_0015:  ldarg.0
     IL_0016:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.s""
-    IL_001b:  ret
+  IL_001b:  ret
 }");
         }
 
@@ -1387,7 +1387,7 @@ class Program
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 23));
         }
 
-        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
+        [Fact]
         public void TestEmptyNullCheckedIterator1()
         {
             var source = @"
@@ -1402,20 +1402,20 @@ class C
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  brtrue.s   IL_000e
-  IL_0003:  ldstr      ""s""
-  IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-  IL_000d:  throw
-  IL_000e:  ldc.i4.s   -2
-  IL_0010:  newobj     ""C.<GetChars>d__1..ctor(int)""
-  IL_0015:  ret
+    // Code size       22 (0x16)
+    .maxstack  2
+    IL_0000:  ldc.i4.s   -2
+    IL_0002:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    IL_0007:  ldarg.0
+    IL_0008:  brtrue.s   IL_0015
+    IL_000a:  ldstr      ""s""
+    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0014:  throw
+    IL_0015:  ret
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
+        [Fact]
         public void TestEmptyNullCheckedIterator2()
         {
             var source = @"
@@ -1431,14 +1431,14 @@ class C
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
     // Code size       21 (0x15)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.0
-    IL_000f:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    .maxstack  2
+    IL_0000:  ldc.i4.0
+    IL_0001:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    IL_0006:  ldarg.0
+    IL_0007:  brtrue.s   IL_0014
+    IL_0009:  ldstr      ""s""
+    IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0013:  throw
     IL_0014:  ret
 }");
         }
