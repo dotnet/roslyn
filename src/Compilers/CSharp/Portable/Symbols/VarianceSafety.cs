@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // UNDONE: related location for use is much more useful
             if (!(context is TypeSymbol) && context.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_UnexpectedVarianceStaticMemmber, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize(),
+                diagnostics.Add(ErrorCode.ERR_UnexpectedVarianceStaticMember, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize(),
                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion()));
             }
             else

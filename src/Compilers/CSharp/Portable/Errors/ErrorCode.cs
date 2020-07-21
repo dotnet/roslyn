@@ -1866,9 +1866,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAPIInRecord = 8877,
         ERR_CopyConstructorWrongAccessibility = 8878,
         ERR_NonPrivateAPIInRecord = 8879,
-        ERR_UnexpectedVarianceStaticMemmber = 8880,
 
         #endregion diagnostics introduced for C# 9.0
+
+        ERR_UnexpectedVarianceStaticMember = 9100,
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

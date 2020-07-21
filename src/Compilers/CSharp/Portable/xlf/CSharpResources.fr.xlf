@@ -862,7 +862,7 @@
         <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnexpectedVarianceStaticMemmber">
+      <trans-unit id="ERR_UnexpectedVarianceStaticMember">
         <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
         <target state="new">Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</target>
         <note />

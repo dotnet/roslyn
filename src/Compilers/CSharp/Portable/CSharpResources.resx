@@ -3851,7 +3851,7 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_UnexpectedVariance" xml:space="preserve">
     <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}'. '{1}' is {2}.</value>
   </data>
-  <data name="ERR_UnexpectedVarianceStaticMemmber" xml:space="preserve">
+  <data name="ERR_UnexpectedVarianceStaticMember" xml:space="preserve">
     <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</value>
   </data>
   <data name="ERR_DeriveFromDynamic" xml:space="preserve">
