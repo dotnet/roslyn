@@ -345,6 +345,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Esempi:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_0_to_new_class">
+        <source>Extract "{0}" to new class</source>
+        <target state="new">Extract "{0}" to new class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Estrai interfaccia...</target>

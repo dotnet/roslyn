@@ -1532,4 +1532,7 @@ I agree to all of the foregoing:</value>
   <data name="Bitness64" xml:space="preserve">
     <value>64-bit</value>
   </data>
+  <data name="Extract_Class" xml:space="preserve">
+    <value>Extract Class</value>
+  </data>
 </root>

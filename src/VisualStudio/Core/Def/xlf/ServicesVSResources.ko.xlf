@@ -222,6 +222,11 @@
         <target state="translated">평가 중(큐의 {0}개 작업)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Class">
+        <source>Extract Class</source>
+        <target state="new">Extract Class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">마침</target>

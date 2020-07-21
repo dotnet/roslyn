@@ -6,12 +6,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
+             Title="{Binding ElementName=dialog, Path=ExtractClassTitle}"
              WindowStartupLocation="CenterOwner"
-             Title="{Binding ElementName=dialog, Path=Title}"
-             d:DesignHeight="450" d:DesignWidth="800">
+             Height="498"
+             Width="500"
+             MinHeight="498"
+             MinWidth="510"
+             HasDialogFrame="True"
+             ShowInTaskbar="False"
+             ResizeMode="CanResizeWithGrip">
     <Window.Resources>
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
     </Window.Resources>

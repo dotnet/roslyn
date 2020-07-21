@@ -222,6 +222,11 @@
         <target state="translated">Evaluando ({0} tareas en cola)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Class">
+        <source>Extract Class</source>
+        <target state="new">Extract Class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Finalizar</target>

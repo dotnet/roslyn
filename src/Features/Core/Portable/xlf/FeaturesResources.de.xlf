@@ -345,6 +345,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Beispiele:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Extract_0_to_new_class">
+        <source>Extract "{0}" to new class</source>
+        <target state="new">Extract "{0}" to new class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Schnittstelle extrahieren...</target>

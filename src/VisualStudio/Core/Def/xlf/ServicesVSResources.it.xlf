@@ -222,6 +222,11 @@
         <target state="translated">In fase di valutazione ({0} attività in coda)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Class">
+        <source>Extract Class</source>
+        <target state="new">Extract Class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Fine</target>

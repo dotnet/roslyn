@@ -222,6 +222,11 @@
         <target state="translated">正在评估(队列中有 {0} 个任务)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Class">
+        <source>Extract Class</source>
+        <target state="new">Extract Class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">完成</target>

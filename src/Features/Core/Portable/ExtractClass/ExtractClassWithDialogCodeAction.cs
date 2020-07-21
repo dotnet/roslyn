@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             _span = span;
             _service = service;
 
-            Title = $"Extract '{selectedMember.ToDisplayString()}' to a new class";
+            Title = string.Format(FeaturesResources.Extract_0_to_new_class, selectedMember.ToNameDisplayString());
         }
 
         public override string Title { get; }
