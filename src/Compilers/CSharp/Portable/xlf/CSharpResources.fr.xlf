@@ -212,6 +212,11 @@
         <target state="new">A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CopyConstructorWrongAccessibility">
+        <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
+        <target state="new">A copy constructor '{0}' must be public or protected because the record is not sealed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Le nom '{0}' ne correspond pas au paramètre 'Deconstruct' correspondant '{1}'.</target>
@@ -275,11 +280,6 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">Impossible de spécifier des modificateurs 'readonly' sur les deux accesseurs de la propriété ou de l'indexeur '{0}'. À la place, mettez un modificateur 'readonly' sur la propriété elle-même.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DuplicateRecordConstructor">
-        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
-        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -567,6 +567,11 @@
         <target state="new">The receiver type '{0}' is not a valid record type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPrivateAPIInRecord">
+        <source>Record member '{0}' must be private.</source>
+        <target state="new">Record member '{0}' must be private.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonProtectedAPIInRecord">
         <source>Record member '{0}' must be protected.</source>
         <target state="new">Record member '{0}' must be protected.</target>
@@ -760,6 +765,11 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Un modèle de déconstruction d'un seul élément nécessite une autre syntaxe pour la désambiguïsation. Il est recommandé d'ajouter un désignateur d'abandon '_' après la parenthèse de fermeture ')'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAPIInRecord">
+        <source>Record member '{0}' may not be static.</source>
+        <target state="new">Record member '{0}' may not be static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
