@@ -287,20 +287,22 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Alterar configurações da lista de conclusão;Pré-selecionar o membro usado mais recentemente; Listas de conclusão;
-Mostrar lista de conclusão após um caractere ser digitado;
-Mostrar lista de conclusão após um caractere ser excluído;
+        <target state="translated">Alterar as configurações da lista de conclusão;Pré-selecionar o membro usado mais recentemente; Listas de Conclusão;
+Mostrar a lista de conclusão após a digitação de um caractere;
+Mostrar a lista de conclusão após a exclusão de um caractere;
+Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental);
 Realçar as partes correspondentes dos itens da lista de conclusão;
-Mostrar filtros de itens de conclusão;
+Mostrar os filtros de itens de conclusão;
 Comportamento de trechos;
 Nunca incluir trechos;
 Sempre incluir trechos;
-Incluir trechos quando? –Tab é digitado após um identificador;
+Incluir trechos quando ?-Tab é digitado após um identificador;
 Inserir o comportamento chave;
-Nunca adicionar nova linha ao inserir;
-Apenas adicionar uma nova linha ao inserir após o final da palavra totalmente digitada;
-Sempre adicionar nova linha ao inserir;
-Mostrar sugestões de nomes;</target>
+Nunca adicionar uma nova linha ao pressionar Enter;
+Apenas adicionar uma nova linha ao pressionar Enter depois que a palavra for digitada completamente;
+Sempre adicionar nova linha ao pressionar Enter;
+Mostrar sugestões de nomes;
+Mostrar itens de namespaces não importados (experimental);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
