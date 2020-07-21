@@ -44,10 +44,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata> GetDynamicFileInfoProvider()
         {
-            var catalog = ExportProviderCache.CreateTypeCatalog(new Type[] { typeof(TestDynamicFileInfoProviderThatProducesNoFiles) });
-            var factory = ExportProviderCache.CreateExportProviderFactory(catalog);
-
-            return factory.CreateExportProvider().GetExport<IDynamicFileInfoProvider, FileExtensionsMetadata>();
+            var composition = TestComposition.Empty.AddParts(typeof(TestDynamicFileInfoProviderThatProducesNoFiles));
+            return composition.ExportProviderFactory.CreateExportProvider().GetExport<IDynamicFileInfoProvider, FileExtensionsMetadata>();
         }
     }
 }

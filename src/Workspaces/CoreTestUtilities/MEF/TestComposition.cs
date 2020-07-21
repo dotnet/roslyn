@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var newFactory = ExportProviderCache.CreateExportProviderFactory(GetCatalog());
+            var newFactory = ExportProviderCache.CreateExportProviderFactory(GetCatalog(), IsRemote);
 
             lock (s_factoryCache)
             {
@@ -122,6 +122,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return newFactory;
         }
+
+        public bool IsRemote
+            => Assemblies.Contains(typeof(Remote.RoslynServices).Assembly);
 
         private ComposableCatalog GetCatalog()
             => ExportProviderCache.CreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             => AddParts((IEnumerable<Type>?)types);
 
         public TestComposition AddExcludedPartTypes(IEnumerable<Type>? types)
-            => WithExcludedPartTypes(Parts.Union(types ?? Array.Empty<Type>()));
+            => WithExcludedPartTypes(ExcludedPartTypes.Union(types ?? Array.Empty<Type>()));
 
         public TestComposition AddExcludedPartTypes(params Type[]? types)
             => AddExcludedPartTypes((IEnumerable<Type>?)types);
@@ -163,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             => RemoveParts((IEnumerable<Type>?)types);
 
         public TestComposition RemoveExcludedPartTypes(IEnumerable<Type>? types)
-            => WithExcludedPartTypes(Parts.Except(types ?? Array.Empty<Type>()));
+            => WithExcludedPartTypes(ExcludedPartTypes.Except(types ?? Array.Empty<Type>()));
 
         public TestComposition RemoveExcludedPartTypes(params Type[]? types)
             => RemoveExcludedPartTypes((IEnumerable<Type>?)types);

@@ -87,10 +87,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </remarks>
         public override void After(MethodInfo methodUnderTest)
         {
-            var exportProvider = ExportProviderCache.ExportProviderForCleanup;
             try
             {
-                if (exportProvider?.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
+                DisposeExportProvider(ExportProviderCache.LocalExportProviderForCleanup);
+                DisposeExportProvider(ExportProviderCache.RemoteExportProviderForCleanup);
+            }
+            finally
+            {
+                // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
+                // after the end of a test attempts to create an ExportProvider.
+                MefHostServices.TestAccessor.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
+                RoslynServices.TestAccessor.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
+
+                // Reset static state variables.
+                _hostServices = null;
+                ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
+            }
+        }
+
+        private static void DisposeExportProvider(ExportProvider? exportProvider)
+        {
+            if (exportProvider == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (exportProvider.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
                 {
                     if (exportProvider.GetExportedValues<IThreadingContext>().SingleOrDefault()?.HasMainThread ?? false)
                     {
@@ -142,18 +166,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             finally
             {
-                // Dispose of the export provider, including calling Dispose for any IDisposable services created during
-                // the test.
-                exportProvider?.Dispose();
-
-                // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
-                // after the end of a test attempts to create an ExportProvider.
-                MefHostServices.TestAccessor.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
-                RoslynServices.TestAccessor.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
-
-                // Reset static state variables.
-                _hostServices = null;
-                ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
+                // Dispose of the export provider, including calling Dispose for any IDisposable services created during the test.
+                exportProvider.Dispose();
             }
         }
 
@@ -163,14 +177,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (assemblies is ImmutableArray<Assembly> array &&
                 array == MefHostServices.DefaultAssemblies &&
-                ExportProviderCache.ExportProviderForCleanup != null)
+                ExportProviderCache.LocalExportProviderForCleanup != null)
             {
                 if (_hostServices != null)
                 {
                     return _hostServices;
                 }
 
-                exportProvider = ExportProviderCache.ExportProviderForCleanup;
+                exportProvider = ExportProviderCache.LocalExportProviderForCleanup;
             }
             else
             {

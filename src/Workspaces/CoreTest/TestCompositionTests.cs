@@ -45,11 +45,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var composition1 = TestComposition.Empty;
             var composition2 = composition1.AddParts(type1);
-            AssertEx.SetEqual(new[] { type1 }, composition2.Parts);
-            Assert.Empty(composition2.RemoveParts(type1).Parts);
+            var composition3 = composition2.RemoveParts(type1);
 
-            var composition3 = composition2.WithParts(ImmutableHashSet.Create(type2));
-            AssertEx.SetEqual(new[] { type2 }, composition3.Parts);
+            AssertEx.SetEqual(new[] { type1 }, composition2.Parts);
+            Assert.Empty(composition3.Parts);
+            Assert.Empty(composition3.ExcludedPartTypes);
+
+            var composition4 = composition2.WithParts(ImmutableHashSet.Create(type2));
+            AssertEx.SetEqual(new[] { type2 }, composition4.Parts);
+            Assert.Empty(composition3.ExcludedPartTypes);
         }
 
         [Fact]
@@ -60,11 +64,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var composition1 = TestComposition.Empty;
             var composition2 = composition1.AddExcludedPartTypes(type1);
-            AssertEx.SetEqual(new[] { type1 }, composition2.Parts);
-            Assert.Empty(composition2.RemoveExcludedPartTypes(type1).Parts);
+            var composition3 = composition2.RemoveExcludedPartTypes(type1);
 
-            var composition3 = composition2.WithExcludedPartTypes(ImmutableHashSet.Create(type2));
-            AssertEx.SetEqual(new[] { type2 }, composition3.Parts);
+            AssertEx.SetEqual(new[] { type1 }, composition2.ExcludedPartTypes);
+            Assert.Empty(composition3.Parts);
+
+            Assert.Empty(composition3.ExcludedPartTypes);
+            Assert.Empty(composition3.Parts);
+
+            var composition4 = composition2.WithExcludedPartTypes(ImmutableHashSet.Create(type2));
+            AssertEx.SetEqual(new[] { type2 }, composition4.ExcludedPartTypes);
+            Assert.Empty(composition4.Parts);
         }
 
         [Fact]
@@ -87,9 +97,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var composition4 = composition3.Remove(composition1);
 
-            AssertEx.SetEqual(new[] { assembly2 }, composition3.Assemblies);
-            AssertEx.SetEqual(new[] { type2 }, composition3.Parts);
-            AssertEx.SetEqual(new[] { excluded2 }, composition3.ExcludedPartTypes);
+            AssertEx.SetEqual(new[] { assembly2 }, composition4.Assemblies);
+            AssertEx.SetEqual(new[] { type2 }, composition4.Parts);
+            AssertEx.SetEqual(new[] { excluded2 }, composition4.ExcludedPartTypes);
         }
     }
 }

@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Class
 
         Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim workspace = TestWorkspace.Create(markup, composition:=EditorTestCompositions.EditorFeatures.AddParts(additionalTypes))
+            Dim workspace = TestWorkspace.Create(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
 
             Return New CallHierarchyTestState(workspace)
         End Function
