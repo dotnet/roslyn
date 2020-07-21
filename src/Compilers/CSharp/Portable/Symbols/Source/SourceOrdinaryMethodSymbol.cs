@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, TypeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
+                                                                                 canIgnoreNullableContext: false,
                                                                                  ref isValueTypeOverride,
                                                                                  diagnostics, isForOverride: true);
                 }
@@ -295,7 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    syntax.Identifier.GetLocation(),
                     diagnostics);
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
                 {

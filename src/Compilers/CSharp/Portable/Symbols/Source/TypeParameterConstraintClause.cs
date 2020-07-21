@@ -61,18 +61,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
-            ImmutableArray<TypeWithAnnotations>.Empty);
+            ImmutableArray<TypeWithAnnotations>.Empty,
+            isEarly: false);
 
         internal static readonly TypeParameterConstraintClause ObliviousNullabilityIfReferenceType = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType,
-            ImmutableArray<TypeWithAnnotations>.Empty);
+            ImmutableArray<TypeWithAnnotations>.Empty,
+            isEarly: false);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes)
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
+            bool isEarly)
         {
             Debug.Assert(!constraintTypes.IsDefault);
-            if (constraintTypes.IsEmpty)
+            if (!isEarly && constraintTypes.IsEmpty)
             {
                 switch (constraints)
                 {
@@ -84,12 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new TypeParameterConstraintClause(constraints, constraintTypes);
+            return new TypeParameterConstraintClause(constraints, constraintTypes, isEarly);
         }
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes)
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
+            bool isEarly)
         {
 #if DEBUG
             switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
@@ -109,10 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
+            this.IsEarly = isEarly;
         }
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
+        public readonly bool IsEarly;
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
 
@@ -212,6 +218,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterConstraintClauseExtensions
     {
+        internal static bool IsSet(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool canIgnoreNullableContext)
+        {
+            if (constraintClauses.IsDefault)
+            {
+                return false;
+            }
+            return canIgnoreNullableContext || !constraintClauses.Any(clause => clause.IsEarly);
+        }
+
         internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             return constraintClauses.All(clause => clause.IsEmpty);

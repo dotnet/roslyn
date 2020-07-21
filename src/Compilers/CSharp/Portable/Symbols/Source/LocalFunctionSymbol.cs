@@ -472,7 +472,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    syntax.Identifier.GetLocation(),
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {

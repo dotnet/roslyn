@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
         {
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(inProgress), constraintTypes, null);
+            _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(inProgress, canIgnoreNullableContext), constraintTypes, null);
 
             TypeWithAnnotations bestObjectConstraint = default;
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
                 {
                     var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
+                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty, canIgnoreNullableContext: false), constraintTypes, null);
                     return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
                 }
 

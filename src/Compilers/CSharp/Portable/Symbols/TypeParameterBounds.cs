@@ -18,6 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
         /// <summary>
+        /// Creates a "early" bound instance that has constraint types set
+        /// but no other fields.
+        /// </summary>
+        public TypeParameterBounds(ImmutableArray<TypeWithAnnotations> constraintTypes)
+        {
+            Debug.Assert(!constraintTypes.IsDefault);
+            this.ConstraintTypes = constraintTypes;
+        }
+
+        /// <summary>
         /// Creates a "late" bound instance with all fields set.
         /// </summary>
         public TypeParameterBounds(
@@ -40,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeParameterBounds()
         {
         }
+
+        public bool IsEarly => EffectiveBaseClass is null;
 
         /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
@@ -80,9 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterBoundsExtensions
     {
-        internal static bool IsSet(this TypeParameterBounds boundsOpt)
+        internal static bool IsSet(this TypeParameterBounds boundsOpt, bool canIgnoreNullableContext)
         {
-            return boundsOpt != TypeParameterBounds.Unset;
+            if (boundsOpt == TypeParameterBounds.Unset)
+            {
+                return false;
+            }
+            if (boundsOpt == null)
+            {
+                return true;
+            }
+            return canIgnoreNullableContext || !boundsOpt.IsEarly;
         }
     }
 }
