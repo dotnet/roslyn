@@ -7,7 +7,6 @@
     <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>

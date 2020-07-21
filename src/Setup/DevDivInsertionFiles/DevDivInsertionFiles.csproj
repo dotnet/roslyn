@@ -16,7 +16,6 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
   
   <ItemGroup>

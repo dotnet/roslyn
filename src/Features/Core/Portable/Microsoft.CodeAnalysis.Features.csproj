@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     
     <!-- NuGet -->
