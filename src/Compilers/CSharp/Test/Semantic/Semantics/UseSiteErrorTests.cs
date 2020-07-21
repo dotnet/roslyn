@@ -2439,25 +2439,19 @@ class C : CSharpErrors.ClassMethods
             }
         }
 
-        private MetadataReference GetUnmanagedUseSiteErrorReference()
-        {
-            var source1 = @"
+        private static MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilation(@"
 public struct S1
 {
     public int i;
-}";
+}", assemblyName: "libS1").ToMetadataReference();
 
-            var ref1 = CreateCompilation(source1, assemblyName: "libS1").ToMetadataReference();
 
-            var source2 = @"
+        private static MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
 public struct S2
 {
     public S1 s1;
 }
-";
-            var ref2 = CreateCompilation(source2, references: new[] { ref1 }, assemblyName: "libS2").ToMetadataReference();
-            return ref2;
-        }
+", references: new[] { UnmanagedUseSiteError_Ref1 }, assemblyName: "libS2").ToMetadataReference();
 
         [Fact]
         public void Unmanaged_UseSiteError_01()
@@ -2472,11 +2466,8 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { GetUnmanagedUseSiteErrorReference() });
-            comp.VerifyDiagnostics(
-                // (6,19): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         var ptr = &s2;
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 19),
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
                 // (6,19): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var ptr = &s2;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 19),
@@ -2484,6 +2475,9 @@ class C
                 //         var ptr = &s2;
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "&s2").WithArguments("S2").WithLocation(6, 19)
                 );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2499,14 +2493,17 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { GetUnmanagedUseSiteErrorReference() });
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
                 // (6,20): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var size = sizeof(S2);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "sizeof(S2)").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 20),
                 // (6,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         var size = sizeof(S2);
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(6, 20));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2521,14 +2518,17 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { GetUnmanagedUseSiteErrorReference() });
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
                 // (4,23): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     unsafe void M(S2* ptr)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "ptr").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 23),
                 // (4,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //     unsafe void M(S2* ptr)
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("S2").WithLocation(4, 23));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2545,8 +2545,8 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { GetUnmanagedUseSiteErrorReference() });
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span = stackalloc S2[16];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
@@ -2571,6 +2571,9 @@ class C
                 // (7,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* span2 = stackalloc [] { default(S2) };
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc [] { default(S2) }").WithArguments("S2").WithLocation(7, 21));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2589,8 +2592,8 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { GetUnmanagedUseSiteErrorReference() });
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
                 // (7,16): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         fixed (S2* ptr = &s2)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 16),
@@ -2600,12 +2603,13 @@ class C
                 // (7,26): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         fixed (S2* ptr = &s2)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26),
-                // (7,26): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         fixed (S2* ptr = &s2)
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26),
                 // (7,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         fixed (S2* ptr = &s2)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26)
+                );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2618,19 +2622,98 @@ class C
 
     void M1()
     {
-        M(default(S2));
+        M(default(S2)); // 1, 2
+        M(default(S2)); // 3, 4
     }
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { GetUnmanagedUseSiteErrorReference() });
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8377: The type 'S2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
-                //         M(default(S2));
+                //         M(default(S2)); // 1, 2
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S2").WithLocation(8, 9),
                 // (8,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         M(default(S2));
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 9));
+                //         M(default(S2)); // 1, 2
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 9),
+                // (9,9): error CS8377: The type 'S2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S2)); // 3, 4
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S2").WithLocation(9, 9),
+                // (9,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S2)); // 3, 4
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 9));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_07()
+        {
+            var source = @"
+public struct S3
+{
+    public S2 s2;
+}
+
+class C
+{
+    void M<T>(T t) where T : unmanaged { }
+
+    void M1()
+    {
+        M(default(S3)); // 1, 2
+        M(default(S3)); // 3, 4
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS8377: The type 'S3' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S3)); // 1, 2
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S3").WithLocation(13, 9),
+                // (13,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S3)); // 1, 2
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 9),
+                // (14,9): error CS8377: The type 'S3' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S3)); // 3, 4
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S3").WithLocation(14, 9),
+                // (14,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S3)); // 3, 4
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(14, 9));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_08()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+class C
+{
+    async Task M1()
+    {
+        S2 s2 = M2();
+        await M1();
+        Console.Write(s2);
+    }
+
+    S2 M2() => default;
+}
+";
+            var comp = CreateCompilation(source, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

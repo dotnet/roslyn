@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SymbolCompletionState state;
 
         private Flags _flags;
+        private HashSet<DiagnosticInfo>? _managedKindUseSiteDiagnostics;
 
         private readonly DeclarationModifiers _declModifiers;
         private readonly NamespaceOrTypeSymbol _containingSymbol;
@@ -689,10 +690,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var managedKind = _flags.ManagedKind;
             if (managedKind == ManagedKind.Unknown)
             {
-                var baseKind = base.GetManagedKind(ref useSiteDiagnostics);
-                _flags.SetManagedKind(baseKind);
-                return baseKind;
+                managedKind = base.GetManagedKind(ref _managedKindUseSiteDiagnostics);
+                _flags.SetManagedKind(managedKind);
             }
+
+            if (_managedKindUseSiteDiagnostics is object)
+            {
+                useSiteDiagnostics ??= new HashSet<DiagnosticInfo>();
+                useSiteDiagnostics.AddAll(_managedKindUseSiteDiagnostics);
+            }
+
             return managedKind;
         }
 

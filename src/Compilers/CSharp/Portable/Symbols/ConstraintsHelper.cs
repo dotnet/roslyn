@@ -843,15 +843,16 @@ hasRelatedInterfaces:
 
             checkNullability(containingSymbol, typeParameter, typeArgument, nullabilityDiagnosticsBuilderOpt);
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (typeParameter.HasUnmanagedTypeConstraint)
             {
-                var managedKind = typeArgument.Type.GetManagedKind(ref useSiteDiagnostics);
+                HashSet<DiagnosticInfo> managedKindUseSiteDiagnostics = null;
+                var managedKind = typeArgument.Type.GetManagedKind(ref managedKindUseSiteDiagnostics);
+                AppendUseSiteDiagnostics(managedKindUseSiteDiagnostics, typeParameter, ref useSiteDiagnosticsBuilder);
+
                 if (managedKind == ManagedKind.Managed || !typeArgument.Type.IsNonNullableValueType())
                 {
                     // "The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"
                     diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type)));
-                    AppendUseSiteDiagnostics(useSiteDiagnostics, typeParameter, ref useSiteDiagnosticsBuilder);
                     return false;
                 }
                 else if (managedKind == ManagedKind.UnmanagedWithGenerics)
@@ -866,7 +867,6 @@ hasRelatedInterfaces:
                         if (csDiagnosticInfo != null)
                         {
                             diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo));
-                            AppendUseSiteDiagnostics(useSiteDiagnostics, typeParameter, ref useSiteDiagnosticsBuilder);
                             return false;
                         }
                     }
@@ -877,7 +877,6 @@ hasRelatedInterfaces:
             {
                 // "The type '{2}' must be a non-nullable value type in order to use it as parameter '{1}' in the generic type or method '{0}'"
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_ValConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type)));
-                AppendUseSiteDiagnostics(useSiteDiagnostics, typeParameter, ref useSiteDiagnosticsBuilder);
                 return false;
             }
 
@@ -887,6 +886,7 @@ hasRelatedInterfaces:
             // has constraint "U", not "int". We need to substitute the constraints from the
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes,
                 ignoreTypeConstraintsDependentOnTypeParametersOpt);
             bool hasError = false;
