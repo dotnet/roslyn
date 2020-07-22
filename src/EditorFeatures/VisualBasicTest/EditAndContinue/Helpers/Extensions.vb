@@ -22,7 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 description.OldStatements,
                 description.OldTrackingSpans,
                 description.NewSpans,
-                description.OldRegions,
                 description.NewRegions)
         End Sub
 

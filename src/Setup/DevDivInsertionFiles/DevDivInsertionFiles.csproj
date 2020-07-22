@@ -157,6 +157,7 @@
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.Reflection.TypeExtensions"/>
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>

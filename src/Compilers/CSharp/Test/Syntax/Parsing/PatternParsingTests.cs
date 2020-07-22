@@ -11065,5 +11065,169 @@ switch (e)
                 EOF();
             }
         }
+
+        [Fact, WorkItem(45757, "https://github.com/dotnet/roslyn/issues/45757")]
+        public void IncompleteTuplePatternInPropertySubpattern()
+        {
+            var source = @"_ = this is Program { P1: (1,  }";
+            var expectedErrors = new[]
+            {
+                // (1,32): error CS1026: ) expected
+                // _ = this is Program { P1: (1,  }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 32),
+                // (1,33): error CS1002: ; expected
+                // _ = this is Program { P1: (1,  }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33)
+            };
+            UsingStatement(source,
+                TestOptions.RegularWithPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+            UsingStatement(source,
+                TestOptions.RegularWithoutPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.ThisExpression);
+                            {
+                                N(SyntaxKind.ThisKeyword);
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Program");
+                                }
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.Subpattern);
+                                    {
+                                        N(SyntaxKind.NameColon);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "P1");
+                                            }
+                                            N(SyntaxKind.ColonToken);
+                                        }
+                                        N(SyntaxKind.RecursivePattern);
+                                        {
+                                            N(SyntaxKind.PositionalPatternClause);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Subpattern);
+                                                {
+                                                    N(SyntaxKind.ConstantPattern);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralExpression);
+                                                        {
+                                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(45757, "https://github.com/dotnet/roslyn/issues/45757")]
+        public void IncompleteTuplePattern()
+        {
+            var source = @"_ = i is (1,   }";
+            var expectedErrors = new[]
+            {
+                // (1,1): error CS1073: Unexpected token '}'
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = i is (1,   ").WithArguments("}").WithLocation(1, 1),
+                // (1,16): error CS1026: ) expected
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 16)
+            };
+            UsingStatement(source,
+                TestOptions.RegularWithPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+            UsingStatement(source,
+                TestOptions.RegularWithoutPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PositionalPatternClause);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Subpattern);
+                                    {
+                                        N(SyntaxKind.ConstantPattern);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
     }
 }

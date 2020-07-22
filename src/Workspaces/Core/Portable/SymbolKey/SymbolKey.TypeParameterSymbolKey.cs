@@ -25,20 +25,34 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var isCref = reader.ReadBoolean();
 
                 if (isCref)
                 {
-                    var location = reader.ReadLocation();
+                    var location = reader.ReadLocation(out var locationFailureReason);
+                    if (locationFailureReason != null)
+                    {
+                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(location)} failed -> {locationFailureReason})";
+                        return default;
+                    }
+
                     var resolution = reader.ResolveLocation(location);
+
+                    failureReason = null;
                     return resolution.GetValueOrDefault();
                 }
                 else
                 {
                     var metadataName = reader.ReadString();
-                    var containingSymbolResolution = reader.ReadSymbolKey();
+                    var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+
+                    if (containingSymbolFailureReason != null)
+                    {
+                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                        return default;
+                    }
 
                     using var result = PooledArrayBuilder<ITypeParameterSymbol>.GetInstance();
                     foreach (var containingSymbol in containingSymbolResolution)
@@ -52,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    return CreateResolution(result);
+                    return CreateResolution(result, $"({nameof(TypeParameterSymbolKey)} '{metadataName}' not found)", out failureReason);
                 }
             }
         }

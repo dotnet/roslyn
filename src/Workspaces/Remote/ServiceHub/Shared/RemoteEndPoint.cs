@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var jsonFormatter = new JsonMessageFormatter();
 
+            // disable interpreting of strings as DateTime during deserialization:
+            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
+
             if (jsonConverters != null)
             {
                 jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters);
@@ -397,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// if there is an issue with the connection. E.g. the client end point might not receive
         /// a callback from server, or the server end point might not receive a call from client.
         /// </summary>
-        private void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        private void OnDisconnected(object? sender, JsonRpcDisconnectedEventArgs e)
         {
             _disconnectedReason = e;
 

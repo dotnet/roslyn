@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
+                    if (_equalityContract.IsStatic)
+                    {
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     // There are no base record types.
                     // Get hash code of the equality contract and combine it with hash codes for field values.
                     ensureEqualityComparerHelpers(F, ref equalityComparer_GetHashCode, ref equalityComparer_get_Default);
@@ -100,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void ensureEqualityComparerHelpers(SyntheticBoundNodeFactory F, ref MethodSymbol? equalityComparer_GetHashCode, ref MethodSymbol? equalityComparer_get_Default)
             {
-                equalityComparer_GetHashCode ??= F.WellKnownMethod(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode, isOptional: false)!;
-                equalityComparer_get_Default ??= F.WellKnownMethod(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default, isOptional: false)!;
+                equalityComparer_GetHashCode ??= F.WellKnownMethod(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode);
+                equalityComparer_get_Default ??= F.WellKnownMethod(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             }
         }
     }
