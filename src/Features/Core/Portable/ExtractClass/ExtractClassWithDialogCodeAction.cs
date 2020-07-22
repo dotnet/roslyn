@@ -15,13 +15,10 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractInterface;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,18 +27,27 @@ namespace Microsoft.CodeAnalysis.ExtractClass
     internal class ExtractClassWithDialogCodeAction : CodeActionWithOptions
     {
         private readonly Document _document;
-        private readonly ISymbol _selectedMember;
+        private readonly ISymbol? _selectedMember;
+        private readonly INamedTypeSymbol _selectedType;
         private readonly TextSpan _span;
         private readonly IExtractClassOptionsService _service;
 
-        public ExtractClassWithDialogCodeAction(Document document, ISymbol selectedMember, TextSpan span, IExtractClassOptionsService service)
+        public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType, ISymbol selectedMember)
+            : this(document, span, service, selectedType)
+        {
+            _selectedMember = selectedMember;
+
+            Title = string.Format(FeaturesResources.Pull_0_up_to_new_base_class, selectedMember.ToNameDisplayString());
+        }
+
+        public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType)
         {
             _document = document;
-            _selectedMember = selectedMember;
             _span = span;
             _service = service;
+            _selectedType = selectedType;
 
-            Title = string.Format(FeaturesResources.Extract_0_to_new_class, selectedMember.ToNameDisplayString());
+            Title = FeaturesResources.Extract_new_base_class;
         }
 
         public override string Title { get; }
@@ -49,8 +55,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         public override object? GetOptions(CancellationToken cancellationToken)
         {
             var extractClassService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IExtractClassOptionsService>();
-            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedMember)
-                .WaitAndGetResult(cancellationToken);
+            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMember)
+                .WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -77,18 +83,17 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
                 var fileBanner = syntaxFacts.GetFileBanner(root);
                 var namespaceService = _document.GetRequiredLanguageService<AbstractExtractInterfaceService>();
-                var originalContainingType = _selectedMember.ContainingType;
 
                 // Create the symbol for the new type 
                 var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                    originalContainingType.GetAttributes(),
-                    originalContainingType.DeclaredAccessibility,
-                    originalContainingType.GetSymbolModifiers(),
+                    _selectedType.GetAttributes(),
+                    _selectedType.DeclaredAccessibility,
+                    _selectedType.GetSymbolModifiers(),
                     TypeKind.Class,
                     extractClassOptions.TypeName);
 
                 var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
-                    originalContainingType,
+                    _selectedType,
                     _document.Project.CompilationOptions);
 
                 // Add the new type to the solution. It can go in a new file or

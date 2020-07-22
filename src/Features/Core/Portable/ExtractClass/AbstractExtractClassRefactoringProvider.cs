@@ -4,6 +4,7 @@
 
 #nullable enable 
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
         private readonly IExtractClassOptionsService? _optionsService;
 
-        protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
+        protected abstract Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context);
+        protected abstract Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -34,16 +36,25 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return;
             }
 
-            // Currently support to pull field, method, event, property and indexer up,
-            // constructor, operator and finalizer are excluded.
-            var (document, span, cancellationToken) = context;
+            // If we register the action on a class node, no need to find selected members. Just allow
+            // the action to be invoked with the dialog 
+            if (await TryRegisterClassActionAsync(context, optionsService).ConfigureAwait(false))
+            {
+                return;
+            }
 
+            await RegisterMemberActionAsync(context, optionsService).ConfigureAwait(false);
+        }
+
+        private async Task RegisterMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
+        {
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (selectedMemberNode is null)
             {
                 return;
             }
 
+            var (document, span, cancellationToken) = context;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
             if (selectedMember is null || selectedMember.ContainingType is null)
@@ -68,7 +79,29 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return;
             }
 
-            context.RegisterRefactoring(new ExtractClassWithDialogCodeAction(document, selectedMember, span, optionsService), selectedMemberNode.Span);
+            context.RegisterRefactoring(new ExtractClassWithDialogCodeAction(document, span, optionsService, selectedMember.ContainingType, selectedMember), selectedMemberNode.Span);
+        }
+
+        private async Task<bool> TryRegisterClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
+        {
+            var selectedClassNode = await GetSelectedClassDeclarationAsync(context).ConfigureAwait(false);
+            if (selectedClassNode is null)
+            {
+                return false;
+            }
+
+            var (document, span, cancellationToken) = context;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var originalSymbol = semanticModel.GetDeclaredSymbol(selectedClassNode, cancellationToken);
+
+            if (originalSymbol is INamedTypeSymbol originalType)
+            {
+                context.RegisterRefactoring(new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType));
+                return true;
+            }
+
+            return false;
         }
     }
 }

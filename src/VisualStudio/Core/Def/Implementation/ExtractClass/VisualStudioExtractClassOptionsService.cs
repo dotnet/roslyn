@@ -48,11 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             _waitIndicator = waitIndicator;
         }
 
-        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, ISymbol selectedMember)
+        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember)
         {
             var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
 
-            var membersInType = selectedMember.ContainingType.GetMembers().
+            var membersInType = selectedType.GetMembers().
                WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
 
             var memberViewModels = membersInType
@@ -69,16 +69,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             using var cancellationTokenSource = new CancellationTokenSource();
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
 
-            var originalType = selectedMember.ContainingType;
-            var conflictingTypeNames = originalType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).Select(t => t.Name);
-            var candidateName = originalType.Name + "Base";
+            var conflictingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).Select(t => t.Name);
+            var candidateName = selectedType.Name + "Base";
             var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !conflictingTypeNames.Contains(name));
 
-            var containingNamespaceDisplay = originalType.ContainingNamespace.IsGlobalNamespace
+            var containingNamespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
-                : originalType.ContainingNamespace.ToDisplayString();
+                : selectedType.ContainingNamespace.ToDisplayString();
 
-            var generatedNameTypeParameterSuffix = GetTypeParameterSuffix(document, selectedMember);
+            var generatedNameTypeParameterSuffix = GetTypeParameterSuffix(document, selectedType);
 
             var viewModel = new ExtractClassViewModel(
                 _waitIndicator,
@@ -109,9 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             return null;
         }
 
-        private string GetTypeParameterSuffix(Document document, ISymbol selectedMember)
+        private string GetTypeParameterSuffix(Document document, INamedTypeSymbol type)
         {
-            var type = selectedMember.ContainingType;
             var typeParameters = type.TypeParameters;
 
             if (type.TypeParameters.Length == 0)

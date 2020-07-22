@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -32,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass
         {
         }
 
-        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context) => CSharpPullMemberUpCodeRefactoringProvider.GetSelectedDeclarationOrVariableAsync(context);
+        protected override async Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context)
+            => (await context.GetRelevantNodesAsync<ClassDeclarationSyntax>().ConfigureAwait(false)).FirstOrDefault();
+
+        protected override Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context) => CSharpPullMemberUpCodeRefactoringProvider.GetSelectedDeclarationOrVariableAsync(context);
     }
 }

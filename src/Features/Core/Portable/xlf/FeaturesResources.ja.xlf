@@ -345,11 +345,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">例:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
-      <trans-unit id="Extract_0_to_new_class">
-        <source>Extract "{0}" to new class</source>
-        <target state="new">Extract "{0}" to new class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">インターフェイスの抽出...</target>
@@ -363,6 +358,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Extract_method">
         <source>Extract method</source>
         <target state="translated">メソッドを抽出する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_new_base_class">
+        <source>Extract new base class</source>
+        <target state="new">Extract new base class</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -643,6 +643,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_0_up_to_1">
         <source>Pull '{0}' up to '{1}'</source>
         <target state="translated">'{1}' まで '{0}' をプルします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up_to_new_base_class">
+        <source>Pull '{0}' up to new base class</source>
+        <target state="new">Pull '{0}' up to new base class</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">

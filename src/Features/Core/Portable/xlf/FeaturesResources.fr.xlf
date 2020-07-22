@@ -345,11 +345,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Exemples :</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
-      <trans-unit id="Extract_0_to_new_class">
-        <source>Extract "{0}" to new class</source>
-        <target state="new">Extract "{0}" to new class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Extraire l'interface...</target>
@@ -363,6 +358,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Extract_method">
         <source>Extract method</source>
         <target state="translated">Extraire une méthode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_new_base_class">
+        <source>Extract new base class</source>
+        <target state="new">Extract new base class</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -643,6 +643,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Pull_0_up_to_1">
         <source>Pull '{0}' up to '{1}'</source>
         <target state="translated">Tirer '{0}' jusqu'à '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up_to_new_base_class">
+        <source>Pull '{0}' up to new base class</source>
+        <target state="new">Pull '{0}' up to new base class</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">

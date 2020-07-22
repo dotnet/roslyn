@@ -23,9 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             string expected,
             IEnumerable<(string name, bool makeAbstract)> dialogSelection = null,
             bool sameFile = false,
+            bool expectNullMember = false,
             TestParameters testParameters = default)
         {
-            var service = new ExtractClassOptionsService(dialogSelection, sameFile);
+            var service = new ExtractClassOptionsService(dialogSelection, sameFile, expectNullMember);
 
             return TestInRegularAndScript1Async(
                 input,
@@ -460,7 +461,10 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected);
+            await TestAsync(
+                input,
+                expected,
+                dialogSelection: new[] { ("Method", false), ("Method2", false) });
         }
 
         [Fact]
@@ -955,28 +959,476 @@ class Test : MyBase
             await TestAsync(input, expected, sameFile: true);
         }
 
+        [Fact]
+        public async Task TestClassDeclaration()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test[||]
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration2()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class [||]Test
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration3()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+[||]class Test
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration4()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class[||] Test
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration_Comment()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+/// <summary>
+/// [|This is a test class
+/// </summary>
+class Test|]
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+/// <summary>
+/// This is a test class
+/// </summary>
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration_Comment2()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+/// <summary>
+/// This is a test class
+/// [|</summary>
+class Test|]
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+/// <summary>
+/// This is a test class
+/// </summary>
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration_Comment3()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+/// <summary>
+/// This is a [|test class
+/// </summary>
+class|] Test
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+/// <summary>
+/// This is a test class
+/// </summary>
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration_Attribute()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+public class MyAttribute : Attribute { }
+
+[||][MyAttribute]
+class Test
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+using System;
+
+public class MyAttribute : Attribute { }
+
+[MyAttribute]
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">[MyAttribute]
+internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration_SelectWithMembers()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+[|class Test
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}|]
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
+        [Fact]
+        public async Task TestClassDeclaration_SelectWithMembers2()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+[|class Test
+{
+    int Method()
+    {
+        return 1 + 1;
+    }|]
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected, expectNullMember: true);
+        }
+
         private class ExtractClassOptionsService : IExtractClassOptionsService
         {
             private readonly IEnumerable<(string name, bool makeAbstract)> _dialogSelection;
             private readonly bool _sameFile;
+            private readonly bool _expectNullMember;
 
-            public ExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false)
+            public ExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool expectNullMember = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
+                _expectNullMember = expectNullMember;
             }
 
             public string FileName { get; set; } = "MyBase.cs";
             public string BaseName { get; set; } = "MyBase";
 
-            public Task<ExtractClassOptions> GetExtractClassOptionsAsync(Document document, ISymbol selectedMember)
+            public Task<ExtractClassOptions> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol selectedMember)
             {
-                var availableMembers = selectedMember.ContainingType.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
+                var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
-                // Default to all available members as selected if _dialogSelection doesn't exist
-                var selections = _dialogSelection == null
-                    ? availableMembers.Select(member => (member, makeAbstract: false))
-                    : _dialogSelection.Select(selection => (member: availableMembers.Single(symbol => symbol.Name == selection.name), selection.makeAbstract));
+                IEnumerable<(ISymbol member, bool makeAbstract)> selections;
+
+                if (_dialogSelection == null)
+                {
+                    if (selectedMember is null)
+                    {
+                        Assert.True(_expectNullMember);
+                        selections = availableMembers.Select(member => (member, makeAbstract: false));
+                    }
+                    else
+                    {
+                        Assert.False(_expectNullMember);
+                        selections = new[] { (selectedMember, false) };
+                    }
+                }
+                else
+                {
+                    selections = _dialogSelection.Select(selection => (member: availableMembers.Single(symbol => symbol.Name == selection.name), selection.makeAbstract));
+                }
 
                 var memberAnalysis = selections.Select(s =>
                     new ExtractClassMemberAnalysisResult(
