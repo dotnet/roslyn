@@ -832,7 +832,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     foreach (var typeArgument in symbol.TypeArguments)
                     {
-                        if (Instance.Visit(typeArgument))
+                        // type parameters will already have been checked on the type defining them, so we can just do a shallow check
+                        if (typeArgument.TypeKind == TypeKind.TypeParameter)
+                        {
+                            if (typeArgument.IsReferenceType &&
+                                typeArgument.NullableAnnotation() == NullableAnnotation.None)
+                            {
+                                return true;
+                            }
+                        }
+                        else if (Instance.Visit(typeArgument))
                         {
                             return true;
                         }

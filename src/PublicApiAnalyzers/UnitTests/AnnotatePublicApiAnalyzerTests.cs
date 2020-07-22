@@ -256,7 +256,7 @@ public class C
     public string? {|RS0036:ChangedField|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
 C.ChangedField -> string";
@@ -275,7 +275,7 @@ public class C
     public string {|RS0036:{|RS0041:Field|}|}; // oblivious
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
 C.Field -> string";
@@ -294,12 +294,12 @@ public class C
     public string {|RS0036:{|RS0041:Field|}|}; // oblivious
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
@@ -316,12 +316,12 @@ public class C
     public string? {|RS0036:Field|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string?";
@@ -338,12 +338,12 @@ public class C
     public string {|RS0036:Field|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string!";
