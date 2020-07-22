@@ -24,36 +24,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// </summary>
     [Shared]
     [Export(typeof(LanguageServerProtocol))]
-    internal sealed class LanguageServerProtocol : ILanguageServerProtocol
+    internal sealed class LanguageServerProtocol : AbstractRequestHandlerProvider
     {
-        private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
-            => _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == null));
-
-        private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers)
         {
-            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<string, Lazy<IRequestHandler, IRequestHandlerMetadata>>();
-            foreach (var lazyHandler in requestHandlers)
-            {
-                requestHandlerDictionary.Add(lazyHandler.Metadata.MethodName, lazyHandler);
-            }
-
-            return requestHandlerDictionary.ToImmutable();
-        }
-
-        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken) where RequestType : class
-        {
-            Contract.ThrowIfNull(request);
-            Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
-
-            var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
-            Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
-
-            return handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken);
         }
     }
 }

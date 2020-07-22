@@ -32,21 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             {
                 Capabilities = new ServerCapabilities
                 {
-                    CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", "," } },
+                    CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
                     HoverProvider = true,
-                    //FoldingRangeProvider = new FoldingRangeProviderOptions(),
-                    //DocumentHighlightProvider = true,
-                    //DocumentFormattingProvider = true,
-                    //DocumentRangeFormattingProvider = true,
-                    //DocumentOnTypeFormattingProvider = new LSP.DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
-                    //DefinitionProvider = true,
-                    //ImplementationProvider = true,
-                    //ReferencesProvider = true,
-                    //ProjectContextProvider = true,
-                    //RenameProvider = true,
-                    //DocumentSymbolProvider = true,
-                    //WorkspaceSymbolProvider = true,
-                    //SignatureHelpProvider = new LSP.SignatureHelpOptions { TriggerCharacters = new[] { "{", "," } },
+                    FoldingRangeProvider = new FoldingRangeProviderOptions { },
                     TextDocumentSync = new TextDocumentSyncOptions
                     {
                         Change = TextDocumentSyncKind.None

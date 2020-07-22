@@ -17,17 +17,14 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
     [ContentType(ContentTypeNames.XamlContentType)]
-    [ClientName(ClientName)]
     [DisableUserExperience(disableUserExperience: true)] // Remove this when we are ready to use LSP everywhere
     [Export(typeof(ILanguageClient))]
     internal class XamlLanguageServerClient : AbstractLanguageServerClient
     {
-        public const string ClientName = "XAML";
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlLanguageServerClient(XamlLanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
-            : base(languageServerProtocol, workspace, diagnosticService, ClientName)
+            : base(languageServerProtocol, workspace, diagnosticService, diagnosticsClientName: null)
         {
         }
 
