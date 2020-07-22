@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
@@ -23,6 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
     [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName), Shared]
     internal class ClassificationHandler : AbstractRequestHandler<LSP.SemanticTokensParams, SemanticTokens>
     {
+        private IProgress<SumType<SemanticTokens, SemanticTokensEdits>>? _progress;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ClassificationHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
@@ -64,92 +68,139 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
                 return new SemanticTokens();
             }
 
-            return new SemanticTokens()
-            {
-                ResultId = "0", // TO-DO: Change this
-                Data = GetSemanticTokens(classifiedSpans, text.Lines)
-            };
-        }
-
-        private static int[] GetSemanticTokens(IEnumerable<ClassifiedSpan> classifiedSpans, TextLineCollection lines)
-        {
-            using var _ = ArrayBuilder<int>.GetInstance(out var data);
+            var groupedSpans = classifiedSpans.GroupBy(s => s.TextSpan);
 
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            var groupedSpans = classifiedSpans.GroupBy(s => s.TextSpan);
+            if (request.PartialResultToken != null)
+            {
+                _progress = request.PartialResultToken;
+                var workQueue = new AsyncBatchingWorkQueue<int>(
+                    TimeSpan.FromMilliseconds(500), ReportTokensAsync, cancellationToken);
+
+                ComputeTokensStreaming(ref lastLineNumber, ref lastStartCharacter, workQueue, groupedSpans, text.Lines);
+                return new SemanticTokens();
+            }
+            else
+            {
+                var tokens = ComputeTokensNonStreaming(ref lastLineNumber, ref lastStartCharacter, groupedSpans, text.Lines);
+                return new SemanticTokens { Data = tokens };
+            }
+        }
+
+        private static void ComputeTokensStreaming(
+            ref int lastLineNumber,
+            ref int lastStartCharacter,
+            AsyncBatchingWorkQueue<int> workQueue,
+            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans,
+            TextLineCollection lines)
+        {
             foreach (var span in groupedSpans)
             {
-                var textSpan = span.Key;
-                var linePosition = lines.GetLinePositionSpan(textSpan).Start;
-                var lineNumber = linePosition.Line;
-                var startCharacter = linePosition.Character;
+                using var _ = ArrayBuilder<int>.GetInstance(out var data);
+                ComputeNextToken(data, lines, ref lastLineNumber, ref lastStartCharacter, span);
+                workQueue.AddWork(data.ToArray());
+            }
+        }
 
-                // 1. Token line number, relative to the previous token
-                var deltaLine = lineNumber - lastLineNumber;
-                data.Add(deltaLine);
+        private Task ReportTokensAsync(ImmutableArray<int> tokensToReport, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_progress);
 
-                // 2. Token start character, relative to the previous token
-                // (Relative to 0 or the previous token’s start if they're on the same line)
-                if (lastLineNumber == lineNumber)
-                {
-                    data.Add(startCharacter - lastStartCharacter);
-                }
-                else
-                {
-                    data.Add(startCharacter);
-                }
+            var semanticTokens = new SemanticTokens { Data = tokensToReport.ToArray() };
+            _progress.Report(semanticTokens);
+            return Task.CompletedTask;
+        }
 
-                // 3. Token length
-                data.Add(textSpan.Length);
-
-                var additiveResults = span.Where(s => ClassificationTypeNames.AdditiveTypeNames.Contains(s.ClassificationType));
-
-                // 4. Token type - looked up in SemanticTokensLegend.tokenTypes.
-                var tokenTypeClassifiedSpan = span.Except(additiveResults).Single();
-                if (s_typeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenType))
-                {
-                    var index = TokenTypes.IndexOf(t => t == tokenType);
-                    if (index == -1)
-                    {
-                        throw new ArgumentException($"Token type {tokenType} is not recognized.");
-                    }
-
-                    data.Add(index);
-                }
-                else
-                {
-                    throw new NotSupportedException($"Classification type {tokenTypeClassifiedSpan.ClassificationType} is unsupported.");
-                }
-
-                // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                var modifiers = 0;
-                foreach (var currentModifier in additiveResults)
-                {
-                    if (s_modifierMap.TryGetValue(currentModifier.ClassificationType, out var modifier))
-                    {
-                        var index = TokenModifiers.IndexOf(t => t == modifier);
-                        if (index == -1)
-                        {
-                            throw new ArgumentException($"Token type {modifier} is not recognized.");
-                        }
-
-                        modifiers |= index;
-                    }
-                    else
-                    {
-                        throw new NotSupportedException($"Classification type {currentModifier.ClassificationType} is unsupported.");
-                    }
-                }
-
-                data.Add(modifiers);
-
-                lastLineNumber = lineNumber;
-                lastStartCharacter = startCharacter;
+        private static int[] ComputeTokensNonStreaming(
+            ref int lastLineNumber,
+            ref int lastStartCharacter,
+            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans,
+            TextLineCollection lines)
+        {
+            using var _ = ArrayBuilder<int>.GetInstance(out var data);
+            foreach (var span in groupedSpans)
+            {
+                ComputeNextToken(data, lines, ref lastLineNumber, ref lastStartCharacter, span);
             }
 
             return data.ToArray();
+        }
+
+        private static void ComputeNextToken(
+            ArrayBuilder<int> data,
+            TextLineCollection lines,
+            ref int lastLineNumber,
+            ref int lastStartCharacter,
+            IGrouping<TextSpan, ClassifiedSpan> span)
+        {
+            var textSpan = span.Key;
+            var linePosition = lines.GetLinePositionSpan(textSpan).Start;
+            var lineNumber = linePosition.Line;
+            var startCharacter = linePosition.Character;
+
+            // 1. Token line number, relative to the previous token
+            var deltaLine = lineNumber - lastLineNumber;
+            data.Add(deltaLine);
+
+            // 2. Token start character, relative to the previous token
+            // (Relative to 0 or the previous token’s start if they're on the same line)
+            if (lastLineNumber == lineNumber)
+            {
+                data.Add(startCharacter - lastStartCharacter);
+            }
+            else
+            {
+                data.Add(startCharacter);
+            }
+
+            // 3. Token length
+            data.Add(textSpan.Length);
+
+            var additiveResults = span.Where(s => ClassificationTypeNames.AdditiveTypeNames.Contains(s.ClassificationType));
+
+            // 4. Token type - looked up in SemanticTokensLegend.tokenTypes.
+            var tokenTypeClassifiedSpan = span.Except(additiveResults).Single();
+            if (s_typeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenType))
+            {
+                var index = TokenTypes.IndexOf(t => t == tokenType);
+                if (index == -1)
+                {
+                    throw new ArgumentException($"Token type {tokenType} is not recognized.");
+                }
+
+                data.Add(index);
+            }
+            else
+            {
+                throw new NotSupportedException($"Classification type {tokenTypeClassifiedSpan.ClassificationType} is unsupported.");
+            }
+
+            // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+            var modifiers = 0;
+            foreach (var currentModifier in additiveResults)
+            {
+                if (s_modifierMap.TryGetValue(currentModifier.ClassificationType, out var modifier))
+                {
+                    var index = TokenModifiers.IndexOf(t => t == modifier);
+                    if (index == -1)
+                    {
+                        throw new ArgumentException($"Token type {modifier} is not recognized.");
+                    }
+
+                    modifiers |= index + 1;
+                }
+                else
+                {
+                    throw new NotSupportedException($"Classification type {currentModifier.ClassificationType} is unsupported.");
+                }
+            }
+
+            data.Add(modifiers);
+
+            lastLineNumber = lineNumber;
+            lastStartCharacter = startCharacter;
         }
 
         internal static readonly string[] TokenTypes =
