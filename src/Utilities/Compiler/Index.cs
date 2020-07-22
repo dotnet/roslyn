@@ -128,11 +128,9 @@ namespace System
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode() => _value;
 
-
         /// <summary>Converts integer number to an Index.</summary>
         [SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Matches implementation from dotnet/runtime")]
         public static implicit operator Index(int value) => FromStart(value);
-
 
         /// <summary>Converts the value of the current Index object to its equivalent string representation.</summary>
         [SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Matches implementation from dotnet/runtime")]

@@ -165,7 +165,6 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
 
-
             return hasQualifyingMembers;
         }
 

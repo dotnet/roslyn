@@ -67,7 +67,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             var symbol = semanticModel.GetDeclaredSymbol(identifier.Parent, cancellationToken);
 
-
             if (ShouldReport(symbol))
             {
                 reportAction(identifier.CreateDiagnostic(Rule));

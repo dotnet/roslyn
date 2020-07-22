@@ -594,7 +594,6 @@ namespace Analyzer.Utilities.Extensions
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
 
-
         public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
         {
             Debug.Assert(method.ContainingType.OriginalDefinition.Equals(systemThreadingInterlocked));
