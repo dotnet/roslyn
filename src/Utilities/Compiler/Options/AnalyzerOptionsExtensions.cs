@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -272,41 +273,79 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalStringFormattingMethods, rule, tree, compilation, cancellationToken, namePrefixOpt: "M:");
 
-        public static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
-            this AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            ISymbol symbol,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetExcludedSymbolNamesWithValueOption(rule, tree, compilation, cancellationToken)
-            : SymbolNamesWithValueOption<Unit>.Empty;
 
-        public static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
-            this AnalyzerOptions options,
+        /// <summary>
+        /// Returns true if the given source symbol has been configured to be excluded from analysis by options.
+        /// </summary>
+        public static bool IsConfiguredToSkipAnalysis(
+            this ISymbol symbol,
+            AnalyzerOptions options,
             DiagnosticDescriptor rule,
-            SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedSymbolNames, rule, tree, compilation, cancellationToken);
+            => symbol.IsConfiguredToSkipAnalysis(symbol, options, rule, compilation, cancellationToken);
 
-        public static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
-            this AnalyzerOptions options,
+        /// <summary>
+        /// Returns true if the given symbol has been configured to be excluded from analysis by options in context of the given containing symbol.
+        /// </summary>
+        public static bool IsConfiguredToSkipAnalysis(
+            this ISymbol symbol,
+            ISymbol containingContextSymbol,
+            AnalyzerOptions options,
             DiagnosticDescriptor rule,
-            ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetExcludedTypeNamesWithDerivedTypesOption(rule, tree, compilation, cancellationToken)
-            : SymbolNamesWithValueOption<Unit>.Empty;
+        {
+            var excludedSymbols = GetExcludedSymbolNamesWithValueOption(options, rule, containingContextSymbol, compilation, cancellationToken);
+            var excludedTypeNamesWithDerivedTypes = GetExcludedTypeNamesWithDerivedTypesOption(options, rule, containingContextSymbol, compilation, cancellationToken);
+            if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
+            {
+                return false;
+            }
 
-        public static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
-            this AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            SyntaxTree tree,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, tree, compilation, cancellationToken, namePrefixOpt: "T:");
+            while (symbol != null)
+            {
+                if (excludedSymbols.Contains(symbol))
+                {
+                    return true;
+                }
+
+                if (symbol is INamedTypeSymbol namedType && !excludedTypeNamesWithDerivedTypes.IsEmpty)
+                {
+                    foreach (var type in namedType.GetBaseTypesAndThis())
+                    {
+                        if (excludedTypeNamesWithDerivedTypes.Contains(type))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                symbol = symbol.ContainingSymbol;
+            }
+
+            return false;
+
+            static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
+                AnalyzerOptions options,
+                DiagnosticDescriptor rule,
+                ISymbol symbol,
+                Compilation compilation,
+                CancellationToken cancellationToken)
+                => TryGetSyntaxTreeForOption(symbol, out var tree)
+                    ? options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedSymbolNames, rule, tree, compilation, cancellationToken)
+                    : SymbolNamesWithValueOption<Unit>.Empty;
+
+            static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
+                AnalyzerOptions options,
+                DiagnosticDescriptor rule,
+                ISymbol symbol,
+                Compilation compilation,
+                CancellationToken cancellationToken)
+                => TryGetSyntaxTreeForOption(symbol, out var tree)
+                    ? options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, tree, compilation, cancellationToken, namePrefixOpt: "T:")
+                    : SymbolNamesWithValueOption<Unit>.Empty;
+        }
 
         public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,

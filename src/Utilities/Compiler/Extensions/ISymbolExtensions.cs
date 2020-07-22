@@ -194,59 +194,6 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Returns true if the given source symbol has been configured to be excluded from analysis by options.
-        /// </summary>
-        public static bool IsConfiguredToSkipAnalysis(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        => symbol.IsConfiguredToSkipAnalysis(symbol, options, rule, compilation, cancellationToken);
-
-        /// <summary>
-        /// Returns true if the given symbol has been configured to be excluded from analysis by options in context of the given containing symbol.
-        /// </summary>
-        public static bool IsConfiguredToSkipAnalysis(
-            this ISymbol symbol,
-            ISymbol containingContextSymbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        {
-            var excludedSymbols = options.GetExcludedSymbolNamesWithValueOption(rule, containingContextSymbol, compilation, cancellationToken);
-            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, containingContextSymbol, compilation, cancellationToken);
-            if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
-            {
-                return false;
-            }
-
-            while (symbol != null)
-            {
-                if (excludedSymbols.Contains(symbol))
-                {
-                    return true;
-                }
-
-                if (symbol is INamedTypeSymbol namedType && !excludedTypeNamesWithDerivedTypes.IsEmpty)
-                {
-                    foreach (var type in namedType.GetBaseTypesAndThis())
-                    {
-                        if (excludedTypeNamesWithDerivedTypes.Contains(type))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                symbol = symbol.ContainingSymbol;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Returns true if the given symbol has required symbol modifiers based on options:
         ///   1. If user has explicitly configured candidate <see cref="SymbolModifiers"/> in editor config options and
         ///      given symbol has all the required modifiers.
