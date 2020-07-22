@@ -25,7 +25,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Caching" Version="0.1.1575-alpha-g2ab72f6ff8" />
+    <PackageReference Include="Microsoft.VisualStudio.Caching" Version="0.1.15-beta" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\Sqlite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
