@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingSymbolExtensions
     {
-        [Obsolete("Use GetSymbolKeyString instead")]
-        public static UnitTestingSymbolKeyWrapper GetSymbolKey(this ISymbol symbol, CancellationToken cancellationToken)
-            => new UnitTestingSymbolKeyWrapper(SymbolKeyExtensions.GetSymbolKey(symbol, cancellationToken));
-
         public static string GetSymbolKeyString(this ISymbol symbol, CancellationToken cancellationToken)
             => SymbolKey.Create(symbol, cancellationToken).ToString();
 

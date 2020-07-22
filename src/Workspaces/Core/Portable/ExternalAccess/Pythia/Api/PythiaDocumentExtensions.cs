@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
     internal static class PythiaDocumentExtensions
     {
         public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
-            => DocumentExtensions.GetSemanticModelForNodeAsync(document, node, cancellationToken);
+            => DocumentExtensions.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken);
     }
 }

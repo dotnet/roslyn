@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     [Export(typeof(ILspSolutionProvider)), Shared]
-    class VisualStudioLspSolutionProvider : ILspSolutionProvider
+    internal class VisualStudioLspSolutionProvider : ILspSolutionProvider
     {
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;

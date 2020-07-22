@@ -18,13 +18,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicLineCommit(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicLineCommit))
+        public BasicLineCommit(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicLineCommit))
         {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CaseCorrection()
+        private void CaseCorrection()
         {
             VisualStudio.Editor.SetText(@"Module Goo
     Sub M()
@@ -38,7 +38,7 @@ End Module");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void UndoWithEndConstruct()
+        private void UndoWithEndConstruct()
         {
             VisualStudio.Editor.SetText(@"Module Module1
     Sub Main()
@@ -56,7 +56,7 @@ End Module");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void UndoWithoutEndConstruct()
+        private void UndoWithoutEndConstruct()
         {
             VisualStudio.Editor.SetText(@"Module Module1
 
@@ -80,7 +80,7 @@ End Module");
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/34637"), Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnSave()
+        private void CommitOnSave()
         {
             VisualStudio.Editor.SetText(@"Module Module1
     Sub Main()
@@ -98,7 +98,7 @@ End Module
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnFocusLost()
+        private void CommitOnFocusLost()
         {
             VisualStudio.Editor.SetText(@"Module M
     Sub M()
@@ -118,7 +118,7 @@ End Module");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
+        private void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
             try
             {

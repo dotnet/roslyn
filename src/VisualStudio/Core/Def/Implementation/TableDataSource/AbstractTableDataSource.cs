@@ -194,12 +194,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
             // adding it back
-            var newFactory = false;
             ImmutableArray<SubscriptionWithoutLock> snapshot;
             lock (_gate)
             {
                 snapshot = _subscriptions;
-                GetOrCreateFactory_NoLock(data, out var factory, out newFactory);
+                GetOrCreateFactory_NoLock(data, out var factory, out var newFactory);
 
                 factory.OnDataAddedOrChanged(data);
 

@@ -5,18 +5,15 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Ipc;
-using System.Runtime.Serialization.Formatters;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -26,9 +23,18 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// <remarks>
     /// Handles spawning of the host process and communication between the local callers and the remote session.
     /// </remarks>
-    internal sealed partial class InteractiveHost
+    internal sealed partial class InteractiveHost : IDisposable
     {
-        internal const bool DefaultIs64Bit = true;
+        internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
+
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        {
+            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
+            NotifyClientOfEvents = false,
+
+            // Only allow public methods (may be on internal types) to be invoked remotely.
+            AllowNonPublicInvocation = false
+        };
 
         private readonly Type _replServiceProviderType;
         private readonly string _initialWorkingDirectory;
@@ -39,10 +45,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private LazyRemoteService? _lazyRemoteService;
         private int _remoteServiceInstanceId;
-
-        // Remoting channel to communicate with the remote service.
-        private IpcServerChannel? _serverChannel;
-
         private TextWriter _output;
         private TextWriter _errorOutput;
         private readonly object _outputGuard;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         private readonly bool _joinOutputWritingThreadsOnDisposal;
 
-        internal event Action<bool>? ProcessStarting;
+        internal event Action<InteractiveHostPlatformInfo, InteractiveHostOptions, RemoteExecutionResult>? ProcessInitialized;
 
         public InteractiveHost(
             Type replServiceProviderType,
@@ -73,10 +75,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             _initialWorkingDirectory = workingDirectory;
             _outputGuard = new object();
             _errorOutputGuard = new object();
-
-            var serverProvider = new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full };
-            _serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), "ReplChannel-" + Guid.NewGuid(), serverProvider);
-            ChannelServices.RegisterChannel(_serverChannel, ensureSecurity: false);
         }
 
         #region Test hooks
@@ -85,152 +83,19 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal event Action<char[], int>? ErrorOutputReceived;
 
         internal Process? TryGetProcess()
-        {
-            var lazyRemoteService = _lazyRemoteService;
-            return (lazyRemoteService?.InitializedService != null &&
-                    lazyRemoteService.InitializedService.TryGetValue(out var initializedService)) ? initializedService.Service.Process : null;
-        }
+            => _lazyRemoteService?.TryGetInitializedService()?.Service?.Process;
 
-        internal Service? TryGetService()
-        {
-            var initializedService = TryGetOrCreateRemoteServiceAsync().Result;
-            return initializedService.Service?.Service;
-        }
+        internal async Task<RemoteService?> TryGetServiceAsync()
+            => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
 
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
 
-        internal IpcServerChannel? Test_ServerChannel
-            => _serverChannel;
+        // Triggered whenever InteractiveHost process creation fails.
+        internal event Action<Exception?, int?>? InteractiveHostProcessCreationFailed;
 
         #endregion
-
-        private static string GenerateUniqueChannelLocalName()
-            => typeof(InteractiveHost).FullName + Guid.NewGuid();
-
-        private RemoteService? TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
-        {
-            Process? newProcess = null;
-            int newProcessId = -1;
-            Semaphore? semaphore = null;
-            try
-            {
-                int currentProcessId = Process.GetCurrentProcess().Id;
-
-                bool semaphoreCreated;
-
-                string semaphoreName;
-                while (true)
-                {
-                    semaphoreName = "InteractiveHostSemaphore-" + Guid.NewGuid();
-                    semaphore = new Semaphore(0, 1, semaphoreName, out semaphoreCreated);
-
-                    if (semaphoreCreated)
-                    {
-                        break;
-                    }
-
-                    semaphore.Close();
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-
-                var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
-
-                var processInfo = new ProcessStartInfo(hostPath);
-                processInfo.Arguments = remoteServerPort + " " + semaphoreName + " " + currentProcessId;
-                processInfo.WorkingDirectory = _initialWorkingDirectory;
-                processInfo.CreateNoWindow = true;
-                processInfo.UseShellExecute = false;
-                processInfo.RedirectStandardOutput = true;
-                processInfo.RedirectStandardError = true;
-                processInfo.StandardErrorEncoding = Encoding.UTF8;
-                processInfo.StandardOutputEncoding = Encoding.UTF8;
-
-                newProcess = new Process();
-                newProcess.StartInfo = processInfo;
-
-                // enables Process.Exited event to be raised:
-                newProcess.EnableRaisingEvents = true;
-
-                newProcess.Start();
-                InteractiveHostProcessCreated?.Invoke(newProcess);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                try
-                {
-                    newProcessId = newProcess.Id;
-                }
-                catch
-                {
-                    newProcessId = 0;
-                }
-
-                // sync:
-                while (!semaphore.WaitOne(_millisecondsTimeout))
-                {
-                    if (!CheckAlive(newProcess, hostPath))
-                    {
-                        return null;
-                    }
-
-                    WriteOutputInBackground(isError: false, string.Format(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId));
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-
-                // instantiate remote service:
-                Service newService;
-                try
-                {
-                    newService = (Service)Activator.GetObject(
-                        typeof(Service),
-                        "ipc://" + remoteServerPort + "/" + Service.ServiceName);
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    newService.Initialize(_replServiceProviderType, culture.Name);
-                }
-                catch (RemotingException) when (!CheckAlive(newProcess, hostPath))
-                {
-                    return null;
-                }
-
-                return new RemoteService(this, newProcess, newProcessId, newService);
-            }
-            catch (OperationCanceledException)
-            {
-                if (newProcess != null)
-                {
-                    RemoteService.InitiateTermination(newProcess, newProcessId);
-                }
-
-                return null;
-            }
-            finally
-            {
-                if (semaphore != null)
-                {
-                    semaphore.Close();
-                }
-            }
-        }
-
-        private bool CheckAlive(Process process, string hostPath)
-        {
-            bool alive = process.IsAlive();
-            if (!alive)
-            {
-                string errorString = process.StandardError.ReadToEnd();
-
-                WriteOutputInBackground(
-                    isError: true,
-                    string.Format(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode),
-                    errorString);
-            }
-
-            return alive;
-        }
 
         ~InteractiveHost()
         {
@@ -240,8 +105,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
-            DisposeChannel();
-
             // Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
             _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
 
@@ -252,15 +115,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         private void DisposeRemoteService()
         {
             Interlocked.Exchange(ref _lazyRemoteService, null)?.Dispose();
-        }
-
-        private void DisposeChannel()
-        {
-            var serverChannel = Interlocked.Exchange(ref _serverChannel, null);
-            if (serverChannel != null)
-            {
-                ChannelServices.UnregisterChannel(serverChannel);
-            }
         }
 
         public void SetOutputs(TextWriter output, TextWriter errorOutput)
@@ -366,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return default;
                     }
 
-                    var initializedService = await currentRemoteService.InitializedService.GetValueAsync(currentRemoteService.CancellationSource.Token).ConfigureAwait(false);
+                    var initializedService = await currentRemoteService.GetInitializedServiceAsync().ConfigureAwait(false);
                     if (initializedService.Service != null && initializedService.Service.Process.IsAlive())
                     {
                         return initializedService;
@@ -405,34 +259,55 @@ namespace Microsoft.CodeAnalysis.Interactive
             return default;
         }
 
-        private async Task<TResult> Async<TResult>(Action<Service, RemoteAsyncOperation<TResult>> action)
+        private async Task<RemoteExecutionResult> ExecuteRemoteAsync(string targetName, params object?[] arguments)
+            => (await InvokeRemoteAsync<RemoteExecutionResult.Data>(targetName, arguments).ConfigureAwait(false))?.Deserialize() ?? default;
+
+        private async Task<TResult> InvokeRemoteAsync<TResult>(string targetName, params object?[] arguments)
+        {
+            var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+            if (initializedRemoteService.Service == null)
+            {
+                return default!;
+            }
+
+            return await InvokeRemoteAsync<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
+        }
+
+        private static async Task<RemoteExecutionResult> ExecuteRemoteAsync(RemoteService remoteService, string targetName, params object?[] arguments)
+            => (await InvokeRemoteAsync<RemoteExecutionResult.Data>(remoteService, targetName, arguments).ConfigureAwait(false))?.Deserialize() ?? default;
+
+        private static async Task<TResult> InvokeRemoteAsync<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
         {
             try
             {
-                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-                if (initializedService.Service == null)
-                {
-                    return default!;
-                }
-
-                return await new RemoteAsyncOperation<TResult>(initializedService.Service).ExecuteAsync(action).ConfigureAwait(false);
+                return await remoteService.JsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (e is ObjectDisposedException || !remoteService.Process.IsAlive())
             {
-                throw ExceptionUtilities.Unreachable;
+                return default!;
             }
         }
 
-        private static async Task<TResult> Async<TResult>(RemoteService remoteService, Action<Service, RemoteAsyncOperation<TResult>> action)
+        private static JsonRpc CreateRpc(Stream stream, object? incomingCallTarget)
         {
-            try
+            var jsonFormatter = new JsonMessageFormatter();
+
+            // disable interpreting of strings as DateTime during deserialization:
+            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
+
+            var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
             {
-                return await new RemoteAsyncOperation<TResult>(remoteService).ExecuteAsync(action).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.Report(e))
+                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+            };
+
+            if (incomingCallTarget != null)
             {
-                throw ExceptionUtilities.Unreachable;
+                rpc.AddLocalRpcTarget(incomingCallTarget, s_jsonRpcTargetOptions);
             }
+
+            rpc.StartListening();
+
+            return rpc;
         }
 
         #region Operations
@@ -482,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
             Contract.ThrowIfNull(code);
-            return Async<RemoteExecutionResult>((service, operation) => service.Execute(operation, code));
+            return ExecuteRemoteAsync(nameof(Service.ExecuteAsync), code);
         }
 
         /// <summary>
@@ -497,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFile(operation, path));
+            return ExecuteRemoteAsync(nameof(Service.ExecuteFileAsync), path);
         }
 
         /// <summary>
@@ -511,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> AddReferenceAsync(string reference)
         {
             Contract.ThrowIfNull(reference);
-            return Async<bool>((service, operation) => service.AddReference(operation, reference));
+            return InvokeRemoteAsync<bool>(nameof(Service.AddReferenceAsync), reference);
         }
 
         /// <summary>
@@ -523,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             Contract.ThrowIfNull(sourceSearchPaths);
             Contract.ThrowIfNull(baseDirectory);
 
-            return Async<RemoteExecutionResult>((service, operation) => service.SetPaths(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
+            return ExecuteRemoteAsync(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
         }
 
         #endregion

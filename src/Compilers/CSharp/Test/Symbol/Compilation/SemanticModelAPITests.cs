@@ -813,7 +813,7 @@ public class A
 
             var typeA = mems.Where(s => s.Name == "A").Select(s => s);
             Assert.Equal(1, typeA.Count());
-            var invalid = mems.Where(s => s.Name == SimpleProgramNamedTypeSymbol.UnspeakableName).Select(s => s);
+            var invalid = mems.Where(s => s.Name == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName).Select(s => s);
             Assert.Equal(1, invalid.Count());
         }
 
@@ -3717,6 +3717,41 @@ class Derived : Test
             var identifierInfo = model.GetTypeInfo(identifier);
             Assert.Equal(stringType, identifierInfo.Type);
             Assert.Equal(stringType, identifierInfo.ConvertedType);
+        }
+
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LambdaReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        System.Func<string> local = () =>
+        {
+            s.ToString();
+            return s;
+        };
+        local();
+        return null!;
+    }
+}");
+            comp.VerifyDiagnostics(
+            );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Block!.Statements[0].SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String' because we are speculating within the lambda.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
         }
 
         [WorkItem(850907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850907")]

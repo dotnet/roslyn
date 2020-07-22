@@ -1771,12 +1771,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoOutputDirectory = 8771,
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
 
-        // available 8773
+        ERR_FeatureNotAvailableInVersion9 = 8773,
 
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
         WRN_ParameterDisallowsNull = 8777,
+        WRN_ConstOutOfRangeChecked = 8778,
 
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
@@ -1818,19 +1819,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
-        ERR_FeatureNotAvailableInVersion9 = 8813,
 
-        // Codes 8813, 8814, 8815, 8816 used by features/module-initializers
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8815,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
 
         ERR_PartialMethodReturnTypeDifference = 8817,
         ERR_PartialMethodRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
-        // Codes 8820, 8821 used by features/static-lambdas
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
 
+        ERR_BadWarningVersion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
-        ERR_DuplicateRecordConstructor = 8851,
+
+        // Available = 8851,
+
         ERR_AssignmentInitOnly = 8852,
         ERR_CantChangeInitOnlyOnOverride = 8853,
         ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
@@ -1838,6 +1845,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
         ERR_NoSingleCloneMethod = 8858,
+        ERR_CloneDisallowedInRecord = 8859,
+        // Unused 8860
         ERR_UnexpectedArgumentList = 8861,
         ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
         ERR_MultipleRecordParameterLists = 8863,
@@ -1847,6 +1856,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
         ERR_DoesNotOverrideMethodFromObject = 8869,
+        ERR_SealedGetHashCodeInRecord = 8870,
+        ERR_DoesNotOverrideBaseEquals = 8871,
+        ERR_NotOverridableAPIInRecord = 8872,
+        ERR_NonPublicAPIInRecord = 8873,
+        ERR_SignatureMismatchInRecord = 8874,
+        ERR_NonProtectedAPIInRecord = 8875,
+        ERR_DoesNotOverrideBaseEqualityContract = 8876,
+        ERR_StaticAPIInRecord = 8877,
+        ERR_CopyConstructorWrongAccessibility = 8878,
+        ERR_NonPrivateAPIInRecord = 8879,
 
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

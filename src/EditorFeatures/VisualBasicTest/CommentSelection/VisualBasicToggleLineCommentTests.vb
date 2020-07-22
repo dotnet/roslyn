@@ -107,7 +107,7 @@ End Class
             ToggleCommentMultiple(markup, expected)
         End Sub
 
-        Private Function ReplaceLineEndings(markup As String) As String
+        Private Shared Function ReplaceLineEndings(markup As String) As String
             ' do this since xml value put only vbLf
             Return markup.Replace(vbLf, vbCrLf)
         End Function
