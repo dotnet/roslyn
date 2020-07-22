@@ -172,7 +172,7 @@ public record A(int i,) { }
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
-            AssertEx.Equal(new[] { " A..ctor(System.Int32 i, ? )", "A..ctor(A original)" },
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, ? )", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
         }
 
@@ -200,6 +200,29 @@ public record A(int i, int ) { }
 
             AssertEx.Equal(new[] { "A..ctor(System.Int32 i, System.Int32 )", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem(46083, "https://github.com/dotnet/roslyn/issues/46083")]
+        public void IncompletePositionalRecord_SingleParameter()
+        {
+            string source = @"
+record A(x)
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(2, 10),
+                // (2,11): error CS1001: Identifier expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 11),
+                // (2,12): error CS1514: { expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 12),
+                // (2,12): error CS1513: } expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 12)
+                );
         }
 
         [Fact]
