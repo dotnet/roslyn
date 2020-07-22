@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-  <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets"/>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <UseWindowsForms>true</UseWindowsForms>
-
-    <!-- Publishing (only precompile binaries when building on CI to avoid slowing down dev builds by ~10s) -->
-    <PublishReadyToRun Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</PublishReadyToRun>
-    <SelfContained>false</SelfContained>    
-    <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
