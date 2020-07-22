@@ -147,6 +147,61 @@ record Point(int x, int y);
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord()
+        {
+            string source = @"
+public record A(int i,) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,23): error CS1031: Type expected
+                // public record A(int i,) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(2, 23),
+                // (2,23): error CS1001: Identifier expected
+                // public record A(int i,) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 23)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A.i { get; init; }",
+                "? A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { " A..ctor(System.Int32 i, ? )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithType()
+        {
+            string source = @"
+public record A(int i, int ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,28): error CS1001: Identifier expected
+                // public record A(int i, int ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 28)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A.i { get; init; }",
+                "System.Int32 A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, System.Int32 )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+        }
+
         [Fact]
         public void TestInExpressionTree()
         {
