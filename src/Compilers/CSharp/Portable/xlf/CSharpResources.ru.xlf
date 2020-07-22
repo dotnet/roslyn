@@ -2389,6 +2389,16 @@
         <target state="new">Parameter must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion">
+        <source>Operator cannot be used here due to precedence. Use parentheses to disambiguate.</source>
+        <target state="new">Operator cannot be used here due to precedence. Use parentheses to disambiguate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion_Title">
+        <source>Operator cannot be used here due to precedence.</source>
+        <target state="new">Operator cannot be used here due to precedence.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Метод, помеченный [DoesNotReturn], не должен возвращать значение.</target>

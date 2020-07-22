@@ -331,6 +331,7 @@ class X
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_PrecedenceInversion:
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
@@ -375,6 +376,7 @@ class X
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
                     ErrorCode.WRN_ConstOutOfRangeChecked,
+                    ErrorCode.WRN_PrecedenceInversion,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

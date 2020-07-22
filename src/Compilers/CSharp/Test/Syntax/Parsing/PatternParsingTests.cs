@@ -9924,79 +9924,61 @@ switch (e)
         public void PrecedenceInversionWithBlockLambda()
         {
             UsingExpression("() => {} + d",
-                TestOptions.Regular.WithStrictFeature(),
-                // (1,10): error CS1073: Unexpected token '+'
+                // (1,10): warning CS8848: Operator cannot be used here due to precedence. Use parentheses to disambiguate.
                 // () => {} + d
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 10)
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 10)
                 );
-            verify();
-
-            UsingExpression("()=>{} + d");
-            verify();
-
-            void verify()
+            N(SyntaxKind.AddExpression);
             {
-                N(SyntaxKind.AddExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                EOF();
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
             }
+            EOF();
         }
 
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithAnonymousMethod()
         {
             UsingExpression("delegate {} + d",
-                TestOptions.Regular.WithStrictFeature(),
-                // (1,13): error CS1073: Unexpected token '+'
+                // (1,13): warning CS8848: Operator cannot be used here due to precedence. Use parentheses to disambiguate.
                 // delegate {} + d
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 13)
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 13)
                 );
-            verify();
-
-            UsingExpression("delegate {} + d");
-            verify();
-
-            void verify()
+            N(SyntaxKind.AddExpression);
             {
-                N(SyntaxKind.AddExpression);
+                N(SyntaxKind.AnonymousMethodExpression);
                 {
-                    N(SyntaxKind.AnonymousMethodExpression);
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                EOF();
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
             }
+            EOF();
         }
 
         [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
