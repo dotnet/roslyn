@@ -162,11 +162,11 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     Continue For
                 End If
 
-                Dim documents As New HashSet(Of Graph.Document)
+                Dim documents As New HashSet(Of Graph.LsifDocument)
 
                 ' Let's now enumerate all the documents and ranges to see which documents contain a range that links to
                 ' this resultSet
-                For Each document In lsif.Vertices.OfType(Of Graph.Document)
+                For Each document In lsif.Vertices.OfType(Of Graph.LsifDocument)
                     For Each range In lsif.GetLinkedVertices(Of Graph.Range)(document, "contains")
                         If lsif.GetLinkedVertices(Of Graph.ResultSet)(range, "next").Contains(resultSetVertex) Then
                             documents.Add(document)
