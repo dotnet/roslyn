@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int maxSlotDepth = 0)
             : base(compilation, member, node, nonMonotonicTransferFunction: trackUnassignments)
         {
+            Debug.Assert(emptyStructs != null);
             _maxSlotDepth = maxSlotDepth;
             _emptyStructTypeCache = emptyStructs;
         }

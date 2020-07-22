@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
 
         private UnassignedFieldsWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
-            : base(compilation, method, node, trackClassFields: true, trackStaticMembers: method.MethodKind == MethodKind.StaticConstructor)
+            : base(compilation, method, node, strictAnalysis: true, trackClassFields: true, trackStaticMembers: method.MethodKind == MethodKind.StaticConstructor)
         {
             _diagnostics = diagnostics;
         }

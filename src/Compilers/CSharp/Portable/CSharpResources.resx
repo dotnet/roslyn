@@ -819,6 +819,12 @@
   <data name="ERR_UseDefViolation" xml:space="preserve">
     <value>Use of unassigned local variable '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolation" xml:space="preserve">
+    <value>Use of unassigned local variable '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolation_Title" xml:space="preserve">
+    <value>Use of unassigned local variable</value>
+  </data>
   <data name="WRN_UnreferencedVar" xml:space="preserve">
     <value>The variable '{0}' is declared but never used</value>
   </data>
@@ -834,11 +840,29 @@
   <data name="ERR_UseDefViolationField" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationField" xml:space="preserve">
+    <value>Use of possibly unassigned field '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationField_Title" xml:space="preserve">
+    <value>Use of possibly unassigned field</value>
+  </data>
   <data name="ERR_UseDefViolationProperty" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationProperty" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationProperty_Title" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property</value>
+  </data>
   <data name="ERR_UnassignedThis" xml:space="preserve">
     <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis" xml:space="preserve">
+    <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis_Title" xml:space="preserve">
+    <value>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</value>
   </data>
   <data name="ERR_AmbigQM" xml:space="preserve">
     <value>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</value>
@@ -857,6 +881,12 @@
   </data>
   <data name="ERR_ParamUnassigned" xml:space="preserve">
     <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned" xml:space="preserve">
+    <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned_Title" xml:space="preserve">
+    <value>An out parameter must be assigned to before control leaves the method</value>
   </data>
   <data name="ERR_InvalidArray" xml:space="preserve">
     <value>Invalid rank specifier: expected ',' or ']'</value>
@@ -901,7 +931,13 @@
     <value>Use of default literal is not valid in this context</value>
   </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
-    <value>The 'this' object cannot be used before all of its fields are assigned to</value>
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis" xml:space="preserve">
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis_Title" xml:space="preserve">
+    <value>The 'this' object cannot be used in a constructor before all of its fields have been assigned</value>
   </data>
   <data name="ERR_ArgsInvalid" xml:space="preserve">
     <value>The __arglist construct is valid only within a variable argument method</value>
@@ -1115,6 +1151,12 @@
   </data>
   <data name="ERR_UseDefViolationOut" xml:space="preserve">
     <value>Use of unassigned out parameter '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationOut" xml:space="preserve">
+    <value>Use of unassigned out parameter '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationOut_Title" xml:space="preserve">
+    <value>Use of unassigned out parameter</value>
   </data>
   <data name="ERR_ArraySizeInDeclaration" xml:space="preserve">
     <value>Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)</value>
@@ -2248,6 +2290,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoProperty" xml:space="preserve">
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoProperty_Title" xml:space="preserve">
+    <value>An auto-implemented property must be fully assigned before control is returned to the caller.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>

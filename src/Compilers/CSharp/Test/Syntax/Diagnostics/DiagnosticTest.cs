@@ -331,6 +331,15 @@ class X
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_UnassignedThisAutoProperty:
+                        case ErrorCode.WRN_UnassignedThis:
+                        case ErrorCode.WRN_ParamUnassigned:
+                        case ErrorCode.WRN_UseDefViolationProperty:
+                        case ErrorCode.WRN_UseDefViolationField:
+                        case ErrorCode.WRN_UseDefViolationThis:
+                        case ErrorCode.WRN_UseDefViolationOut:
+                        case ErrorCode.WRN_UseDefViolation:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
@@ -375,6 +384,14 @@ class X
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
                     ErrorCode.WRN_ConstOutOfRangeChecked,
+                    ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.WRN_UseDefViolation,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

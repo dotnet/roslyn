@@ -1832,6 +1832,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
 
+        // The following warnings correspond to errors of the same name, but are reported
+        // when a definite assignment issue is reported due to private fields imported from metadata.
+        WRN_UnassignedThisAutoProperty = 8822,
+        WRN_UnassignedThis = 8823,
+        WRN_ParamUnassigned = 8824,
+        WRN_UseDefViolationProperty = 8825,
+        WRN_UseDefViolationField = 8826,
+        WRN_UseDefViolationThis = 8827,
+        WRN_UseDefViolationOut = 8828,
+        WRN_UseDefViolation = 8829,
+
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
 
