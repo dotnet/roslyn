@@ -246,8 +246,11 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub.CoreComponents\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.csproj">
       <Name>ServiceHub.Core</Name>
-      <SetTargetFramework>TargetFramework=netcoreapp3.1</SetTargetFramework>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <!--
+        Note: do not set TargetFramework=netcoreapp3.1 for CoreComponents. The project is not multi-targeted.
+        Setting the property would create a build configuration that's different from the one the solution uses
+        and thus would result in building the project twice.
+      -->
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
