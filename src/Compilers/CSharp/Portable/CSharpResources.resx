@@ -3851,6 +3851,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_UnexpectedVariance" xml:space="preserve">
     <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}'. '{1}' is {2}.</value>
   </data>
+  <data name="ERR_UnexpectedVarianceStaticMember" xml:space="preserve">
+    <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</value>
+  </data>
   <data name="ERR_DeriveFromDynamic" xml:space="preserve">
     <value>'{0}': cannot derive from the dynamic type</value>
   </data>
@@ -6347,5 +6350,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
     <value>A module initializer must be an ordinary member method</value>
+  </data>
+  <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
+    <value>variance safety for static interface members</value>
   </data>
 </root>
