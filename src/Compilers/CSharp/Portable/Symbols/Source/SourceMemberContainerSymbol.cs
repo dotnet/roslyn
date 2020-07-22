@@ -697,6 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _flags.SetManagedKind(managedKind);
             }
 
+            Thread.MemoryBarrier();
             if (!_managedKindUseSiteDiagnostics.IsEmpty)
             {
                 useSiteDiagnostics ??= new HashSet<DiagnosticInfo>();
