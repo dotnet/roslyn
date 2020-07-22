@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -36,13 +37,14 @@ namespace Microsoft.CodeAnalysis.Remote
         public static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
                 // This adds the exported MEF services from the RemoteWorkspaces assembly.
-                .Add(typeof(RoslynServices).Assembly)
-                .Add(typeof(ICodingConventionsManager).Assembly);
+                .Add(typeof(RoslynServices).Assembly);
+                //.Add(typeof(ICodingConventionsManager).Assembly);
 
         public static HostServices HostServices
         {
             get
             {
+                Debugger.Launch();
                 if (s_hostServicesHook != null)
                 {
                     return s_hostServicesHook();
