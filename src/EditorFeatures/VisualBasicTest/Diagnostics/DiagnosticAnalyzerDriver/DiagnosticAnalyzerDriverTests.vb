@@ -17,7 +17,9 @@ Public Class DiagnosticAnalyzerDriverTests
         Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
         Using workspace = TestWorkspace.CreateVisualBasic(source)
             Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+            Dim newSolution = workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}).
+                Projects.Single().AddAdditionalDocument(name:="dummy.txt", text:="", filePath:="dummy.txt").Project.Solution
+            workspace.TryApplyChanges(newSolution)
 
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
             AccessSupportedDiagnostics(analyzer)
@@ -90,7 +92,7 @@ End Class
         AccessSupportedDiagnostics(analyzer)
     End Sub
 
-    Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
+    Private Shared Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
         Dim diagnosticService = New HostDiagnosticAnalyzers({New AnalyzerImageReference(ImmutableArray.Create(analyzer))})
         diagnosticService.GetDiagnosticDescriptorsPerReference(New DiagnosticAnalyzerInfoCache())
     End Sub

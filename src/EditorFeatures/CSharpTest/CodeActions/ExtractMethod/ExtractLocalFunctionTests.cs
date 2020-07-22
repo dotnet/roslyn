@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
-        private int CodeActionIndexWhenExtractMethodMissing => 0;
+        private static int CodeActionIndexWhenExtractMethodMissing => 0;
 
-        private int CodeActionIndex => 1;
+        private static int CodeActionIndex => 1;
 
         private const string EditorConfigNaming_CamelCase = @"[*]
 # Naming rules

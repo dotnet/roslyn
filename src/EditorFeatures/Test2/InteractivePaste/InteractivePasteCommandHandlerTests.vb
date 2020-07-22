@@ -14,10 +14,10 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     <[UseExportProvider]>
     Public Class InteractivePasteCommandhandlerTests
-        Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
-        Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
+        Private Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
+        Private Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
 
-        Private Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
+        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
             Dim handler = New InteractivePasteCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService),
                                                              workspace.GetService(Of ITextUndoHistoryRegistry))
             handler.RoslynClipboard = New MockClipboard()
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End Using
         End Sub
 
-        Private Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
+        Private Shared Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
             clipboard.Clear()
 
             Dim data = New DataObject()

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -86,6 +87,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
             => CreateSolutionService(solutionInfo).GetSolutionAsync(solutionInfo, cancellationToken);
+
+        internal Task<Solution> GetSolutionImplAsync(JObject solutionInfo, CancellationToken cancellationToken)
+        {
+            var reader = solutionInfo.CreateReader();
+            var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance }, DateParseHandling = DateParseHandling.None });
+            var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
+
+            return CreateSolutionService(pinnedSolutionInfo).GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
+        }
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
         {

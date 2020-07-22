@@ -667,6 +667,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression, value); }
         }
 
+        public string Style_PreferPatternMatching
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferPatternMatching); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferPatternMatching, value); }
+        }
+
         public string Style_PreferPatternMatchingOverAsWithNullCheck
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck); }

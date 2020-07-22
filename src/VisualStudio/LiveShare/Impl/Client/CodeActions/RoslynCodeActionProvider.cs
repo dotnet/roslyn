@@ -17,12 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
     internal class RoslynCodeActionProvider : CodeRefactoringProvider
     {
         private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        public RoslynCodeActionProvider(AbstractLspClientServiceFactory roslynLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public RoslynCodeActionProvider(AbstractLspClientServiceFactory roslynLspClientServiceFactory)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
-            _diagnosticAnalyzerService = diagnosticAnalyzerService ?? throw new ArgumentNullException(nameof(diagnosticAnalyzerService));
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

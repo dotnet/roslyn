@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DeconstructionAssignmentOperator,
         NullCoalescingOperator,
         NullCoalescingAssignmentOperator,
+        UnconvertedConditionalOperator,
         ConditionalOperator,
         ArrayAccess,
         ArrayLength,
@@ -221,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionWithNullability,
         WithExpression,
     }
+
 
 
 
@@ -1699,9 +1701,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundUnconvertedConditionalOperator : BoundExpression
+    {
+        public BoundUnconvertedConditionalOperator(SyntaxNode syntax, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, ErrorCode noCommonTypeError, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.UnconvertedConditionalOperator, syntax, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
+        {
+
+            RoslynDebug.Assert(condition is object, "Field 'condition' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(consequence is object, "Field 'consequence' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(alternative is object, "Field 'alternative' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Condition = condition;
+            this.Consequence = consequence;
+            this.Alternative = alternative;
+            this.ConstantValueOpt = constantValueOpt;
+            this.NoCommonTypeError = noCommonTypeError;
+        }
+
+
+        public BoundExpression Condition { get; }
+
+        public BoundExpression Consequence { get; }
+
+        public BoundExpression Alternative { get; }
+
+        public ConstantValue? ConstantValueOpt { get; }
+
+        public ErrorCode NoCommonTypeError { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedConditionalOperator(this);
+
+        public BoundUnconvertedConditionalOperator Update(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, ErrorCode noCommonTypeError, TypeSymbol? type)
+        {
+            if (condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || noCommonTypeError != this.NoCommonTypeError || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundUnconvertedConditionalOperator(this.Syntax, condition, consequence, alternative, constantValueOpt, noCommonTypeError, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundConditionalOperator : BoundExpression
     {
-        public BoundConditionalOperator(SyntaxNode syntax, bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundConditionalOperator(SyntaxNode syntax, bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ConditionalOperator, syntax, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
         {
 
@@ -1715,6 +1759,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Consequence = consequence;
             this.Alternative = alternative;
             this.ConstantValueOpt = constantValueOpt;
+            this.NaturalTypeOpt = naturalTypeOpt;
+            this.WasTargetTyped = wasTargetTyped;
         }
 
 
@@ -1729,14 +1775,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Alternative { get; }
 
         public ConstantValue? ConstantValueOpt { get; }
+
+        public TypeSymbol? NaturalTypeOpt { get; }
+
+        public bool WasTargetTyped { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConditionalOperator(this);
 
-        public BoundConditionalOperator Update(bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, TypeSymbol type)
+        public BoundConditionalOperator Update(bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, TypeSymbol type)
         {
-            if (isRef != this.IsRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (isRef != this.IsRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConditionalOperator(this.Syntax, isRef, condition, consequence, alternative, constantValueOpt, type, this.HasErrors);
+                var result = new BoundConditionalOperator(this.Syntax, isRef, condition, consequence, alternative, constantValueOpt, naturalTypeOpt, wasTargetTyped, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3794,8 +3844,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCatchBlock : BoundNode
     {
-        public BoundCatchBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression? exceptionSourceOpt, TypeSymbol? exceptionTypeOpt, BoundExpression? exceptionFilterOpt, BoundBlock body, bool isSynthesizedAsyncCatchAll, bool hasErrors = false)
-            : base(BoundKind.CatchBlock, syntax, hasErrors || exceptionSourceOpt.HasErrors() || exceptionFilterOpt.HasErrors() || body.HasErrors())
+        public BoundCatchBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression? exceptionSourceOpt, TypeSymbol? exceptionTypeOpt, BoundStatementList? exceptionFilterPrologueOpt, BoundExpression? exceptionFilterOpt, BoundBlock body, bool isSynthesizedAsyncCatchAll, bool hasErrors = false)
+            : base(BoundKind.CatchBlock, syntax, hasErrors || exceptionSourceOpt.HasErrors() || exceptionFilterPrologueOpt.HasErrors() || exceptionFilterOpt.HasErrors() || body.HasErrors())
         {
 
             RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -3804,6 +3854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Locals = locals;
             this.ExceptionSourceOpt = exceptionSourceOpt;
             this.ExceptionTypeOpt = exceptionTypeOpt;
+            this.ExceptionFilterPrologueOpt = exceptionFilterPrologueOpt;
             this.ExceptionFilterOpt = exceptionFilterOpt;
             this.Body = body;
             this.IsSynthesizedAsyncCatchAll = isSynthesizedAsyncCatchAll;
@@ -3816,6 +3867,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public TypeSymbol? ExceptionTypeOpt { get; }
 
+        public BoundStatementList? ExceptionFilterPrologueOpt { get; }
+
         public BoundExpression? ExceptionFilterOpt { get; }
 
         public BoundBlock Body { get; }
@@ -3824,11 +3877,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCatchBlock(this);
 
-        public BoundCatchBlock Update(ImmutableArray<LocalSymbol> locals, BoundExpression? exceptionSourceOpt, TypeSymbol? exceptionTypeOpt, BoundExpression? exceptionFilterOpt, BoundBlock body, bool isSynthesizedAsyncCatchAll)
+        public BoundCatchBlock Update(ImmutableArray<LocalSymbol> locals, BoundExpression? exceptionSourceOpt, TypeSymbol? exceptionTypeOpt, BoundStatementList? exceptionFilterPrologueOpt, BoundExpression? exceptionFilterOpt, BoundBlock body, bool isSynthesizedAsyncCatchAll)
         {
-            if (locals != this.Locals || exceptionSourceOpt != this.ExceptionSourceOpt || !TypeSymbol.Equals(exceptionTypeOpt, this.ExceptionTypeOpt, TypeCompareKind.ConsiderEverything) || exceptionFilterOpt != this.ExceptionFilterOpt || body != this.Body || isSynthesizedAsyncCatchAll != this.IsSynthesizedAsyncCatchAll)
+            if (locals != this.Locals || exceptionSourceOpt != this.ExceptionSourceOpt || !TypeSymbol.Equals(exceptionTypeOpt, this.ExceptionTypeOpt, TypeCompareKind.ConsiderEverything) || exceptionFilterPrologueOpt != this.ExceptionFilterPrologueOpt || exceptionFilterOpt != this.ExceptionFilterOpt || body != this.Body || isSynthesizedAsyncCatchAll != this.IsSynthesizedAsyncCatchAll)
             {
-                var result = new BoundCatchBlock(this.Syntax, locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterOpt, body, isSynthesizedAsyncCatchAll, this.HasErrors);
+                var result = new BoundCatchBlock(this.Syntax, locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, isSynthesizedAsyncCatchAll, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7972,6 +8025,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitNullCoalescingOperator((BoundNullCoalescingOperator)node, arg);
                 case BoundKind.NullCoalescingAssignmentOperator:
                     return VisitNullCoalescingAssignmentOperator((BoundNullCoalescingAssignmentOperator)node, arg);
+                case BoundKind.UnconvertedConditionalOperator:
+                    return VisitUnconvertedConditionalOperator((BoundUnconvertedConditionalOperator)node, arg);
                 case BoundKind.ConditionalOperator:
                     return VisitConditionalOperator((BoundConditionalOperator)node, arg);
                 case BoundKind.ArrayAccess:
@@ -8342,6 +8397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitNullCoalescingOperator(BoundNullCoalescingOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConditionalOperator(BoundConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayAccess(BoundArrayAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayLength(BoundArrayLength node, A arg) => this.DefaultVisit(node, arg);
@@ -8546,6 +8602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitNullCoalescingOperator(BoundNullCoalescingOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConditionalOperator(BoundConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayAccess(BoundArrayAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayLength(BoundArrayLength node) => this.DefaultVisit(node);
@@ -8878,6 +8935,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.RightOperand);
             return null;
         }
+        public override BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            this.Visit(node.Condition);
+            this.Visit(node.Consequence);
+            this.Visit(node.Alternative);
+            return null;
+        }
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
         {
             this.Visit(node.Condition);
@@ -9122,6 +9186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
             this.Visit(node.ExceptionSourceOpt);
+            this.Visit(node.ExceptionFilterPrologueOpt);
             this.Visit(node.ExceptionFilterOpt);
             this.Visit(node.Body);
             return null;
@@ -9847,13 +9912,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(leftOperand, rightOperand, type);
         }
-        public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
+        public override BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
         {
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
             BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, type);
+            return node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.NoCommonTypeError, type);
+        }
+        public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
+        {
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
+            BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
+            TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, naturalTypeOpt, node.WasTargetTyped, type);
         }
         public override BoundNode? VisitArrayAccess(BoundArrayAccess node)
         {
@@ -10150,10 +10224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
             BoundExpression? exceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
+            BoundStatementList? exceptionFilterPrologueOpt = (BoundStatementList?)this.Visit(node.ExceptionFilterPrologueOpt);
             BoundExpression? exceptionFilterOpt = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
             TypeSymbol? exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
-            return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
+            return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
         }
         public override BoundNode? VisitLiteral(BoundLiteral node)
         {
@@ -11331,8 +11406,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
+            BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
+            BoundUnconvertedConditionalOperator updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.NoCommonTypeError, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.NoCommonTypeError, node.Type);
+            }
+            return updatedNode;
+        }
+
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
         {
+            TypeSymbol? naturalTypeOpt = GetUpdatedSymbol(node, node.NaturalTypeOpt);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
             BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
@@ -11340,12 +11435,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, infoAndType.Type);
+                updatedNode = node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, naturalTypeOpt, node.WasTargetTyped, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type);
+                updatedNode = node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, naturalTypeOpt, node.WasTargetTyped, node.Type);
             }
             return updatedNode;
         }
@@ -11837,9 +11932,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             TypeSymbol? exceptionTypeOpt = GetUpdatedSymbol(node, node.ExceptionTypeOpt);
             BoundExpression? exceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
+            BoundStatementList? exceptionFilterPrologueOpt = (BoundStatementList?)this.Visit(node.ExceptionFilterPrologueOpt);
             BoundExpression? exceptionFilterOpt = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
-            return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
+            return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
         }
 
         public override BoundNode? VisitLiteral(BoundLiteral node)
@@ -13519,6 +13615,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node, object? arg) => new TreeDumperNode("unconvertedConditionalOperator", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
+            new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
+            new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),
+            new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
+            new TreeDumperNode("noCommonTypeError", node.NoCommonTypeError, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitConditionalOperator(BoundConditionalOperator node, object? arg) => new TreeDumperNode("conditionalOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("isRef", node.IsRef, null),
@@ -13526,6 +13634,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
             new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
+            new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
+            new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -13994,6 +14104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("exceptionSourceOpt", null, new TreeDumperNode[] { Visit(node.ExceptionSourceOpt, null) }),
             new TreeDumperNode("exceptionTypeOpt", node.ExceptionTypeOpt, null),
+            new TreeDumperNode("exceptionFilterPrologueOpt", null, new TreeDumperNode[] { Visit(node.ExceptionFilterPrologueOpt, null) }),
             new TreeDumperNode("exceptionFilterOpt", null, new TreeDumperNode[] { Visit(node.ExceptionFilterOpt, null) }),
             new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
             new TreeDumperNode("isSynthesizedAsyncCatchAll", node.IsSynthesizedAsyncCatchAll, null),

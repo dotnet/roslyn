@@ -19,8 +19,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog => VisualStudio.MoveToNamespaceDialog;
 
-        public CSharpMoveToNamespaceDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpMoveToNamespaceDialog))
+        public CSharpMoveToNamespaceDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpMoveToNamespaceDialog))
         {
         }
 

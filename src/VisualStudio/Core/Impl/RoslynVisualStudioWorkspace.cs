@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(vsFileCodeModel);
             if (fileCodeModel != null)
             {
-                SyntaxNode? syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
+                var syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
                 while (syntaxNode != null)
                 {
                     if (!codeModelService.TryGetNodeKey(syntaxNode).IsEmpty)

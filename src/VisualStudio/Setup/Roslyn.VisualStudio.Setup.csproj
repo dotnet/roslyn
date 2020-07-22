@@ -244,12 +244,6 @@
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
       <NgenPriority>1</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\Razor\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.csproj">
-      <Name>RazorVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
-    </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Name>Scripting</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -271,12 +265,43 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.csproj">
-      <Name>InteractiveComponents</Name>
-      <!-- Do not include Roslyn.VisualStudio.InteractiveComponents.dll in the VSIX -->
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
+      <Name>InteractiveHost.Core64</Name>
+
+      <SetTargetFramework>TargetFramework=netcoreapp3.1</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
       <Private>false</Private>
-      <VSIXSubPath>DesktopHost</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>VsixSourceItemsOutputGroup</IncludeOutputGroupsInVSIX>
+      <VSIXSubPath>InteractiveHost\Core</VSIXSubPath>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+
+      <!-- Disable NGEN. Core assemblies are crossgened. -->
+      <Ngen>false</Ngen>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
+      <Name>InteractiveHost.Desktop64</Name>
+
+      <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
+      <Private>false</Private>
+      <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost32.csproj">
+      <Name>InteractiveHost.Desktop32</Name>
+
+      <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
+      <Private>false</Private>
+      <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
