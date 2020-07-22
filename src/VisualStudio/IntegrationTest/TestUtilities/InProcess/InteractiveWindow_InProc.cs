@@ -63,16 +63,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public bool IsInitializing
-            => _interactiveWindow.IsInitializing;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
 
         public string GetReplText()
-            => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText());
 
         protected override bool HasActiveTextView()
-            => _interactiveWindow.TextView is object;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView) is object;
 
         protected override IWpfTextView GetActiveTextView()
-            => _interactiveWindow.TextView;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView);
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void InsertCode(string text)
         {
-            _interactiveWindow.InsertCode(text);
+            InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
         }
 
         public void WaitForLastReplOutput(string outputText)
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            return _interactiveWindow.TextView.TextBuffer;
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer);
         }
     }
 }
