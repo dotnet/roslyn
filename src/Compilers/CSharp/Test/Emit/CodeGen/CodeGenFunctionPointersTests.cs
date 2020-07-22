@@ -7812,6 +7812,32 @@ unsafe class C
                 expectedSyntax: "delegate* unmanaged[Test]<void>",
                 expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
                 expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+
+            var @string = comp2.GetSpecialType(SpecialType.System_String);
+            var testMod = CSharpCustomModifier.CreateOptional(comp2.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest"));
+
+            var funcPtr = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
+            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
+
+            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string, customModifiers: ImmutableArray.Create(testMod)), refCustomModifiers: default,
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
+            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
+
+            Assert.True(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.False(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.ConsiderEverything));
+            Assert.True(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.False(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.ConsiderEverything));
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
