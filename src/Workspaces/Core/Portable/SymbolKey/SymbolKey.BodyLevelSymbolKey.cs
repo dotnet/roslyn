@@ -149,9 +149,18 @@ namespace Microsoft.CodeAnalysis
 
                     var resolution = resolutionOpt.Value;
                     var symbol = resolution.GetAnySymbol();
-                    if (symbol?.Kind != kind)
+                    if (symbol == null)
                     {
-                        var reason = $"location {i} did not match kind: {symbol?.Kind} != {kind}";
+                        var reason = $"location {i} did not produce any symbol";
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                        continue;
+                    }
+
+                    if (symbol.Kind != kind)
+                    {
+                        var reason = $"location {i} did not match kind: {symbol.Kind} != {kind}";
                         totalFailureReason = totalFailureReason == null
                             ? $"({reason})"
                             : $"({totalFailureReason} -> {reason})";
