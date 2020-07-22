@@ -16,17 +16,26 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Preview;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 {
     public partial class PreviewTests : AbstractCSharpCodeActionTest
     {
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+            typeof(MockPreviewPaneService));
+
         private const string AddedDocumentName = "AddedDocument";
         private const string AddedDocumentText = "class C1 {}";
         private static string s_removedMetadataReferenceDisplayName = "";
         private const string AddedProjectName = "AddedProject";
         private static readonly ProjectId s_addedProjectId = ProjectId.CreateNewId();
         private const string ChangedDocumentText = "class C {}";
+
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, composition: s_composition);
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MyCodeRefactoringProvider();

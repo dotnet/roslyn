@@ -99,8 +99,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected TestWorkspace CreateWorkspaceFromOptions(
             string initialMarkup, TestParameters parameters)
         {
+            // TODO: Requires WPF since some test depend on IInlineRenameService present (https://github.com/dotnet/roslyn/issues/46153)
+            // TODO: Currently it's not possible for the test to override workspace creation when initialMarkup specifies workspace element.
             var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
-                 ? TestWorkspace.Create(initialMarkup, openDocuments: false)
+                 ? TestWorkspace.Create(initialMarkup, openDocuments: false, composition: EditorTestCompositions.EditorFeaturesWpf)
                  : CreateWorkspaceFromFile(initialMarkup, parameters);
 
             // For CodeStyle layer testing, we create an .editorconfig at project root

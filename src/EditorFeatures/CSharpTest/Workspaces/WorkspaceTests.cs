@@ -27,8 +27,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     [UseExportProvider]
     public partial class WorkspaceTests : TestBase
     {
-        private static TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-            => new TestWorkspace(exportProvider: null, EditorTestCompositions.EditorFeatures, workspaceKind, disablePartialSolutions);
+        private static TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true, bool shareGlobalOptions = false)
+        {
+            var composition = EditorTestCompositions.EditorFeatures;
+            if (shareGlobalOptions)
+            {
+                composition = composition.AddParts(typeof(TestOptionsServiceWithSharedGlobalOptionsServiceFactory));
+            }
+
+            return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions);
+        }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
@@ -1218,8 +1226,8 @@ class D { }
         public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
         {
             // Create workspaces with shared global options to replicate the true global options service shared between workspaces.
-            using var primaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
-            using var secondaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
+            using var primaryWorkspace = CreateWorkspace(shareGlobalOptions: true);
+            using var secondaryWorkspace = CreateWorkspace(shareGlobalOptions: true);
 
             var document = new TestHostDocument("class C { }");
 

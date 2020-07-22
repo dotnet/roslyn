@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact]
         public void TestCompletionProviderOrder()
         {
-            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var exportProvider = EditorTestCompositions.EditorFeaturesWpf.ExportProviderFactory.CreateExportProvider();
             var completionProviderExports = exportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>();
             var orderedCSharpCompletionProviders = ExtensionOrderer.Order(completionProviderExports.Where(export => export.Metadata.Language == LanguageNames.CSharp));
 

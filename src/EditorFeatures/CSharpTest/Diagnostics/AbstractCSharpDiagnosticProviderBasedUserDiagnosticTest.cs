@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, composition: FeaturesTestCompositions.Features);
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, composition: EditorTestCompositions.EditorFeatures);
 
         protected const string IAsyncEnumerable = @"
 namespace System

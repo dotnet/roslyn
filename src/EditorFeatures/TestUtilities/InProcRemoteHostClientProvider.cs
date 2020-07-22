@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
     internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider
     {
-        [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider)), Shared]
+        [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider)), Shared, PartNotDiscoverable]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
