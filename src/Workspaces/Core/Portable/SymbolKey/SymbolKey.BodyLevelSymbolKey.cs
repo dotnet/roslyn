@@ -137,39 +137,9 @@ namespace Microsoft.CodeAnalysis
                 for (var i = 0; i < locations.Count; i++)
                 {
                     var loc = locations[i];
-                    var resolutionOpt = reader.ResolveLocation(loc);
-                    if (resolutionOpt == null)
-                    {
-                        var reason = $"location {i} failed to resolve";
-                        totalFailureReason = totalFailureReason == null
-                            ? $"({reason})"
-                            : $"({totalFailureReason} -> {reason})";
-                        continue;
-                    }
 
-                    var resolution = resolutionOpt.Value;
-                    var symbol = resolution.GetAnySymbol();
-                    if (symbol == null)
+                    if (!TryResolveLocation(loc, i, out var resolution, out var reason))
                     {
-                        var reason = $"location {i} did not produce any symbol";
-                        totalFailureReason = totalFailureReason == null
-                            ? $"({reason})"
-                            : $"({totalFailureReason} -> {reason})";
-                        continue;
-                    }
-
-                    if (symbol.Kind != kind)
-                    {
-                        var reason = $"location {i} did not match kind: {symbol.Kind} != {kind}";
-                        totalFailureReason = totalFailureReason == null
-                            ? $"({reason})"
-                            : $"({totalFailureReason} -> {reason})";
-                        continue;
-                    }
-
-                    if (!SymbolKey.Equals(reader.Compilation, name, symbol.Name))
-                    {
-                        var reason = $"location {i} did not match name: {symbol.Name} != {name}";
                         totalFailureReason = totalFailureReason == null
                             ? $"({reason})"
                             : $"({totalFailureReason} -> {reason})";
@@ -196,6 +166,40 @@ namespace Microsoft.CodeAnalysis
 
                 failureReason = $"({nameof(BodyLevelSymbolKey)} '{name}' not found -> {totalFailureReason})";
                 return default;
+
+                bool TryResolveLocation(Location loc, int index, out SymbolKeyResolution resolution, out string? reason)
+                {
+                    var resolutionOpt = reader.ResolveLocation(loc);
+                    if (resolutionOpt == null)
+                    {
+                        reason = $"location {index} failed to resolve";
+                        resolution = default;
+                        return false;
+                    }
+
+                    resolution = resolutionOpt.Value;
+                    var symbol = resolution.GetAnySymbol();
+                    if (symbol == null)
+                    {
+                        reason = $"location {index} did not produce any symbol";
+                        return false;
+                    }
+
+                    if (symbol.Kind != kind)
+                    {
+                        reason = $"location {index} did not match kind: {symbol.Kind} != {kind}";
+                        return false;
+                    }
+
+                    if (!SymbolKey.Equals(reader.Compilation, name, symbol.Name))
+                    {
+                        reason = $"location {index} did not match name: {symbol.Name} != {name}";
+                        return false;
+                    }
+
+                    reason = null;
+                    return true;
+                }
             }
 
             private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
