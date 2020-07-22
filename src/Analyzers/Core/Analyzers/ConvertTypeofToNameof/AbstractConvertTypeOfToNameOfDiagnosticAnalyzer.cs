@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, new LocalizableResourceString(
+            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, option: null, new LocalizableResourceString(
                        nameof(AnalyzersResources.Convert_gettype_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             var csharpMessage = new LocalizableResourceString(nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
