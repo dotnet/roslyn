@@ -1870,7 +1870,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 9500,
         ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 9501,
-        ERR_RuntimeDoesNotSupportUnmanagedExtensionCallConv = 9502,
+        ERR_TypeNotFound = 9502,
+        ERR_TypeMustBePublic = 9503,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

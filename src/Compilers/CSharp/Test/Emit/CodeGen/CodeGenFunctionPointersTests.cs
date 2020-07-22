@@ -6329,6 +6329,9 @@ unsafe class Derived2 : Base
     public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> M4() => throw null;
 }
 ";
+            // PROTOTYPE(func-ptr): When we have a p8 runtime, verify output on these, that the correct overload
+            // is called.
+
             var allSourceComp = CreateCompilationWithFunctionPointers(source1 + source2);
 
             allSourceComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
@@ -6363,7 +6366,7 @@ unsafe class Derived2 : Base
                         Assert.True(baseM1.Parameters.Single().Type.Equals(derivedM1.Parameters.Single().Type, TypeCompareKind.ConsiderEverything));
                         Assert.True(baseM2.ReturnType.Equals(derivedM2.ReturnType, TypeCompareKind.ConsiderEverything));
                         Assert.True(baseM3.Parameters.Single().Type.Equals(derivedM3.Parameters.Single().Type, TypeCompareKind.ConsiderEverything));
-                        Assert.True(baseM3.ReturnType.Equals(derivedM3.ReturnType, TypeCompareKind.ConsiderEverything));
+                        Assert.True(baseM4.ReturnType.Equals(derivedM4.ReturnType, TypeCompareKind.ConsiderEverything));
                     }
                 };
             }
@@ -7567,8 +7570,248 @@ class C
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(7, 19),
                 // (8,19): error CS9502: The target runtime doesn't support extensible unmanaged calling conventions.
                 //         delegate* unmanaged[Stdcall, Thiscall]<void> ptr2;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedExtensionCallConv, "unmanaged").WithLocation(8, 19)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(8, 19)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var functionPointerSyntaxes = tree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().ToArray();
+
+            Assert.Equal(2, functionPointerSyntaxes.Length);
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntaxes[0],
+                expectedSyntax: "delegate* unmanaged<void>",
+                expectedType: "delegate*<System.Void>",
+                expectedSymbol: "delegate*<System.Void>");
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntaxes[1],
+                expectedSyntax: "delegate* unmanaged[Stdcall, Thiscall]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>");
+        }
+
+        [Fact]
+        public void NonPublicCallingConventionType()
+        {
+            string source1 = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public class String { }
+    namespace Runtime.CompilerServices
+    {
+        internal class CallConvTest {}
+        public static class RuntimeFeature
+        {
+            public const string UnmanagedSignatureCallingConvention = nameof(UnmanagedSignatureCallingConvention);
+        }
+    }
+}
+";
+
+            string source2 = @"
+#pragma warning disable CS0168 // Unused local
+unsafe class C
+{
+    void M()
+    {
+        delegate* unmanaged[Test]<void> ptr = null;
+    }
+}
+";
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            allInCoreLib.VerifyDiagnostics(
+                // (23,29): error CS9503: Type 'CallConvTest' must be public to be used as a calling convention.
+                //         delegate* unmanaged[Test]<void> ptr = null;
+                Diagnostic(ErrorCode.ERR_TypeMustBePublic, "Test").WithArguments("System.Runtime.CompilerServices.CallConvTest").WithLocation(23, 29)
+            );
+
+            var tree = allInCoreLib.SyntaxTrees[0];
+            var model = allInCoreLib.GetSemanticModel(tree);
+
+            var functionPointerSyntax = tree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single();
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
+                expectedSyntax: "delegate* unmanaged[Test]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
+
+            var coreLib = CreateEmptyCompilation(source1);
+            coreLib.VerifyDiagnostics();
+
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            comp1.VerifyDiagnostics(
+                // (7,29): error CS9503: Type 'CallConvTest' must be public to be used as a calling convention.
+                //         delegate* unmanaged[Test]<void> ptr = null;
+                Diagnostic(ErrorCode.ERR_TypeMustBePublic, "Test").WithArguments("System.Runtime.CompilerServices.CallConvTest").WithLocation(7, 29)
+            );
+
+            tree = comp1.SyntaxTrees[0];
+            model = comp1.GetSemanticModel(tree);
+
+            functionPointerSyntax = tree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single();
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
+                expectedSyntax: "delegate* unmanaged[Test]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
+        }
+
+        [Fact]
+        public void GenericCallingConventionType()
+        {
+            string source1 = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public class String { }
+    namespace Runtime.CompilerServices
+    {
+        public class CallConvTest<T> {}
+        public static class RuntimeFeature
+        {
+            public const string UnmanagedSignatureCallingConvention = nameof(UnmanagedSignatureCallingConvention);
+        }
+    }
+}
+";
+
+            string source2 = @"
+#pragma warning disable CS0168 // Unused local
+unsafe class C
+{
+    void M()
+    {
+        delegate* unmanaged[Test]<void> ptr = null;
+    }
+}
+";
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            allInCoreLib.VerifyDiagnostics(
+                // (23,29): error CS9502: Type 'CallConvTest' is not defined.
+                //         delegate* unmanaged[Test]<void> ptr = null;
+                Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(23, 29)
+            );
+
+            var tree = allInCoreLib.SyntaxTrees[0];
+            var model = allInCoreLib.GetSemanticModel(tree);
+
+            var functionPointerSyntax = tree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single();
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
+                expectedSyntax: "delegate* unmanaged[Test]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+
+            var coreLib = CreateEmptyCompilation(source1);
+            coreLib.VerifyDiagnostics();
+
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            comp1.VerifyDiagnostics(
+                // (7,29): error CS9502: Type 'CallConvTest' is not defined.
+                //         delegate* unmanaged[Test]<void> ptr = null;
+                Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(7, 29)
+            );
+
+            tree = comp1.SyntaxTrees[0];
+            model = comp1.GetSemanticModel(tree);
+
+            functionPointerSyntax = tree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single();
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
+                expectedSyntax: "delegate* unmanaged[Test]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+
+            var @string = comp1.GetSpecialType(SpecialType.System_String);
+            var testMod = CSharpCustomModifier.CreateOptional(comp1.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest`1"));
+
+            var funcPtr = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
+            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
+
+            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string, customModifiers: ImmutableArray.Create(testMod)), refCustomModifiers: default,
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
+            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
+                CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
+
+            Assert.True(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.False(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.ConsiderEverything));
+            Assert.True(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.False(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.ConsiderEverything));
+        }
+
+        [Fact]
+        public void ConventionDefinedInWrongAssembly()
+        {
+            var source1 = @"
+namespace System.Runtime.CompilerServices
+{
+    public class CallConvTest { }
+}
+";
+
+            var source2 = @"
+#pragma warning disable CS0168 // Unused local
+unsafe class C
+{
+    static void M()
+    {
+        delegate* unmanaged[Test]<void> ptr;
+    }
+}
+";
+
+            var comp1 = CreateCompilationWithFunctionPointers(source1 + source2);
+            comp1.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+            comp1.VerifyDiagnostics(
+                // (12,29): error CS9502: Type 'CallConvTest' is not defined.
+                //         delegate* unmanaged[Test]<void> ptr;
+                Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(12, 29)
+            );
+
+            var tree = comp1.SyntaxTrees[0];
+            var model = comp1.GetSemanticModel(tree);
+
+            var functionPointerSyntax = tree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single();
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
+                expectedSyntax: "delegate* unmanaged[Test]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+
+            var reference = CreateCompilation(source1);
+            var comp2 = CreateCompilationWithFunctionPointers(source2, new[] { reference.EmitToImageReference() });
+            comp2.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+            comp2.VerifyDiagnostics(
+                // (7,29): error CS9502: Type 'CallConvTest' is not defined.
+                //         delegate* unmanaged[Test]<void> ptr;
+                Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(7, 29)
+            );
+
+            tree = comp2.SyntaxTrees[0];
+            model = comp2.GetSemanticModel(tree);
+
+            functionPointerSyntax = tree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single();
+
+            VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
+                expectedSyntax: "delegate* unmanaged[Test]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

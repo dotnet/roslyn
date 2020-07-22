@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -26,11 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             ArrayBuilder<CustomModifier> customModifiers = ArrayBuilder<CustomModifier>.GetInstance();
-            var callingConvention = getCallingConvention(typeBinder, syntax.CallingConvention, customModifiers, diagnostics);
+            var callingConvention = getCallingConvention(typeBinder.Compilation, syntax.CallingConvention, customModifiers, diagnostics);
 
             RefKind refKind = RefKind.None;
             TypeWithAnnotations returnType;
-            var refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
             if (syntax.ParameterList.Parameters.Count == 0)
             {
@@ -88,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
             if (refKind != RefKind.None)
             {
                 refCustomModifiers = customModifiers.ToImmutableAndFree();
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 suppressUseSiteDiagnostics);
 
-            static CallingConvention getCallingConvention(Binder typeBinder, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
+            static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
             {
                 switch (callingConventionSyntax?.ManagedOrUnmanagedKeyword.Kind())
                 {
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         switch (callingConventionSyntax.UnmanagedCallingConventionList)
                         {
                             case null:
-                                checkUnmanagedSupport(typeBinder, callingConventionSyntax.ManagedOrUnmanagedKeyword.GetLocation(), diagnostics, isExtensionError: false);
+                                checkUnmanagedSupport(compilation, callingConventionSyntax.ManagedOrUnmanagedKeyword.GetLocation(), diagnostics);
                                 return CallingConvention.Unmanaged;
 
                             case { CallingConventions: { Count: 1 } specifiers }:
@@ -157,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     { ValueText: "Fastcall" } => CallingConvention.FastCall,
 
                                     // Unknown identifier case
-                                    _ => handleSingleConvention(specifiers[0], typeBinder, customModifiers, diagnostics)
+                                    _ => handleSingleConvention(specifiers[0], compilation, customModifiers, diagnostics)
                                 };
 
                             case { CallingConventions: { Count: 0 } } unmanagedList:
@@ -171,10 +170,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             case { CallingConventions: var specifiers }:
                                 // More than one identifier case
-                                checkUnmanagedSupport(typeBinder, callingConventionSyntax.ManagedOrUnmanagedKeyword.GetLocation(), diagnostics, isExtensionError: true);
+                                checkUnmanagedSupport(compilation, callingConventionSyntax.ManagedOrUnmanagedKeyword.GetLocation(), diagnostics);
                                 foreach (var specifier in specifiers)
                                 {
-                                    customModifiers.Add(handleIndividualUnrecognizedSpecifier(specifier, typeBinder, diagnostics));
+                                    CustomModifier? modifier = handleIndividualUnrecognizedSpecifier(specifier, compilation, diagnostics);
+                                    if (modifier is object)
+                                    {
+                                        customModifiers.Add(modifier);
+                                    }
                                 }
 
                                 return CallingConvention.Unmanaged;
@@ -184,38 +187,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(unexpected);
                 }
 
-                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, Binder typeBinder, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
+                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
                 {
-                    checkUnmanagedSupport(typeBinder, specifier.GetLocation(), diagnostics, isExtensionError: true);
-                    customModifiers.Add(handleIndividualUnrecognizedSpecifier(specifier, typeBinder, diagnostics));
+                    checkUnmanagedSupport(compilation, specifier.GetLocation(), diagnostics);
+                    var modifier = handleIndividualUnrecognizedSpecifier(specifier, compilation, diagnostics);
+                    if (modifier is object)
+                    {
+                        customModifiers.Add(modifier);
+                    }
                     return CallingConvention.Unmanaged;
                 }
 
-                static CustomModifier handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, Binder typeBinder, DiagnosticBag diagnostics)
+                static CustomModifier? handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, DiagnosticBag diagnostics)
                 {
-                    const string CallingConventionMetadataFormatString = "System.Runtime.CompilerServices.CallConv{0}";
                     string specifierText = specifier.Name.ValueText;
-                    var metadataName = string.Format(CultureInfo.InvariantCulture, CallingConventionMetadataFormatString, specifierText);
-
-                    var specifierType = typeBinder.Compilation.Assembly.CorLibrary.GetTypeByMetadataName(metadataName, includeReferences: false, isWellKnownType: true, conflicts: out _, warnings: null);
-
-                    if (specifierType is null)
+                    if (string.IsNullOrEmpty(specifierText))
                     {
-                        // Type name is CallConv{0}
-                        specifierType = typeBinder.CreateErrorType(name: metadataName[32..]);
-                        diagnostics.Add(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, specifier.GetLocation(), specifierText);
+                        return null;
+                    }
+
+                    string typeName = "CallConv" + specifierText;
+                    var metadataName = MetadataTypeName.FromNamespaceAndTypeName("System.Runtime.CompilerServices", typeName);
+                    NamedTypeSymbol specifierType;
+                    specifierType = compilation.Assembly.CorLibrary.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
+
+                    if (specifierType is MissingMetadataTypeSymbol)
+                    {
+                        // Replace the existing missing type symbol with one that has a better error message
+                        specifierType = new MissingMetadataTypeSymbol.TopLevel(specifierType.ContainingModule, ref metadataName, new CSDiagnosticInfo(ErrorCode.ERR_TypeNotFound, typeName));
+                    }
+                    else if (specifierType.DeclaredAccessibility != Accessibility.Public)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_TypeMustBePublic, specifier.GetLocation(), specifierType);
+                    }
+
+                    if (specifierType.GetUseSiteDiagnostic() is DiagnosticInfo diagnostic)
+                    {
+                        diagnostics.Add(diagnostic, specifier.GetLocation());
                     }
 
                     return CSharpCustomModifier.CreateOptional(specifierType);
                 }
 
-                static void checkUnmanagedSupport(Binder typeBinder, Location errorLocation, DiagnosticBag diagnostics, bool isExtensionError)
+                static void checkUnmanagedSupport(CSharpCompilation compilation, Location errorLocation, DiagnosticBag diagnostics)
                 {
-                    if (!typeBinder.Compilation.Assembly.RuntimeSupportsUnmanagedSignatureCallingConvention)
+                    if (!compilation.Assembly.RuntimeSupportsUnmanagedSignatureCallingConvention)
                     {
-                        diagnostics.Add(isExtensionError ? ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedExtensionCallConv
-                                                         : ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv,
-                                        errorLocation);
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, errorLocation);
                     }
                 }
             }
@@ -410,14 +428,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(refKind != RefKind.Out);
             Debug.Assert(parameterRefCustomModifiers.IsDefault || parameterRefCustomModifiers.Length == parameterTypes.Length);
+            // PROTOTYPE(func-ptr): Should we add the in/out custom modifiers if a non-default array was passed?
             RefCustomModifiers = refCustomModifiers.IsDefault ? getCustomModifierForRefKind(refKind, compilation) : refCustomModifiers;
             RefKind = refKind;
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnTypeWithAnnotations;
-            _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation, ParamCustomModifiers: parameterRefCustomModifiers),
+            _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation, ParamRefCustomModifiers: parameterRefCustomModifiers),
                 (type, refKind, i, arg) =>
                 {
-                    var refCustomModifiers = arg.ParamCustomModifiers.IsDefault ? getCustomModifierForRefKind(refKind, arg.Comp) : arg.ParamCustomModifiers[i];
+                    var refCustomModifiers = arg.ParamRefCustomModifiers.IsDefault ? getCustomModifierForRefKind(refKind, arg.Comp) : arg.ParamRefCustomModifiers[i];
                     return new FunctionPointerParameterSymbol(type, refKind, i, arg.Method, refCustomModifiers: refCustomModifiers);
                 });
 
@@ -566,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var modifiersToSearch = RefKind != RefKind.None ? RefCustomModifiers : ReturnTypeWithAnnotations.CustomModifiers;
                 if (modifiersToSearch.IsEmpty || CallingConvention != CallingConvention.Unmanaged)
                 {
-                    Interlocked.CompareExchange(ref _lazyCallingConventionModifiers, ImmutableHashSet<CustomModifier>.Empty, null);
+                    _lazyCallingConventionModifiers = ImmutableHashSet<CustomModifier>.Empty;
                 }
                 else
                 {
@@ -581,11 +600,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (builder.Count == 0)
                     {
-                        Interlocked.CompareExchange(ref _lazyCallingConventionModifiers, ImmutableHashSet<CustomModifier>.Empty, null);
+                        _lazyCallingConventionModifiers = ImmutableHashSet<CustomModifier>.Empty;
                     }
                     else
                     {
-                        Interlocked.CompareExchange(ref _lazyCallingConventionModifiers, builder.ToImmutableHashSet(), null);
+                        _lazyCallingConventionModifiers = builder.ToImmutableHashSet();
                     }
 
                     builder.Free();
@@ -599,7 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
             return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
-                   && modifierType.Name.StartsWith("CallConv", ignoreCase: false, culture: CultureInfo.InvariantCulture)
+                   && modifierType.Name != "CallConv"
+                   && modifierType.Arity == 0
+                   && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
                    && modifierType.ContainingNamespace is
                       {
                           Name: "CompilerServices",
