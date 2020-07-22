@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Storage.CloudKernel
         public CloudKernelPersistentStorageService()
         {
             _factory = new SolutionCacheFactory();
-            _solutionCacheTask = _factory.CreateCacheAsync("https://github.com/dotnet/roslyn", new SolutionCacheOptions { EnableLocalCache = true });
+            _solutionCacheTask = _factory.CreateCacheAsync("https://github.com/dotnet/roslyn",
+                new SolutionCacheOptions { StorageTypes = CacheStorageTypes.Local, LocalCacheSizeOverride = 1 << 30 });
         }
 
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
