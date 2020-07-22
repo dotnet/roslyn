@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.Conversion.IsConditionalExpression.get -> bool
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax

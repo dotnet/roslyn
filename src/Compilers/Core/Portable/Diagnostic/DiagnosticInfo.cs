@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the warning level. This is 0 for diagnostics with severity <see cref="DiagnosticSeverity.Error"/>,
-        /// otherwise an integer between 1 and 4.
+        /// otherwise an integer greater than zero.
         /// </summary>
         public int WarningLevel
         {

@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// </summary>
     internal sealed class Item : Edge
     {
-        public Id<Document> Document { get; }
+        public Id<LsifDocument> Document { get; }
         public string? Property { get; }
 
-        public Item(Id<Vertex> outVertex, Id<Range> range, Id<Document> document, IdFactory idFactory, string? property = null)
+        public Item(Id<Vertex> outVertex, Id<Range> range, Id<LsifDocument> document, IdFactory idFactory, string? property = null)
             : base(label: "item", outVertex, new[] { range.As<Range, Vertex>() }, idFactory)
         {
             Document = document;

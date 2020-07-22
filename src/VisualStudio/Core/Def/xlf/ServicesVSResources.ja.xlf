@@ -167,6 +167,11 @@
         <target state="translated">現在のドキュメント</target>
         <note />
       </trans-unit>
+      <trans-unit id="Current_parameter">
+        <source>Current parameter</source>
+        <target state="new">Current parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="new">_Edit</target>
@@ -1167,16 +1172,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">プロジェクト: {0}
 
 ドロップダウンを使用して、このファイルが属している可能性のある他のプロジェクトを表示し、それらのプロジェクトに切り替えます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">規則セット ファイル {0} を読み込み中にエラーが発生しました - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -2245,15 +2240,15 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
         <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
 (i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
 (ii) obtain permission to decompile the binary code from the owner of the software.
- 
+
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="translated">重要: Visual Studio には、逆コンパイル機能 (“デコンパイラ”) が含まれています。これは、バイナリ コードからのソース コードの再生成を可能にする機能です。デコンパイラにアクセスしてこれを使用することで、デコンパイラに関する以下の Visual Studio のライセンス条項に同意します。ここでまとめられている条項に同意しない場合は、デコンパイラへのアクセスも使用も行わないでください。
+        <target state="needs-review-translation">重要: Visual Studio には、逆コンパイル機能 (“デコンパイラ”) が含まれています。これは、バイナリ コードからのソース コードの再生成を可能にする機能です。デコンパイラにアクセスしてこれを使用することで、デコンパイラに関する以下の Visual Studio のライセンス条項に同意します。ここでまとめられている条項に同意しない場合は、デコンパイラへのアクセスも使用も行わないでください。
 
 バイナリ コードとソース コードが著作権と商標に関する法律によって保護されている可能性があることに同意します。バイナリ コードでデコンパイラを使用する前に、次のことを行う必要があります:
 (i) バイナリ コードの使用を管理するライセンス条項にソフトウェアのデコンパイルを禁止するプロビジョンが含まれていないことを確認する。または
