@@ -312,5 +312,29 @@ class Foo
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestIncompleteFunctionCall() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int testMethod(int x, object y)
+    {
+        return x;
+    }
+    void Main() 
+    {
+        testMethod({|x:-(int)5.5|},);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace

@@ -59,7 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            var symbol = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken).Symbol;
+            // Get the symbol as long if it's not null or if there is only one candidate symbol
+            var symbolInfo = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken);
+            var symbol = symbolInfo.Symbol;
+            if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
+            {
+                symbol = symbolInfo.CandidateSymbols[0];
+            }
+
             if (symbol == null)
             {
                 return null;
