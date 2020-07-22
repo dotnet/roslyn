@@ -1553,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), ConstantValue.Create(parameter.Name), isImplicit: true);
-            var argumentNullExceptionMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString);
+            var argumentNullExceptionMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString)?.GetISymbol();
             var argumentNullExceptionType = argumentNullExceptionMethod?.ContainingType;
 
             // Occurs when a member is missing.

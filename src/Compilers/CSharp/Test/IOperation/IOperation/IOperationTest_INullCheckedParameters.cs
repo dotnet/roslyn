@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class IOperationTests : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip="PROTOTYPE(BangBang)")]
         public void NullCheckedMethodDeclarationIOp()
         {
             var source = @"
@@ -65,7 +65,7 @@ public class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_OneNullCheckedManyParams()
         {
             var source = @"
@@ -118,7 +118,7 @@ public class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_OneNullCheckedParamWithStringOpt()
         {
             var source = @"
@@ -171,7 +171,7 @@ Block[B0] - Entry
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedOperator()
         {
             var source = @"
@@ -262,7 +262,7 @@ public class C
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIndexedGetterSetter()
         {
             var source = @"
@@ -355,7 +355,7 @@ public class C
             VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIndexedGetterExpression()
         {
             var source = @"
@@ -443,7 +443,7 @@ public class C
             VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIndexedSetter()
         {
             var source = @"
@@ -495,7 +495,7 @@ public class C
             VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedLambda()
         {
             var source = @"
@@ -597,7 +597,7 @@ Block[B2] - Exit
     Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedInLambdaWithManyParameters()
         {
             var source = @"
@@ -699,7 +699,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedUnnamedVariableInLambda()
         {
             var source = @"
@@ -808,7 +808,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedTwoExpressionBodyLambdas()
         {
             var source = @"
@@ -920,7 +920,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedLambdaInField()
         {
             var source = @"
@@ -1004,7 +1004,7 @@ class C
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedLocalFunction()
         {
             var source = @"
@@ -1090,7 +1090,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedManyParamsInLocalFunction()
         {
             var source = @"
@@ -1203,7 +1203,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_OuterNullCheckedShadowedParameter()
         {
             var source = @"
@@ -1304,7 +1304,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_InnerNullCheckedShadowedParameter()
         {
             var source = @"
@@ -1390,7 +1390,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructor()
         {
             var source = @"
@@ -1444,7 +1444,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructorWithThisChain()
         {
             var source = @"
@@ -1514,7 +1514,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructorWithBaseChain()
         {
             var source = @"
@@ -1595,7 +1595,7 @@ class C : B
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructorWithFieldInitializers()
         {
             var source = @"
@@ -1668,7 +1668,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedExpressionBodyMethod()
         {
             var source = @"
@@ -1728,7 +1728,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIterator()
         {
             var source = @"
@@ -1890,7 +1890,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIteratorInLocalFunction()
         {
             var source = @"
@@ -2085,7 +2085,7 @@ class Iterators
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedEmptyIterator()
         {
             var source = @"
@@ -2145,7 +2145,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedEmptyIteratorReturningIEnumerator()
         {
             var source = @"
@@ -2205,7 +2205,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedLambdaWithMissingType()
         {
             var source =
@@ -2307,7 +2307,7 @@ class Program
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedLocalFunctionWithMissingType()
         {
             var source =
@@ -2468,7 +2468,7 @@ IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedFlowGraph: output, DiagnosticDescription.None);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedBaseCallOrdering()
         {
             var source = @"
