@@ -132,20 +132,43 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // First check if we can recover the symbol just through the original location.
-                foreach (var loc in locations)
+
+                string? totalFailureReason = null;
+                for (var i = 0; i < locations.Count; i++)
                 {
+                    var loc = locations[i];
                     var resolutionOpt = reader.ResolveLocation(loc);
-                    if (resolutionOpt.HasValue)
+                    if (resolutionOpt == null)
                     {
-                        var resolution = resolutionOpt.Value;
-                        var symbol = resolution.GetAnySymbol();
-                        if (symbol?.Kind == kind &&
-                            SymbolKey.Equals(reader.Compilation, name, symbol.Name))
-                        {
-                            failureReason = null;
-                            return resolution;
-                        }
+                        var reason = $"location {i} failed to resolve";
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                        continue;
                     }
+
+                    var resolution = resolutionOpt.Value;
+                    var symbol = resolution.GetAnySymbol();
+                    if (symbol?.Kind != kind)
+                    {
+                        var reason = $"location {i} did not match kind: {symbol?.Kind} != {kind}";
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                        continue;
+                    }
+
+                    if (!SymbolKey.Equals(reader.Compilation, name, symbol.Name))
+                    {
+                        var reason = $"location {i} did not match name: {symbol.Name} != {name}";
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                        continue;
+                    }
+
+                    failureReason = null;
+                    return resolution;
                 }
 
                 // Couldn't recover.  See if we can still find a match across the textual drift.
@@ -162,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                failureReason = $"({nameof(BodyLevelSymbolKey)} '{name}' not found)";
+                failureReason = $"({nameof(BodyLevelSymbolKey)} '{name}' not found -> {totalFailureReason})";
                 return default;
             }
 

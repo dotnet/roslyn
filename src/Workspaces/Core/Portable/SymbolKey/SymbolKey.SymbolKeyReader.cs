@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
                         var reason = $"element {i} failed {elementFailureReason}";
                         totalFailureReason = totalFailureReason == null
                             ? $"({reason})"
-                            : $"(totalFailureReason -> {reason})";
+                            : $"({totalFailureReason} -> {reason})";
                     }
                 }
 
