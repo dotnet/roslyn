@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2439,14 +2441,14 @@ class C : CSharpErrors.ClassMethods
             }
         }
 
-        private static MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilation(@"
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilation(@"
 public struct S1
 {
     public int i;
 }", assemblyName: "libS1").ToMetadataReference();
 
 
-        private static MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
 public struct S2
 {
     public S1 s1;
@@ -2714,6 +2716,48 @@ class C
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_09()
+        {
+            var source = @"
+public struct S3
+{
+    public S2 s2;
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+            var s3 = comp.GetMember<NamedTypeSymbol>("S3");
+
+            verifyIsManagedType();
+            verifyIsManagedType();
+
+            void verifyIsManagedType()
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Assert.True(s3.IsManagedType(ref useSiteDiagnostics));
+                useSiteDiagnostics.Verify(
+                    // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                    );
+            }
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+            s3 = comp.GetMember<NamedTypeSymbol>("S3");
+
+            verifyIsUnmanagedType();
+            verifyIsUnmanagedType();
+
+            void verifyIsUnmanagedType()
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Assert.False(s3.IsManagedType(ref useSiteDiagnostics));
+                Assert.Null(useSiteDiagnostics);
+            }
         }
     }
 }
