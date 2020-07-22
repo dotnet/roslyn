@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private static ITypeSymbol GetCollectionExpressionType(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
-            var collectionExpression = FirstForeachCollectionExpressionAncester(syntaxFactsService, node);
+            var collectionExpression = FirstForeachCollectionExpressionAncestor(syntaxFactsService, node);
 
             return semanticModel.GetTypeInfo(collectionExpression).Type;
         }
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         private static SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsAwaitExpression(n), syntaxFactsService);
 
-        private static SyntaxNode FirstForeachCollectionExpressionAncester(ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static SyntaxNode FirstForeachCollectionExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsExpressionOfForeach(n), syntaxFactsService);
     }
 }
