@@ -25,7 +25,7 @@
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Desktop64" HostSuffix="" HostIdSuffix=""  RuntimePrefix="desktop" />
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64" HostSuffix="" HostIdSuffix=""  RuntimePrefix="core" />
 
-      <_JsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json"  Condition="'%(_ServicesWithBitness.RuntimePrefix)' == 'desktop'" >
+      <_JsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.RuntimePrefix)" Condition="'%(_ServicesWithBitness.RuntimePrefix)' == 'desktop'" >
         <Content>
           <![CDATA[{
   "host": "%(_ServicesWithBitness.RuntimePrefix)Clr%(_ServicesWithBitness.HostSuffix)",
@@ -43,7 +43,7 @@
         </Content>
       </_JsonFile>
 
-      <_JsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json"  Condition="'%(_ServicesWithBitness.RuntimePrefix)' == 'core'" >
+      <_JsonFile Include="$(IntermediateOutputPath)\%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json"  Runtime="%(_ServicesWithBitness.RuntimePrefix)" Condition="'%(_ServicesWithBitness.RuntimePrefix)' == 'core'" >
         <Content>
           <![CDATA[{
   "host": "%(_ServicesWithBitness.RuntimePrefix)Clr%(_ServicesWithBitness.HostSuffix)",
@@ -51,7 +51,7 @@
   "hostGroupAllowed": true,
   "serviceOverride": true, 
   "entryPoint": {
-    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))ServiceHubCore\\Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
     "fullClassName": "%(_ServicesWithBitness.ClassName)"
   }
 }
@@ -71,7 +71,8 @@
 
     <ItemGroup>
       <FileWrites Include="@(_JsonFile->'%(Identity)')"/>
-      <VSIXSourceItem Include="@(_JsonFile->'%(Identity)')" />
+      <VSIXSourceItem Include="@(_JsonFile->'%(Identity)')" VSIXSubPath="$(ServiceHubCoreSubPath)" Condition="'%(_JsonFile.Runtime)' == 'core'"/>
+      <VSIXSourceItem Include="@(_JsonFile->'%(Identity)')" Condition="'%(_JsonFile.Runtime)' == 'desktop'"/>
     </ItemGroup>
   </Target>
 </Project>
