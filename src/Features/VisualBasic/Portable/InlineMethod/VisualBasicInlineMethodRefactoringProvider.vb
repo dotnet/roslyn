@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return syntaxNode
         End Function
 
-        Protected Overrides Function IsMethodContainsOneStatement(methodDeclarationSyntaxNode As SyntaxNode) As Boolean
-            Dim methodStatementSyntaxNode = TryCast(methodDeclarationSyntaxNode, MethodStatementSyntax)
+        Protected Overrides Function IsMethodContainsOneStatement(calleeMethodDeclarationSyntaxNode As SyntaxNode) As Boolean
+            Dim methodStatementSyntaxNode = TryCast(calleeMethodDeclarationSyntaxNode, MethodStatementSyntax)
             If methodStatementSyntaxNode IsNot Nothing Then
                 Dim methodBlock = TryCast(methodStatementSyntaxNode.Parent, MethodBlockSyntax)
                 If methodBlock IsNot Nothing Then
@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return Nothing
         End Function
 
-        Protected Overrides Function ExtractExpressionFromMethodDeclaration(methodDeclarationSyntax As SyntaxNode) As SyntaxNode
-            Dim methodStatementSyntaxNode = TryCast(methodDeclarationSyntax, MethodStatementSyntax)
+        Protected Overrides Function ExtractExpressionFromMethodDeclaration(calleeMethodDeclarationSyntaxNode As SyntaxNode) As SyntaxNode
+            Dim methodStatementSyntaxNode = TryCast(calleeMethodDeclarationSyntaxNode, MethodStatementSyntax)
             Dim inlineSyntaxNode As SyntaxNode = Nothing
             If methodStatementSyntaxNode IsNot Nothing Then
                 Dim methodBlock = TryCast(methodStatementSyntaxNode.Parent, MethodBlockSyntax)

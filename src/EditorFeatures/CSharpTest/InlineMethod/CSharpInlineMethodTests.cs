@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
 
         [Fact]
         public Task TestInlineSingleStatement()
-            => TestInRegularAndScript1Async(@"
+            => TestInRegularAndScript1Async(
+                @"
 public class TestClass
 {
     private void Caller(int i, int j)
@@ -28,8 +29,8 @@ public class TestClass
     {
         System.Console.WriteLine(i + j);
     }
-}"
-, @"
+}",
+                @"
 public class TestClass
 {
     private void Caller(int i, int j)
@@ -71,7 +72,8 @@ System.Console.WriteLine(i + j);
 
         [Fact]
         public Task TestInlineArrowExpressionWitReturnValue()
-            => TestInRegularAndScript1Async(@"
+            => TestInRegularAndScript1Async(
+                @"
 public class TestClass
 {
     private void Caller(int i, int j)
@@ -81,8 +83,8 @@ public class TestClass
 
     private int Callee(int i, int j)
         => i + j;
-}"
-, @"
+}",
+                @"
 public class TestClass
 {
     private void Caller(int i, int j)
@@ -93,5 +95,213 @@ public class TestClass
     private int Callee(int i, int j)
         => i + j;
 }");
+
+        [Fact]
+        public Task TestInlineMethodWithIdentiferReplacement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Caller(10, k:""Hello"")
+    }
+
+    private void Callee(int i, int j = 100, string k = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? ""));
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine(10 + 100 + (""Hello"" ?? ""));
+    }
+
+    private void Callee(int i, int j = 100, string k = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? ""));
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithIdentiferRename()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller(int x, int y)
+    {
+        Caller(x, y)
+    }
+
+    private void Callee(int i, int j = 100, string k = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? ""));
+    }
+}
+",
+                @"
+public class TestClass
+{
+    private void Caller(int x, int y)
+    {
+        System.Console.WriteLine(x + y + (null ?? ""));
+    }
+
+    private void Callee(int i, int j = 100, string k = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? ""));
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithIdentiferConflict()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller(int x, int y)
+    {
+        Caller(x, y)
+    }
+
+    private void Callee(int i, int x, string y = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? ""));
+    }
+}
+",
+                @"
+public class TestClass
+{
+    private void Caller(int x, int y)
+    {
+        System.Console.WriteLine(x + y + (null ?? ""));
+    }
+
+    private void Callee(int i, int x = 100, string y = null)
+    {
+        System.Console.WriteLine(i + j + (k ?? ""));
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithMethodExtraction()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller(float r1, float r2)
+    {
+        Callee(SomeCaculation(r1), SomeCaculation(r2))
+    }
+
+    private void Callee(float s1, float s2)
+    {
+        System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
+    }
+
+    public float SomeCaculation(float r)
+    {
+        return r * r * 3.14;
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller(float r1, float r2)
+    {
+        float s1 = SomeCaculation(r1);
+        float s2 = SomeCaculation(r2);
+        System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
+    }
+
+    private void Callee(float s1, float s2)
+    {
+        System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
+    }
+
+    public float SomeCaculation(float r)
+    {
+        return r * r * 3.14;
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithMethodExtractionAndRename()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller(float s1, float s2)
+    {
+        Callee(SomeCaculation(s1), SomeCaculation(s2))
+    }
+
+    private void Callee(float s1, float s2)
+    {
+        System.Console.WriteLine(""This is s1"" + s1 + ""This is s2"" + s2);
+    }
+
+    public float SomeCaculation(float r)
+    {
+        return r * r * 3.14;
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller(float s1, float s2)
+    {
+        float s3 = SomeCaculation(r1);
+        float s4 = SomeCaculation(r2);
+        System.Console.WriteLine(""This is s1"" + s3 + ""This is s2"" + s4);
+    }
+
+    private void Callee(float s1, float s2)
+    {
+        System.Console.WriteLine(""This is s1"" + s1 + ""This is s2"" + s2);
+    }
+
+    public float SomeCaculation(float r)
+    {
+        return r * r * 3.14;
+    }
+}");
+
+        [Fact]
+        public Task InlineMethodWithVariableExtrationForOut()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Callee(out var x);
+    }
+
+    private void Callee(out int z)
+    {
+        z = 10;
+    }
+}
+",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int x = 10;
+    }
+
+    private void Callee(out int z)
+    {
+        z = 10;
+    }
+}
+");
     }
 }

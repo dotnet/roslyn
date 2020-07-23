@@ -7,11 +7,16 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 {
@@ -34,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         private static bool ShouldStatementBeInlined(StatementSyntax statementSyntax)
             => statementSyntax is ReturnStatementSyntax || statementSyntax is ExpressionStatementSyntax || statementSyntax is ThrowStatementSyntax;
 
-        protected override bool IsMethodContainsOneStatement(SyntaxNode methodDeclarationSyntaxNode)
+        protected override bool IsMethodContainsOneStatement(SyntaxNode calleeMethodDeclarationSyntaxNode)
         {
-            if (methodDeclarationSyntaxNode is MethodDeclarationSyntax declarationSyntax)
+            if (calleeMethodDeclarationSyntaxNode is MethodDeclarationSyntax declarationSyntax)
             {
                 var blockSyntaxNode = declarationSyntax.Body;
                 // 1. If it is an ordinary method with block
@@ -57,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return false;
         }
 
-        protected override SyntaxNode ExtractExpressionFromMethodDeclaration(SyntaxNode methodDeclarationSyntax)
+        protected override SyntaxNode ExtractExpressionFromMethodDeclaration(SyntaxNode calleeMethodDeclarationSyntaxNode)
         {
             SyntaxNode? inlineSyntaxNode = null;
-            if (methodDeclarationSyntax is MethodDeclarationSyntax declarationSyntax)
+            if (calleeMethodDeclarationSyntaxNode is MethodDeclarationSyntax declarationSyntax)
             {
                 var blockSyntaxNode = declarationSyntax.Body;
                 // 1. If it is a ordinary method with block
@@ -97,69 +102,115 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 _ => null
             };
 
-        protected override SyntaxNode ReplaceParametersAndGenericsInMethodDeclaration(SyntaxNode methodDeclarationSyntaxNode, SyntaxNode methodInvocationSyntaxNode, IMethodSymbol methodSymbol, SemanticModel semanticModel)
+        protected override ImmutableArray<IInlineChange> ComputeInlineChanges(
+            SyntaxNode calleeInvocationExpressionSyntaxNode,
+            SemanticModel semanticModel,
+            IMethodSymbol calleeMethodSymbol,
+            SyntaxNode calleeMethodDeclarationSyntaxNode,
+            CancellationToken cancellation)
         {
-            /*
-            TODO:
-            Replace parameters & generics in the method body.
-            Example:
-            Before:
-            void Caller(int x)
+            var changeBuilder = ArrayBuilder<IInlineChange>.GetInstance();
+            if (calleeInvocationExpressionSyntaxNode is InvocationExpressionSyntax invocationExpressionSyntax)
             {
-                Callee<int>(x, k: "Hello");
+                var inputArguments = invocationExpressionSyntax.ArgumentList.Arguments;
+                var mappingParameters = inputArguments
+                    .Select(arg => arg.DetermineParameter(semanticModel, allowParams: true, cancellation))
+                    .ToImmutableArray();
+
+                var argumentsAndMappingParameters = inputArguments
+                    .Zip(mappingParameters, (argument, parameter) => (argument, parameter))
+                    .ToImmutableArray();
+
+                var parametersNeedMoveToCaller = ArrayBuilder<IParameterSymbol>.GetInstance();
+                var parametersNeedRename = ArrayBuilder<(IParameterSymbol parameterSymbol, string argumentName)>.GetInstance();
+
+                var paramSymbols = mappingParameters.FirstOrDefault();
+                if (paramSymbols != null)
+                {
+                    parametersNeedMoveToCaller.Add(paramSymbols);
+                }
+
+                var unprocessedParameters = calleeMethodSymbol.Parameters.ToHashSet();
+
+                foreach (var (argument, parameterSymbol) in argumentsAndMappingParameters)
+                {
+                    if (!parameterSymbol.IsDiscard && !parameterSymbol.IsParams)
+                    {
+                        var inputArgumentExpression = argument.Expression;
+
+                        if (inputArgumentExpression.IsAnyLiteralExpression())
+                        {
+                            changeBuilder.Add(
+                                new ReplaceVariableChange(inputArgumentExpression, parameterSymbol));
+                        }
+                        else if (inputArgumentExpression.IsKind(SyntaxKind.DeclarationExpression)
+                            || inputArgumentExpression.IsAnyLambdaOrAnonymousMethod()
+                            || inputArgumentExpression.IsKind(SyntaxKind.InvocationExpression)
+                            || inputArgumentExpression.IsKind(SyntaxKind.ConditionalExpression))
+                        {
+                            parametersNeedMoveToCaller.Add(parameterSymbol);
+                        }
+                        else if (inputArgumentExpression is IdentifierNameSyntax identifierNameSyntax
+                            && !parameterSymbol.Name.Equals(identifierNameSyntax.Identifier.ValueText))
+                        {
+                            parametersNeedRename.Add((parameterSymbol, identifierNameSyntax.Identifier.ValueText));
+                        }
+
+                        unprocessedParameters.Remove(parameterSymbol);
+                    }
+                }
+
+                var renameTable = ComputeRenameTable(
+                    calleeInvocationExpressionSyntaxNode,
+                    semanticModel,
+                    calleeMethodDeclarationSyntaxNode,
+                    parametersNeedRename.ToImmutableArray(),
+                    parametersNeedMoveToCaller.ToImmutableArray(),
+                    cancellation);
+
+                foreach (var (symbol, newName) in renameTable)
+                {
+                    if (!newName.Equals(symbol.Name))
+                    {
+                        changeBuilder.Add(new RenameVariableChange(newName, symbol));
+                    }
+                }
+
+                if (paramSymbols != null && renameTable.TryGetValue(paramSymbols, out var paramArrayNewName))
+                {
+                    var arguments = argumentsAndMappingParameters
+                        .Where(arguAndParamSymbol => arguAndParamSymbol.parameter.IsParams)
+                        .SelectAsArray(arguAndParamSymbol => arguAndParamSymbol.argument.Expression);
+
+                    var listOfArguments = SyntaxFactory.SeparatedList(
+                        arguments,
+                        Enumerable.Repeat(SyntaxFactory.Token(SyntaxKind.CommaToken), arguments.Length - 1)) ;
+                    var initializerExpression =
+                        SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
+
+                    changeBuilder.Add(new ExtractDeclarationChange(
+                        SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)paramSymbols.Type.GenerateTypeSyntax(),
+                            initializerExpression)));
+                }
+
+                foreach (var unprocessedParameter in unprocessedParameters
+                    .Where(unprocessedParameter =>
+                        !unprocessedParameter.IsDiscard
+                        && unprocessedParameter.IsOptional
+                        && !unprocessedParameter.IsParams
+                        && unprocessedParameter.HasExplicitDefaultValue))
+                {
+                    changeBuilder.Add(
+                        new ReplaceVariableChange(
+                            ExpressionGenerator.GenerateExpression(
+                                unprocessedParameter.Type,
+                                unprocessedParameter.ExplicitDefaultValue,
+                                canUseFieldReference: false),
+                            paramSymbols));
+                }
             }
 
-            void Callee<T>(int i, int j = 0, string k = null)
-            {
-                Print(typeof(T) + i + j + k);
-            }
-
-            After:
-            void Caller(int x)
-            {
-                Callee<int>(x, k: "Hello");
-            }
-
-            void Callee<T>(int x, int j = 0, string k = null)
-            {
-                Print(typeof(int) + x + 0 + "Hello");
-            }
-            
-            Note: here we won't have naming conflict because there is only one statement. There is no statement to declare new local
-            variable in the Callee.
-             */
-            return methodDeclarationSyntaxNode;
-        }
-
-        protected override bool TryGetVariableDeclarationsForOutParameters(SyntaxNode methodInvovation, SemanticModel semanticModel, out ImmutableArray<SyntaxNode> variableDeclarations)
-        {
-            /*
-            TODO:
-            Genereate local varaible for 'out var' parameters
-            Example:
-
-            Before:
-            void Caller()
-            {
-                int i = 10;
-                Callee(out i, out var k);
-            }
-
-            void Callee(out int i, out int j)
-            {
-               // Method body
-            }
-
-            After:
-            void Caller()
-            {
-                int i = 10;
-                int k;
-                // Method body
-            }
-            */
-            variableDeclarations = default;
-            return false;
+            return changeBuilder.ToImmutableArray();
         }
     }
 }
