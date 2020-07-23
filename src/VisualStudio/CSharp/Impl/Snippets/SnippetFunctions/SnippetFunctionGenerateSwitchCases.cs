@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -21,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
 {
     internal sealed class SnippetFunctionGenerateSwitchCases : AbstractSnippetFunctionGenerateSwitchCases
     {
-        public SnippetFunctionGenerateSwitchCases(SnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
-            : base(snippetExpansionClient, textView, subjectBuffer, caseGenerationLocationField, switchExpressionField)
+        public SnippetFunctionGenerateSwitchCases(SnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
+            : base(snippetExpansionClient, subjectBuffer, caseGenerationLocationField, switchExpressionField)
         {
         }
 

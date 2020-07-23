@@ -263,8 +263,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var dteProject = _workspace.TryGetDTEProject(projectId);
                 if (dteProject != null)
                 {
-                    var description = string.Format(ServicesVSResources.Install_0, packageName);
-
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 

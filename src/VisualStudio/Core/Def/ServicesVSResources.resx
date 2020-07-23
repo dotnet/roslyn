@@ -291,12 +291,6 @@ Use the dropdown to view and navigate to other items in this file.</value>
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
   </data>
-  <data name="ErrorReadingRuleset" xml:space="preserve">
-    <value>ErrorReadingRuleset</value>
-  </data>
-  <data name="Error_reading_ruleset_file_0_1" xml:space="preserve">
-    <value>Error reading ruleset file {0} - {1}</value>
-  </data>
   <data name="AnalyzerChangedOnDisk" xml:space="preserve">
     <value>AnalyzerChangedOnDisk</value>
   </data>

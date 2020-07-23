@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -207,45 +206,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// For each warning that is linked to a warning "wave" (/warnversion), the number of
-        /// the warning wave in which it was introduced.
-        /// </summary>
-        internal static decimal GetWarningVersion(this ErrorCode code)
-        {
-            // *** ATTENTION!  If you are modifying this method, there are things you need to do.
-
-            // If you introduce a new warning "wave" version (i.e. a new return value
-            // possible from this method), please update
-            // CSharpResources.resx to include documentation for the "latest"
-            // warning version in "IDS_CSCHelp" under "-warnversion". Note that
-            // it is our intention that warning wave version numbers correspond
-            // to the dotnet platform with which the compiler is released.
-
-            // If you introduce a new warning under control of the /warnversion flag
-            // (i.e. a new case in the following switch statement), please update
-            // the file "docs\compilers\CSharp\Warnversion Warning Waves.md"
-            // to document it.
-            switch (code)
-            {
-                case ErrorCode.WRN_NubExprIsConstBool2:
-                    return 5m;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(code);
-            }
-        }
-
         internal static int GetWarningLevel(ErrorCode code)
         {
             if (IsInfo(code) || IsHidden(code))
             {
-                // Info and hidden diagnostics have least warning level.
-                return Diagnostic.HighestValidWarningLevel;
+                // Info and hidden diagnostics have default warning level.
+                return Diagnostic.DefaultWarningLevel;
             }
 
             switch (code)
             {
+                case ErrorCode.WRN_NubExprIsConstBool2:
+                    // Warning level 5 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
+                    return 5;
                 case ErrorCode.WRN_InvalidMainSig:
                 case ErrorCode.WRN_LowercaseEllSuffix:
                 case ErrorCode.WRN_NewNotRequired:
@@ -299,7 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CmpAlwaysFalse:
                 case ErrorCode.WRN_GotoCaseShouldConvert:
                 case ErrorCode.WRN_NubExprIsConstBool:
-                case ErrorCode.WRN_NubExprIsConstBool2:
                 case ErrorCode.WRN_ExplicitImplCollision:
                 case ErrorCode.WRN_DeprecatedSymbolStr:
                 case ErrorCode.WRN_VacuousIntegralComp:

@@ -36,13 +36,12 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
                 return "";
             }
 
-            var folders = new List<string>();
             var defaultNamespace = "";
 
             if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
                 vsWorkspace.GetProjectData(project.Id,
-                    out var hierarchy, out var envDTEProject);
+                    out _, out var envDTEProject);
 
                 try
                 {
