@@ -517,8 +517,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                // remove this once we moved to new drop
+#pragma warning disable IDE0060 // Remove unused parameter - TODO: remove this once we moved to new drop 
                 public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
+#pragma warning restore IDE0060 // Remove unused parameter
                 {
                     content = null;
                     return false;

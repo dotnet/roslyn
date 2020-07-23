@@ -31,14 +31,21 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteLocation(FirstOrDefault(symbol.Locations));
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var isAnonymousDelegateType = reader.ReadBoolean();
-                var location = reader.ReadLocation();
+                var location = reader.ReadLocation(out var locationFailureReason);
+
+                if (locationFailureReason != null)
+                {
+                    failureReason = $"({nameof(AnonymousFunctionOrDelegateSymbolKey)} {nameof(location)} failed -> {locationFailureReason})";
+                    return default;
+                }
 
                 var syntaxTree = location.SourceTree;
                 if (syntaxTree == null)
                 {
+                    failureReason = $"({nameof(AnonymousFunctionOrDelegateSymbolKey)} {nameof(SyntaxTree)} failed)";
                     return default;
                 }
 
@@ -58,6 +65,7 @@ namespace Microsoft.CodeAnalysis
                     symbol = anonymousDelegate;
                 }
 
+                failureReason = null;
                 return new SymbolKeyResolution(symbol);
             }
         }
