@@ -2270,59 +2270,59 @@ class Program
       ExpressionBody: 
         null");
             VerifyFlowGraph(comp, node1, expectedFlowGraph: @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-            Entering: {R1}
-    .locals {R1}
-    {
-        Locals: [System.Func<System.String, System.String> func]
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (1)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
-                  Left: 
-                    ILocalReferenceOperation: func (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
-                        {
-                            Block[B0#A0] - Entry
-                                Statements (0)
-                                Next (Regular) Block[B1#A0]
-                            Block[B1#A0] - Block
-                                Predecessors: [B0#A0]
-                                Statements (0)
-                                Jump if False (Regular) to Block[B3#A0]
-                                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                      Left: 
-                                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                      Right: 
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                Next (Regular) Block[B2#A0]
-                            Block[B2#A0] - Block
-                                Predecessors: [B1#A0]
-                                Statements (0)
-                                Next (Throw) Block[null]
-                                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                      Children(1):
-                                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                            Block[B3#A0] - Block
-                                Predecessors: [B1#A0]
-                                Statements (0)
-                                Next (Return) Block[B4#A0]
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-                            Block[B4#A0] - Exit
-                                Predecessors: [B3#A0]
-                                Statements (0)
-                        }
-            Next (Regular) Block[B2]
-                Leaving: {R1}
-    }
-    Block[B2] - Exit
-        Predecessors: [B1]
-        Statements (0)");
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Func<System.String, System.String> func]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+              Left: 
+                ILocalReferenceOperation: func (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Jump if False (Regular) to Block[B3#A0]
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  Left: 
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  Right: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                            Next (Throw) Block[null]
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  Children(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                        Block[B3#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                            Next (Return) Block[B4#A0]
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                        Block[B4#A0] - Exit
+                            Predecessors: [B3#A0]
+                            Statements (0)
+                    }
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)");
         }
 
         [Fact(Skip = "PROTOTYPE(BangBang)")]
