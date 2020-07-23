@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -70,6 +71,15 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public void InitializeGlobalState(string host, int uiCultureLCID, int cultureLCID, string? serializedSession, CancellationToken cancellationToken)
         {
+            var shouldBreak = !Environment.GetEnvironmentVariable("RoslynServiceHubCoreDebug").IsNullOrWhiteSpace();
+            if (shouldBreak)
+            {
+                if (!Debugger.IsAttached)
+                    Debugger.Launch();
+
+                Debugger.Break();
+            }
+
             RunService(() =>
             {
                 // initialize global asset storage

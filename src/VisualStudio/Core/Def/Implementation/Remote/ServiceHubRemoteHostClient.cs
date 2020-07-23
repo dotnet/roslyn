@@ -66,6 +66,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
+            var shouldBreak = !Environment.GetEnvironmentVariable("RoslynServiceHubCoreDebug").IsNullOrWhiteSpace();
+            if (shouldBreak)
+            {
+                if (!System.Diagnostics.Debugger.IsAttached)
+                    System.Diagnostics.Debugger.Launch();
+
+                System.Diagnostics.Debugger.Break();
+            }
+
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services)));
