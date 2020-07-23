@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
             public const string CodeActionsPullMemberUp = "CodeActions.PullMemberUp";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
+            public const string CodeActionsRemoveAsyncModifier = "CodeActions.RemoveAsyncModifier";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveDocCommentNode = "CodeActions.RemoveDocCommentNode";
             public const string CodeActionsRemoveInKeyword = "CodeActions.RemoveInKeyword";

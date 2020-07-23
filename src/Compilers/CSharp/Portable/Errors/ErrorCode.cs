@@ -1834,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_SwitchExpressionNotExhaustiveWithWhen = 8846,
         WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
-        ERR_BadWarningVersion = 8848,
+
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
 

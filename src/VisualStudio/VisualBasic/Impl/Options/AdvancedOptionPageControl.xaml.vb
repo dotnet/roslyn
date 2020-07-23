@@ -25,7 +25,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Private _colorSchemeApplier As ColorSchemeApplier
+        Private ReadOnly _colorSchemeApplier As ColorSchemeApplier
 
         Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
             MyBase.New(optionStore)

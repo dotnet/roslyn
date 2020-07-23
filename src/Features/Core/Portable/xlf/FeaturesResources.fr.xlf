@@ -1790,6 +1790,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Les signatures de méthode associées dans les métadonnées ne sont pas mises à jour.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="new">Remove 'async' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Remplacer '{0}' par '{1}'</target>

@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// <summary>
     /// Represents a top-level project. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#the-project-vertex for further details.
     /// </summary>
-    internal sealed class Project : Vertex
+    internal sealed class LsifProject : Vertex
     {
         public string Kind { get; }
         public Uri? Resource { get; }
 
-        public Project(string kind, Uri? resource, IdFactory idFactory)
+        public LsifProject(string kind, Uri? resource, IdFactory idFactory)
             : base(label: "project", idFactory)
         {
             Kind = kind;
