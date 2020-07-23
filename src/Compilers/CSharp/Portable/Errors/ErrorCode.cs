@@ -1737,13 +1737,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultLiteralNoTargetType = 8716,
 
         ERR_ReAbstractionInNoPIAType = 8750,
-
-        ERR_NeedSpaceBetweenExclamationAndEquals = 8716,
-        ERR_MustNullCheckInImplementation = 8717,
-        ERR_NonNullableValueTypeIsNullChecked = 8718,
-        WRN_NullCheckedHasDefaultNull = 8719,
-        ERR_NullCheckingOnByRefParameter = 8720,
-        WRN_NullCheckingOnNullableValueType = 8721,
         #endregion diagnostics introduced for C# 8.0
 
         #region diagnostics introduced in C# 9.0
@@ -1871,6 +1864,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DoesNotOverrideBaseEqualityContract = 8876,
 
         #endregion diagnostics introduced for C# 9.0
+
+        ERR_NeedSpaceBetweenExclamationAndEquals = 8890,
+        ERR_MustNullCheckInImplementation = 8891,
+        ERR_NonNullableValueTypeIsNullChecked = 8892,
+        WRN_NullCheckedHasDefaultNull = 8893,
+        ERR_NullCheckingOnByRefParameter = 8894,
+        WRN_NullCheckingOnNullableValueType = 8895,
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

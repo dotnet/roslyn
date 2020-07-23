@@ -771,7 +771,7 @@ class C {
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedSingleParamNoSpaces()
         {
             UsingDeclaration("Func<int, int> func1 = x!=>x;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
@@ -1032,7 +1032,7 @@ class C {
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedNoParams()
         {
             UsingDeclaration("Func<int> func1 = (!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
