@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public string ToString(RemoteHostPlatform remoteHostPlatform)
-        {            
+        {
             const string Suffix64 = "64";
 
             var (suffix, isRemoteHost64Bit) = remoteHostPlatform switch

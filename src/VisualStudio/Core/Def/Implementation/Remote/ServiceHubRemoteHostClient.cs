@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -109,6 +110,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
+        private static RemoteHostPlatform DecideServiceHubPlatform(HostWorkspaceServices services)
+        {
+            var useCore64 = Environment.GetEnvironmentVariable("RoslynServiceHubCore");
+            if (!useCore64.IsNullOrWhiteSpace())
+            {
+                return RemoteHostPlatform.Core64;
+            }
+
+            var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
+            return is64bit ? RemoteHostPlatform.Desktop64 : RemoteHostPlatform.Desktop32;
+        }
+
         public static async Task<Stream> RequestServiceAsync(
             HostWorkspaceServices services,
             HubClient client,
@@ -116,12 +129,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             HostGroup hostGroup,
             CancellationToken cancellationToken)
         {
-            var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
-
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            var descriptor = new ServiceDescriptor(serviceName.ToString(RemoteHostPlatform.Core64)) { HostGroup = hostGroup };
+            var platform = DecideServiceHubPlatform(services);
+            var descriptor = new ServiceDescriptor(serviceName.ToString(platform)) { HostGroup = hostGroup };
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
