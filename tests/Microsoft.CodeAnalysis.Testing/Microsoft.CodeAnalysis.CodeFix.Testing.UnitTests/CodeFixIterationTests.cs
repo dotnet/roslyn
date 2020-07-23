@@ -283,7 +283,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Fix all in document{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
+            Assert.Equal($"Context: Fix all in document{Environment.NewLine}The upper limit for the number of code fix iterations was exceeded", exception.Message);
         }
 
         [Theory]
@@ -325,12 +325,12 @@ class TestClass {{
 
         [Theory]
         [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
-        [InlineData(2, CodeFixTestBehaviors.None)]
-        [InlineData(null, CodeFixTestBehaviors.SkipFixAllInDocumentCheck)]
-        [InlineData(null, CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck)]
-        [InlineData(null, CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck)]
-        [InlineData(null, CodeFixTestBehaviors.SkipFixAllCheck)]
-        public async Task TestOneIterationRequiredForEachOfTwoDocuments(int? numberOfFixAllInDocumentIterations, CodeFixTestBehaviors codeFixTestBehaviors)
+        [InlineData(CodeFixTestBehaviors.None)]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllInDocumentCheck)]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck)]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck)]
+        [InlineData(CodeFixTestBehaviors.SkipFixAllCheck)]
+        public async Task TestOneIterationRequiredForEachOfTwoDocuments(CodeFixTestBehaviors codeFixTestBehaviors)
         {
             var testCode1 = @"
 class TestClass1 {
@@ -357,51 +357,8 @@ class TestClass2 {
             {
                 TestState = { Sources = { testCode1, testCode2 } },
                 FixedState = { Sources = { fixedCode1, fixedCode2 } },
-                NumberOfFixAllInDocumentIterations = numberOfFixAllInDocumentIterations,
                 CodeFixTestBehaviors = codeFixTestBehaviors,
             }.RunAsync();
-        }
-
-        [Theory]
-        [WorkItem(147, "https://github.com/dotnet/roslyn-sdk/issues/147")]
-        [InlineData(CodeFixTestBehaviors.None, "Fix all in document")]
-        [InlineData(CodeFixTestBehaviors.SkipFixAllInProjectCheck, "Fix all in document")]
-        [InlineData(CodeFixTestBehaviors.SkipFixAllInSolutionCheck, "Fix all in document")]
-        [InlineData(CodeFixTestBehaviors.SkipFixAllInProjectCheck | CodeFixTestBehaviors.SkipFixAllInSolutionCheck, "Fix all in document")]
-        public async Task TestOneIterationRequiredForEachOfTwoDocumentsButNotDeclared(CodeFixTestBehaviors codeFixTestBehaviors, string context)
-        {
-            var testCode1 = @"
-class TestClass1 {
-  int field = [|4|];
-}
-";
-            var testCode2 = @"
-class TestClass2 {
-  int field = [|4|];
-}
-";
-            var fixedCode1 = @"
-class TestClass1 {
-  int field =  5;
-}
-";
-            var fixedCode2 = @"
-class TestClass2 {
-  int field =  5;
-}
-";
-
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            {
-                await new CSharpTest
-                {
-                    TestState = { Sources = { testCode1, testCode2 } },
-                    FixedState = { Sources = { fixedCode1, fixedCode2 } },
-                    CodeFixTestBehaviors = codeFixTestBehaviors,
-                }.RunAsync();
-            });
-
-            Assert.Equal($"Context: {context}{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
         }
 
         [Theory]

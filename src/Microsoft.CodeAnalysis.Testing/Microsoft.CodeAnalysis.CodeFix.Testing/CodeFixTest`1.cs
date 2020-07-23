@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Testing
         ///
         /// <note>
         /// <para>The default value for this property can be interpreted as "Iterative code fix operations are expected
-        /// to complete in at most one operation for each fixable diagnostic in the input source has been applied.
+        /// to complete after at most one operation for each fixable diagnostic in the input source has been applied.
         /// Completing in fewer iterations is acceptable."</para>
         /// </note>
         /// </remarks>
@@ -138,12 +138,23 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <remarks>
         /// <para>See the <see cref="NumberOfIncrementalIterations"/> property for an overview of the behavior of this
-        /// property. If the number of Fix All in Document iterations is not specified, the value from
-        /// <see cref="NumberOfFixAllIterations"/> is used.</para>
+        /// property. If the number of Fix All in Document iterations is not specified, the value is automatically
+        /// selected according to the current test configuration:</para>
+        ///
+        /// <list type="bullet">
+        /// <item><description>If a value has been explicitly provided for <see cref="NumberOfFixAllIterations"/>, the value is used as-is.</description></item>
+        /// <item><description>If the expected Fix All output equals the input sources, the default value is treated as <c>0</c>.</description></item>
+        /// <item><description>Otherwise, the default value is treated as the negative of the number of distinct documents containing fixable diagnostics (typically <c>-1</c>).</description></item>
+        /// </list>
+        ///
+        /// <note>
+        /// <para>The default value for this property can be interpreted as "Fix All in Document operations are expected
+        /// to complete after at most one operation for each fixable document in the input source has been applied.
+        /// Completing in fewer iterations is acceptable."</para>
+        /// </note>
         /// </remarks>
         /// <seealso cref="NumberOfIncrementalIterations"/>
         /// <seealso cref="NumberOfFixAllIterations"/>
-        /// <seealso href="https://github.com/dotnet/roslyn-sdk/issues/147">#147: Figure out Fix All iteration counts by context</seealso>
         public int? NumberOfFixAllInDocumentIterations { get; set; }
 
         /// <summary>
@@ -296,9 +307,23 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 numberOfFixAllInDocumentIterations = NumberOfFixAllInDocumentIterations.Value;
             }
+            else if (NumberOfFixAllIterations != null)
+            {
+                numberOfFixAllInDocumentIterations = NumberOfFixAllIterations.Value;
+            }
             else
             {
-                numberOfFixAllInDocumentIterations = numberOfFixAllIterations;
+                if (!HasAnyChange(testState, batchFixedState))
+                {
+                    numberOfFixAllInDocumentIterations = 0;
+                }
+                else
+                {
+                    // Expect at most one iteration per fixable document
+                    var fixers = GetCodeFixProviders().ToArray();
+                    var fixableDiagnostics = testState.ExpectedDiagnostics.Where(diagnostic => fixers.Any(fixer => fixer.FixableDiagnosticIds.Contains(diagnostic.Id)));
+                    numberOfFixAllInDocumentIterations = -fixableDiagnostics.GroupBy(diagnostic => diagnostic.Spans.FirstOrDefault().Span.Path).Count();
+                }
             }
 
             var t1 = VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, FixEachAnalyzerDiagnosticAsync, verifier.PushContext("Iterative code fix application"), cancellationToken).ConfigureAwait(false);
