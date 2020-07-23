@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     string typeName = "CallConv" + specifierText;
-                    var metadataName = MetadataTypeName.FromNamespaceAndTypeName("System.Runtime.CompilerServices", typeName);
+                    var metadataName = MetadataTypeName.FromNamespaceAndTypeName("System.Runtime.CompilerServices", typeName, useCLSCompliantNameArityEncoding: true, forcedArity: 0);
                     NamedTypeSymbol specifierType;
                     specifierType = compilation.Assembly.CorLibrary.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
 
@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation)
         {
             Debug.Assert(refKind != RefKind.Out);
+            Debug.Assert(refCustomModifiers.IsDefaultOrEmpty || refKind != RefKind.None);
             Debug.Assert(parameterRefCustomModifiers.IsDefault || parameterRefCustomModifiers.Length == parameterTypes.Length);
             // PROTOTYPE(func-ptr): Should we add the in/out custom modifiers if a non-default array was passed?
             RefCustomModifiers = refCustomModifiers.IsDefault ? getCustomModifierForRefKind(refKind, compilation) : refCustomModifiers;
@@ -437,6 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (type, refKind, i, arg) =>
                 {
                     var refCustomModifiers = arg.ParamRefCustomModifiers.IsDefault ? getCustomModifierForRefKind(refKind, arg.Comp) : arg.ParamRefCustomModifiers[i];
+                    Debug.Assert(refCustomModifiers.IsEmpty || refKind != RefKind.None);
                     return new FunctionPointerParameterSymbol(type, refKind, i, arg.Method, refCustomModifiers: refCustomModifiers);
                 });
 

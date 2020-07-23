@@ -7737,7 +7737,7 @@ unsafe class C
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
             var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
 
             var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
@@ -7746,9 +7746,11 @@ unsafe class C
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
             var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
 
+            Assert.Empty(funcPtrWithTestOnReturn.Signature.GetCallingConventionModifiers());
+            Assert.Empty(funcPtrWithTestOnRef.Signature.GetCallingConventionModifiers());
             Assert.True(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.False(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.ConsiderEverything));
             Assert.True(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
@@ -7822,7 +7824,7 @@ unsafe class C
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
             var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
 
             var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
@@ -7831,9 +7833,11 @@ unsafe class C
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
             var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
+                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
                 parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
 
+            Assert.Empty(funcPtrWithTestOnReturn.Signature.GetCallingConventionModifiers());
+            Assert.Empty(funcPtrWithTestOnRef.Signature.GetCallingConventionModifiers());
             Assert.True(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.False(funcPtr.Equals(funcPtrWithTestOnReturn, TypeCompareKind.ConsiderEverything));
             Assert.True(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
