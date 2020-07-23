@@ -8,9 +8,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -694,6 +692,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.GenericName
                     value = DirectCast(node.Argument, SimpleNameSyntax).Identifier.ValueText
 
+                Case Else
+                    ' Must be a syntax error
+                    Debug.Assert(node.Argument.HasErrors)
             End Select
 
             ' Bind the argument
