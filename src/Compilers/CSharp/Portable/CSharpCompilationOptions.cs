@@ -42,17 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override NullableContextOptions NullableContextOptions { get; protected set; }
 
-        /// <summary>
-        /// The warning version, which indicates which set of warnings should be produced by the compiler.
-        /// </summary>
-        /// <remarks>
-        /// Most warnings are produced by the compiler unconditionally, but warnings that are controlled by a version
-        /// are only produced when the WarningVersion value is greater than or equal to the warning version
-        /// associated with the warning. Use zero to get none of the versioned warnings, or a large number like 9999
-        /// to get all of the versioned warnings. The first version that enables some warnings is version 5.
-        /// </remarks>
-        public decimal WarningVersion { get; private set; }
-
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
         public CSharpCompilationOptions(
@@ -71,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? delaySign = null,
             Platform platform = Platform.AnyCpu,
             ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default,
-            int warningLevel = 4,
+            int warningLevel = Diagnostic.DefaultWarningLevel,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>>? specificDiagnosticOptions = null,
             bool concurrentBuild = true,
             bool deterministic = false,
@@ -82,58 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             StrongNameProvider? strongNameProvider = null,
             bool publicSign = false,
             MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public,
-            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable,
-            decimal warningVersion = 0m)
-            : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
-                   usings, optimizationLevel, checkOverflow, allowUnsafe,
-                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
-                   generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, concurrentBuild, deterministic,
-                   currentLocalTime: default,
-                   debugPlusMode: false,
-                   xmlReferenceResolver: xmlReferenceResolver,
-                   sourceReferenceResolver: sourceReferenceResolver,
-                   metadataReferenceResolver: metadataReferenceResolver,
-                   assemblyIdentityComparer: assemblyIdentityComparer,
-                   strongNameProvider: strongNameProvider,
-                   metadataImportOptions: metadataImportOptions,
-                   referencesSupersedeLowerVersions: false,
-                   publicSign: publicSign,
-                   topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: nullableContextOptions,
-                   warningVersion: warningVersion)
-        {
-        }
-
-        // 16.8 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        public CSharpCompilationOptions(
-            OutputKind outputKind,
-            bool reportSuppressedDiagnostics,
-            string? moduleName,
-            string? mainTypeName,
-            string? scriptClassName,
-            IEnumerable<string>? usings,
-            OptimizationLevel optimizationLevel,
-            bool checkOverflow,
-            bool allowUnsafe,
-            string? cryptoKeyContainer,
-            string? cryptoKeyFile,
-            ImmutableArray<byte> cryptoPublicKey,
-            bool? delaySign,
-            Platform platform,
-            ReportDiagnostic generalDiagnosticOption,
-            int warningLevel,
-            IEnumerable<KeyValuePair<string, ReportDiagnostic>>? specificDiagnosticOptions,
-            bool concurrentBuild,
-            bool deterministic,
-            XmlReferenceResolver? xmlReferenceResolver,
-            SourceReferenceResolver? sourceReferenceResolver,
-            MetadataReferenceResolver? metadataReferenceResolver,
-            AssemblyIdentityComparer? assemblyIdentityComparer,
-            StrongNameProvider? strongNameProvider,
-            bool publicSign,
-            MetadataImportOptions metadataImportOptions,
-            NullableContextOptions nullableContextOptions)
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
             : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
@@ -273,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            NullableContextOptions nullableContextOptions,
-            decimal warningVersion = 0m)
+            NullableContextOptions nullableContextOptions)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
@@ -286,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AllowUnsafe = allowUnsafe;
             this.TopLevelBinderFlags = topLevelBinderFlags;
             this.NullableContextOptions = nullableContextOptions;
-            this.WarningVersion = warningVersion;
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -320,8 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
             publicSign: other.PublicSign,
             topLevelBinderFlags: other.TopLevelBinderFlags,
-            nullableContextOptions: other.NullableContextOptions,
-            warningVersion: other.WarningVersion)
+            nullableContextOptions: other.NullableContextOptions)
         {
         }
 
@@ -558,16 +493,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { WarningLevel = warningLevel };
         }
 
-        public CSharpCompilationOptions WithWarningVersion(decimal warningVersion)
-        {
-            if (warningVersion == this.WarningVersion)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { WarningVersion = warningVersion };
-        }
-
         public new CSharpCompilationOptions WithConcurrentBuild(bool concurrentBuild)
         {
             if (concurrentBuild == this.ConcurrentBuild)
@@ -758,14 +683,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(ScriptClassName), ScriptClassName ?? "null"));
             }
 
-            if (WarningLevel < 0 || WarningLevel > 4)
+            if (WarningLevel < 0)
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(WarningLevel), WarningLevel));
-            }
-
-            if (WarningVersion < 0m)
-            {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(WarningVersion), WarningVersion));
             }
 
             if (Usings != null && Usings.Any(u => !u.IsValidClrNamespaceName()))
@@ -802,9 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return this.AllowUnsafe == other.AllowUnsafe &&
                    this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
-                   (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal)) &&
-                   this.NullableContextOptions == other.NullableContextOptions &&
-                   this.WarningVersion == other.WarningVersion;
+                   (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
+                   this.NullableContextOptions == other.NullableContextOptions);
         }
 
         public override bool Equals(object? obj)
@@ -817,8 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(this.WarningVersion.GetHashCode(),
-                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode())))));
+                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode()))));
         }
 
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)

@@ -21,8 +21,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicReferenceHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicReferenceHighlighting))
+        public BasicReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicReferenceHighlighting))
         {
         }
 

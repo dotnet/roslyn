@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// <summary>
     /// Represents the document vertex that contains all the <see cref="Range"/>s. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#ranges for examples.
     /// </summary>
-    internal sealed class Document : Vertex
+    internal sealed class LsifDocument : Vertex
     {
         public Uri Uri { get; }
         public string LanguageId { get; }
 
-        public Document(Uri uri, string languageId, IdFactory idFactory)
+        public LsifDocument(Uri uri, string languageId, IdFactory idFactory)
             : base(label: "document", idFactory)
         {
             this.Uri = uri;

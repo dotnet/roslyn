@@ -2200,7 +2200,6 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
 ";
             VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
 
-            // PROTOTYPE(ngafter): Investigate the tree in block B4 (syntax for the operand of the conversion)
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -2293,7 +2292,6 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
 ";
             VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
 
-            // PROTOTYPE(ngafter): Investigate the tree in block B4.  The conversion should be an identity conversion on the whole conditional.
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)

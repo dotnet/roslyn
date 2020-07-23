@@ -3029,7 +3029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var block = BindEmbeddedBlock(node.Block, diagnostics);
-            return new BoundCatchBlock(node, locals, exceptionSource, type, boundFilter, block, hasError);
+            return new BoundCatchBlock(node, locals, exceptionSource, type, exceptionFilterPrologueOpt: null, boundFilter, block, hasError);
         }
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, DiagnosticBag diagnostics)

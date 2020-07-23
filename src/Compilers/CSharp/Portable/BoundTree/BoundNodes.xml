@@ -1177,6 +1177,7 @@
 
     <Field Name="ExceptionTypeOpt" Type="TypeSymbol?"/>
     
+    <Field Name="ExceptionFilterPrologueOpt" Type="BoundStatementList?"/>
     <Field Name="ExceptionFilterOpt" Type="BoundExpression?"/>
     <Field Name="Body" Type="BoundBlock"/>
     <Field Name="IsSynthesizedAsyncCatchAll" Type="bool" />
@@ -2029,7 +2030,7 @@
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="ConvertedType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
