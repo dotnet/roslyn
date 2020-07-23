@@ -287,9 +287,10 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Changer les paramètres de la liste de complétion;Présélectionner le dernier membre utilisé;Listes de complétion;
-Afficher la liste de complétion après la saisie d'un caractère ;
+        <target state="translated">Changer les paramètres de la liste de complétion;Présélectionner le dernier membre utilisé récemment;Listes de complétion;
+Afficher la liste de complétion une fois qu'un caractère a été tapé ;
 Afficher la liste de complétion après la suppression d'un caractère ;
+Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental) ;
 Mettre en surbrillance les parties correspondantes des éléments de liste de complétion ;
 Afficher les filtres d'éléments de complétion ;
 Comportement des extraits ;
@@ -298,9 +299,10 @@ Toujours inclure les extraits ;
 Inclure les extraits quand ?-Tab est tapé après un identificateur ;
 Comportement de la touche Entrée ;
 Ne jamais ajouter de nouvelle ligne après Entrée ;
-Ajouter uniquement une nouvelle ligne après avoir appuyé sur Entrée à la fin du mot complet tapé ;
+Ajouter uniquement une nouvelle ligne une fois que la touche Entrée a été enfoncée à la fin du mot complet tapé ;
 Toujours ajouter une nouvelle ligne après Entrée ;
-Afficher les suggestions de nom ;</target>
+Afficher les suggestions de nom ;
+Afficher les éléments des espaces de noms qui ne sont pas importés (expérimental) ;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
