@@ -69,14 +69,14 @@ namespace Roslyn.Diagnostics.Analyzers
             });
         }
 
-        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? obsoleteAttribute, INamedTypeSymbol? exportAttributeOpt, INamedTypeSymbol? importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
+        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? obsoleteAttribute, INamedTypeSymbol? exportAttribute, INamedTypeSymbol? importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
         {
-            if (exportAttributeOpt is null)
+            if (exportAttribute is null)
             {
                 return;
             }
 
-            if (!exportAttributes.Any(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt)))
+            if (!exportAttributes.Any(ad => ad.AttributeClass.DerivesFrom(exportAttribute)))
             {
                 return;
             }

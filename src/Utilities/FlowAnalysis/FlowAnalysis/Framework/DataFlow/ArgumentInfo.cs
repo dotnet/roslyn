@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         public ArgumentInfo(
             IOperation operation,
-            AnalysisEntity? analysisEntityOpt,
+            AnalysisEntity? analysisEntity,
             PointsToAbstractValue instanceLocation,
             TAbstractAnalysisValue value)
         {
             Operation = operation;
-            AnalysisEntityOpt = analysisEntityOpt;
+            AnalysisEntityOpt = analysisEntity;
             InstanceLocation = instanceLocation;
             Value = value;
         }

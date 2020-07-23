@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var checkCategoryAndAllowedIds = TryGetCategoryAndAllowedIdsMap(
                     compilationContext.Options.AdditionalFiles,
                     compilationContext.CancellationToken,
-                    out AdditionalText? diagnosticCategoryAndIdRangeTextOpt,
+                    out AdditionalText? diagnosticCategoryAndIdRangeText,
                     out ImmutableDictionary<string, ImmutableArray<(string? prefix, int start, int end)>>? categoryAndAllowedIdsMap,
                     out List<Diagnostic>? invalidFileDiagnostics);
 
@@ -265,14 +265,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     var (isEnabledByDefault, defaultSeverity) = GetDefaultSeverityAndEnabledByDefault(operationAnalysisContext.Compilation, creationArguments);
 
                     if (!TryAnalyzeCategory(operationAnalysisContext, creationArguments, checkCategoryAndAllowedIds,
-                            diagnosticCategoryAndIdRangeTextOpt, categoryAndAllowedIdsMap, out var category, out var allowedIdsInfoList))
+                            diagnosticCategoryAndIdRangeText, categoryAndAllowedIdsMap, out var category, out var allowedIdsInfoList))
                     {
                         allowedIdsInfoList = default;
                     }
 
                     var analyzerName = fieldInitializer.InitializedFields.First().ContainingType.Name;
                     AnalyzeRuleId(operationAnalysisContext, creationArguments,
-                        isAnalyzerReleaseTracking, shippedData, unshippedData, seenRuleIds, diagnosticCategoryAndIdRangeTextOpt,
+                        isAnalyzerReleaseTracking, shippedData, unshippedData, seenRuleIds, diagnosticCategoryAndIdRangeText,
                         category, analyzerName, helpLink, isEnabledByDefault, defaultSeverity, allowedIdsInfoList, idToAnalyzerMap);
 
                 }, OperationKind.FieldInitializer);
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             ReleaseTrackingData? shippedData,
             ReleaseTrackingData? unshippedData,
             PooledConcurrentSet<string> seenRuleIds,
-            AdditionalText? diagnosticCategoryAndIdRangeTextOpt,
+            AdditionalText? diagnosticCategoryAndIdRangeText,
             string? category,
             string analyzerName,
             string? helpLink,
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         // If we have an additional file specifying required range and/or format for the ID, validate the ID.
                         if (!allowedIdsInfoListOpt.IsDefault)
                         {
-                            AnalyzeAllowedIdsInfoList(ruleId, argument, diagnosticCategoryAndIdRangeTextOpt, category, allowedIdsInfoListOpt, operationAnalysisContext.ReportDiagnostic);
+                            AnalyzeAllowedIdsInfoList(ruleId, argument, diagnosticCategoryAndIdRangeText, category, allowedIdsInfoListOpt, operationAnalysisContext.ReportDiagnostic);
                         }
 
                         // If we have an additional file specifying required range and/or format for the ID, validate the ID.

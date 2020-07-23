@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _isTrackedPointsToValue = isTrackedPointsToValue ?? throw new ArgumentNullException(nameof(isTrackedPointsToValue));
         }
 
-        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResultOpt)
+        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResult)
             : this(valueDomain,
-                  pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedEntity : s_defaultIsTrackedEntity,
-                  pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedPointsToValue : s_defaultIsTrackedPointsToValue)
+                  pointsToAnalysisResult != null ? pointsToAnalysisResult.IsTrackedEntity : s_defaultIsTrackedEntity,
+                  pointsToAnalysisResult != null ? pointsToAnalysisResult.IsTrackedPointsToValue : s_defaultIsTrackedPointsToValue)
         {
         }
 

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var loopRangeMap = PooledDictionary<int, int>.GetInstance();
             ComputeLoopRangeMap(cfg, loopRangeMap);
 
-            TAnalysisData? normalPathsExitBlockData = null, exceptionPathsExitBlockDataOpt = null;
+            TAnalysisData? normalPathsExitBlockData = null, exceptionPathsExitBlockData = null;
 
             try
             {
@@ -104,13 +104,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Initialize the input of the entry block.
                 // For context sensitive inter-procedural analysis, use the provided initial analysis data.
                 // Otherwise, initialize with the default bottom value of the analysis domain.
-                var initialAnalysisDataOpt = analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData;
-                UpdateInput(resultBuilder, entry, GetClonedAnalysisDataOrEmptyData(initialAnalysisDataOpt));
+                var initialAnalysisData = analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData;
+                UpdateInput(resultBuilder, entry, GetClonedAnalysisDataOrEmptyData(initialAnalysisData));
 
                 // Add the block to the worklist.
                 worklist.Add(entry.Ordinal);
 
-                RunCore(cfg, worklist, pendingBlocksNeedingAtLeastOnePass, initialAnalysisDataOpt, resultBuilder,
+                RunCore(cfg, worklist, pendingBlocksNeedingAtLeastOnePass, initialAnalysisData, resultBuilder,
                     uniqueSuccessors, finallyBlockSuccessorsMap, catchBlockInputDataMap, inputDataFromInfeasibleBranchesMap,
                     blockToUniqueInputFlowMap, loopRangeMap, exceptionPathsAnalysisPostPass: false);
                 normalPathsExitBlockData = resultBuilder.ExitBlockOutputData;
@@ -143,19 +143,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                     }
 
-                    RunCore(cfg, worklist, pendingBlocksNeedingAtLeastOnePass, initialAnalysisDataOpt, resultBuilder, uniqueSuccessors,
+                    RunCore(cfg, worklist, pendingBlocksNeedingAtLeastOnePass, initialAnalysisData, resultBuilder, uniqueSuccessors,
                         finallyBlockSuccessorsMap, catchBlockInputDataMap, inputDataFromInfeasibleBranchesMap,
                         blockToUniqueInputFlowMap, loopRangeMap, exceptionPathsAnalysisPostPass: true);
-                    exceptionPathsExitBlockDataOpt = resultBuilder.ExitBlockOutputData;
+                    exceptionPathsExitBlockData = resultBuilder.ExitBlockOutputData;
                     OperationVisitor.ExecutingExceptionPathsAnalysisPostPass = false;
                 }
 
-                var mergedDataForUnhandledThrowOperationsOpt = OperationVisitor.GetMergedDataForUnhandledThrowOperations();
+                var mergedDataForUnhandledThrowOperations = OperationVisitor.GetMergedDataForUnhandledThrowOperations();
 
                 var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
                     OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
-                    resultBuilder.EntryBlockOutputData!, normalPathsExitBlockData!, exceptionPathsExitBlockDataOpt,
-                    mergedDataForUnhandledThrowOperationsOpt, OperationVisitor.AnalysisDataForUnhandledThrowOperations,
+                    resultBuilder.EntryBlockOutputData!, normalPathsExitBlockData!, exceptionPathsExitBlockData,
+                    mergedDataForUnhandledThrowOperations, OperationVisitor.AnalysisDataForUnhandledThrowOperations,
                     OperationVisitor.TaskWrappedValuesMapOpt, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
                 return ToResult(analysisContext, dataflowAnalysisResult);
             }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph cfg,
             SortedSet<int> worklist,
             SortedSet<int> pendingBlocksNeedingAtLeastOnePass,
-            TAnalysisData? initialAnalysisDataOpt,
+            TAnalysisData? initialAnalysisData,
             DataFlowAnalysisResultBuilder<TAnalysisData> resultBuilder,
             PooledHashSet<BasicBlock> uniqueSuccessors,
             PooledDictionary<int, List<BranchWithInfo>> finallyBlockSuccessorsMap,
@@ -222,11 +222,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // Ensure that we execute potential nested catch blocks before the finally region.
                     if (pendingBlocksNeedingAtLeastOnePass.Any())
                     {
-                        var finallyRegionOpt = block.GetInnermostRegionStartedByBlock(ControlFlowRegionKind.Finally);
-                        if (finallyRegionOpt?.EnclosingRegion.Kind == ControlFlowRegionKind.TryAndFinally)
+                        var finallyRegion = block.GetInnermostRegionStartedByBlock(ControlFlowRegionKind.Finally);
+                        if (finallyRegion?.EnclosingRegion.Kind == ControlFlowRegionKind.TryAndFinally)
                         {
                             // Add all catch blocks in the try region corresponding to the finally.
-                            var tryRegion = finallyRegionOpt.EnclosingRegion.NestedRegions[0];
+                            var tryRegion = finallyRegion.EnclosingRegion.NestedRegions[0];
                             Debug.Assert(tryRegion.Kind == ControlFlowRegionKind.Try);
 
                             var nestedCatchBlockOrdinals = pendingBlocksNeedingAtLeastOnePass.Where(
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                         input = input != null ?
                             AnalysisDomain.Clone(input) :
-                            GetClonedAnalysisDataOrEmptyData(initialAnalysisDataOpt);
+                            GetClonedAnalysisDataOrEmptyData(initialAnalysisData);
 
                         UpdateInput(resultBuilder, block, input);
                     }
@@ -332,8 +332,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             }
 
                             // Certain branches have no destination (e.g. BranchKind.Throw), so we don't need to update the input data for the branch destination block.
-                            var successorBlockOpt = successorWithBranch.Destination;
-                            if (successorBlockOpt == null)
+                            var successorBlock = successorWithBranch.Destination;
+                            if (successorBlock == null)
                             {
                                 newSuccessorInput.Dispose();
                                 continue;
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             {
                                 // For exception paths analysis, we need to force re-analysis of entire finally region
                                 // whenever we start try region analysis so analysis data for unhandled exceptions at end of the finally region is correctly updated.
-                                if (successorBlockOpt.IsFirstBlockOfRegionKind(ControlFlowRegionKind.TryAndFinally, out var tryAndFinally))
+                                if (successorBlock.IsFirstBlockOfRegionKind(ControlFlowRegionKind.TryAndFinally, out var tryAndFinally))
                                 {
                                     var finallyRegion = tryAndFinally.NestedRegions[1];
                                     Debug.Assert(finallyRegion.Kind == ControlFlowRegionKind.Finally);
@@ -360,8 +360,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithBranch.LeavingRegionLocals,
                                 successorWithBranch.LeavingRegionFlowCaptures, block, newSuccessorInput);
 
-                            var isBackEdge = block.Ordinal >= successorBlockOpt.Ordinal;
-                            if (isUnreachableBlock && !unreachableBlocks.Contains(successorBlockOpt.Ordinal))
+                            var isBackEdge = block.Ordinal >= successorBlock.Ordinal;
+                            if (isUnreachableBlock && !unreachableBlocks.Contains(successorBlock.Ordinal))
                             {
                                 // Skip processing successor input for branch from an unreachable block to a reachable block.
                                 newSuccessorInput.Dispose();
@@ -370,20 +370,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             else if (!isFeasibleBranch)
                             {
                                 // Skip processing the successor input for conditional branch that can never be taken.
-                                if (inputDataFromInfeasibleBranchesMap.TryGetValue(successorBlockOpt.Ordinal, out TAnalysisData currentInfeasibleData))
+                                if (inputDataFromInfeasibleBranchesMap.TryGetValue(successorBlock.Ordinal, out TAnalysisData currentInfeasibleData))
                                 {
                                     var dataToDispose = newSuccessorInput;
-                                    newSuccessorInput = OperationVisitor.MergeAnalysisData(currentInfeasibleData, newSuccessorInput, successorBlockOpt, isBackEdge);
+                                    newSuccessorInput = OperationVisitor.MergeAnalysisData(currentInfeasibleData, newSuccessorInput, successorBlock, isBackEdge);
                                     Debug.Assert(!ReferenceEquals(dataToDispose, newSuccessorInput));
                                     dataToDispose.Dispose();
                                 }
 
-                                inputDataFromInfeasibleBranchesMap[successorBlockOpt.Ordinal] = newSuccessorInput;
+                                inputDataFromInfeasibleBranchesMap[successorBlock.Ordinal] = newSuccessorInput;
                                 continue;
                             }
 
                             var blockToSuccessorBranchKind = successorWithBranch.ControlFlowConditionKind;
-                            var currentSuccessorInput = resultBuilder[successorBlockOpt];
+                            var currentSuccessorInput = resultBuilder[successorBlock];
 
                             // We need to merge the incoming analysis data if both the following conditions are satisfied:
                             //  1. Successor already has a non-null input from prior analysis iteration.
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             //      b. Value is non-null, indicating it has unique input from prior analysis, but the prior input
                             //         analysis data was from a different branch, i.e. either different source block or different condition kind.
                             var needsMerge = currentSuccessorInput != null &&
-                                blockToUniqueInputFlowMap.TryGetValue(successorBlockOpt.Ordinal, out var uniqueInputBranchOpt) &&
+                                blockToUniqueInputFlowMap.TryGetValue(successorBlock.Ordinal, out var uniqueInputBranchOpt) &&
                                 (uniqueInputBranchOpt == null ||
                                  uniqueInputBranchOpt.Value.Ordinal != block.Ordinal ||
                                  uniqueInputBranchOpt.Value.BranchKind != blockToSuccessorBranchKind);
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 RoslynDebug.Assert(currentSuccessorInput != null);
 
                                 // Mark that all input into successorBlockOpt requires a merge as we have non-unique input flow branches into successor block.
-                                blockToUniqueInputFlowMap[successorBlockOpt.Ordinal] = null;
+                                blockToUniqueInputFlowMap[successorBlock.Ordinal] = null;
 
                                 // Check if the current input data for the successor block is equal to the new input data from this branch.
                                 // If so, we don't need to propagate new input data from this branch.
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 }
 
                                 // Otherwise, check if the input data for the successor block changes after merging with the new input data.
-                                mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput, newSuccessorInput, successorBlockOpt, isBackEdge);
+                                mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput, newSuccessorInput, successorBlock, isBackEdge);
                                 newSuccessorInput.Dispose();
 
                                 int compare = AnalysisDomain.Compare(currentSuccessorInput, mergedSuccessorInput);
@@ -437,30 +437,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 mergedSuccessorInput = newSuccessorInput;
 
                                 // Mark that all input into successorBlockOpt can skip merge as long as it from the current input flow branch.
-                                blockToUniqueInputFlowMap[successorBlockOpt.Ordinal] = (block.Ordinal, blockToSuccessorBranchKind);
+                                blockToUniqueInputFlowMap[successorBlock.Ordinal] = (block.Ordinal, blockToSuccessorBranchKind);
                             }
 
                             // Input to successor has changed, so we need to update its new input and
                             // reprocess the successor by adding it to the worklist.
-                            UpdateInput(resultBuilder, successorBlockOpt, mergedSuccessorInput);
+                            UpdateInput(resultBuilder, successorBlock, mergedSuccessorInput);
 
                             if (isBackEdge)
                             {
                                 // For back edges, analysis data in subsequent iterations needs
                                 // to be merged with analysis data from previous iterations.
-                                var dominatorBlockOrdinal = loopRangeMap[successorBlockOpt.Ordinal];
+                                var dominatorBlockOrdinal = loopRangeMap[successorBlock.Ordinal];
                                 Debug.Assert(dominatorBlockOrdinal >= block.Ordinal);
-                                Debug.Assert(dominatorBlockOrdinal >= successorBlockOpt.Ordinal);
+                                Debug.Assert(dominatorBlockOrdinal >= successorBlock.Ordinal);
 
-                                for (int i = successorBlockOpt.Ordinal; i <= dominatorBlockOrdinal + 1; i++)
+                                for (int i = successorBlock.Ordinal; i <= dominatorBlockOrdinal + 1; i++)
                                 {
                                     blockToUniqueInputFlowMap[i] = null;
                                 }
                             }
 
-                            if (uniqueSuccessors.Add(successorBlockOpt))
+                            if (uniqueSuccessors.Add(successorBlock))
                             {
-                                worklist.Add(successorBlockOpt.Ordinal);
+                                worklist.Add(successorBlock.Ordinal);
                             }
                         }
 
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Compute and update finally successors.
                 if (!branch.FinallyRegions.IsEmpty)
                 {
-                    var successor = branch.With(branchValueOpt: null, controlFlowConditionKind: ControlFlowConditionKind.None);
+                    var successor = branch.With(branchValue: null, controlFlowConditionKind: ControlFlowConditionKind.None);
                     for (var i = branch.FinallyRegions.Length - 1; i >= 0; i--)
                     {
                         ControlFlowRegion finallyRegion = branch.FinallyRegions[i];
@@ -737,11 +737,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        private TAnalysisData GetClonedAnalysisDataOrEmptyData(TAnalysisData? initialAnalysisDataOpt)
+        private TAnalysisData GetClonedAnalysisDataOrEmptyData(TAnalysisData? initialAnalysisData)
         {
-            if (initialAnalysisDataOpt != null)
+            if (initialAnalysisData != null)
             {
-                return AnalysisDomain.Clone(initialAnalysisDataOpt);
+                return AnalysisDomain.Clone(initialAnalysisData);
             }
 
             return OperationVisitor.GetEmptyAnalysisData();
