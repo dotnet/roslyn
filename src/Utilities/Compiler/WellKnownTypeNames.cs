@@ -296,7 +296,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingSpinLock = "System.Threading.SpinLock";
-        public const string SystemThreadingTasksGenericTaskCompletionSource1 = "System.Threading.Tasks.TaskCompletionSource`1";
+        public const string SystemThreadingTasksTaskCompletionSource1 = "System.Threading.Tasks.TaskCompletionSource`1";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksTask1 = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource";
