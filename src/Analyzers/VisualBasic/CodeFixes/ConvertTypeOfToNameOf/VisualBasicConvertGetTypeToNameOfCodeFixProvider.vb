@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf), [Shared]>
-    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf)>
     Friend Class VisualBasicConvertGetTypeToNameOfCodeFixProvider
         Inherits AbstractConvertTypeOfToNameOfCodeFixProvider
 
