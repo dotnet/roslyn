@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
+        protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
         protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -69,21 +72,21 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var propertyLocation = locations[0];
             var declaratorLocation = locations[1];
 
-            var declarator = declaratorLocation.FindToken(cancellationToken).Parent.FirstAncestorOrSelf<TVariableDeclarator>();
-            var fieldDocument = context.Document.Project.GetDocument(declarator.SyntaxTree);
-            var fieldSemanticModel = await fieldDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var solution = context.Document.Project.Solution;
+            var declarator = (TVariableDeclarator)declaratorLocation.FindNode(cancellationToken);
+            var fieldDocument = solution.GetRequiredDocument(declarator.SyntaxTree);
+            var fieldSemanticModel = await fieldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
-            var property = propertyLocation.FindToken(cancellationToken).Parent.FirstAncestorOrSelf<TPropertyDeclaration>();
-            var propertyDocument = context.Document.Project.GetDocument(property.SyntaxTree);
-            var propertySemanticModel = await propertyDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var property = GetPropertyDeclaration(propertyLocation.FindNode(cancellationToken));
+            var propertyDocument = solution.GetRequiredDocument(property.SyntaxTree);
+            var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var propertySymbol = (IPropertySymbol)propertySemanticModel.GetDeclaredSymbol(property, cancellationToken);
 
             Debug.Assert(fieldDocument.Project == propertyDocument.Project);
             var project = fieldDocument.Project;
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var solution = context.Document.Project.Solution;
             var fieldLocations = await Renamer.FindRenameLocationsAsync(
                 solution, fieldSymbol, RenameOptionSet.From(solution), cancellationToken).ConfigureAwait(false);
 
@@ -127,7 +130,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // same as the property we're trying to get the references pointing to.
 
             var filteredLocations = fieldLocations.Filter(
-                location => !location.IntersectsWith(declaratorLocation) &&
+                location => location.SourceTree != null &&
+                            !location.IntersectsWith(declaratorLocation) &&
                             CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit));
 
             var resolution = await filteredLocations.ResolveConflictsAsync(
@@ -140,19 +144,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             solution = resolution.NewSolution;
 
             // Now find the field and property again post rename.
-            fieldDocument = solution.GetDocument(fieldDocument.Id);
-            propertyDocument = solution.GetDocument(propertyDocument.Id);
+            fieldDocument = solution.GetRequiredDocument(fieldDocument.Id);
+            propertyDocument = solution.GetRequiredDocument(propertyDocument.Id);
             Debug.Assert(fieldDocument.Project == propertyDocument.Project);
 
             compilation = await fieldDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             fieldSymbol = (IFieldSymbol)fieldSymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
             propertySymbol = (IPropertySymbol)propertySymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-            Debug.Assert(fieldSymbol != null && propertySymbol != null);
+            Contract.ThrowIfTrue(fieldSymbol == null || propertySymbol == null);
 
             declarator = (TVariableDeclarator)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            var temp = await propertySymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            property = temp.FirstAncestorOrSelf<TPropertyDeclaration>();
+            property = GetPropertyDeclaration(await propertySymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false));
 
             var nodeToRemove = GetNodeToRemove(declarator);
 
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // because there's nothing to actually separate it from.
             if (fieldDocument == propertyDocument)
             {
-                var syntaxFacts = fieldDocument.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, property, nodeToRemove) &&
                     syntaxFacts.GetLeadingBlankLines(nodeToRemove).Length == 0)
                 {
@@ -213,10 +216,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             else
             {
                 // In different files.  Just update both files.
-                var fieldTreeRoot = await fieldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var propertyTreeRoot = await propertyDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var fieldTreeRoot = await fieldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var propertyTreeRoot = await propertyDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, syntaxRemoveOptions);
+                Contract.ThrowIfNull(newFieldTreeRoot);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
                 newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
@@ -311,7 +315,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return false;
             }
 
-            var syntaxFacts = solution.GetDocument(location.DocumentId).GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = solution.GetRequiredDocument(location.DocumentId).GetRequiredLanguageService<ISyntaxFactsService>();
             var node = location.Location.FindToken(cancellationToken).Parent;
 
             while (node != null && !syntaxFacts.IsAnonymousOrLocalFunction(node))

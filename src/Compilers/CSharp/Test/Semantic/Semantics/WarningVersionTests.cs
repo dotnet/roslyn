@@ -8,12 +8,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     /// <summary>
-    /// Tests that exercise warnings that are under control of the compiler option <see cref="CSharpCompilationOptions.WarningVersion"/>.
+    /// Tests that exercise warnings that are under control of the compiler option <see cref="CompilationOptions.WarningLevel"/>.
     /// </summary>
     public class WarningVersionTests : CompilingTestBase
     {
         [Fact]
-        public void CompareStructToNull()
+        public void WRN_NubExprIsConstBool2()
         {
             var source = @"
 class Program
@@ -42,10 +42,10 @@ struct S
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "s != null").WithArguments("true", "S", "S?").WithLocation(7, 13)
             };
             CreateCompilation(source).VerifyDiagnostics();
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(4.9m)).VerifyDiagnostics();
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(5m)).VerifyDiagnostics(whenWave5);
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(5.0m)).VerifyDiagnostics(whenWave5);
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(5.1m)).VerifyDiagnostics(whenWave5);
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(3)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6)).VerifyDiagnostics(whenWave5);
         }
     }
 }

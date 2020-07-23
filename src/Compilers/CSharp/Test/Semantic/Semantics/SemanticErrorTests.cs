@@ -20409,7 +20409,7 @@ class Test
             // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null",
             // but does for "int == null". Roslyn corrects this lapse and produces warnings for both built-in
             // and user-defined lifted equality operators, but the new warnings for user-defined types are
-            // only given in "strict" more.
+            // only given with /warn:n where n >= 5.
 
             var text = @"
 using System;
@@ -20615,7 +20615,7 @@ ftftftft";
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
             this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]

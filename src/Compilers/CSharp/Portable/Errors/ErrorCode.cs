@@ -1835,7 +1835,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
 
-        ERR_BadWarningVersion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
 
