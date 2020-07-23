@@ -1523,6 +1523,9 @@ I agree to all of the foregoing:</value>
   <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
     <value>Warning: type does not bind</value>
   </data>
+  <data name="Display_inline_parameter_name_hints" xml:space="preserve">
+    <value>Disp_lay inline parameter name hints (experimental)</value>
+  </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>
   </data>
