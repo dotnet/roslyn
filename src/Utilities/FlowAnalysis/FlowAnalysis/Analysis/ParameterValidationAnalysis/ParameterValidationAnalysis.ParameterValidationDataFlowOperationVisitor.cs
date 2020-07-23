@@ -344,7 +344,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     }
                 }
 
-
                 // Mark arguments passed to parameters of null check validation methods as validated.
                 // Also mark arguments passed to parameters with ValidatedNotNullAttribute as validated.
                 var isNullCheckValidationMethod = DataFlowAnalysisContext.IsNullCheckValidationMethod(targetMethod.OriginalDefinition);

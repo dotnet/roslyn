@@ -171,7 +171,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 newKeys.Add(mergedKey);
                             }
 
-
                             AddNewEntryToResultMap(mergedKey, mergedValue, isNewKey: !isExistingKeyInInput);
                         }
                     }

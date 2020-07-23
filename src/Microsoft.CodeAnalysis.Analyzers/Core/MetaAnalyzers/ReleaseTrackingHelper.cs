@@ -321,7 +321,6 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
         Other
     }
 
-
 #pragma warning disable CA1815 // Override equals and operator equals on value types
     internal sealed class ReleaseTrackingData
 #pragma warning restore CA1815 // Override equals and operator equals on value types

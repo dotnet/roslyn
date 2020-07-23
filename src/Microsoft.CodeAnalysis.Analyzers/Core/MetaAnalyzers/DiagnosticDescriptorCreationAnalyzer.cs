@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         {
                             bag.Add(location);
                             return bag;
-                        };
+                        }
 
                         ConcurrentDictionary<string, ConcurrentBag<Location>> AddNamedTypeFactory(string r)
                         {
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 addValueFactory: AddLocationFactory,
                                 updateValueFactory: UpdateLocationsFactory);
                             return dict;
-                        };
+                        }
 
                         ConcurrentDictionary<string, ConcurrentBag<Location>> UpdateNamedTypeFactory(string r, ConcurrentDictionary<string, ConcurrentBag<Location>> existingValue)
                         {
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 addValueFactory: AddLocationFactory,
                                 updateValueFactory: UpdateLocationsFactory);
                             return existingValue;
-                        };
+                        }
 
                         idToAnalyzerMap.AddOrUpdate(
                             key: ruleId,
