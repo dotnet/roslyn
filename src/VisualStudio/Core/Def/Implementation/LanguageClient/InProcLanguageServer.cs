@@ -221,6 +221,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => _protocol.ExecuteRequestAsync<SemanticTokensEditsParams, SemanticTokensEdits>(SemanticTokensMethods.TextDocumentSemanticTokensName,
                 semanticTokensEditsParams, _clientCapabilities, _clientName, cancellationToken);
 
+        [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensRangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<SemanticTokens> GetTextDocumentSemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
+        semanticTokensParams, _clientCapabilities, _clientName, cancellationToken);
+
 #pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods

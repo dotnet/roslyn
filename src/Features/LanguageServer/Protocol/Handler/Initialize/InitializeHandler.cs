@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Classification;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SemanticTokensOptions = new LSP.SemanticTokensOptions
                     {
                         DocumentProvider = true,
-                        RangeProvider = false,
+                        RangeProvider = true,
                         Legend = new SemanticTokensLegend()
                         {
-                            TokenTypes = ClassificationHandler.TokenTypes,
-                            TokenModifiers = ClassificationHandler.TokenModifiers
+                            TokenTypes = SemanticTokensHelpers.TokenTypes,
+                            TokenModifiers = SemanticTokensHelpers.TokenModifiers
                         }
                     },
                     TextDocumentSync = new LSP.TextDocumentSyncOptions

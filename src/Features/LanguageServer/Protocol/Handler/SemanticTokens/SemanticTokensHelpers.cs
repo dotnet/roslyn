@@ -7,12 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,81 +18,80 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName), Shared]
-    internal class ClassificationHandler : AbstractRequestHandler<LSP.SemanticTokensParams, SemanticTokens>
+    internal class SemanticTokensHelpers
     {
-        private IProgress<SumType<SemanticTokens, SemanticTokensEdits>>? _progress;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ClassificationHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
-        {
-        }
-
-        public override async Task<SemanticTokens> HandleRequestAsync(
-            SemanticTokensParams request,
-            ClientCapabilities clientCapabilities,
+        internal static async Task<LSP.SemanticTokens> ComputeSemanticTokensAsync(
+            TextDocumentIdentifier? textDocument,
             string? clientName,
-            CancellationToken cancellationToken)
+            bool useStreaming,
+            Func<ImmutableArray<int>, CancellationToken, Task> reportTokensAsync,
+            ILspSolutionProvider solutionProvider,
+            CancellationToken cancellationToken,
+            LSP.Range? range = null)
         {
-            if (request.TextDocument == null)
+            if (textDocument == null)
             {
-                return new SemanticTokens();
+                return new LSP.SemanticTokens();
             }
 
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = solutionProvider.GetDocument(textDocument, clientName);
             if (document == null)
             {
-                return new SemanticTokens();
+                return new LSP.SemanticTokens();
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root == null)
             {
-                return new SemanticTokens();
+                return new LSP.SemanticTokens();
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (text == null)
             {
-                return new SemanticTokens();
+                return new LSP.SemanticTokens();
             }
 
-            var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, root.FullSpan, cancellationToken).ConfigureAwait(false);
+            var textSpan = root.FullSpan;
+            if (range != null)
+            {
+                textSpan = ProtocolConversions.RangeToTextSpan(range, text);
+            }
+
+            var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (classifiedSpans == null)
             {
-                return new SemanticTokens();
+                return new LSP.SemanticTokens();
             }
-
-            var groupedSpans = classifiedSpans.GroupBy(s => s.TextSpan);
 
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            if (request.PartialResultToken != null)
+            var groupedSpans = classifiedSpans.GroupBy(s => s.TextSpan);
+            if (useStreaming)
             {
-                _progress = request.PartialResultToken;
                 var workQueue = new AsyncBatchingWorkQueue<int>(
-                    TimeSpan.FromMilliseconds(500), ReportTokensAsync, cancellationToken);
+                    TimeSpan.FromMilliseconds(500), reportTokensAsync, cancellationToken);
 
-                ComputeTokensStreaming(ref lastLineNumber, ref lastStartCharacter, workQueue, groupedSpans, text.Lines);
-                return new SemanticTokens();
+                ComputeTokensStreaming(ref lastLineNumber, ref lastStartCharacter, workQueue, text.Lines, groupedSpans);
+                return new LSP.SemanticTokens();
             }
             else
             {
-                var tokens = ComputeTokensNonStreaming(ref lastLineNumber, ref lastStartCharacter, groupedSpans, text.Lines);
-                return new SemanticTokens { Data = tokens };
+                var tokens = ComputeTokensNonStreaming(
+                    ref lastLineNumber, ref lastStartCharacter, text.Lines, groupedSpans);
+                return new LSP.SemanticTokens { Data = tokens };
             }
         }
 
-        private static void ComputeTokensStreaming(
+        internal static void ComputeTokensStreaming(
             ref int lastLineNumber,
             ref int lastStartCharacter,
             AsyncBatchingWorkQueue<int> workQueue,
-            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans,
-            TextLineCollection lines)
+            TextLineCollection lines,
+            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans)
         {
             foreach (var span in groupedSpans)
             {
@@ -104,20 +101,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
             }
         }
 
-        private Task ReportTokensAsync(ImmutableArray<int> tokensToReport, CancellationToken cancellationToken)
+        internal static void ReportTokens(
+            IProgress<SumType<LSP.SemanticTokens, SemanticTokensEdits>> progress,
+            ImmutableArray<int> tokensToReport)
         {
-            Contract.ThrowIfNull(_progress);
-
-            var semanticTokens = new SemanticTokens { Data = tokensToReport.ToArray() };
-            _progress.Report(semanticTokens);
-            return Task.CompletedTask;
+            var semanticTokens = new LSP.SemanticTokens { Data = tokensToReport.ToArray() };
+            progress.Report(semanticTokens);
         }
 
-        private static int[] ComputeTokensNonStreaming(
+        internal static int[] ComputeTokensNonStreaming(
             ref int lastLineNumber,
             ref int lastStartCharacter,
-            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans,
-            TextLineCollection lines)
+            TextLineCollection lines,
+            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans)
         {
             using var _ = ArrayBuilder<int>.GetInstance(out var data);
             foreach (var span in groupedSpans)
@@ -162,7 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
 
             // 4. Token type - looked up in SemanticTokensLegend.tokenTypes.
             var tokenTypeClassifiedSpan = span.Except(additiveResults).Single();
-            if (s_typeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenType))
+            if (s_classificationTypeToSemanticTokenTypeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenType))
             {
                 var index = TokenTypes.IndexOf(t => t == tokenType);
                 if (index == -1)
@@ -181,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
             var modifiers = 0;
             foreach (var currentModifier in additiveResults)
             {
-                if (s_modifierMap.TryGetValue(currentModifier.ClassificationType, out var modifier))
+                if (s_classificationTypeToSemanticTokenModifierMap.TryGetValue(currentModifier.ClassificationType, out var modifier))
                 {
                     var index = TokenModifiers.IndexOf(t => t == modifier);
                     if (index == -1)
@@ -204,7 +200,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
         }
 
         internal static readonly string[] TokenTypes =
-            new string[]
             {
                 SemanticTokenTypes.Class,
                 SemanticTokenTypes.Comment,
@@ -231,12 +226,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
             };
 
         internal static readonly string[] TokenModifiers =
-            new string[]
             {
                 SemanticTokenModifiers.Static
             };
 
-        private static readonly Dictionary<string, string> s_typeMap =
+        private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
             new Dictionary<string, string>
             {
                 [ClassificationTypeNames.ClassName] = SemanticTokenTypes.Class,
@@ -303,7 +297,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Classification
                 [ClassificationTypeNames.XmlLiteralText] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
             };
 
-        private static readonly Dictionary<string, string> s_modifierMap =
+        private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenModifierMap =
             new Dictionary<string, string>
             {
                 [ClassificationTypeNames.StaticSymbol] = SemanticTokenModifiers.Static
