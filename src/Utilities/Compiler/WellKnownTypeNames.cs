@@ -112,6 +112,12 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsImmutableIImmutableSet1 = "System.Collections.Immutable.IImmutableSet`1";
         public const string SystemCollectionsImmutableIImmutableStack1 = "System.Collections.Immutable.IImmutableStack`1";
         public const string SystemCollectionsImmutableImmutableArray1 = "System.Collections.Immutable.ImmutableArray`1";
+        public const string SystemCollectionsImmutableImmutableDictionary2 = "System.Collections.Immutable.ImmutableDictionary`2";
+        public const string SystemCollectionsImmutableImmutableHashSet1 = "System.Collections.Immutable.ImmutableHashSet`1";
+        public const string SystemCollectionsImmutableImmutableList1 = "System.Collections.Immutable.ImmutableList`1";
+        public const string SystemCollectionsImmutableImmutableSortedDictionary2 = "System.Collections.Immutable.ImmutableSortedDictionary`2";
+        public const string SystemCollectionsImmutableImmutableSortedSet1 = "System.Collections.Immutable.ImmutableSortedSet`1";
+        public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
         public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
         public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
         public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
@@ -291,6 +297,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingSpinLock = "System.Threading.SpinLock";
         public const string SystemThreadingTasksGenericTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource`1";
+        public const string SystemThreadingTasksGenericValueTask = "System.Threading.Tasks.ValueTask`1";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksTask1 = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource";
