@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ProjectContextProvider = true,
                     SemanticTokensOptions = new LSP.SemanticTokensOptions
                     {
-                        DocumentProvider = true,
+                        DocumentProvider = new LSP.SemanticTokensDocumentProviderOptions { Edits = true },
                         RangeProvider = true,
-                        Legend = new SemanticTokensLegend()
+                        Legend = new LSP.SemanticTokensLegend
                         {
                             TokenTypes = SemanticTokensHelpers.TokenTypes,
                             TokenModifiers = SemanticTokensHelpers.TokenModifiers

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 var tokens = ComputeTokensNonStreaming(
                     ref lastLineNumber, ref lastStartCharacter, text.Lines, groupedSpans);
-                return new LSP.SemanticTokens { Data = tokens };
+                return new LSP.SemanticTokens { ResultId = "0", Data = tokens };
             }
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             IProgress<SumType<LSP.SemanticTokens, SemanticTokensEdits>> progress,
             ImmutableArray<int> tokensToReport)
         {
-            var semanticTokens = new LSP.SemanticTokens { Data = tokensToReport.ToArray() };
+            var semanticTokens = new LSP.SemanticTokens { ResultId = "0", Data = tokensToReport.ToArray() };
             progress.Report(semanticTokens);
         }
 

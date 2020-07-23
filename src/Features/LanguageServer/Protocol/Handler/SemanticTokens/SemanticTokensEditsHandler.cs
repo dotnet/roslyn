@@ -16,28 +16,33 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName), Shared]
-    internal class SemanticTokensRangeHandler : AbstractRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
+    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName), Shared]
+    internal class SemanticTokensEditsHandler : AbstractRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
     {
         private IProgress<SumType<LSP.SemanticTokens, SemanticTokensEdits>>? _progress;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensRangeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public SemanticTokensEditsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public override async Task<LSP.SemanticTokens> HandleRequestAsync(
-            SemanticTokensRangeParams request,
+        public override async Task<SumType<LSP.SemanticTokens, SemanticTokensEdits>> HandleRequestAsync(
+            SemanticTokensEditsParams request,
             ClientCapabilities clientCapabilities,
             string? clientName,
             CancellationToken cancellationToken)
         {
             _progress = request.PartialResultToken;
 
-            return await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                request.TextDocument, clientName, useStreaming: request.PartialResultToken != null,
-                ReportTokensAsync, SolutionProvider, cancellationToken, request.Range).ConfigureAwait(false);
+            if (request.PreviousResultId == null)
+            {
+                return await SemanticTokensHelpers.ComputeSemanticTokensAsync(
+                    request.TextDocument, clientName, useStreaming: request.PartialResultToken != null,
+                    ReportTokensAsync, SolutionProvider, cancellationToken).ConfigureAwait(false);
+            }
+
+            return new SemanticTokensEdits();
         }
 
         private Task ReportTokensAsync(ImmutableArray<int> tokensToReport, CancellationToken cancellationToken)

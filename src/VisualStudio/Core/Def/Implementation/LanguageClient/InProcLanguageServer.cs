@@ -217,14 +217,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 semanticTokensParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensEditsName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokensEdits> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
-            => _protocol.ExecuteRequestAsync<SemanticTokensEditsParams, SemanticTokensEdits>(SemanticTokensMethods.TextDocumentSemanticTokensName,
+        public Task<SumType<SemanticTokens, SemanticTokensEdits>> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<SemanticTokensEditsParams, SumType<SemanticTokens, SemanticTokensEdits>>(SemanticTokensMethods.TextDocumentSemanticTokensName,
                 semanticTokensEditsParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensRangeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> GetTextDocumentSemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensParams, CancellationToken cancellationToken)
+        public Task<SemanticTokens> GetTextDocumentSemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensRangeParams, CancellationToken cancellationToken)
             => _protocol.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
-        semanticTokensParams, _clientCapabilities, _clientName, cancellationToken);
+                semanticTokensRangeParams, _clientCapabilities, _clientName, cancellationToken);
 
 #pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
