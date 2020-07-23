@@ -1107,6 +1107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitPatternCommon(IPatternOperation pattern)
         {
             Assert.NotNull(pattern.InputType);
+            Assert.NotNull(pattern.NarrowedType);
             Assert.Null(pattern.Type);
             Assert.False(pattern.ConstantValue.HasValue);
         }
@@ -1253,7 +1254,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 case IFieldSymbol field:
                 case IPropertySymbol prop:
-                case IErrorTypeSymbol error:
                     break;
                 case var symbol:
                     Assert.True(false, $"Unexpected symbol {symbol}");

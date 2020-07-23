@@ -317,6 +317,7 @@ class X
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_ConstOutOfRangeChecked:
                         case ErrorCode.WRN_MemberNotNull:
                         case ErrorCode.WRN_MemberNotNullWhen:
                         case ErrorCode.WRN_MemberNotNullBadMember:
@@ -371,6 +372,7 @@ class X
                     ErrorCode.WRN_GeneratorFailedDuringGeneration,
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
+                    ErrorCode.WRN_ConstOutOfRangeChecked,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

@@ -14,11 +14,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
@@ -47,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             CodeActionPriority? priority = null,
             OptionsCollection options = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, TestHost.OutOfProcess);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, TestHost.InProcess);
         }
 
         internal async Task TestAsync(
@@ -57,11 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             int index,
             CodeActionPriority? priority,
             OptionsCollection options,
-            bool outOfProcess)
+            TestHost testHost)
         {
             await TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index,
-                parameters: new TestParameters(options: options, runProviderOutOfProc: outOfProcess, priority: priority));
+                parameters: new TestParameters(options: options, testHost: testHost, priority: priority));
         }
     }
 
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             Workspace workspace, TestParameters parameters)
         {
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)));
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, parameters.testHost)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
@@ -2036,7 +2037,7 @@ class Program
         {
             var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
             {
-                { "exprs", AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference() }
+                { "exprs", AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference() }
             });
 
             await TestAsync(

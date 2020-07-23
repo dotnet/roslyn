@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private string ConvertToFileName(string source)
+            private static string ConvertToFileName(string source)
             {
                 // Replace all occurrences of a single underscore with a double underscore.
                 // Now we know any single underscores in the text come from escaping some
@@ -257,8 +257,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     var message = string.Format(
                         EditorFeaturesResources.Downloading_index_failed_0,
-                        Environment.NewLine + e.ToString());
-
+                        "\r\n" + e.ToString());
                     await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
                     throw;
                 }
@@ -401,8 +400,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return await DownloadFullDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
                 }
 
-                var databaseVersion = database.DatabaseVersion;
-
                 // Now attempt to download and apply patch file.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
@@ -486,7 +483,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return _service._delayService.UpdateSucceededDelay;
             }
 
-            private void ParsePatchElement(XElement patchElement, out bool upToDate, out bool tooOld, out byte[] patchBytes)
+            private static void ParsePatchElement(XElement patchElement, out bool upToDate, out bool tooOld, out byte[] patchBytes)
             {
                 patchBytes = null;
 

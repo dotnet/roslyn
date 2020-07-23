@@ -15,12 +15,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class WorkspacesNetCore : WorkspaceBase
     {
-        public WorkspacesNetCore(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+        public WorkspacesNetCore(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void OpenCSharpThenVBSolution()
@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             base.MetadataReference();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
 

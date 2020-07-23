@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("AnalyzerConfigFiles");
+            var items = instance.GetItems("EditorConfigFiles");
             Assert.Single(items);
         }
 

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+extern alias InteractiveHost;
 
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
@@ -10,6 +11,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using System.Collections.Generic;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         internal ImmutableArray<string> NamespacesToImport { get; set; }
 
-        internal bool? Is64Bit { get; set; }
+        internal InteractiveHostPlatform? Platform { get; set; }
 
         internal string ProjectDirectory { get; set; }
 
@@ -66,14 +68,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64Bit)
+            out InteractiveHostPlatform? platform)
         {
             references = References;
             referenceSearchPaths = ReferenceSearchPaths;
             sourceSearchPaths = SourceSearchPaths;
             projectNamespaces = ProjectNamespaces;
             projectDirectory = ProjectDirectory;
-            is64Bit = Is64Bit;
+            platform = Platform;
             return true;
         }
 

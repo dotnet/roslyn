@@ -16,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpLspCodeActionProvider(CSharpLspClientServiceFactory csharpLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(csharpLspClientServiceFactory, diagnosticAnalyzerService)
+        public CSharpLspCodeActionProvider(CSharpLspClientServiceFactory csharpLspClientServiceFactory)
+            : base(csharpLspClientServiceFactory)
         {
         }
     }
@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VBLspCodeActionProvider(VisualBasicLspClientServiceFactory vbLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(vbLspClientServiceFactory, diagnosticAnalyzerService)
+        public VBLspCodeActionProvider(VisualBasicLspClientServiceFactory vbLspClientServiceFactory)
+            : base(vbLspClientServiceFactory)
         {
         }
     }
