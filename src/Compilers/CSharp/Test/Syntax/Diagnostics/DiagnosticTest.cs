@@ -331,6 +331,7 @@ class X
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_StaticInAsOrIs:
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:

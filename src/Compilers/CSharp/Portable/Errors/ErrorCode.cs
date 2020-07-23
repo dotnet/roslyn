@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_YieldNotAllowedInScript = 7020,
         ERR_NamespaceNotAllowedInScript = 7021,
         WRN_MainIgnored = 7022,
-        ERR_StaticInAsOrIs = 7023,
+        WRN_StaticInAsOrIs = 7023,
         ERR_InvalidDelegateType = 7024,
         ERR_BadVisEventType = 7025,
         ERR_GlobalAttributesNotAllowed = 7026,
