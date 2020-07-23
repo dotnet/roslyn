@@ -70,9 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync()).ToString());
         }
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => throw new NotSupportedException();
-
         protected override ParseOptions GetScriptOptions()
             => throw new NotSupportedException();
 
