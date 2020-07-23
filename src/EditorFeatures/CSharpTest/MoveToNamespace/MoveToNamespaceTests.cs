@@ -6,13 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -27,11 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         private static readonly TestComposition s_composition = s_compositionWithoutOptions.AddParts(
             typeof(TestMoveToNamespaceOptionsService));
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => CreateWorkspaceFromFile(initialMarkup, parameters, s_composition);
-
-        protected static TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, TestComposition composition)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, composition: composition);
+        protected override TestComposition GetComposition() => s_composition;
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -39,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 
         public static IEnumerable<object[]> SupportedKeywords => new[]
         {
-            new[] {"class" },
-            new[] {"enum" },
-            new[] {"interface"}
+            new[] { "class" },
+            new[] { "enum" },
+            new[] { "interface"}
         };
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
@@ -1116,7 +1110,7 @@ class MyClass
 }
 }";
 
-            using var workspace = CreateWorkspaceFromFile(code, new TestParameters(), s_compositionWithoutOptions);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithoutOptions);
             using var testState = new TestState(workspace);
             Assert.Null(testState.TestMoveToNamespaceOptionsService);
 

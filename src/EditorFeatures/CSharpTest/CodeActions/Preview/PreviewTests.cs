@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         private static readonly ProjectId s_addedProjectId = ProjectId.CreateNewId();
         private const string ChangedDocumentText = "class C {}";
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, composition: s_composition);
+        protected override TestComposition GetComposition() => s_composition;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MyCodeRefactoringProvider();

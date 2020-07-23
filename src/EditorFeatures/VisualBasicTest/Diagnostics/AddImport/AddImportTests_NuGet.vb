@@ -23,13 +23,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         Private Shared ReadOnly NugetPackageSources As ValueTask(Of ImmutableArray(Of PackageSource)?) =
             New ValueTask(Of ImmutableArray(Of PackageSource)?)(ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org")))
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Dim workspace = MyBase.CreateWorkspaceFromFile(initialMarkup, parameters)
+        Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
                 WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
                 WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)))
-            Return workspace
-        End Function
+        End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             ' This is used by inherited tests to ensure the properties of diagnostic analyzers are correct. It's not

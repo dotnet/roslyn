@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
 
-            var diagnosticService = (IDiagnosticUpdateSource)((IMefHostExportProvider)hostServices).GetExports<IDiagnosticAnalyzerService>().Single().Value;
+            var diagnosticService = (IDiagnosticUpdateSource)((IMefHostExportProvider)hostServices).GetExportedValue<IDiagnosticAnalyzerService>();
             RoslynDebug.AssertNotNull(diagnosticService);
 
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();

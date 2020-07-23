@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         private static async Task TestAsync(string markup, string expectedText)
         {
             // TODO: Using VisualStudioTestComposition.LanguageServices fails with "Failed to clean up listeners in a timely manner. WorkspaceChanged TaskQueue.cs 38"
+            // https://github.com/dotnet/roslyn/issues/46250
             using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(CSharpHelpContextService)));
             var caret = workspace.Documents.First().CursorPosition;
 

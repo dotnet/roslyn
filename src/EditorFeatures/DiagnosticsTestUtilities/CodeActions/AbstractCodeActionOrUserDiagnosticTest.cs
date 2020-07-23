@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.VisualStudio.Composition;
 
 #if CODE_STYLE
 using System.Diagnostics;
@@ -74,6 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public TestParameters WithParseOptions(ParseOptions parseOptions)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
+            public TestParameters WithCompilationOptions(CompilationOptions compilationOptions)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+
             internal TestParameters WithOptions(OptionsCollection options)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
@@ -95,15 +99,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected internal abstract string GetLanguage();
         protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new ParenthesesOptionsProvider(this.GetLanguage());
         protected abstract ParseOptions GetScriptOptions();
+        protected virtual TestComposition GetComposition() => EditorTestCompositions.EditorFeatures;
 
-        protected TestWorkspace CreateWorkspaceFromOptions(
-            string initialMarkup, TestParameters parameters)
+        protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
-            // TODO: Requires WPF since some test depend on IInlineRenameService present (https://github.com/dotnet/roslyn/issues/46153)
-            // TODO: Currently it's not possible for the test to override workspace creation when initialMarkup specifies workspace element.
-            var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
-                 ? TestWorkspace.Create(initialMarkup, openDocuments: false, composition: EditorTestCompositions.EditorFeaturesWpf)
-                 : CreateWorkspaceFromFile(initialMarkup, parameters);
+        }
+
+        protected virtual TestParameters SetParameterDefaults(TestParameters parameters)
+            => parameters;
+
+        protected TestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters)
+        {
+            var composition = GetComposition();
+            parameters = SetParameterDefaults(parameters);
+
+            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode) ?
+                TestWorkspace.Create(workspaceMarkupOrCode, openDocuments: false, composition: composition) :
+                TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition);
+
+            InitializeWorkspace(workspace, parameters);
 
             // For CodeStyle layer testing, we create an .editorconfig at project root
             // to apply the options as workspace options are not available in CodeStyle layer.
@@ -198,8 +212,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 #endif
-
-        protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
 
         private static TestParameters WithRegularOptions(TestParameters parameters)
             => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
@@ -503,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             if (TestWorkspace.IsWorkspaceElement(expectedText))
             {
-                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolution);
+                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolution, workspace.ExportProvider);
                 return Tuple.Create(oldSolution, newSolution);
             }
 
@@ -568,9 +580,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return document;
         }
 
-        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)
+        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution, ExportProvider exportProvider)
         {
-            using (var expectedWorkspace = TestWorkspace.Create(expectedText))
+            using (var expectedWorkspace = TestWorkspace.Create(expectedText, exportProvider: exportProvider))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());

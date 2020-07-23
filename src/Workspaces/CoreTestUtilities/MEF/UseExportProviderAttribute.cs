@@ -112,62 +112,57 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
-            try
+            // Dispose of the export provider, including calling Dispose for any IDisposable services created during the test.
+            using var _ = exportProvider;
+
+            if (exportProvider.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
             {
-                if (exportProvider.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
+                if (exportProvider.GetExportedValues<IThreadingContext>().SingleOrDefault()?.HasMainThread ?? false)
                 {
-                    if (exportProvider.GetExportedValues<IThreadingContext>().SingleOrDefault()?.HasMainThread ?? false)
+                    // Immediately clear items from the foreground notification service for which cancellation is
+                    // requested. This service maintains a queue separately from Tasks, and work items scheduled for
+                    // execution after a delay are not immediately purged when cancellation is requested. This code
+                    // instructs the service to walk the list of queued work items and immediately cancel and purge any
+                    // which are already cancelled.
+                    var foregroundNotificationService = exportProvider.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
+                    foregroundNotificationService?.ReleaseCancelledItems();
+                }
+
+                // Join remaining operations with a timeout
+                using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
+                {
+                    try
                     {
-                        // Immediately clear items from the foreground notification service for which cancellation is
-                        // requested. This service maintains a queue separately from Tasks, and work items scheduled for
-                        // execution after a delay are not immediately purged when cancellation is requested. This code
-                        // instructs the service to walk the list of queued work items and immediately cancel and purge any
-                        // which are already cancelled.
-                        var foregroundNotificationService = exportProvider.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
-                        foregroundNotificationService?.ReleaseCancelledItems();
+                        var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
+                        waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
                     }
-
-                    // Join remaining operations with a timeout
-                    using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
+                    catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
                     {
-                        try
+                        var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
+                        foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
                         {
-                            var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
-                            waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
+                            messageBuilder.AppendLine().Append($"  {token}");
                         }
-                        catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
-                        {
-                            var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
-                            foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
-                            {
-                                messageBuilder.AppendLine().Append($"  {token}");
-                            }
 
-                            throw new TimeoutException(messageBuilder.ToString(), ex);
-                        }
-                    }
-
-                    // Verify the synchronization context was not used incorrectly
-                    var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
-                    if (testExportJoinableTaskContext?.SynchronizationContext is TestExportJoinableTaskContext.DenyExecutionSynchronizationContext synchronizationContext)
-                    {
-                        synchronizationContext.ThrowIfSwitchOccurred();
-                    }
-
-                    foreach (var testErrorHandler in exportProvider.GetExportedValues<ITestErrorHandler>())
-                    {
-                        var exceptions = testErrorHandler.Exceptions;
-                        if (exceptions.Count > 0)
-                        {
-                            throw new AggregateException("Tests threw unexpected exceptions", exceptions);
-                        }
+                        throw new TimeoutException(messageBuilder.ToString(), ex);
                     }
                 }
-            }
-            finally
-            {
-                // Dispose of the export provider, including calling Dispose for any IDisposable services created during the test.
-                exportProvider.Dispose();
+
+                // Verify the synchronization context was not used incorrectly
+                var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
+                if (testExportJoinableTaskContext?.SynchronizationContext is TestExportJoinableTaskContext.DenyExecutionSynchronizationContext synchronizationContext)
+                {
+                    synchronizationContext.ThrowIfSwitchOccurred();
+                }
+
+                foreach (var testErrorHandler in exportProvider.GetExportedValues<ITestErrorHandler>())
+                {
+                    var exceptions = testErrorHandler.Exceptions;
+                    if (exceptions.Count > 0)
+                    {
+                        throw new AggregateException("Tests threw unexpected exceptions", exceptions);
+                    }
+                }
             }
         }
 

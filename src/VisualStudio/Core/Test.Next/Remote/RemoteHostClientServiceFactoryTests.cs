@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
-            var listenerProvider = ((IMefHostExportProvider)hostServices).GetExports<AsynchronousOperationListenerProvider>().Single().Value;
+            var listenerProvider = ((IMefHostExportProvider)hostServices).GetExportedValue<AsynchronousOperationListenerProvider>();
 
             var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();

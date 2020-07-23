@@ -13,13 +13,4 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>();
         IEnumerable<Lazy<TExtension>> GetExports<TExtension>();
     }
-
-    internal static class IMefHostExportProviderExtensions
-    {
-        public static TExtension GetExportedValue<TExtension>(this IMefHostExportProvider provider)
-            => provider.GetExports<TExtension>().Single().Value;
-
-        public static IEnumerable<TExtension> GetExportedValues<TExtension>(this IMefHostExportProvider provider)
-            => provider.GetExports<TExtension>().Select(l => l.Value);
-    }
 }

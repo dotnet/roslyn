@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public partial class SmartIndenterTests : CSharpFormatterTestsBase
     {
-        private static readonly TestComposition s_compositionWithTestFormatingRules = EditorTestCompositions.EditorFeatures
+        private static readonly TestComposition s_compositionWithTestFormattingRules = EditorTestCompositions.EditorFeatures
             .AddParts(typeof(TestFormattingRuleFactoryServiceFactory));
 
         public SmartIndenterTests(ITestOutputHelper output) : base(output) { }
@@ -2907,7 +2907,7 @@ return;
 
             foreach (var option in optionsSet)
             {
-                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormatingRules);
+                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                     .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)

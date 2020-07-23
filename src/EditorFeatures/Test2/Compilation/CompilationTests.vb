@@ -26,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
     </Project>
 </Workspace>
 
-
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions))

@@ -22,24 +22,20 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
             Return New VisualBasicAddMissingImportsRefactoringProvider(pasteTrackingService)
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Dim Workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
-
+        Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
             ' Treat the span being tested as the pasted span
-            Dim hostDocument = Workspace.Documents.First()
+            Dim hostDocument = workspace.Documents.First()
             Dim pastedTextSpan = hostDocument.SelectedSpans.FirstOrDefault()
 
             If Not pastedTextSpan.IsEmpty Then
-                Dim PasteTrackingService = Workspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
+                Dim PasteTrackingService = workspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
 
                 ' This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
                 ' registered consecutively And that the last registered span wins.
                 PasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), Nothing)
                 PasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), pastedTextSpan)
             End If
-
-            Return Workspace
-        End Function
+        End Sub
 
         Private Overloads Function TestInRegularAndScriptAsync(
             initialMarkup As String, expectedMarkup As String,

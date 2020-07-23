@@ -31,13 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         private static readonly ValueTask<ImmutableArray<PackageSource>?> NugetPackageSources =
             new ValueTask<ImmutableArray<PackageSource>?>(ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/")));
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+        protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
-            var workspace = base.CreateWorkspaceFromFile(initialMarkup, parameters);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
                 .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true)));
-            return workspace;
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
