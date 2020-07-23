@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly HashSet<IOperation> _visitedFlowBranchConditions;
         private readonly HashSet<IOperation>? _returnValueOperationsOpt;
         private ImmutableDictionary<IParameterSymbol, AnalysisEntity>? _lazyParameterEntities;
-        private ImmutableHashSet<IMethodSymbol>? _lazyContractCheckMethodsForPredicateAnalysis;
+        private ImmutableHashSet<IMethodSymbol>? _lazyContractCheckMethods;
         private TAnalysisData? _currentAnalysisData;
         private BasicBlock? _currentBasicBlock;
         private int _recursionDepth;
@@ -227,7 +227,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterlockedNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
             SerializationInfoNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
             GenericIEquatableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
+            StringReaderType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOStringReader);
             CollectionNamedTypes = GetWellKnownCollectionTypes();
+            DebugAssertMethod = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticsDebug)?.GetMembers("Assert")
+                    .OfType<IMethodSymbol>().FirstOrDefault(HasDebugAssertSignature);
 
             _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(analysisContext.ControlFlowGraph);
             _valueCacheBuilder = ImmutableDictionary.CreateBuilder<IOperation, TAbstractAnalysisValue>();
@@ -291,6 +294,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 interproceduralCapturedVariablesMapOpt: analysisContext.InterproceduralAnalysisDataOpt?.CapturedVariablesMap,
                 interproceduralGetAnalysisEntityForFlowCaptureOpt: analysisContext.InterproceduralAnalysisDataOpt?.GetAnalysisEntityForFlowCapture,
                 getInterproceduralCallStackForOwningSymbol: GetInterproceduralCallStackForOwningSymbol);
+
+            return;
+
+            static bool HasDebugAssertSignature(IMethodSymbol method)
+            {
+                return method.IsStatic &&
+                method.ReturnsVoid &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean;
+            }
         }
 
         protected CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
@@ -458,6 +471,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected void UpdateValuesForAnalysisData<TKey>(
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> targetAnalysisData,
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> newAnalysisData)
+            where TKey : notnull
         {
             var builder = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count);
             try
@@ -874,30 +888,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         private bool IsContractCheckArgument(IArgumentOperation operation)
-        {
-            Debug.Assert(PredicateAnalysis);
+            => operation.Parent is IInvocationOperation invocation &&
+               invocation.Arguments[0] == operation &&
+               (IsDebugAssertMethod(invocation.TargetMethod) || IsContractCheckMethod(invocation.TargetMethod));
 
-            if (ContractNamedType != null &&
-                operation.Parent is IInvocationOperation invocation &&
-                Equals(invocation.TargetMethod.ContainingType, ContractNamedType) &&
-                invocation.TargetMethod.IsStatic &&
-                invocation.Arguments[0] == operation)
+        private bool IsContractCheckMethod(IMethodSymbol method)
+        {
+            if (Equals(method.ContainingType, ContractNamedType) &&
+                method.IsStatic)
             {
-                if (_lazyContractCheckMethodsForPredicateAnalysis == null)
+                if (_lazyContractCheckMethods == null)
                 {
                     // Contract.Requires check.
                     var requiresMethods = ContractNamedType.GetMembers("Requires");
                     var assumeMethods = ContractNamedType.GetMembers("Assume");
                     var assertMethods = ContractNamedType.GetMembers("Assert");
                     var validationMethods = requiresMethods.Concat(assumeMethods).Concat(assertMethods).OfType<IMethodSymbol>().Where(m => m.IsStatic && m.ReturnsVoid && !m.Parameters.IsEmpty && (m.Parameters[0].Type.SpecialType == SpecialType.System_Boolean));
-                    _lazyContractCheckMethodsForPredicateAnalysis = ImmutableHashSet.CreateRange(validationMethods);
+                    _lazyContractCheckMethods = ImmutableHashSet.CreateRange(validationMethods);
                 }
 
-                return _lazyContractCheckMethodsForPredicateAnalysis.Contains(invocation.TargetMethod);
+                return _lazyContractCheckMethods.Contains(method);
             }
 
             return false;
         }
+
+        private bool IsDebugAssertMethod(IMethodSymbol method)
+            => Equals(method, DebugAssertMethod);
+
+        protected bool IsAnyAssertMethod(IMethodSymbol method)
+            => IsDebugAssertMethod(method) || IsContractCheckMethod(method);
 
         #region Helper methods to get or cache analysis data for visited operations.
 
@@ -1181,9 +1201,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (targetType == null)
                 {
-                    // Below assert fires for IDeclarationPatternOperation with null DeclaredSymbol, but non-null MatchedType.
-                    // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
-                    //Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax.ToString()}'");
+                    Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax}'");
                     return false;
                 }
 
@@ -1441,22 +1459,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case IIsPatternOperation isPatternOperation:
                     // Predicate analysis for "is pattern" checks:
                     //  1. Non-null value check for declaration pattern, i.e. "c is D d"
-                    //  2. Equality value check for constant pattern, i.e. "x is 1"
-                    if (isPatternOperation.Pattern.Kind == OperationKind.DeclarationPattern)
+                    //  2. Non-null value check for discard pattern, i.e. "c is D _"
+                    //  3. Non-null value check for recursive pattern, i.e. "c is D { SomeProperty: 0 }"
+                    //  4. Equality value check for constant pattern, i.e. "x is 1"
+                    switch (isPatternOperation.Pattern.Kind)
                     {
-                        predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
-                    }
-                    else if (isPatternOperation.Pattern is IConstantPatternOperation constantPattern)
-                    {
-                        predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, constantPattern.Value,
-                            equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
-                    }
-                    else
-                    {
-                        // Below assert fires for IDiscardPatternOperation.
-                        // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
-                        //Debug.Fail($"Unknown pattern kind '{isPatternOperation.Kind}'");
-                        predicateValueKind = PredicateValueKind.Unknown;
+                        case OperationKind.DeclarationPattern:
+                            // Set predicated null/non-null value for declared pattern variable, i.e. for 'd' in "c is D d".
+                            predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
+
+                            // Also set the predicated value for pattern value for true branch, i.e. for 'c' in "c is D d".
+                            goto case OperationKind.DiscardPattern;
+
+                        case OperationKind.DiscardPattern:
+                        case OperationKind.RecursivePattern:
+                            // For the true branch, set the pattern operation value to NotNull.
+                            if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                            {
+                                predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
+                            }
+
+                            break;
+
+                        case OperationKind.ConstantPattern:
+                            var constantPattern = (IConstantPatternOperation)isPatternOperation.Pattern;
+                            predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, constantPattern.Value,
+                                equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
+                            break;
+
+                        default:
+                            Debug.Fail($"Unknown pattern kind '{isPatternOperation.Pattern.Kind}'");
+                            predicateValueKind = PredicateValueKind.Unknown;
+                            break;
                     }
 
                     break;
@@ -1855,11 +1889,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #endregion
 
-        public TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2, bool forBackEdge)
-            => forBackEdge ? MergeAnalysisDataForBackEdge(value1, value2) : MergeAnalysisData(value1, value2);
+        public TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2, BasicBlock forBlock, bool forBackEdge)
+            => forBackEdge ? MergeAnalysisDataForBackEdge(value1, value2, forBlock) : MergeAnalysisData(value1, value2, forBlock);
         protected abstract TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2);
-        protected virtual TAnalysisData MergeAnalysisDataForBackEdge(TAnalysisData value1, TAnalysisData value2)
+        protected virtual TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2, BasicBlock forBlock)
             => MergeAnalysisData(value1, value2);
+        protected virtual TAnalysisData MergeAnalysisDataForBackEdge(TAnalysisData value1, TAnalysisData value2, BasicBlock forBlock)
+            => MergeAnalysisData(value1, value2, forBlock);
         protected abstract TAnalysisData GetClonedAnalysisData(TAnalysisData analysisData);
         protected TAnalysisData GetClonedCurrentAnalysisData() => GetClonedAnalysisData(CurrentAnalysisData);
         public abstract TAnalysisData GetEmptyAnalysisData();
@@ -1878,6 +1914,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> coreDataAtException,
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> coreCurrentAnalysisData,
             Func<TKey, bool>? predicateOpt)
+            where TKey : notnull
         {
             foreach (var (key, value) in coreCurrentAnalysisData)
             {
@@ -1988,7 +2025,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Bail out if configured not to execute interprocedural analysis.
             var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
                 DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true ||
-                invokedMethod.IsConfiguredToSkipAnalysis(DataFlowAnalysisContext.AnalyzerOptions, s_dummyDataflowAnalysisDescriptor, WellKnownTypeProvider.Compilation, CancellationToken.None);
+                invokedMethod.IsConfiguredToSkipAnalysis(OwningSymbol, DataFlowAnalysisContext.AnalyzerOptions, s_dummyDataflowAnalysisDescriptor, WellKnownTypeProvider.Compilation, CancellationToken.None);
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
             if (skipInterproceduralAnalysis ||
@@ -3343,7 +3380,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return operandValue;
         }
 
-        public sealed override TAbstractAnalysisValue VisitIsPattern(IIsPatternOperation operation, object? argument)
+        public override TAbstractAnalysisValue VisitIsPattern(IIsPatternOperation operation, object? argument)
         {
             // "c is D d" OR "x is 1"
             var operandValue = Visit(operation.Value, argument);
@@ -3378,189 +3415,225 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Overrides for lowered IOperations
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitUsing(IUsingOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IUsingOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IUsingOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitWhileLoop(IWhileLoopOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IWhileLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IWhileLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitForEachLoop(IForEachLoopOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IForEachLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IForEachLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitForLoop(IForLoopOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IForLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IForLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitForToLoop(IForToLoopOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IForToLoopOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IForToLoopOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitCoalesce(ICoalesceOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ICoalesceOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ICoalesceOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitConditional(IConditionalOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IConditionalOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IConditionalOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitConditionalAccess(IConditionalAccessOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IConditionalAccessOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IConditionalAccessOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IConditionalAccessInstanceOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IConditionalAccessInstanceOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitThrow(IThrowOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IThrowOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IThrowOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableDeclaration(IVariableDeclarationOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableDeclarationOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableDeclarator(IVariableDeclaratorOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableDeclaratorOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableDeclaratorOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitTry(ITryOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ITryOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ITryOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitCatchClause(ICatchClauseOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ICatchClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ICatchClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public override TAbstractAnalysisValue VisitLock(ILockOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ILockOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ILockOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitBranch(IBranchOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IBranchOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IBranchOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitLabeled(ILabeledOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ILabeledOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ILabeledOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitSwitch(ISwitchOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ISwitchOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ISwitchOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitSwitchCase(ISwitchCaseOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ISwitchCaseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ISwitchCaseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IDefaultCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IDefaultCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitPatternCaseClause(IPatternCaseClauseOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IPatternCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IPatternCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitRangeCaseClause(IRangeCaseClauseOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IRangeCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IRangeCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IRelationalCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IRelationalCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ISingleValueCaseClauseOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ISingleValueCaseClauseOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IObjectOrCollectionInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IObjectOrCollectionInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitMemberInitializer(IMemberInitializerOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IMemberInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IMemberInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitBlock(IBlockOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IBlockOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IBlockOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitVariableInitializer(IVariableInitializerOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IVariableInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IVariableInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitFieldInitializer(IFieldInitializerOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IFieldInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IFieldInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitParameterInitializer(IParameterInitializerOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IParameterInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IParameterInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitPropertyInitializer(IPropertyInitializerOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IPropertyInitializerOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IPropertyInitializerOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitEnd(IEndOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IEndOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IEndOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitEmpty(IEmptyOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IEmptyOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IEmptyOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitNameOf(INameOfOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(INameOfOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(INameOfOperation)}' must have been lowered in the CFG");
         }
 
         public sealed override TAbstractAnalysisValue VisitAnonymousFunction(IAnonymousFunctionOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(IAnonymousFunctionOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(IAnonymousFunctionOperation)}' must have been lowered in the CFG");
         }
 
+        [ExcludeFromCodeCoverage]
         public sealed override TAbstractAnalysisValue VisitLocalFunction(ILocalFunctionOperation operation, object? argument)
         {
-            throw new InvalidProgramException($"'{nameof(ILocalFunctionOperation)}' must have been lowered in the CFG");
+            throw new NotSupportedException($"'{nameof(ILocalFunctionOperation)}' must have been lowered in the CFG");
         }
 
         #endregion
@@ -3623,12 +3696,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected INamedTypeSymbol? GenericIEquatableNamedType { get; }
 
         /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IO.StringReader"/>
+        /// </summary>
+        protected INamedTypeSymbol? StringReaderType { get; }
+
+        /// <summary>
         /// Set containing following named types, if not null:
         /// 1. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.ICollection"/>
         /// 2. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.ICollection{T}"/>
         /// 3. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.IReadOnlyCollection{T}"/>
         /// </summary>
         protected ImmutableHashSet<INamedTypeSymbol> CollectionNamedTypes { get; }
+
+        private IMethodSymbol? DebugAssertMethod { get; }
 
         private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
         {

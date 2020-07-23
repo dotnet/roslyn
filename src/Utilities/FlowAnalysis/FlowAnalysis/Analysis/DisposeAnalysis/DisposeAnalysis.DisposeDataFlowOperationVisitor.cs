@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 if (!location.IsNull &&
                     location.LocationTypeOpt != null &&
-                    !location.LocationTypeOpt.IsValueType &&
+                    (!location.LocationTypeOpt.IsValueType || location.LocationTypeOpt.IsRefLikeType) &&
                     IsDisposable(location.LocationTypeOpt))
                 {
                     CurrentAnalysisData[location] = value;
@@ -93,6 +93,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Special case: Do not track System.Threading.Tasks.Task as you are not required to dispose them.
                 if (TaskNamedType != null &&
                     instanceType.DerivesFrom(TaskNamedType, baseTypesOnly: true))
+                {
+                    return defaultValue;
+                }
+
+                // StringReader doesn't need to be disposed: https://docs.microsoft.com/en-us/dotnet/api/system.io.stringreader?view=netframework-4.8
+                if (StringReaderType != null &&
+                    instanceType.Equals(StringReaderType))
+                {
+                    return defaultValue;
+                }
+
+                // Handle user option for additional excluded types
+                if (DataFlowAnalysisContext.ExcludedSymbols.Contains(instanceType))
                 {
                     return defaultValue;
                 }
@@ -189,7 +202,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 if (operation.Parent is IInvocationOperation invocation &&
                     invocation.TargetMethod.ReturnType.SpecialType == SpecialType.System_Boolean &&
                     invocation.TargetMethod.Name.StartsWith("TryGet", StringComparison.Ordinal) &&
-                    invocation.Arguments[invocation.Arguments.Length - 1] == operation)
+                    invocation.Arguments[^1] == operation)
                 {
                     return DisposeAbstractValue.NotDisposable;
                 }
@@ -223,19 +236,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 var value = base.Visit(operation, argument);
                 HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
-
-                // HACK: Workaround for missing IOperation/CFG support for C# 'using' declarations
-                // https://github.com/dotnet/roslyn-analyzers/issues/2152
-                if (operation?.Kind == OperationKind.None &&
-                    operation.Syntax.GetFirstToken().ToString() == "using" &&
-                    operation.Language == LanguageNames.CSharp)
-                {
-                    var previousOperation = CurrentBasicBlock.GetPreviousOperationInBlock(operation);
-                    if (previousOperation is ISimpleAssignmentOperation simpleAssignment)
-                    {
-                        HandleDisposingOperation(disposingOperation: operation, disposedInstance: simpleAssignment.Value);
-                    }
-                }
 
                 return value;
             }

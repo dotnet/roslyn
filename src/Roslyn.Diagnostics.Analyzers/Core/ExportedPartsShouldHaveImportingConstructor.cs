@@ -27,7 +27,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.ExportedPartsShouldHaveImportingConstructorRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
@@ -104,7 +104,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     if (exportAttributeApplication.ApplicationSyntaxReference is object)
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ImplicitConstructor, namedType.Name));
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.ImplicitConstructor, namedType.Name));
                     }
 
                     continue;
@@ -122,7 +122,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (constructor.DeclaredAccessibility != Accessibility.Public)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, appliedImportingConstructorAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.NonPublicConstructor, namedType.Name));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, appliedImportingConstructorAttribute.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.NonPublicConstructor, namedType.Name));
                     continue;
                 }
             }
@@ -139,7 +139,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var properties = Equals(constructor, missingImportingConstructor) ? ScenarioProperties.MissingAttribute : ScenarioProperties.MultipleConstructors;
 
                 // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                context.ReportDiagnostic(Diagnostic.Create(Rule, constructor.DeclaringSyntaxReferences.First().GetSyntax().GetLocation(), properties, namedType.Name));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, constructor.DeclaringSyntaxReferences.First().GetSyntax(context.CancellationToken).GetLocation(), properties, namedType.Name));
                 continue;
             }
         }

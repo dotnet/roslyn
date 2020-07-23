@@ -225,6 +225,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
+            public override ParameterValidationAbstractValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+            {
+                var value = base.VisitReDimClause(operation, argument);
+                MarkValidatedLocations(operation.Operand);
+                return value;
+            }
+
             public override ParameterValidationAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 var value = base.VisitObjectCreation(operation, argument);
@@ -303,6 +310,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                 break;
                         }
                     }
+                    // TODO: Remove the previous code block and use the following code when ready for potential breaking change
+                    // See https://github.com/dotnet/roslyn-analyzers/issues/3331
+                    //if (targetMethod.IsGetObjectData(SerializationInfoNamedType, StreamingContextNamedType) ||
+                    //    targetMethod.IsSerializationConstructor(SerializationInfoNamedType, StreamingContextNamedType))
+                    //{
+                    //    MarkValidatedLocations(arguments[0]);
+                    //}
                 }
                 else if (_hazardousParameterUsageBuilderOpt != null &&
                          !targetMethod.IsExternallyVisible() &&
@@ -421,6 +435,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 // Mark a location as validated on paths where user has performed an IsNull check.
                 // See comments in VisitBinaryOperatorCore override above for further details.
                 MarkValidatedLocations(operation.Operand);
+
+                return value;
+            }
+
+            public override ParameterValidationAbstractValue VisitIsPattern(IIsPatternOperation operation, object? argument)
+            {
+                var value = base.VisitIsPattern(operation, argument);
+
+                // Mark a location as validated on false path where user has performed an IsPattern check with null on true path.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
+                    GetNullAbstractValue(operation.Pattern) == NullAbstractValue.Null)
+                {
+                    MarkValidatedLocations(operation.Value);
+                }
 
                 return value;
             }

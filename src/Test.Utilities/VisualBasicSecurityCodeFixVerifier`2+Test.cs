@@ -25,7 +25,7 @@ namespace Test.Utilities
             {
                 var newProject = base.ApplyCompilationOptions(project);
 
-                var parseOptions = newProject.ParseOptions.WithFeatures(
+                var parseOptions = newProject.ParseOptions!.WithFeatures(
                     newProject.ParseOptions.Features.Concat(
                         new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
 

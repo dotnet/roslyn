@@ -181,6 +181,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
+
+        public override TAbstractAnalysisValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+        {
+            var value = base.VisitReDimClause(operation, argument);
+            PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
+            return HandleInstanceCreation(operation, instanceLocation, value);
+        }
+
         #endregion
     }
 }

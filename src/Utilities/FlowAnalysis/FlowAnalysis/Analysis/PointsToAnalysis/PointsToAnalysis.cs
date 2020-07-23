@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -86,8 +87,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType() ||
-            typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
+        internal static bool ShouldBeTracked([NotNullWhen(returnValue: true)] ITypeSymbol typeSymbol)
+            => typeSymbol.IsReferenceTypeOrNullableValueType() ||
+               typeSymbol?.IsRefLikeType == true ||
+               typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
 
         internal static bool ShouldBeTracked(AnalysisEntity analysisEntity, PointsToAnalysisKind pointsToAnalysisKind)
         {
