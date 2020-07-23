@@ -1,25 +1,22 @@
-﻿# /warnversion warning "waves"
+﻿# /warn warning "waves"
 
-The C# compiler flag `/warnversion` controls optional warnings.
+The C# compiler flag `/warn` controls optional warnings.
 When we introduce new warnings that can be reported on existing code,
 we do so under an opt-in system so that programmers do not see new warnings
 without taking action to enable them.
-For that purpose, we have introduced the compiler flag "`/warnversion=n`"
-where `n` is a whole number or a decimal number.
-For a warning that was introduced in dotnet version `k`,
-that warning will be produced if the warning version `n` specified when compiling is
-greater than or equal to `k` and a compiler shipped with dotnet version
-`k` or later is used to compile the code.
+For that purpose, we have the compiler flag "`/warn:n`"
+where `n` is a whole number.
 
-The default warning version is `0` (produce no optional warnings).
-Our first warning under control of `/warnversion` was introduced in version `5`
-as part of .NET 5.
+The compiler shipped with dotnet 5 (the C# 9 compiler) contains some warnings, documented below, that
+are reported only under `/warn:5` or higher.
+
+The default warning level when the command-line compiler is used is `4`.
+
 If you want the compiler to produce all applicable warnings, you can specify
-`/warnversion=9999`.
-In the project file, the property used to specify the warning version is `AnalysisLevel`.
+`/warn:9999`.
 
-The table below describes all of the warnings controlled by `/warnversion`.
+The table below describes all of the warnings controlled by warning levels `5` or greater.
 
-| Warning ID | warnversion | Description |
+| Warning ID | warning level | Description |
 |------------|---------|-------------|
 | CS8073 | 5 | [Expression always true (or false) when comparing a struct to null](https://github.com/dotnet/roslyn/issues/45744) |
