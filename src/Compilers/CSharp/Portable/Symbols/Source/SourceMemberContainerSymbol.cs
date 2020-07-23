@@ -690,7 +690,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var managedKind = _flags.ManagedKind;
             if (managedKind == ManagedKind.Unknown)
             {
-                Debug.Assert(_managedKindUseSiteDiagnostics.IsDefault);
                 HashSet<DiagnosticInfo>? managedKindUseSiteDiagnostics = null;
                 managedKind = base.GetManagedKind(ref managedKindUseSiteDiagnostics);
                 ImmutableInterlocked.InterlockedExchange(ref _managedKindUseSiteDiagnostics, managedKindUseSiteDiagnostics.ToImmutableArrayOrEmpty());
