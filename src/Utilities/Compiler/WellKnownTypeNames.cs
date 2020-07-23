@@ -86,6 +86,7 @@ namespace Analyzer.Utilities
         public const string SystemAppDomain = "System.AppDomain";
         public const string SystemArgumentException = "System.ArgumentException";
         public const string SystemAttribute = "System.Attribute";
+        public const string SystemAttributeTargets = "System.AttributeTargets";
         public const string SystemAttributeUsageAttribute = "System.AttributeUsageAttribute";
         public const string SystemBoolean = "System.Boolean";
         public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
