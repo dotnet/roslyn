@@ -155,6 +155,7 @@ namespace Analyzer.Utilities
         public const string SystemDirectoryServicesActiveDirectoryADSearcher = "System.DirectoryServices.ActiveDirectory.ADSearcher";
         public const string SystemDirectoryServicesDirectorySearcher = "System.DirectoryServices.DirectorySearcher";
         public const string SystemDouble = "System.Double";
+        public const string SystemEnvironment = "System.Environment";
         public const string SystemEventArgs = "System.EventArgs";
         public const string SystemEventHandler1 = "System.EventHandler`1";
         public const string SystemException = "System.Exception";
