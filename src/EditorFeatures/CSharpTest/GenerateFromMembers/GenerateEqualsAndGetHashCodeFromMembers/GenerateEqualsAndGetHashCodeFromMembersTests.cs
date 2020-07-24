@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestEqualsSingleField1()
+        public async Task TestEqualsSingleField()
         {
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
