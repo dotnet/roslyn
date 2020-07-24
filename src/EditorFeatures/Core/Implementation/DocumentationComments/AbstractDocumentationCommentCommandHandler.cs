@@ -57,69 +57,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
-        private bool InsertOnCharacterTyped(
-            IDocumentationCommentSnippetService service,
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            ITextBuffer subjectBuffer,
-            ITextView textView,
-            DocumentOptionSet options,
-            CancellationToken cancellationToken)
-        {
-            var snippet = service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
-            if (snippet != null)
-            {
-                ApplySnippet(subjectBuffer, textView, snippet);
+        private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+            => service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
 
-                return true;
-            }
+        private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+            => service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken);
 
-            return false;
-        }
+        private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+            => service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
 
-        private bool InsertOnEnterTyped(
-            IDocumentationCommentSnippetService service,
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            ITextBuffer subjectBuffer,
-            ITextView textView,
-            DocumentOptionSet options,
-            CancellationToken cancellationToken)
-        {
-            var snippet = service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken);
-            if (snippet != null)
-            {
-                ApplySnippet(subjectBuffer, textView, snippet);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool InsertOnCommandInvoke(
-            IDocumentationCommentSnippetService service,
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            ITextBuffer subjectBuffer,
-            ITextView textView,
-            DocumentOptionSet options,
-            CancellationToken cancellationToken)
-        {
-            var snippet = service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
-            if (snippet != null)
-            {
-                ApplySnippet(subjectBuffer, textView, snippet);
-
-                return true;
-            }
-            return false;
-        }
-
-        private static void ApplySnippet(ITextBuffer subjectBuffer, ITextView textView, DocumentationCommentSnippet snippet)
+        private static void ApplySnippet(DocumentationCommentSnippet snippet, ITextBuffer subjectBuffer, ITextView textView)
         {
             var replaceSpan = snippet.SpanToReplace.ToSpan();
             subjectBuffer.Replace(replaceSpan, snippet.SnippetText);
@@ -129,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         private static bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
-            Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, ITextBuffer, ITextView, DocumentOptionSet, CancellationToken, bool> insertAction,
+            Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentOptionSet, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
             CancellationToken cancellationToken)
         {
             var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
@@ -148,7 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            return insertAction(service, syntaxTree, text, caretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
+
+            var snippet = getSnippetAction(service, syntaxTree, text, caretPosition, documentOptions, cancellationToken);
+            if (snippet != null)
+            {
+                ApplySnippet(snippet, subjectBuffer, textView);
+                return true;
+            }
+            return false;
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
@@ -367,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(documentOptions, currentLine, previousLine);
             if (snippet != null)
             {
-                ApplySnippet(subjectBuffer, textView, snippet);
+                ApplySnippet(snippet, subjectBuffer, textView);
             }
         }
 
