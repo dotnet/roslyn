@@ -65,9 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
-        private static readonly TestParameters CSharp7 =
-            new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-
         private static readonly TestParameters CSharpLatest =
             new TestParameters(parseOptions: TestOptions.Regular);
 
