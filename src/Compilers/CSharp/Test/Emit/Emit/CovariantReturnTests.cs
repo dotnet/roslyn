@@ -10,6 +10,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -74,7 +77,10 @@ namespace System
         public static Delegate CreateDelegate(Type type, object firstArgument, Reflection.MethodInfo method) => null;
     }
     public abstract class Enum : IComparable { }
-    public class Exception { }
+    public class Exception
+    {
+        public Exception(string message) => throw null;
+    }
     public class FlagsAttribute : Attribute { }
     public delegate T Func<out T>();
     public delegate U Func<in T, out U>(T arg);
@@ -88,8 +94,11 @@ namespace System
     public struct IntPtr { }
     public class MulticastDelegate : Delegate { }
     public struct Nullable<T> { }
-    public class Object { 
+    public class Object
+    {
         public virtual string ToString() => throw null;
+        public virtual int GetHashCode() => throw null;
+        public virtual bool Equals(object other) => throw null;
     }
     public sealed class ParamArrayAttribute : Attribute { }
     public struct RuntimeMethodHandle { }
@@ -97,9 +106,15 @@ namespace System
     public class String : IComparable { 
         public static String Empty = null;
         public override string ToString() => throw null;
+        public static bool operator ==(string a, string b) => throw null;
+        public static bool operator !=(string a, string b) => throw null;
+        public override bool Equals(object other) => throw null;
+        public override int GetHashCode() => throw null;
     }
     public class Type
     {
+        public Reflection.FieldInfo GetField(string name) => null;
+        public static Type GetType(string name) => null;
         public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
     }
     public class ValueType { }
@@ -172,7 +187,11 @@ namespace System
         }
         public abstract class MethodInfo : MethodBase
         {
-            public virtual Delegate CreateDelegate(Type delegateType, object? target) => throw null;
+            public virtual Delegate CreateDelegate(Type delegateType, object target) => throw null;
+        }
+        public abstract class FieldInfo : MemberInfo
+        {
+            public abstract object GetValue(object obj);
         }
     }
     namespace Runtime.CompilerServices
@@ -195,10 +214,27 @@ namespace System.Runtime.CompilerServices
     public sealed class PreserveBaseOverridesAttribute : Attribute { }
 }
 ";
-            CorelibraryWithCovariantReturnSupport = CreateEmptyCompilation(new string[] {
+            var compilation = CreateEmptyCompilation(new string[] {
                 corlibWithCovariantSupport,
                 @"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")]"
-            }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
+            }, assemblyName: "mscorlib");
+            compilation.VerifyDiagnostics();
+            CorelibraryWithCovariantReturnSupport = compilation.EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
+        }
+
+        private static CSharpCompilation CreateCovariantCompilation(
+            string source,
+            CSharpCompilationOptions options = null,
+            IEnumerable<MetadataReference> references = null)
+        {
+            references = (references == null) ?
+                new[] { CorelibraryWithCovariantReturnSupport } :
+                references.ToArray().Prepend(CorelibraryWithCovariantReturnSupport);
+            return CreateEmptyCompilation(
+                source,
+                options: options,
+                parseOptions: TestOptions.WithCovariantReturns,
+                references: references);
         }
 
         [ConditionalFact(typeof(CovarantReturnRuntimeOnly))]
@@ -227,24 +263,45 @@ class Program
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(
-                source,
-                options: TestOptions.DebugExe,
-                parseOptions: TestOptions.WithCovariantReturns,
-                references: new[] { CorelibraryWithCovariantReturnSupport });
+            var compilation = CreateCovariantCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"Derived.M
 Derived.M";
-
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         [ConditionalFact(typeof(CovarantReturnRuntimeOnly))]
-        public void SimpleCovariantReturnCanaryTest()
+        public void CovariantRuntimeHasRequiredMembers()
         {
-            // Test should definitely fail on an appropriate platform.
-            Assert.True(false);
+            var source = @"
+using System;
+class Base
+{
+    public virtual object M() => ""Base.M"";
+}
+class Derived : Base
+{
+    public override string M() => ""Derived.M"";
+}
+class Program
+{
+    static void Main()
+    {
+        var value = (string)Type.GetType(""System.Runtime.CompilerServices.RuntimeFeature"").GetField(""CovariantReturnsOfClasses"").GetValue(null);
+        if (value != ""CovariantReturnsOfClasses"")
+            throw new Exception(value.ToString());
+
+        var attr = Type.GetType(""System.Runtime.CompilerServices.PreserveBaseOverridesAttribute"");
+        if (attr == null)
+            throw new Exception(""missing System.Runtime.CompilerServices.PreserveBaseOverridesAttribute"");
+    }
+}
+";
+            var compilation = CreateCovariantCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"";
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
     }
 }
