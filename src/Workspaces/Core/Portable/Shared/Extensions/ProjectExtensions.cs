@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -53,5 +54,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static DocumentId? GetDocumentIdWithFilePath(this Project project, string filePath)
             => project.Solution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(id => id.ProjectId == project.Id);
+
+        public static Document GetRequiredDocument(this Project project, DocumentId documentId)
+        {
+            var document = project.GetDocument(documentId);
+            if (document == null)
+            {
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            }
+
+            return document;
+        }
+
+        public static TextDocument GetRequiredTextDocument(this Project project, DocumentId documentId)
+        {
+            var document = project.GetTextDocument(documentId);
+            if (document == null)
+            {
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            }
+
+            return document;
+        }
     }
 }
