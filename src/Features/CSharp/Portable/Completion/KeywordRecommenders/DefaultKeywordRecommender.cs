@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsAnyExpressionContext ||
-                context.TargetToken.IsSwitchLabelContext();
+                context.TargetToken.IsSwitchLabelContext() ||
+                context.SyntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken);
         }
 
         private static bool IsValidPreProcessorContext(CSharpSyntaxContext context)
