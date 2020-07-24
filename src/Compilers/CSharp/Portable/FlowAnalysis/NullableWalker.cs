@@ -5146,7 +5146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool notNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
                 bool disallowNull = (parameterAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0;
                 bool setNotNullFromParameterType = !argument.IsSuppressed
-                    && !parameterType.Type.IsTypeParameterDisallowingAnnotation()
+                    && !parameterType.Type.IsPossiblyNullableReferenceTypeTypeParameter()
                     && parameterType.NullableAnnotation.IsNotAnnotated();
 
                 // Note: MaybeNull = MaybeNullWhen(true) + MaybeNullWhen(false)
