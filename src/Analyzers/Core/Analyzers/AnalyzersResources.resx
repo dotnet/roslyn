@@ -325,10 +325,4 @@
   <data name="Remove_unnecessary_suppression" xml:space="preserve">
     <value>Remove unnecessary suppression</value>
   </data>
-  <data name="Convert_typeof_to_nameof" xml:space="preserve">
-    <value>Convert 'typeof' to 'nameof'</value>
-  </data>
-  <data name="Convert_gettype_to_nameof" xml:space="preserve">
-    <value>Convert 'GetType' to 'NameOf'</value>
-  </data>
 </root>

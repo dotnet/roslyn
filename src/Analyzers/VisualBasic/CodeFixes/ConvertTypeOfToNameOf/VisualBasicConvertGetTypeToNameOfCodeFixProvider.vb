@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetCodeFixTitle(visualbasic As String, csharp As String) As String
-            Return visualbasic
+        Protected Overrides Function GetCodeFixTitle() As String
+            Return VisualBasicCodeFixesResources.Convert_GetType_to_NameOf
         End Function
 
         Protected Overrides Function GetSymbolType(semanticModel As SemanticModel, node As SyntaxNode) As ITypeSymbol

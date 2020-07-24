@@ -11,9 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         internal static string _codeFixTitle;
         public AbstractConvertTypeOfToNameOfCodeFixProvider()
         {
-            _codeFixTitle = GetCodeFixTitle(AnalyzersResources.Convert_gettype_to_nameof, AnalyzersResources.Convert_typeof_to_nameof);
+            _codeFixTitle = GetCodeFixTitle();
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected abstract ITypeSymbol GetSymbolType(SemanticModel model, SyntaxNode node);
 
-        protected abstract string GetCodeFixTitle(string visualbasic, string csharp);
+        protected abstract string GetCodeFixTitle();
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
+# nullable enable
+
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -18,23 +16,15 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, option: null, new LocalizableResourceString(
-                       nameof(AnalyzersResources.Convert_gettype_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-        {
-            var csharpMessage = new LocalizableResourceString(nameof(AnalyzersResources.Convert_typeof_to_nameof), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-            CSharpDescriptor = CreateDescriptorWithId(DescriptorId, csharpMessage, csharpMessage);
-        }
-        internal DiagnosticDescriptor VBDescriptor => Descriptor;
-
-        internal DiagnosticDescriptor CSharpDescriptor { get; }
-
-        protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
-
-        protected abstract Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor, CompilationOptions options);
-
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString Title)
+            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, option: null, Title)
+        {
+        }
+
+        protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -56,7 +46,13 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                 return;
             }
             var location = parent.GetLocation();
-            context.ReportDiagnostic(LanguageReportDiagnostic(location, CSharpDescriptor, VBDescriptor, context.Compilation.Options));
+            var options = context.Compilation.Options;
+            context.ReportDiagnostic(
+                DiagnosticHelper.Create(Descriptor,
+                                        location,
+                                        Descriptor.GetEffectiveSeverity(options),
+                                        additionalLocations: null,
+                                        properties: null));
 
         }
 

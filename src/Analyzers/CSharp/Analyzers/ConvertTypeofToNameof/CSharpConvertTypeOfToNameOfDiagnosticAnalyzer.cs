@@ -4,13 +4,9 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
 {
@@ -21,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
     internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
     {
         public CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
+            : base(new LocalizableResourceString(nameof(CSharpAnalyzersResources.typeof_can_be_converted__to_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -38,15 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
             // the parent syntax is a member access expression otherwise the syntax is not the kind of
             // expression that we want to analyze
             return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax _ };
-        }
-
-        protected override Diagnostic LanguageReportDiagnostic(Location location, DiagnosticDescriptor cSharpDescriptor, DiagnosticDescriptor visualBasicDescriptor, CompilationOptions options)
-        {
-            return DiagnosticHelper.Create(visualBasicDescriptor,
-                                           location,
-                                           visualBasicDescriptor.GetEffectiveSeverity(options),
-                                           additionalLocations: null,
-                                           properties: null);
         }
     }
 }
