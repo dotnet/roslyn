@@ -9,11 +9,14 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsy
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText file, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.set -> void
+Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
+Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.SyntaxTreeOptionsProvider() -> void
+abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.IsGenerated(Microsoft.CodeAnalysis.SyntaxTree tree) -> bool?
+abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(Microsoft.CodeAnalysis.SyntaxTree tree, string diagnosticId, out Microsoft.CodeAnalysis.ReportDiagnostic severity) -> bool
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "<Program>$" -> string
 Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider.get -> Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
 Microsoft.CodeAnalysis.CompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-Microsoft.CodeAnalysis.SourceGeneratorContext.AnalyzerConfigOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
