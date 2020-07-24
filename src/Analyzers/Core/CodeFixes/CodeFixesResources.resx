@@ -141,4 +141,7 @@
   <data name="Update_suppression_format" xml:space="preserve">
     <value>Update suppression format</value>
   </data>
+  <data name="Suppress_or_Configure_issues" xml:space="preserve">
+    <value>Suppress or Configure issues</value>
+  </data>
 </root>

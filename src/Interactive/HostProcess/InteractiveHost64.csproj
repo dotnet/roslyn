@@ -41,7 +41,7 @@
         <NgenPriority>3</NgenPriority>
         <NgenArchitecture Condition="'%(Filename)' != 'InteractiveHost64'">All</NgenArchitecture>
         <NgenArchitecture Condition="'%(Filename)' == 'InteractiveHost64'">X64</NgenArchitecture>
-        <NgenApplication>/InteractiveHost/Desktop/InteractiveHost64.exe</NgenApplication>
+        <NgenApplication>[installDir]\Common7\IDE\$(CommonExtensionInstallationRoot)\$(LanguageServicesExtensionInstallationFolder)\InteractiveHost\Desktop\InteractiveHost64.exe</NgenApplication>
       </_PublishedFiles>
     </ItemGroup>
   </Target>

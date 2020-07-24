@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -155,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // When a generic method overrides a generic method declared in a base class, or is an 
                 // explicit interface member implementation of a method in a base interface, the method
-                // shall not specify any type-parameter-constraints-clauses, except for a struct constraint, or a class constraint.
+                // shall not specify any type-parameter-constraints-clauses, except for a struct, class, or default constraint.
                 // In these cases, the type parameters of the method inherit constraints from the method being overridden or 
-                // implemented
+                // implemented.
                 if (syntax.ConstraintClauses.Count > 0)
                 {
                     Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
@@ -188,15 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.DeclaringMethod == (object)args.method)
                     {
-                        if (!args.declaredConstraints.IsDefault &&
-                            (args.declaredConstraints[typeParameterSymbol.Ordinal].Constraints & TypeParameterConstraintKind.ReferenceType) != 0)
-                        {
-                            type.TryForceResolveAsNullableReferenceType();
-                        }
-                        else
-                        {
-                            type.TryForceResolveAsNullableValueType();
-                        }
+                        var asValueType = args.declaredConstraints.IsDefault ||
+                            (args.declaredConstraints[typeParameterSymbol.Ordinal].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.Default)) == 0;
+                        type.TryForceResolve(asValueType);
                     }
                     return false;
                 }, typePredicate: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
