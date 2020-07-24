@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Apply_using_directive_placement_preferences">
         <source>Apply preferred 'using' placement preferences</source>
-        <target state="new">Apply preferred 'using' placement preferences</target>
+        <target state="translated">Aplicar preferencias de selección de ubicación de "using"</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
@@ -74,17 +74,17 @@
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="new">Assign to '{0}'</target>
+        <target state="translated">Asignar a "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
-        <target state="new">Autoselect disabled due to potential pattern variable declaration.</target>
+        <target state="translated">La selección automática se ha deshabilitado debido a una posible declaración de variable de patrón.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
-        <target state="new">Compare to '{0}'</target>
+        <target state="translated">Comparar con "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -144,12 +144,12 @@
       </trans-unit>
       <trans-unit id="Remove_in_keyword">
         <source>Remove 'in' keyword</source>
-        <target state="new">Remove 'in' keyword</target>
+        <target state="translated">Quitar la palabra clave "in"</target>
         <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
-        <target state="new">Remove 'new' modifier</target>
+        <target state="translated">Quitar el modificador "new"</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
-        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
+        <target state="translated">Advertencia: La variable temporal en línea puede cambiar el significado del código.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
-        <target state="new">&lt;pattern variable&gt;</target>
+        <target state="translated">&lt;variable de patrón&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

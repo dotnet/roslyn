@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="translated">Passa le variabili acquisite come argomenti</target>
+        <target state="translated">Passa le variabili catturate come argomenti</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">

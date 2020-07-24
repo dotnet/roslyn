@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
         <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
-        <target state="new">Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</target>
+        <target state="translated">Ziel "{0}" im Legacyformat in "SuppressMessageAttribute" vermeiden</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">
         <source>Avoid legacy format target in 'SuppressMessageAttribute'</source>
-        <target state="new">Avoid legacy format target in 'SuppressMessageAttribute'</target>
+        <target state="translated">Ziel im Legacyformat in "SuppressMessageAttribute" vermeiden</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Conditional_expression_can_be_simplified">
         <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
+        <target state="translated">Bedingter Ausdruck kann vereinfacht werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">Die Interpolation kann vereinfacht werden</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_format_string">
@@ -109,17 +109,17 @@
       </trans-unit>
       <trans-unit id="Invalid_global_SuppressMessageAttribute">
         <source>Invalid global 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid global 'SuppressMessageAttribute'</target>
+        <target state="translated">Ungültiger globaler SuppressMessageAttribute-Wert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
         <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid or missing target for 'SuppressMessageAttribute'</target>
+        <target state="translated">Ungültiges oder fehlendes Ziel für "SuppressMessageAttribute".</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
         <source>Invalid scope for 'SuppressMessageAttribute'</source>
-        <target state="new">Invalid scope for 'SuppressMessageAttribute'</target>
+        <target state="translated">Ungültiger Bereich für "SuppressMessageAttribute".</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
-        <target state="new">Member name can be simplified</target>
+        <target state="translated">Der Membername kann vereinfacht werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -274,12 +274,12 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
+        <target state="translated">Bedingten Ausdruck vereinfachen</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">Interpolation vereinfachen</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_initialization">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
-        <target state="new">Use inferred member name</target>
+        <target state="translated">Abgeleiteten Membernamen verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">
