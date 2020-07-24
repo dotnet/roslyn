@@ -4031,7 +4031,7 @@ class B2 : A<int?>
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ToArray();
-            verify(exprs[0], PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.MaybeNull);
+            verify(exprs[0], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
             verify(exprs[1], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
 
             void verify(DefaultExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation, PublicNullableFlowState expectedState)
@@ -4432,6 +4432,50 @@ class C
             {
                 Assert.Null(model.GetOperation(s));
             }
+        }
+
+        [Fact]
+        public void UnconstrainedTypeParameter()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static T F<T>(T t) => t;
+    static T F1<T>(T? x1)
+    {
+        T y1 = F(x1);
+        if (x1 == null) throw null!;
+        T z1 = F(x1);
+        return z1;
+    }
+    static T F2<T>(T x2)
+    {
+        T y2 = F(x2);
+        x2 = default;
+        T z2 = F(x2);
+        return z2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (17,16): warning CS8603: Possible null reference return.
+                //         return z2; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "z2").WithLocation(17, 16));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var invocations = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>();
+            var actualAnnotations = invocations.Select(inv => (((IMethodSymbol)model.GetSymbolInfo(inv).Symbol)).TypeArguments[0].NullableAnnotation).ToArray();
+            var expectedAnnotations = new[]
+            {
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+            };
+            AssertEx.Equal(expectedAnnotations, actualAnnotations);
         }
     }
 }

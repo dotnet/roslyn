@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, parameterList, out arglistToken,
-                allowRefOrOut: true,
+                allowRefOrOut: AllowRefOrOut,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         protected abstract ParameterListSyntax GetParameterList();
+
+        protected abstract bool AllowRefOrOut { get; }
 #nullable restore
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)

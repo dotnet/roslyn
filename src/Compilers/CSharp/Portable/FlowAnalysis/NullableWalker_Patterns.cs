@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int originalInputSlot = MakeSlot(expression);
             if (originalInputSlot <= 0)
             {
-                originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(), rootTemp);
+                originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(compilation), rootTemp);
                 initialState[originalInputSlot] = expressionType.State;
             }
 
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                                 {
                                     var value = TypeWithState.Create(tempType, tempState);
-                                    var inferredType = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
+                                    var inferredType = value.ToTypeWithAnnotations(compilation, asAnnotatedType: boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType);
                                     if (_variableTypes.TryGetValue(local, out var existingType))
                                     {
                                         // merge inferred nullable annotation from different branches of the decision tree
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref endState, ref this.State);
 
                 // Build placeholders for inference in order to preserve annotations.
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations()));
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
             }
 
             var placeholders = placeholderBuilder.ToImmutableAndFree();
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var inferredState = BestTypeInferrer.GetNullableState(resultTypes);
             var resultType = TypeWithState.Create(inferredType, inferredState);
-            inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
+            inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations(compilation);
             if (resultType.State == NullableFlowState.MaybeDefault)
             {
                 inferredTypeWithAnnotations = inferredTypeWithAnnotations.AsAnnotated();

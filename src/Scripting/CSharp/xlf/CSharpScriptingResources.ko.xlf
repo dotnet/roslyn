@@ -36,20 +36,26 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">사용법: csi [option] ... [script-file.csx] [script-argument] ...
+        <target state="translated">사용법: csi [option] ... [script-file.csx] [script-argument] ...
 
 지정된 경우 script-file.csx를 실행하고, 그렇지 않으면 대화형 REPL(Read Eval Print Loop)을 시작합니다.
 
 옵션:
-  /help                          이 사용법 메시지를 표시합니다. (대체 형식: /?)
+  /help                          이 사용법 메시지를 표시합니다(대체 형식: /?).
   /version                       버전을 표시하고 종료합니다.
   /i                             지정된 스크립트를 실행한 후 REPL로 이동합니다.
-  /r:&lt;file&gt;                      지정된 어셈블리 파일에서 메타데이터를 참조합니다. (대체 형식: /reference)
-  /r:&lt;file list&gt;                 지정된 어셈블리 파일에서 메타데이터를 참조합니다. (대체 형식: /reference)
+  /r:&lt;file&gt;                      지정된 어셈블리 파일에서 메타데이터를 참조합니다(대체 형식: /reference).
+  /r:&lt;file list&gt;                 지정된 어셈블리 파일에서 메타데이터를 참조합니다(대체 형식: /reference).
   /lib:&lt;path list&gt;               #r 지시문으로 지정된 라이브러리를 찾을 디렉터리의 목록입니다. 
                                  (대체 형식: /libPath /libPaths)
-  /u:&lt;namespace&gt;                 전역 네임스페이스 using을 정의합니다. (대체 형식: /using, /usings, /import, /imports)
-  @&lt;file&gt;                        추가 옵션에 대한 응답 파일을 읽습니다.
+  /u:&lt;namespace&gt;                 전역 네임스페이스 using을 정의합니다(대체 형식: /using, /usings, /import, /imports).  /langversion:?                 언어 버전의 허용된 값을 표시하고 종료합니다.
+  /langversion:&lt;string&gt;          
+                                 `latest`(최신 버전, 부 버전 포함),
+                                 `default`(`latest`와 같음),
+                                 `latestmajor`(최신 버전, 부 버전 제외),
+                                 `preview`(최신 버전, 지원되지 않는 미리 보기의 기능 포함)
+                                 또는 `6` 또는 `7.1` 같은 특정 버전처럼 언어 버전을 지정합니다.
+  @&lt;file&gt;                        추가 옵션에 대한 지시 파일을 읽습니다.
   --                             나머지 인수를 옵션으로 처리하면 안 됨을 나타냅니다.
 </target>
         <note />
