@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public void NotifyOnDocumentClosing(string moniker)
         {
-            if (_openedDocs.TryGetValue(moniker, out DocumentId id))
+            if (_openedDocs.TryGetValue(moniker, out DocumentId? id))
             {
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))

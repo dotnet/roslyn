@@ -623,6 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    && modifierType.Name != "CallConv"
                    && modifierType.Arity == 0
                    && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
+#pragma warning disable IDE0055 // Formatting wants to put the braces at the beginning of the line https://github.com/dotnet/roslyn/issues/46284
                    && modifierType.ContainingNamespace is
                       {
                           Name: "CompilerServices",
@@ -636,6 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                               }
                           }
                       };
+#pragma warning restore IDE0055
         }
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
