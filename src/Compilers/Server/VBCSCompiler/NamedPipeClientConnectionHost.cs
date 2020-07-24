@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return pipeStream;
             }
 
+            ValidateBuildRequest(request);
             pipeStream.Close();
             throw new Exception("Insufficient resources to process new connection.");
         }

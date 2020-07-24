@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private List<Task<ConnectionData>> _connectionList = new List<Task<ConnectionData>>();
         private TimeSpan? _keepAlive;
         private bool _keepAliveIsDefault;
+        private int _clientLoggingIdentifier;
 
         internal ServerDispatcher(IClientConnectionHost clientConnectionHost, IDiagnosticListener diagnosticListener = null)
         {
@@ -343,8 +345,56 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
         /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
-        internal static async Task<ConnectionData> HandleClientConnectionAsync(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
+        internal static async Task<CompletionData> HandleClientConnectionAsync(
+            Task<Stream> clientStreamTask,
+            string clientLoggingIdentifier,
+            bool allowCompilationRequests,
+            CancellationToken cancellationToken)
         {
+            using var clientStream = await clientStreamTask.ConfigureAwait(false);
+            var request = await BuildRequest.ReadAsync(clientStream, cancellationToken).ConfigureAwait(false);
+
+            if (request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
+            {
+                var response = new MismatchedVersionBuildResponse();
+                await response.WriteAsync(clientStream, cancellationToken).ConfigureAwait(false);
+                return CompletionData.RequestCompleted;
+            }
+
+            if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
+            {
+                var response = new IncorrectHashBuildResponse();
+                await response.WriteAsync(clientStream, cancellationToken).ConfigureAwait(false);
+                return CompletionData.RequestCompleted;
+            }
+
+            if (request.Arguments.Count == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown)
+            {
+
+            }
+            switch (request.)
+            var id = Process.GetCurrentProcess().Id;
+            var response = new ShutdownBuildResponse(id);
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.ClientShutdownRequest);
+
+
+            else if (IsShutdownRequest(request))
+            {
+                return await HandleShutdownRequestAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else if (!allowCompilationRequests)
+            {
+                return await HandleRejectedRequestAsync("Compilation requests not allowed at this time", cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return await HandleCompilationRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            }
+
+
+
+
             IClientConnection clientConnection;
             try
             {
