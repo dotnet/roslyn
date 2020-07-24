@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
     {
         private class Test : VerifyCS.Test
         {
+            // Our own cached export factory, where we can mixin the TestPickMembersService type.
             private static readonly IExportProviderFactory s_factory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestPickMembersService)));
 
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                 if (!UseDialog)
                     return base.CreateWorkspace();
 
+                // If we're a dialog test, then mixin our mock and initialize its values to the ones the test asked for.
                 var exportProvider = s_factory.CreateExportProvider();
                 var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(exportProvider));
 
@@ -89,7 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             };
 
         private static TestParameters CSharp6Implicit => CSharp6.WithOptions(PreferImplicitTypeWithInfo());
-        private static TestParameters CSharp7Implicit => CSharp7.WithOptions(PreferImplicitTypeWithInfo());
         private static TestParameters CSharp6Explicit => CSharp6.WithOptions(PreferExplicitTypeWithInfo());
         private static TestParameters CSharpLatestImplicit => CSharpLatest.WithOptions(PreferImplicitTypeWithInfo());
 
@@ -119,6 +120,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             return TestInRegularAndScript1Async(
                 new[] { initialMarkup }, new[] { expectedMarkup }, index, parameters,
                 expectedDiagnostics, testExpectedDiagnostics, fixedExpectedDiagnostics);
+        }
+
+        private static Task TestWithPickMembersDialogAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            string[] chosenSymbols,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
+            int index = 0,
+            TestParameters parameters = default,
+            List<DiagnosticResult> expectedDiagnostics = null,
+            List<DiagnosticResult> testExpectedDiagnostics = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            return TestWithPickMembersDialogAsync(
+                new[] { initialMarkup },
+                new[] { expectedMarkup },
+                chosenSymbols,
+                optionsCallback,
+                index,
+                parameters,
+                expectedDiagnostics,
+                testExpectedDiagnostics,
+                fixedExpectedDiagnostics);
+        }
+
+        private static Task TestWithPickMembersDialogAsync(
+            string[] initialMarkup,
+            string[] expectedMarkup,
+            string[] chosenSymbols,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
+            int index = 0,
+            TestParameters parameters = default,
+            List<DiagnosticResult> expectedDiagnostics = null,
+            List<DiagnosticResult> testExpectedDiagnostics = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
+            return TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup,
+                index,
+                parameters.WithFixProviderData(pickMembersService),
+                expectedDiagnostics,
+                testExpectedDiagnostics,
+                fixedExpectedDiagnostics);
+        }
+
+        internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
+        {
+            var option = options.FirstOrDefault(o => o.Id == id);
+            if (option != null)
+            {
+                option.Value = true;
+            }
         }
 
         private static async Task TestInRegularAndScript1Async(
@@ -169,59 +223,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                 test.FixedState.ExpectedDiagnostics.Add(diagnostic);
 
             await test.RunAsync();
-        }
-
-        internal static Task TestWithPickMembersDialogAsync(
-            string initialMarkup,
-            string expectedMarkup,
-            string[] chosenSymbols,
-            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
-            int index = 0,
-            TestParameters parameters = default,
-            List<DiagnosticResult> expectedDiagnostics = null,
-            List<DiagnosticResult> testExpectedDiagnostics = null,
-            List<DiagnosticResult> fixedExpectedDiagnostics = null)
-        {
-            return TestWithPickMembersDialogAsync(
-                new[] { initialMarkup },
-                new[] { expectedMarkup },
-                chosenSymbols,
-                optionsCallback,
-                index,
-                parameters,
-                expectedDiagnostics,
-                testExpectedDiagnostics,
-                fixedExpectedDiagnostics);
-        }
-
-        internal static Task TestWithPickMembersDialogAsync(
-            string[] initialMarkup,
-            string[] expectedMarkup,
-            string[] chosenSymbols,
-            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
-            int index = 0,
-            TestParameters parameters = default,
-            List<DiagnosticResult> expectedDiagnostics = null,
-            List<DiagnosticResult> testExpectedDiagnostics = null,
-            List<DiagnosticResult> fixedExpectedDiagnostics = null)
-        {
-            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
-            return TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup,
-                index,
-                parameters.WithFixProviderData(pickMembersService),
-                expectedDiagnostics,
-                testExpectedDiagnostics,
-                fixedExpectedDiagnostics);
-        }
-
-        internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
-        {
-            var option = options.FirstOrDefault(o => o.Id == id);
-            if (option != null)
-            {
-                option.Value = true;
-            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
