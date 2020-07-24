@@ -236,7 +236,7 @@ public class C
             var ctor = comp.GetMember<NamedTypeSymbol>("C").Constructors.Single();
             Assert.Equal("C..ctor(System.Int32 i, ? )", ctor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal("SourceFile([34..34))", ctor.Parameters[1].Locations.Single().ToString());
+            Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
 
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
@@ -264,7 +264,7 @@ public record A(int i, int ) { }
             var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
             Assert.Equal("A..ctor(System.Int32 i, System.Int32 )", ctor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal("SourceFile([29..29))", ctor.Parameters[1].Locations.Single().ToString());
+            Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
 
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]

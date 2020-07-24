@@ -367,14 +367,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    SyntaxNode parent = location.SourceTree.GetRoot().FindNode(location.SourceSpan);
+                    // Since the location we're interested in can't contain a token, we'll inspect the whole tree,
+                    // pruning away branches that don't contain that location. We'll pick the narrowest node of the type
+                    // we're looking for.
+                    // eg: finding the ParameterSyntax from the empty location of a blank identifier
+                    SyntaxNode parent = location.SourceTree.GetRoot();
+                    SyntaxNode found = null;
                     foreach (var descendant in parent.DescendantNodesAndSelf(c => c.Location.SourceSpan.Contains(location.SourceSpan)))
                     {
                         if (descendant is TNode && descendant.Location.SourceSpan.Contains(location.SourceSpan))
                         {
-                            builder.Add(descendant.GetReference());
-                            break;
+                            found = descendant;
                         }
+                    }
+
+                    if (found is object)
+                    {
+                        builder.Add(found.GetReference());
                     }
                 }
             }
