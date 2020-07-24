@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class DotNetSdkTests : DotNetSdkTestBase
     {
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46304")]
         [WorkItem(22835, "https://github.com/dotnet/roslyn/issues/22835")]
         public void TestSourceLink()
         {
