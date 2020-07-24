@@ -3,13 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -52,24 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         protected abstract string ExteriorTriviaText { get; }
 
-        protected abstract TMemberNode GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        protected abstract bool SupportsDocumentationComments(TMemberNode member);
-        protected abstract bool HasDocumentationComment(TMemberNode member);
-        protected abstract int GetPrecedingDocumentationCommentCount(TMemberNode member);
-        protected abstract bool IsMemberDeclaration(TMemberNode member);
-        protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member);
-
-        protected abstract SyntaxToken GetTokenToRight(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        protected abstract SyntaxToken GetTokenToLeft(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        protected abstract bool IsDocCommentNewLine(SyntaxToken token);
-        protected abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
-
-        protected abstract bool IsSingleExteriorTrivia(TDocumentationComment documentationComment, bool allowWhitespace = false);
-        protected abstract bool EndsWithSingleExteriorTrivia(TDocumentationComment documentationComment);
-        protected abstract bool IsMultilineDocComment(TDocumentationComment documentationComment);
-
-        protected abstract bool AddIndent { get; }
-
         private char TriggerCharacter
         {
             get { return ExteriorTriviaText[ExteriorTriviaText.Length - 1]; }
@@ -77,60 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
-        private TMemberNode GetTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
-        {
-            var member = GetContainingMember(syntaxTree, position, cancellationToken);
-            if (member == null)
-            {
-                return null;
-            }
-
-            if (!SupportsDocumentationComments(member) || HasDocumentationComment(member))
-            {
-                return null;
-            }
-
-            var startPosition = member.GetFirstToken().SpanStart;
-            var line = text.Lines.GetLineFromPosition(startPosition);
-            var lineOffset = line.GetFirstNonWhitespaceOffset();
-            if (!lineOffset.HasValue || line.Start + lineOffset.Value < startPosition)
-            {
-                return null;
-            }
-
-            return member;
-        }
-
-        private TMemberNode GetTargetMember(TDocumentationComment documentationComment)
-        {
-            var targetMember = documentationComment.ParentTrivia.Token.GetAncestor<TMemberNode>();
-            if (targetMember == null)
-            {
-                return null;
-            }
-
-            if (!IsMemberDeclaration(targetMember))
-            {
-                return null;
-            }
-
-            if (targetMember.SpanStart < documentationComment.SpanStart)
-            {
-                return null;
-            }
-
-            return targetMember;
-        }
-
-        private static void AddLineBreaks(IList<string> lines, string newLine)
-        {
-            for (var i = 0; i < lines.Count; i++)
-            {
-                lines[i] = lines[i] + newLine;
-            }
-        }
-
         private bool InsertOnCharacterTyped(
+            IDocumentationCommentSnippetService service,
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
@@ -139,104 +65,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
+            var result = service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
+            if (result != null)
             {
-                return false;
-            }
+                subjectBuffer.Insert(result.SpanToReplace.Start, result.SnippetText);
+                textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(position + result.CaretOffset));
 
-            // Only generate if the position is immediately after '///', 
-            // and that is the only documentation comment on the target member.
-
-            var token = syntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-            if (position != token.SpanStart)
-            {
-                return false;
-            }
-
-            var documentationComment = token.GetAncestor<TDocumentationComment>();
-            if (!IsSingleExteriorTrivia(documentationComment))
-            {
-                return false;
-            }
-
-            var targetMember = GetTargetMember(documentationComment);
-            if (targetMember == null)
-            {
-                return false;
-            }
-
-            // Ensure that the target member is only preceded by a single documentation comment (i.e. our ///).
-            if (GetPrecedingDocumentationCommentCount(targetMember) != 1)
-            {
-                return false;
-            }
-
-            var line = text.Lines.GetLineFromPosition(documentationComment.FullSpan.Start);
-            if (line.IsEmptyOrWhitespace())
-            {
-                return false;
-            }
-
-            var lines = GetDocumentationCommentStubLines(targetMember);
-            Debug.Assert(lines.Count > 2);
-
-            var newLine = options.GetOption(FormattingOptions.NewLine);
-            AddLineBreaks(lines, newLine);
-
-            // Shave off initial three slashes
-            lines[0] = lines[0].Substring(3);
-
-            // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (var i = 1; i < lines.Count - 1; i++)
-            {
-                lines[i] = indentText + lines[i];
-            }
-
-            var lastLine = lines[lines.Count - 1];
-            lastLine = indentText + lastLine.Substring(0, lastLine.Length - newLine.Length);
-            lines[lines.Count - 1] = lastLine;
-
-            var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - newLine.Length;
-
-            subjectBuffer.Insert(position, newText);
-            textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(position + offset));
-
-            return true;
-        }
-
-        private bool InsertOnEnterTyped(
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            ITextBuffer subjectBuffer,
-            ITextView textView,
-            DocumentOptionSet options,
-            CancellationToken cancellationToken)
-        {
-            // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
-            // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
-            // on ENTER inside an existing XML doc comment.
-
-            if (subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
-            {
-                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, subjectBuffer, textView, options, cancellationToken))
-                {
-                    return true;
-                }
-            }
-
-            if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, subjectBuffer, textView, options, cancellationToken))
-            {
                 return true;
             }
 
             return false;
         }
 
-        private bool TryGenerateDocumentationCommentAfterEnter(
+        private bool InsertOnEnterTyped(
+            IDocumentationCommentSnippetService service,
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
@@ -245,151 +87,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            // Find the documentation comment before the new line that was just pressed
-            var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
-            if (!IsDocCommentNewLine(token))
+            var result = service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, ExteriorTriviaText, cancellationToken);
+            if (result != null)
             {
-                return false;
+                var replaceSpan = result.SpanToReplace.ToSpan();
+                subjectBuffer.Replace(replaceSpan, result.SnippetText);
+                textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + result.CaretOffset));
             }
 
-            var documentationComment = token.GetAncestor<TDocumentationComment>();
-            if (!IsSingleExteriorTrivia(documentationComment))
-            {
-                return false;
-            }
-
-            var targetMember = GetTargetMember(documentationComment);
-            if (targetMember == null)
-            {
-                return false;
-            }
-
-            // Ensure that the target member is only preceded by a single documentation comment (our ///).
-            if (GetPrecedingDocumentationCommentCount(targetMember) != 1)
-            {
-                return false;
-            }
-
-            var line = text.Lines.GetLineFromPosition(documentationComment.FullSpan.Start);
-            if (line.IsEmptyOrWhitespace())
-            {
-                return false;
-            }
-
-            var lines = GetDocumentationCommentStubLines(targetMember);
-            Debug.Assert(lines.Count > 2);
-
-            var newLine = options.GetOption(FormattingOptions.NewLine);
-            AddLineBreaks(lines, newLine);
-
-            // Shave off initial exterior trivia
-            lines[0] = lines[0].Substring(3);
-
-            // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (var i = 1; i < lines.Count; i++)
-            {
-                lines[i] = indentText + lines[i];
-            }
-
-            var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - newLine.Length;
-
-            // Shave off final line break or add trailing indent if necessary
-            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
-            if (IsEndOfLineTrivia(trivia))
-            {
-                newText = newText.Substring(0, newText.Length - newLine.Length);
-            }
-            else
-            {
-                newText += indentText;
-            }
-
-            var replaceSpan = token.Span.ToSpan();
-            var currentLine = text.Lines.GetLineFromPosition(position);
-            var currentLinePosition = currentLine.GetFirstNonWhitespacePosition();
-            if (currentLinePosition.HasValue)
-            {
-                replaceSpan = Span.FromBounds(replaceSpan.Start, currentLinePosition.Value);
-            }
-
-            subjectBuffer.Replace(replaceSpan, newText);
-            textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + offset));
-
-            return true;
+            return false;
         }
-
-        private bool TryGenerateExteriorTriviaAfterEnter(
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            ITextBuffer subjectBuffer,
-            ITextView textView,
-            DocumentOptionSet options,
-            CancellationToken cancellationToken)
-        {
-            // Find the documentation comment before the new line that was just pressed
-            var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
-            if (!IsDocCommentNewLine(token) && HasSkippedTrailingTrivia(token))
-            {
-                // See PressingEnter_InsertSlashes11 for an example of
-                // a case where multiple skipped tokens trivia appear at the same position.
-                // In that case, we need to ask for the token from the next position over.
-                token = GetTokenToLeft(syntaxTree, position + 1, cancellationToken);
-
-                if (!IsDocCommentNewLine(token))
-                {
-                    return false;
-                }
-            }
-
-            var currentLine = text.Lines.GetLineFromPosition(position);
-            if (currentLine.LineNumber == 0)
-            {
-                return false;
-            }
-
-            // Previous line must begin with a doc comment
-            var previousLine = text.Lines[currentLine.LineNumber - 1];
-            var previousLineText = previousLine.ToString().Trim();
-            if (!previousLineText.StartsWith(ExteriorTriviaText, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            var nextLineStartsWithDocComment = text.Lines.Count > currentLine.LineNumber + 1 &&
-                text.Lines[currentLine.LineNumber + 1].ToString().Trim().StartsWith(ExteriorTriviaText, StringComparison.Ordinal);
-
-            // if previous line has only exterior trivia, current line is empty and next line doesn't begin
-            // with exterior trivia then stop inserting auto generated xml doc string
-            if (previousLineText.Equals(ExteriorTriviaText) &&
-                string.IsNullOrWhiteSpace(currentLine.ToString()) &&
-                !nextLineStartsWithDocComment)
-            {
-                return false;
-            }
-
-            var documentationComment = token.GetAncestor<TDocumentationComment>();
-            if (IsMultilineDocComment(documentationComment))
-            {
-                return false;
-            }
-
-            if (EndsWithSingleExteriorTrivia(documentationComment) && currentLine.IsEmptyOrWhitespace() && !nextLineStartsWithDocComment)
-            {
-                return false;
-            }
-
-            InsertExteriorTrivia(textView, subjectBuffer, options, currentLine, previousLine);
-
-            return true;
-        }
-
-        internal abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
 
         private bool InsertOnCommandInvoke(
+            IDocumentationCommentSnippetService service,
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
@@ -398,49 +108,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            var targetMember = GetTargetMember(syntaxTree, text, position, cancellationToken);
+            var result = service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
 
-            if (targetMember == null)
+            if (result != null)
             {
-                return false;
+                var startPosition = result.SpanToReplace.Start;
+                subjectBuffer.Insert(startPosition, result.SnippetText);
+
+                textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(startPosition + result.CaretOffset));
+
+                return true;
             }
-
-            var startPosition = targetMember.GetFirstToken().SpanStart;
-            var line = text.Lines.GetLineFromPosition(startPosition);
-            Debug.Assert(!line.IsEmptyOrWhitespace());
-
-            var lines = GetDocumentationCommentStubLines(targetMember);
-            Debug.Assert(lines.Count > 2);
-
-            var newLine = options.GetOption(FormattingOptions.NewLine);
-            AddLineBreaks(lines, newLine);
-
-            // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            Debug.Assert(line.Start + lineOffset == startPosition);
-
-            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (var i = 1; i < lines.Count; i++)
-            {
-                lines[i] = indentText + lines[i];
-            }
-
-            lines[lines.Count - 1] = lines[lines.Count - 1] + indentText;
-
-            var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - newLine.Length;
-
-            subjectBuffer.Insert(startPosition, newText);
-
-            textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(startPosition + offset));
-
-            return true;
+            return false;
         }
 
         private static bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
-            Func<SyntaxTree, SourceText, int, ITextBuffer, ITextView, DocumentOptionSet, CancellationToken, bool> insertAction,
+            Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, ITextBuffer, ITextView, DocumentOptionSet, CancellationToken, bool> insertAction,
             CancellationToken cancellationToken)
         {
             var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
@@ -455,10 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return false;
             }
 
+            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            return insertAction(syntaxTree, text, caretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
+            return insertAction(service, syntaxTree, text, caretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
@@ -543,16 +229,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 return CommandState.Unavailable;
             }
+            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
-            TMemberNode targetMember = null;
+            var isValidTargetMember = false;
             _waitIndicator.Wait("IntelliSense", allowCancel: true, action: c =>
             {
                 var syntaxTree = document.GetSyntaxTreeSynchronously(c.CancellationToken);
                 var text = syntaxTree.GetText(c.CancellationToken);
-                targetMember = GetTargetMember(syntaxTree, text, caretPosition, c.CancellationToken);
+                isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.CancellationToken);
             });
 
-            return targetMember != null
+            return isValidTargetMember
                 ? CommandState.Available
                 : CommandState.Unavailable;
         }
@@ -573,14 +260,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPosition = args.TextView.GetCaretPoint(subjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
                 nextHandler();
                 return;
             }
 
-            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, caretPosition))
+            if (!CurrentLineStartsWithExteriorTrivia(subjectBuffer, caretPosition))
             {
                 nextHandler();
                 return;
@@ -589,7 +277,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Allow nextHandler() to run and then insert exterior trivia if necessary.
             nextHandler();
 
-            InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return;
+            }
+
+            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
+
+            InsertExteriorTriviaIfNeeded(service, args.TextView, subjectBuffer);
         }
 
         public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
@@ -600,26 +296,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPosition = args.TextView.GetCaretPoint(subjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
                 nextHandler();
                 return;
             }
 
-            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, caretPosition))
+            if (!CurrentLineStartsWithExteriorTrivia(subjectBuffer, caretPosition))
             {
                 nextHandler();
                 return;
             }
 
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return;
+            }
+
+            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
+
             // Allow nextHandler() to run and the insert exterior trivia if necessary.
             nextHandler();
 
-            InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
+            InsertExteriorTriviaIfNeeded(service, args.TextView, subjectBuffer);
         }
 
-        private void InsertExteriorTriviaIfNeeded(ITextView view, ITextBuffer subjectBuffer)
+        private void InsertExteriorTriviaIfNeeded(IDocumentationCommentSnippetService service, ITextView view, ITextBuffer subjectBuffer)
         {
             var caretPosition = view.GetCaretPoint(subjectBuffer) ?? -1;
             if (caretPosition < 0)
@@ -655,44 +360,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            InsertExteriorTrivia(view, subjectBuffer, documentOptions, currentLine, previousLine);
-        }
-
-        private void InsertExteriorTrivia(ITextView view, ITextBuffer subjectBuffer, DocumentOptionSet options, TextLine currentLine, TextLine previousLine)
-        {
-            var insertionText = CreateInsertionTextFromPreviousLine(previousLine, options);
-
-            var firstNonWhitespaceOffset = currentLine.GetFirstNonWhitespaceOffset();
-            var replaceSpan = firstNonWhitespaceOffset != null
-                ? TextSpan.FromBounds(currentLine.Start, currentLine.Start + firstNonWhitespaceOffset.Value)
-                : currentLine.Span;
-
-            subjectBuffer.Replace(replaceSpan.ToSpan(), insertionText);
-
-            view.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + insertionText.Length));
-        }
-
-        private string CreateInsertionTextFromPreviousLine(TextLine previousLine, DocumentOptionSet options)
-        {
-            var useTabs = options.GetOption(FormattingOptions.UseTabs);
-            var tabSize = options.GetOption(FormattingOptions.TabSize);
-
-            var previousLineText = previousLine.ToString();
-            var firstNonWhitespaceColumn = previousLineText.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-
-            var trimmedPreviousLine = previousLineText.Trim();
-            Debug.Assert(trimmedPreviousLine.StartsWith(ExteriorTriviaText), "Unexpected: previous line does not begin with doc comment exterior trivia.");
-
-            // skip exterior trivia.
-            trimmedPreviousLine = trimmedPreviousLine.Substring(3);
-
-            var firstNonWhitespaceOffsetInPreviousXmlText = trimmedPreviousLine.GetFirstNonWhitespaceOffset();
-
-            var extraIndent = firstNonWhitespaceOffsetInPreviousXmlText != null
-                ? trimmedPreviousLine.Substring(0, firstNonWhitespaceOffsetInPreviousXmlText.Value)
-                : " ";
-
-            return firstNonWhitespaceColumn.CreateIndentationString(useTabs, tabSize) + ExteriorTriviaText + extraIndent;
+            var result = service.GetDocumentationCommentSnippetFromPreviousLine(documentOptions, ExteriorTriviaText, currentLine, previousLine);
+            if (result != null)
+            {
+                var replaceSpan = result.SpanToReplace.ToSpan();
+                subjectBuffer.Replace(replaceSpan, result.SnippetText);
+                view.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + result.CaretOffset));
+            }
         }
 
         private bool CurrentLineStartsWithExteriorTrivia(ITextBuffer subjectBuffer, int position)
