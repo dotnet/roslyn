@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private CSharpCompilationOptions WithDiagnosticOptions(
             SyntaxTree tree,
             params (string, ReportDiagnostic)[] options)
-        => TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options));
+            => TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options));
 
         [Fact]
         public void TreeDiagnosticOptionsDoNotAffectTreeDiagnostics()
