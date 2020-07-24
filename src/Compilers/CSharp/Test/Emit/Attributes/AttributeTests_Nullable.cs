@@ -2323,6 +2323,49 @@ class C
         }
 
         [Fact]
+        public void EmitAttribute_UnconstrainedTypeParameter()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public T F1<T>() => default!;
+    public T? F2<T>() => default;
+    public T F3<T>() where T : class => default!;
+    public T? F4<T>() where T : class => default;
+    public T F5<T>() where T : class? => default!;
+    public T F6<T>() where T : struct => default;
+    public T? F7<T>() where T : struct => default;
+    public T F8<T>() where T : notnull => default;
+    public T? F9<T>() where T : notnull => default!;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    T F1<T>()
+        [Nullable(2)] T
+    [NullableContext(2)] T? F2<T>()
+        T
+    T! F3<T>() where T : class!
+        T
+    [Nullable(2)] T? F4<T>() where T : class!
+        T
+    T F5<T>() where T : class?
+        [Nullable(2)] T
+    [NullableContext(0)] T F6<T>() where T : struct
+        T
+    [NullableContext(0)] T? F7<T>() where T : struct
+        T
+    T F8<T>() where T : notnull
+        T
+    [Nullable(2)] T? F9<T>() where T : notnull
+        T
+    Program()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_Byte0()
         {
             var source =

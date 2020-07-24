@@ -4,11 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen</RootNamespace>
-    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
-    <!-- 
-      Disable on Linux. See https://github.com/dotnet/roslyn/pull/31026 
-    -->
-    <SkipTests Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(OS)' != 'Windows_NT'">true</SkipTests>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />

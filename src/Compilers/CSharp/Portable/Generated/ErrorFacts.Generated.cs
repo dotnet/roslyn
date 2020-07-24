@@ -152,6 +152,7 @@
                 case ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation:
                 case ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation:
                 case ErrorCode.WRN_MainIgnored:
+                case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_InvalidVersionFormat:
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:

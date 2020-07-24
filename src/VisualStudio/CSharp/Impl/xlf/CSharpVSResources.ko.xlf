@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="needs-review-translation">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -804,7 +804,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
-        <target state="needs-review-translation">기타 이항 연산자:  &amp;&amp;   ||   ??</target>
+        <target state="translated">기타 이항 연산자:  &amp;&amp;   ||   ??   and   or</target>
         <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
