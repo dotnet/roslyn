@@ -80,6 +80,69 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public async Task TestDiagnosticInAdditionalFileWithCombinedSyntax()
+        {
+            await new CSharpTest
+            {
+                TestState =
+                {
+                    Sources = { "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")]" },
+                    ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0) },
+                    AdditionalFiles =
+                    {
+                        ("File1.txt", "Content with {|#0:{|} braces }"),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestDiagnosticInAdditionalFileWithCombinedSyntaxDuplicate()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpTest
+                {
+                    TestState =
+                    {
+                        Sources = { "[assembly: System.Reflection.AssemblyVersion{|#0:(|}\"1.0.0.0\")]" },
+                        ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0) },
+                        AdditionalFiles =
+                        {
+                            ("File1.txt", "Content with {|#0:{|} braces }"),
+                        },
+                    },
+                }.RunAsync();
+            });
+
+            var expected = "Input contains multiple markup locations with key '#0'";
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+        }
+
+        [Fact]
+        public async Task TestDiagnosticInAdditionalFileWithCombinedSyntaxMismatch()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpTest
+                {
+                    TestState =
+                    {
+                        Sources = { "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")]" },
+                        ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0) },
+                        AdditionalFiles =
+                        {
+                            ("File1.txt", "Content with {|#1:{|} braces }"),
+                        },
+                    },
+                }.RunAsync();
+            });
+
+            var expected = "The markup location '#0' was not found in the input.";
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+        }
+
+        [Fact]
         public async Task TestDiagnosticInAdditionalFileNotDeclared()
         {
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
