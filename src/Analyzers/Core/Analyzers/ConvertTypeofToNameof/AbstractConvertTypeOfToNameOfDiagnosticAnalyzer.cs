@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-# nullable enable
+#nullable enable
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -16,13 +17,13 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString Title)
-            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, option: null, Title)
+        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(string diagnosticId, IPerLanguageOption? option, LocalizableString title, LocalizableString? messageFormat = null, bool configurable = true)
+            : base(diagnosticId, option, title, messageFormat, configurable)
         {
         }
+
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
 

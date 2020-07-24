@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
         Inherits AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
 
         Public Sub New()
-            MyBase.New(New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.GetType_can_be_converted_to_NameOf), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
+            MyBase.New(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, [option]:=Nothing, title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.GetType_can_be_converted_to_NameOf), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 
         Protected Overrides Function IsValidTypeofAction(context As OperationAnalysisContext) As Boolean
