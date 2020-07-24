@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         protected abstract bool IsMultilineDocComment(TDocumentationComment? documentationComment);
         protected abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
 
+        protected abstract string ExteriorTriviaText { get; }
         protected abstract bool AddIndent { get; }
 
         public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
         }
 
-        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, string exteriorTriviaText, CancellationToken cancellationToken)
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
         {
             // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
             // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 }
             }
 
-            return GenerateExteriorTriviaAfterEnter(syntaxTree, text, position, options, exteriorTriviaText, cancellationToken);
+            return GenerateExteriorTriviaAfterEnter(syntaxTree, text, position, options, cancellationToken);
         }
 
         private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return new DocumentationCommentSnippet(replaceSpan, comments, offset);
         }
 
-        private DocumentationCommentSnippet? GenerateExteriorTriviaAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, string exteriorTriviaText, CancellationToken cancellationToken)
+        private DocumentationCommentSnippet? GenerateExteriorTriviaAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
             var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
@@ -341,17 +342,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Previous line must begin with a doc comment
             var previousLine = text.Lines[currentLine.LineNumber - 1];
             var previousLineText = previousLine.ToString().Trim();
-            if (!previousLineText.StartsWith(exteriorTriviaText, StringComparison.Ordinal))
+            if (!previousLineText.StartsWith(ExteriorTriviaText, StringComparison.Ordinal))
             {
                 return null;
             }
 
             var nextLineStartsWithDocComment = text.Lines.Count > currentLine.LineNumber + 1 &&
-                text.Lines[currentLine.LineNumber + 1].ToString().Trim().StartsWith(exteriorTriviaText, StringComparison.Ordinal);
+                text.Lines[currentLine.LineNumber + 1].ToString().Trim().StartsWith(ExteriorTriviaText, StringComparison.Ordinal);
 
             // if previous line has only exterior trivia, current line is empty and next line doesn't begin
             // with exterior trivia then stop inserting auto generated xml doc string
-            if (previousLineText.Equals(exteriorTriviaText) &&
+            if (previousLineText.Equals(ExteriorTriviaText) &&
                 string.IsNullOrWhiteSpace(currentLine.ToString()) &&
                 !nextLineStartsWithDocComment)
             {
@@ -369,12 +370,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return null;
             }
 
-            return GetDocumentationCommentSnippetFromPreviousLine(options, exteriorTriviaText, currentLine, previousLine);
+            return GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
         }
 
-        public DocumentationCommentSnippet GetDocumentationCommentSnippetFromPreviousLine(DocumentOptionSet options, string exteriorTriviaText, TextLine currentLine, TextLine previousLine)
+        public DocumentationCommentSnippet GetDocumentationCommentSnippetFromPreviousLine(DocumentOptionSet options, TextLine currentLine, TextLine previousLine)
         {
-            var insertionText = CreateInsertionTextFromPreviousLine(exteriorTriviaText, previousLine, options);
+            var insertionText = CreateInsertionTextFromPreviousLine(previousLine, options);
 
             var firstNonWhitespaceOffset = currentLine.GetFirstNonWhitespaceOffset();
             var replaceSpan = firstNonWhitespaceOffset != null
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return new DocumentationCommentSnippet(replaceSpan, insertionText, insertionText.Length);
         }
 
-        private static string CreateInsertionTextFromPreviousLine(string exteriorTriviaText, TextLine previousLine, DocumentOptionSet options)
+        private string CreateInsertionTextFromPreviousLine(TextLine previousLine, DocumentOptionSet options)
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var firstNonWhitespaceColumn = previousLineText.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
 
             var trimmedPreviousLine = previousLineText.Trim();
-            Debug.Assert(trimmedPreviousLine.StartsWith(exteriorTriviaText), "Unexpected: previous line does not begin with doc comment exterior trivia.");
+            Debug.Assert(trimmedPreviousLine.StartsWith(ExteriorTriviaText), "Unexpected: previous line does not begin with doc comment exterior trivia.");
 
             // skip exterior trivia.
             trimmedPreviousLine = trimmedPreviousLine.Substring(3);
@@ -404,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 ? trimmedPreviousLine.Substring(0, firstNonWhitespaceOffsetInPreviousXmlText.Value)
                 : " ";
 
-            return firstNonWhitespaceColumn.CreateIndentationString(useTabs, tabSize) + exteriorTriviaText + extraIndent;
+            return firstNonWhitespaceColumn.CreateIndentationString(useTabs, tabSize) + ExteriorTriviaText + extraIndent;
         }
     }
 }

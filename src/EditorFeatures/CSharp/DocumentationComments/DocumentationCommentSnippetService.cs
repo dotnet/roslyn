@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
     internal class DocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
-        private const string ExteriorTriviaText = "///";
+        protected override bool AddIndent => true;
+
+        protected override string ExteriorTriviaText => "///";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -254,11 +256,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override bool IsMultilineDocComment(DocumentationCommentTriviaSyntax? documentationComment)
             => documentationComment.IsMultilineDocComment();
-
-        protected override bool AddIndent
-        {
-            get { return true; }
-        }
 
         protected override bool HasSkippedTrailingTrivia(SyntaxToken token)
             => token.TrailingTrivia.Any(t => t.Kind() == SyntaxKind.SkippedTokensTrivia);

@@ -13,6 +13,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     Friend Class DocumentationCommentSnippetService
         Inherits AbstractDocumentationCommentSnippetService(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
 
+        Protected Overrides ReadOnly Property ExteriorTriviaText As String
+            Get
+                Return "'''"
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property AddIndent As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
@@ -109,11 +121,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
         End Function
 
         Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax) As List(Of String)
-            Dim list = New List(Of String)
-
-            list.Add("''' <summary>")
-            list.Add("''' ")
-            list.Add("''' </summary>")
+            Dim list = New List(Of String) From {
+                "''' <summary>",
+                "''' ",
+                "''' </summary>"
+            }
 
             Dim typeParameterList = member.GetTypeParameterList()
             If typeParameterList IsNot Nothing Then
@@ -246,13 +258,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
         Protected Overrides Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean
             Return trivia.RawKind = SyntaxKind.EndOfLineTrivia
         End Function
-
-        Protected Overrides ReadOnly Property AddIndent As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
         Protected Overrides Function HasSkippedTrailingTrivia(token As SyntaxToken) As Boolean
             Return token.TrailingTrivia.Any(Function(t) t.Kind() = SyntaxKind.SkippedTokensTrivia)
         End Function

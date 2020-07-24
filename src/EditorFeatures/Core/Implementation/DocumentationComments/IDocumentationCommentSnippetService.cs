@@ -32,12 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor
             SourceText text,
             int position,
             DocumentOptionSet options,
-            string exteriorTriviaText,
             CancellationToken cancellationToken);
 
         DocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(
             DocumentOptionSet options,
-            string exteriorTriviaText,
             TextLine currentLine,
             TextLine previousLine);
 

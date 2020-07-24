@@ -44,10 +44,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
                 var position = sourceText.Lines.GetPosition(linePosition);
 
-                var exteriorTriviaText = "///";
-
                 var result = autoInsertParams.Character == "\n"
-                    ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, exteriorTriviaText, cancellationToken)
+                    ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
                     : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
 
                 if (result != null)
