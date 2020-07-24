@@ -222,22 +222,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return null;
                     }
 
-                    return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s));
+                    return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s)!);
                 }
             }
 
-            private SuggestedActionSet ConvertToSuggestedActionSet(UnifiedSuggestedActionSet unifiedSuggestedActionSet)
+            private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet)
             {
+                if (unifiedSuggestedActionSet == null)
+                {
+                    return null;
+                }
+
                 using var _ = ArrayBuilder<ISuggestedAction>.GetInstance(out var suggestedActions);
                 foreach (var action in unifiedSuggestedActionSet.Actions)
                 {
                     suggestedActions.Add(ConvertToSuggestedAction(action));
-                }
-
-                Span? applicableToSpan = null;
-                if (unifiedSuggestedActionSet.ApplicableToSpan.HasValue)
-                {
-                    applicableToSpan = unifiedSuggestedActionSet.ApplicableToSpan.Value.ToSpan();
                 }
 
                 return new SuggestedActionSet(
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     actions: suggestedActions,
                     title: unifiedSuggestedActionSet.Title,
                     priority: ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
-                    applicableToSpan: applicableToSpan);
+                    applicableToSpan: unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
                 // Local functions
                 ISuggestedAction ConvertToSuggestedAction(IUnifiedSuggestedAction unifiedSuggestedAction)
@@ -254,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
                             ThreadingContext, _owner, codeFixAction.Workspace, _subjectBuffer,
                             codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.CodeAction,
-                            codeFixAction.FixAllFlavors == null ? null : ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors)),
+                            ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
                             ThreadingContext, _owner, codeRefactoringAction.Workspace, _subjectBuffer,
                             codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.CodeAction),
@@ -264,12 +263,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             ThreadingContext, _owner, nestedAction.Workspace, _subjectBuffer,
                             nestedAction.Provider ?? this, nestedAction.CodeAction,
-                            nestedAction.NestedActionSets.Select(s => ConvertToSuggestedActionSet(s)).ToImmutableArray()),
+                            nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s))),
                         _ => throw ExceptionUtilities.Unreachable
                     };
 
-                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(
-                    UnifiedSuggestedActionSetPriority unifiedSuggestedActionSetPriority)
+                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(UnifiedSuggestedActionSetPriority unifiedSuggestedActionSetPriority)
                     => unifiedSuggestedActionSetPriority switch
                     {
                         UnifiedSuggestedActionSetPriority.None => SuggestedActionSetPriority.None,
@@ -291,20 +289,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
 
-                if (_owner._codeFixService != null &&
-                    supportsFeatureService.SupportsCodeFixes(_subjectBuffer) &&
-                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
+                if (_owner._codeFixService == null ||
+                    !supportsFeatureService.SupportsCodeFixes(_subjectBuffer) ||
+                    !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
-                    // Make sure we include the suppression fixes even when the light bulb is only asking for only code fixes.
-                    // See https://github.com/dotnet/roslyn/issues/29589
-                    const bool includeSuppressionFixes = true;
-
-                    return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixes_MustBeCalledFromUIThread(
-                        workspace, _owner._codeFixService, document, range.Span.ToTextSpan(),
-                        includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken);
+                    return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
                 }
 
-                return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                // Make sure we include the suppression fixes even when the light bulb is only asking for only code fixes.
+                // See https://github.com/dotnet/roslyn/issues/29589
+                const bool includeSuppressionFixes = true;
+
+                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixes_MustBeCalledFromUIThread(
+                    workspace, _owner._codeFixService, document, range.Span.ToTextSpan(),
+                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken);
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -342,20 +340,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var selection = selectionOpt.Value;
 
-                if (workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
-                    _owner._codeRefactoringService != null &&
-                    supportsFeatureService.SupportsRefactorings(_subjectBuffer))
+                if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
+                    _owner._codeRefactoringService == null ||
+                    !supportsFeatureService.SupportsRefactorings(_subjectBuffer))
                 {
-                    // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
-                    // then we want to filter out refactorings outside the selection span.
-                    var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
-
-                    return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactorings_MustBeCalledFromUIThread(
-                        workspace, _owner._codeRefactoringService, document, selection, isBlocking: true,
-                        addOperationScope, filterOutsideSelection, cancellationToken);
+                    return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
                 }
 
-                return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
+                // then we want to filter out refactorings outside the selection span.
+                var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
+
+                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactorings_MustBeCalledFromUIThread(
+                    workspace, _owner._codeRefactoringService, document, selection, isBlocking: true,
+                    addOperationScope, filterOutsideSelection, cancellationToken);
             }
 
             public Task<bool> HasSuggestedActionsAsync(

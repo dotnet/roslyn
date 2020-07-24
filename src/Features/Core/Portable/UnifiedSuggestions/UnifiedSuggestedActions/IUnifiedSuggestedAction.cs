@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// </summary>
     internal interface IUnifiedSuggestedAction
     {
-        public Workspace Workspace { get; }
-        public CodeAction CodeAction { get; }
+        Workspace Workspace { get; }
+        CodeAction CodeAction { get; }
+        CodeActionPriority CodeActionPriority { get; }
     }
 }

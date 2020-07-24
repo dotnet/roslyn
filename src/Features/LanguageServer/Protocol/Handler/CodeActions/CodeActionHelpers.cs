@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -87,9 +88,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, currentTitle));
             }
 
+            // WPF uses the first underscore to create keyboard shortcuts, so we have to insert an extra underscore
+            // wherever there's an underscore for it to be displayed properly.
+            var title = codeAction.Title.Replace("_", "__");
+
             return new VSCodeAction
             {
-                Title = codeAction.Title,
+                Title = title,
                 Kind = codeActionKind,
                 Diagnostics = request.Context.Diagnostics,
                 Children = nestedActions.ToArray(),
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 UnifiedPredefinedSuggestedActionCategoryNames.Refactoring => CodeActionKind.Refactor,
                 UnifiedPredefinedSuggestedActionCategoryNames.StyleFix => CodeActionKind.QuickFix,
                 UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix => CodeActionKind.QuickFix,
-                _ => throw new NotSupportedException("Code action category currently unhandled by LSP.")
+                _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
             };
 
         public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)

@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         public UnifiedCodeRefactoringSuggestedAction(
             Workspace workspace,
-            CodeRefactoringProvider codeRefactoringProvider,
-            CodeAction codeAction)
-            : base(workspace, codeAction)
+            CodeAction codeAction,
+            CodeActionPriority codeActionPriority,
+            CodeRefactoringProvider codeRefactoringProvider)
+            : base(workspace, codeAction, codeActionPriority)
         {
             CodeRefactoringProvider = codeRefactoringProvider;
         }

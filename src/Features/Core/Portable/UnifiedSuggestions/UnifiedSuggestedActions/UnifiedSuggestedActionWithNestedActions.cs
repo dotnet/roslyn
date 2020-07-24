@@ -21,22 +21,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         public UnifiedSuggestedActionWithNestedActions(
             Workspace workspace,
-            object? provider,
             CodeAction codeAction,
+            CodeActionPriority codeActionPriority,
+            object? provider,
             ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
-            : base(workspace, codeAction)
+            : base(workspace, codeAction, codeActionPriority)
         {
             Provider = provider;
             NestedActionSets = nestedActionSets;
-        }
-
-        public UnifiedSuggestedActionWithNestedActions(
-            Workspace workspace,
-            object provider,
-            CodeAction codeAction,
-            UnifiedSuggestedActionSet nestedActionSets)
-            : this(workspace, provider, codeAction, ImmutableArray.Create(nestedActionSets))
-        {
         }
     }
 }

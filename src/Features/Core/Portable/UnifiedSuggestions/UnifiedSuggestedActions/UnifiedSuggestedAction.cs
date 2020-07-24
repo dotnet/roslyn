@@ -18,12 +18,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         public CodeAction CodeAction { get; }
 
-        public UnifiedSuggestedAction(Workspace workspace, CodeAction codeAction)
+        public CodeActionPriority CodeActionPriority { get; }
+
+        public UnifiedSuggestedAction(Workspace workspace, CodeAction codeAction, CodeActionPriority codeActionPriority)
         {
             Workspace = workspace;
             CodeAction = codeAction;
+            CodeActionPriority = codeActionPriority;
         }
-
-        internal virtual CodeActionPriority Priority => CodeAction.Priority;
     }
 }

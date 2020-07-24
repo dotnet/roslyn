@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public UnifiedSuggestedActionSet(
             string? categoryName,
             IEnumerable<IUnifiedSuggestedAction> actions,
-            object? title = null,
-            UnifiedSuggestedActionSetPriority priority = UnifiedSuggestedActionSetPriority.None,
-            TextSpan? applicableToSpan = null)
+            object? title,
+            UnifiedSuggestedActionSetPriority priority,
+            TextSpan? applicableToSpan)
         {
             CategoryName = categoryName;
             Actions = actions;

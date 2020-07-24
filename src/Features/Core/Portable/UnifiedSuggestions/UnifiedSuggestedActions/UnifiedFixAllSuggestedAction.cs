@@ -21,10 +21,11 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         public UnifiedFixAllSuggestedAction(
             Workspace workspace,
+            CodeAction codeAction,
+            CodeActionPriority codeActionPriority,
             FixAllState? fixAllState,
-            Diagnostic diagnostic,
-            CodeAction codeAction)
-            : base(workspace, codeAction)
+            Diagnostic diagnostic)
+            : base(workspace, codeAction, codeActionPriority)
         {
             Diagnostic = diagnostic;
             FixAllState = fixAllState;
