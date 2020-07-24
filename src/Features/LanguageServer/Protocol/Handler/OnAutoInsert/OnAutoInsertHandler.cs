@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem>
+    internal class OnAutoInsertHandler : AbstractRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,12 +26,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override Task<LSP.DocumentOnAutoInsertResponseItem> HandleRequestAsync(LSP.DocumentOnAutoInsertParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
+        public override Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
             CancellationToken cancellationToken)
             => OnAutoInsertAsync(request, clientName, cancellationToken);
 
-        private async Task<LSP.DocumentOnAutoInsertResponseItem> OnAutoInsertAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, string? clientName, CancellationToken cancellationToken)
+        private async Task<LSP.DocumentOnAutoInsertResponseItem[]> OnAutoInsertAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, string? clientName, CancellationToken cancellationToken)
         {
+            var response = new ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>();
+
             var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, clientName);
 
             if (document != null)
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (result != null)
                 {
-                    return new LSP.DocumentOnAutoInsertResponseItem
+                    response.Add(new LSP.DocumentOnAutoInsertResponseItem
                     {
                         TextEditFormat = LSP.InsertTextFormat.Snippet,
                         TextEdit = new LSP.TextEdit
@@ -64,11 +67,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                                 End = autoInsertParams.Position
                             }
                         }
-                    };
+                    });
                 }
             }
 
-            return new LSP.DocumentOnAutoInsertResponseItem();
+            return response.ToArrayAndFree();
         }
     }
 }

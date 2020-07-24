@@ -128,8 +128,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             var locationTyped = locations["type"].Single();
             var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
-            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+            var results = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
 
+            Assert.Single(results);
+            var result = results[0];
             Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
             var actualText = ApplyTextEdits(new[] { result.TextEdit }, documentText);
             Assert.Equal(expected, actualText);
@@ -141,14 +143,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             var locationTyped = locations["type"].Single();
             var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
-            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+            var results = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
 
-            Assert.Null(result.TextEdit);
+            Assert.Empty(results);
         }
 
-        private static async Task<LSP.DocumentOnAutoInsertResponseItem> RunOnAutoInsertAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
+        private static async Task<LSP.DocumentOnAutoInsertResponseItem[]> RunOnAutoInsertAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
             => await GetLanguageServer(solution)
-            .ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem>(MSLSPMethods.OnAutoInsertName,
+            .ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>(MSLSPMethods.OnAutoInsertName,
                 CreateDocumentOnAutoInsertParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.DocumentOnAutoInsertParams CreateDocumentOnAutoInsertParams(string characterTyped, LSP.Location locationTyped)
