@@ -69,9 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private static readonly TestParameters CSharpLatest =
             new TestParameters(parseOptions: TestOptions.Regular);
 
-        //protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-        //    => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
-
         private static readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
         private static readonly CodeStyleOption2<bool> offWithInfo = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
 
@@ -1176,64 +1173,69 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
-//        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-//        public async Task TestSmartTagText1()
-//        {
-//            await TestSmartTagTextAsync(
-//@"using System.Collections.Generic;
+        [Fact(Skip = "Test harness doesn't support validating the title"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestSmartTagText1()
+        {
+            await TestSmartTagTextAsync(
+@"using System.Collections.Generic;
 
-//class Program
-//{
-//    [|bool b;
-//    HashSet<string> s;|]
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
 
-//    public Program(bool b)
-//    {
-//        this.b = b;
-//    }
-//}",
-//FeaturesResources.Generate_Equals_object);
-//        }
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
+FeaturesResources.Generate_Equals_object);
+        }
 
-//        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-//        public async Task TestSmartTagText2()
-//        {
-//            await TestSmartTagTextAsync(
-//@"using System.Collections.Generic;
+        private Task TestSmartTagTextAsync(string x, string y, int index = 0)
+        {
+            throw new NotImplementedException();
+        }
 
-//class Program
-//{
-//    [|bool b;
-//    HashSet<string> s;|]
+        [Fact(Skip = "Test harness doesn't support validating the title"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestSmartTagText2()
+        {
+            await TestSmartTagTextAsync(
+@"using System.Collections.Generic;
 
-//    public Program(bool b)
-//    {
-//        this.b = b;
-//    }
-//}",
-//FeaturesResources.Generate_Equals_and_GetHashCode,
-//index: 1);
-//        }
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
 
-//        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-//        public async Task TestSmartTagText3()
-//        {
-//            await TestSmartTagTextAsync(
-//@"using System.Collections.Generic;
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
+FeaturesResources.Generate_Equals_and_GetHashCode,
+index: 1);
+        }
 
-//class Program
-//{
-//    [|bool b;
-//    HashSet<string> s;|]
+        [Fact(Skip = "Test harness doesn't support validating the title"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestSmartTagText3()
+        {
+            await TestSmartTagTextAsync(
+@"using System.Collections.Generic;
 
-//    public Program(bool b)
-//    {
-//        this.b = b;
-//    }
-//}",
-//FeaturesResources.Generate_Equals_and_GetHashCode,
-//index: 1);
-//        }
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
+FeaturesResources.Generate_Equals_and_GetHashCode,
+index: 1);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task Tuple_Disabled()
@@ -1291,7 +1293,7 @@ class C
     }
 }",
 parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>()
+expectedDiagnostics: new List<DiagnosticResult>
 {
     // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
     DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 18).WithArguments("tuples", "7.0"),
@@ -2001,6 +2003,11 @@ testExpectedDiagnostics: new List<DiagnosticResult>
 {
     // /0/Test0.cs(9,33): error CS0216: The operator 'Program.operator ==(Program, Program)' requires a matching operator '!=' to also be defined
     DiagnosticResult.CompilerError("CS0216").WithSpan(9, 33, 9, 35).WithArguments("Program.operator ==(Program, Program)", "!="),
+},
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+        // /0/Test0.cs(15,33): error CS0216: The operator 'Program.operator ==(Program, Program)' requires a matching operator '!=' to also be defined
+    DiagnosticResult.CompilerError("CS0216").WithSpan(15, 33, 15, 35).WithArguments("Program.operator ==(Program, Program)", "!="),
 });
         }
 
@@ -2286,9 +2293,7 @@ parameters: new TestParameters(TestOptions.Regular8));
         public async Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""false"">
-        <Document><![CDATA[
+@"
 #nullable enable
 
 using System;
@@ -2299,26 +2304,7 @@ struct Foo
     public bool Bar { get; }
     [||]
 }
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>",
+",
 @"
 #nullable enable
 
@@ -2338,22 +2324,6 @@ struct Foo : IEquatable<Foo>
     {
         return Bar == other.Bar;
     }
-}
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
 }
 ",
 chosenSymbols: null,
@@ -2436,9 +2406,7 @@ parameters: new TestParameters(TestOptions.Regular8));
         public async Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""false"">
-        <Document><![CDATA[
+@"
 #nullable enable
 
 using System;
@@ -2449,26 +2417,7 @@ class Foo
     public bool Bar { get; }
     [||]
 }
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>",
+",
 @"
 #nullable enable
 
@@ -2489,22 +2438,6 @@ class Foo : IEquatable<Foo?>
         return other != null &&
                Bar == other.Bar;
     }
-}
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
 }
 ",
 chosenSymbols: null,
@@ -2541,7 +2474,7 @@ class Program : System.IEquatable<Program>
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
 parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>()
+expectedDiagnostics: new List<DiagnosticResult>
 {
     // /0/Test0.cs(4,17): error CS0535: 'Program' does not implement interface member 'IEquatable<Program>.Equals(Program)'
     DiagnosticResult.CompilerError("CS0535").WithSpan(4, 17, 4, 43).WithArguments("Program", "System.IEquatable<Program>.Equals(Program)"),
@@ -2549,48 +2482,107 @@ expectedDiagnostics: new List<DiagnosticResult>()
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestMissingReferences()
+        public async Task TestMissingReferences1()
         {
-            await TestWithPickMembersDialogAsync(
-@"
-<Workspace>
-    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false' LanguageVersion='CSharp6'>
-        <Document FilePath='Test1.cs'>
-public class Class1
+            await new Test
+            {
+                LanguageVersion = LanguageVersion.CSharp6,
+                CodeActionIndex = 1,
+                TestState =
+                {
+                    Sources =
+                    {
+@"public class Class1
 {
-    int i;
-    [||]
+    [|int i;|]
 
     public void F()
     {
     }
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-public class Class1
+}",
+                    },
+                    ExpectedDiagnostics =
+                    {
+    // /0/Test0.cs(1,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(1, 14, 1, 20).WithArguments("System.Object"),
+    // /0/Test0.cs(1,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+    DiagnosticResult.CompilerError("CS1729").WithSpan(1, 14, 1, 20).WithArguments("object", "0"),
+    // /0/Test0.cs(3,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(3, 5, 3, 8).WithArguments("System.Int32"),
+    // /0/Test0.cs(5,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 12, 5, 16).WithArguments("System.Void"),
+                    },
+                },
+                FixedState =
+                {
+                    Sources = {
+@"public class Class1
 {
     int i;
 
-    public override global::System.Boolean Equals(global::System.Object obj)
+    public override System.Boolean Equals(System.Object obj)
     {
         Class1 @class = obj as Class1;
-        return @class != null;
+        return @class != null &&
+               i == @class.i;
     }
 
     public void F()
     {
     }
 
-    public override global::System.Int32 GetHashCode()
+    public override System.Int32 GetHashCode()
     {
-        return 0;
+        return 165851236 + EqualityComparer<System.Int32>.Default.GetHashCode(i);
     }
-}
-        ",
-chosenSymbols: new string[] { },
-index: 1);
+}",
+                    },
+                    ExpectedDiagnostics =
+                    {
+    // /0/Test0.cs(1,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(1, 14, 1, 20).WithArguments("System.Object"),
+    // /0/Test0.cs(1,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+    DiagnosticResult.CompilerError("CS1729").WithSpan(1, 14, 1, 20).WithArguments("object", "0"),
+    // /0/Test0.cs(3,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(3, 5, 3, 8).WithArguments("System.Int32"),
+    // /0/Test0.cs(5,21): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 21, 5, 27).WithArguments("System.Object"),
+    // /0/Test0.cs(5,28): error CS1069: The type name 'Boolean' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(5, 28, 5, 35).WithArguments("Boolean", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    // /0/Test0.cs(5,43): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 43, 5, 49).WithArguments("System.Object"),
+    // /0/Test0.cs(5,50): error CS1069: The type name 'Object' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(5, 50, 5, 56).WithArguments("Object", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    // /0/Test0.cs(7,9): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(7, 9, 7, 15).WithArguments("System.Object"),
+    // /0/Test0.cs(7,32): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(7, 32, 7, 38).WithArguments("System.Object"),
+    // /0/Test0.cs(8,16): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 16, 8, 30).WithArguments("System.Object"),
+    // /0/Test0.cs(9,16): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(9, 16, 9, 29).WithArguments("System.Boolean"),
+    // /0/Test0.cs(12,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(12, 12, 12, 16).WithArguments("System.Void"),
+    // /0/Test0.cs(16,21): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(16, 21, 16, 27).WithArguments("System.Object"),
+    // /0/Test0.cs(16,28): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(16, 28, 16, 33).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    // /0/Test0.cs(16,34): error CS0115: 'Class1.GetHashCode()': no suitable method found to override
+    DiagnosticResult.CompilerError("CS0115").WithSpan(16, 34, 16, 45).WithArguments("Class1.GetHashCode()"),
+    // /0/Test0.cs(18,16): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 16, 18, 25).WithArguments("System.Int32"),
+    // /0/Test0.cs(18,28): error CS0103: The name 'EqualityComparer' does not exist in the current context
+    DiagnosticResult.CompilerError("CS0103").WithSpan(18, 28, 18, 58).WithArguments("EqualityComparer"),
+    // /0/Test0.cs(18,28): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 28, 18, 58).WithArguments("System.Object"),
+    // /0/Test0.cs(18,45): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 45, 18, 51).WithArguments("System.Object"),
+    // /0/Test0.cs(18,52): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+                    },
+                },
+                ReferenceAssemblies = ReferenceAssemblies.Default.WithAssemblies(ImmutableArray<string>.Empty),
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2730,11 +2722,16 @@ struct S : IEquatable<S>
     }
 }",
 index: 1,
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(21,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
+    DiagnosticResult.CompilerError("CS0117").WithSpan(21, 25, 21, 32).WithArguments("System.HashCode", "Combine"),
+});
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "Multiple projects not supported in testing"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestPublicSystemHashCodeOtherProject()
         {
             await TestInRegularAndScript1Async(
@@ -2804,7 +2801,7 @@ parameters: CSharp6Implicit);
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "Multi project tests not currently supported"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestInternalSystemHashCode()
         {
             await TestInRegularAndScript1Async(
@@ -2926,7 +2923,12 @@ struct S : IEquatable<S>
     }
 }",
 index: 1,
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(28,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
+    DiagnosticResult.CompilerError("CS0117").WithSpan(28, 25, 28, 32).WithArguments("System.HashCode", "Combine"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2934,7 +2936,7 @@ parameters: CSharp6Implicit);
         {
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S
 {
@@ -2942,7 +2944,7 @@ struct S
 }",
 @"using System;
 using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S : IEquatable<S>
 {
@@ -3001,7 +3003,7 @@ parameters: CSharp6Implicit);
         {
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S
 {
@@ -3009,7 +3011,7 @@ struct S
 }",
 @"using System;
 using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S : IEquatable<S>
 {
@@ -3515,7 +3517,7 @@ class Derived : Base
 }",
 index: 1,
 parameters: CSharpLatest,
-testExpectedDiagnostics: new List<DiagnosticResult>()
+testExpectedDiagnostics: new List<DiagnosticResult>
 {
     // /0/Test0.cs(5,48): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
     DiagnosticResult.CompilerError("CS8632").WithSpan(5, 48, 5, 49),
@@ -3523,6 +3525,13 @@ testExpectedDiagnostics: new List<DiagnosticResult>()
     DiagnosticResult.CompilerError("CS0534").WithSpan(9, 7, 9, 14).WithArguments("Derived", "Base.Equals(object?)"),
     // /0/Test0.cs(9,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.GetHashCode()'
     DiagnosticResult.CompilerError("CS0534").WithSpan(9, 7, 9, 14).WithArguments("Derived", "Base.GetHashCode()"),
+},
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(7,48): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+    DiagnosticResult.CompilerError("CS8632").WithSpan(7, 48, 7, 49),
+    // /0/Test0.cs(23,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
+    DiagnosticResult.CompilerError("CS0117").WithSpan(23, 25, 23, 32).WithArguments("System.HashCode", "Combine"),
 });
         }
     }
