@@ -1552,34 +1552,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(string, CSharpParseOptions?, string, Encoding?, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             string text,
             ParseOptions? options = null,
             string path = "",
             Encoding? encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
+        {
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, encoding, cancellationToken);
+        }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead")]
+        public static SyntaxTree ParseSyntaxTree(
+            string text,
+            ParseOptions? options,
+            string path,
+            Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
             ParseOptions? options = null,
             string path = "",
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
+        {
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, cancellationToken);
+        }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead")]
+        public static SyntaxTree ParseSyntaxTree(
+            SourceText text,
+            ParseOptions? options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
+
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
@@ -2607,6 +2628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : throw new ArgumentException(nameof(body));
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             string text,
@@ -2620,6 +2642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
@@ -2629,29 +2652,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken)
         {
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
-        }
-
-        // BACK COMPAT OVERLOAD DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree ParseSyntaxTree(
-            string text,
-            ParseOptions? options,
-            string path,
-            Encoding? encoding,
-            CancellationToken cancellationToken)
-        {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
-        }
-
-        // BACK COMPAT OVERLOAD DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree ParseSyntaxTree(
-            SourceText text,
-            ParseOptions? options,
-            string path,
-            CancellationToken cancellationToken)
-        {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions: null, cancellationToken);
         }
     }
 }

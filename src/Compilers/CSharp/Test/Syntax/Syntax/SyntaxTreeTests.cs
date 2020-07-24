@@ -20,7 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CreateTreeWithDiagnostics()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
-            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), diagnosticOptions: options);
+            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""),
+                options: null,
+                path: "",
+                encoding: null,
+                diagnosticOptions: options);
             Assert.Same(options, tree.DiagnosticOptions);
         }
 
@@ -30,7 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: options);
+                options: null,
+                path: "",
+                diagnosticOptions: options,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.Same(options, tree.DiagnosticOptions);
             var newTree = tree.WithChangedText(SourceText.From("class C { }"));
             Assert.Same(options, newTree.DiagnosticOptions);
@@ -41,7 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: null);
+                options: null,
+                path: "",
+                diagnosticOptions: null,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.NotNull(tree.DiagnosticOptions);
             Assert.True(tree.DiagnosticOptions.IsEmpty);
             // The default options are case insensitive but the default empty ImmutableDictionary is not
@@ -53,7 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: ImmutableDictionary<string, ReportDiagnostic>.Empty);
+                options: null,
+                path: "",
+                diagnosticOptions: ImmutableDictionary<string, ReportDiagnostic>.Empty,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.NotNull(tree.DiagnosticOptions);
             Assert.True(tree.DiagnosticOptions.IsEmpty);
             Assert.Same(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
@@ -65,7 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: options);
+                options: null,
+                path: "",
+                diagnosticOptions: options,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.Same(options, tree.DiagnosticOptions);
         }
 

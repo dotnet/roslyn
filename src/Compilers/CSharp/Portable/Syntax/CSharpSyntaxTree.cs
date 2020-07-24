@@ -305,20 +305,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Factories
 
+        // The overload that has more parameters is itself obsolete, as an intentional break to allow future
+        // expansion
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        /// <summary>
+        /// Creates a new syntax tree from a syntax node.
+        /// </summary>
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string path = "", Encoding? encoding = null)
+        {
+#pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
+            return Create(root, options, path, encoding, diagnosticOptions: null);
+#pragma warning restore CS0618
+        }
+
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
         /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead")]
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
-            CSharpParseOptions? options = null,
-            string path = "",
-            Encoding? encoding = null,
+            CSharpParseOptions? options,
+            string path,
+            Encoding? encoding,
             // obsolete parameter -- unused
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
             // obsolete parameter -- unused
-            bool? isGeneratedCode = null)
+            bool? isGeneratedCode)
         {
             if (root == null)
             {
@@ -376,35 +394,80 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cloneRoot: false);
         }
 
+        // The overload that has more parameters is itself obsolete, as an intentional break to allow future
+        // expansion
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
-        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
-        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
         public static SyntaxTree ParseText(
             string text,
             CSharpParseOptions? options = null,
             string path = "",
             Encoding? encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+#pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
+            return ParseText(text, options, path, encoding, diagnosticOptions: null, cancellationToken);
+#pragma warning restore CS0618
         }
+
+#pragma warning restore RS0027
 
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
         /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead")]
+        public static SyntaxTree ParseText(
+            string text,
+            CSharpParseOptions? options,
+            string path,
+            Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
+        {
+            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+        }
+
+        // The overload that has more parameters is itself obsolete, as an intentional break to allow future
+        // expansion
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text.
+        /// </summary>
         public static SyntaxTree ParseText(
             SourceText text,
             CSharpParseOptions? options = null,
             string path = "",
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
+        {
+#pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
+            return ParseText(text, options, path, diagnosticOptions: null, cancellationToken);
+#pragma warning restore CS0618
+        }
+
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text.
+        /// </summary>
+        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead")]
+        public static SyntaxTree ParseText(
+            SourceText text,
+            CSharpParseOptions? options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             if (text == null)
             {
@@ -874,28 +937,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);
 
-        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree ParseText(
-            SourceText text,
-            CSharpParseOptions? options,
-            string path,
-            CancellationToken cancellationToken)
-            => ParseText(text, options, path, diagnosticOptions: null, cancellationToken);
-
-        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree ParseText(
-            string text,
-            CSharpParseOptions? options,
-            string path,
-            Encoding? encoding,
-            CancellationToken cancellationToken)
-            => ParseText(text, options, path, encoding, diagnosticOptions: null, cancellationToken);
-
-        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options, string path, Encoding? encoding)
-            => Create(root, options, path, encoding, diagnosticOptions: null);
     }
 }

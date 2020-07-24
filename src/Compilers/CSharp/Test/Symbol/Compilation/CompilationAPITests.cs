@@ -41,13 +41,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TreeDiagnosticOptionsDoNotAffectTreeDiagnostics()
         {
+#pragma warning disable CS0618 // This test is intentionally calling the obsolete method to assert the diagnosticOptions input is now ignored
+
             var tree = SyntaxFactory.ParseSyntaxTree("class C { long _f = 0l;}",
-                diagnosticOptions: CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+                options: null,
+                path: "",
+                encoding: null,
+                diagnosticOptions: CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)),
+                cancellationToken: default);
 
             tree.GetDiagnostics().Verify(
                 // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 // class C { long _f = 0l;}
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
+
+#pragma warning restore CS0618
         }
 
         [Fact]
