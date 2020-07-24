@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return CSharpParseOptions.Default; }
             }
 
-            [Obsolete]
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead")]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
                 => throw ExceptionUtilities.Unreachable;
 
