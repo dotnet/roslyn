@@ -67,11 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            var result = service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
-            if (result != null)
+            var snippet = service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
+            if (snippet != null)
             {
-                subjectBuffer.Insert(result.SpanToReplace.Start, result.SnippetText);
-                textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(position + result.CaretOffset));
+                ApplySnippet(subjectBuffer, textView, snippet);
 
                 return true;
             }
@@ -89,12 +88,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            var result = service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, ExteriorTriviaText, cancellationToken);
-            if (result != null)
+            var snippet = service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken);
+            if (snippet != null)
             {
-                var replaceSpan = result.SpanToReplace.ToSpan();
-                subjectBuffer.Replace(replaceSpan, result.SnippetText);
-                textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + result.CaretOffset));
+                ApplySnippet(subjectBuffer, textView, snippet);
+
+                return true;
             }
 
             return false;
@@ -110,18 +109,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            var result = service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
-
-            if (result != null)
+            var snippet = service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
+            if (snippet != null)
             {
-                var startPosition = result.SpanToReplace.Start;
-                subjectBuffer.Insert(startPosition, result.SnippetText);
-
-                textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(startPosition + result.CaretOffset));
+                ApplySnippet(subjectBuffer, textView, snippet);
 
                 return true;
             }
             return false;
+        }
+
+        private static void ApplySnippet(ITextBuffer subjectBuffer, ITextView textView, DocumentationCommentSnippet snippet)
+        {
+            var replaceSpan = snippet.SpanToReplace.ToSpan();
+            subjectBuffer.Replace(replaceSpan, snippet.SnippetText);
+            textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + snippet.CaretOffset));
         }
 
         private static bool CompleteComment(
@@ -362,12 +364,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            var result = service.GetDocumentationCommentSnippetFromPreviousLine(documentOptions, ExteriorTriviaText, currentLine, previousLine);
-            if (result != null)
+            var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(documentOptions, currentLine, previousLine);
+            if (snippet != null)
             {
-                var replaceSpan = result.SpanToReplace.ToSpan();
-                subjectBuffer.Replace(replaceSpan, result.SnippetText);
-                view.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + result.CaretOffset));
+                ApplySnippet(subjectBuffer, textView, snippet);
             }
         }
 
