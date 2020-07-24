@@ -96,25 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return operatorDecl;
         }
 
-        //private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
-        //    CodeGenerationOptions options, OperatorDeclarationSyntax operatorDeclaration, ParseOptions parseOptions)
-        //{
-        //    if (operatorDeclaration.ExpressionBody == null)
-        //    {
-        //        var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-        //        if (operatorDeclaration.Body.TryConvertToArrowExpressionBody(
-        //                operatorDeclaration.Kind(), parseOptions, expressionBodyPreference,
-        //                out var expressionBody, out var semicolonToken))
-        //        {
-        //            return operatorDeclaration.WithBody(null)
-        //                                      .WithExpressionBody(expressionBody)
-        //                                      .WithSemicolonToken(semicolonToken);
-        //        }
-        //    }
-
-        //    return operatorDeclaration;
-        //}
-
         private static SyntaxTokenList GenerateModifiers()
         {
             return SyntaxFactory.TokenList(
