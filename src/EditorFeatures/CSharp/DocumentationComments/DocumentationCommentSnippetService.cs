@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override bool SupportsDocumentationComments(MemberDeclarationSyntax member)
         {
-            if (member == null)
-            {
-                return false;
-            }
-
             switch (member.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
@@ -162,11 +157,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override bool IsSingleExteriorTrivia(DocumentationCommentTriviaSyntax documentationComment, bool allowWhitespace = false)
         {
-            if (documentationComment == null)
-            {
-                return false;
-            }
-
             if (IsMultilineDocComment(documentationComment))
             {
                 return false;
@@ -228,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             return result;
         }
 
-        protected override bool EndsWithSingleExteriorTrivia(DocumentationCommentTriviaSyntax documentationComment)
+        protected override bool EndsWithSingleExteriorTrivia(DocumentationCommentTriviaSyntax? documentationComment)
         {
             if (documentationComment == null)
             {
@@ -262,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 && lastTextToken.TrailingTrivia.Count == 0;
         }
 
-        protected override bool IsMultilineDocComment(DocumentationCommentTriviaSyntax documentationComment)
+        protected override bool IsMultilineDocComment(DocumentationCommentTriviaSyntax? documentationComment)
             => documentationComment.IsMultilineDocComment();
 
         protected override bool AddIndent
@@ -270,6 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             get { return true; }
         }
 
-        internal override bool HasSkippedTrailingTrivia(SyntaxToken token) => token.TrailingTrivia.Any(t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
+        protected override bool HasSkippedTrailingTrivia(SyntaxToken token)
+            => token.TrailingTrivia.Any(t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
     }
 }

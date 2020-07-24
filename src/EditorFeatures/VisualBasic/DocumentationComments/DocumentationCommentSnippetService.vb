@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             End Get
         End Property
 
-        Friend Overrides Function HasSkippedTrailingTrivia(token As SyntaxToken) As Boolean
+        Protected Overrides Function HasSkippedTrailingTrivia(token As SyntaxToken) As Boolean
             Return token.TrailingTrivia.Any(Function(t) t.Kind() = SyntaxKind.SkippedTokensTrivia)
         End Function
     End Class

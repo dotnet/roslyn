@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
@@ -35,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         protected abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
 
         protected abstract bool IsSingleExteriorTrivia(TDocumentationComment documentationComment, bool allowWhitespace = false);
-        protected abstract bool EndsWithSingleExteriorTrivia(TDocumentationComment documentationComment);
-        protected abstract bool IsMultilineDocComment(TDocumentationComment documentationComment);
-        internal abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
+        protected abstract bool EndsWithSingleExteriorTrivia(TDocumentationComment? documentationComment);
+        protected abstract bool IsMultilineDocComment(TDocumentationComment? documentationComment);
+        protected abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
 
         protected abstract bool AddIndent { get; }
 
@@ -108,14 +107,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 lines[i] = indentText + lines[i];
             }
 
-            var lastLine = lines[lines.Count - 1];
+            var lastLine = lines[^1];
             lastLine = indentText + lastLine.Substring(0, lastLine.Length - newLine.Length);
-            lines[lines.Count - 1] = lastLine;
+            lines[^1] = lastLine;
 
             var comments = string.Join(string.Empty, lines);
             var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
-            var replaceSpan = token.Span;
+            // When typing we don't replace a token, but insert before it
+            var replaceSpan = new TextSpan(token.Span.Start, 0);
 
             return new DocumentationCommentSnippet(replaceSpan, comments, offset);
         }
@@ -304,12 +304,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 lines[i] = indentText + lines[i];
             }
 
-            lines[lines.Count - 1] = lines[lines.Count - 1] + indentText;
+            lines[^1] = lines[^1] + indentText;
 
             var comments = string.Join(string.Empty, lines);
             var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
-            var replaceSpan = token.Span;
+            // For a command we don't replace a token, but insert before it
+            var replaceSpan = new TextSpan(token.Span.Start, 0);
 
             return new DocumentationCommentSnippet(replaceSpan, comments, offset);
         }
@@ -358,11 +359,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var documentationComment = token.GetAncestor<TDocumentationComment>();
-            if (documentationComment == null)
-            {
-                return null;
-            }
-
             if (IsMultilineDocComment(documentationComment))
             {
                 return null;

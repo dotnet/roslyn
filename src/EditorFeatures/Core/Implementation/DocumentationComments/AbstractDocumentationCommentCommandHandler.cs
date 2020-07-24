@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         private char TriggerCharacter
         {
-            get { return ExteriorTriviaText[ExteriorTriviaText.Length - 1]; }
+            get { return ExteriorTriviaText[^1]; }
         }
 
         public string DisplayName => EditorFeaturesResources.Documentation_Comment;
@@ -326,9 +326,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             InsertExteriorTriviaIfNeeded(service, args.TextView, subjectBuffer);
         }
 
-        private void InsertExteriorTriviaIfNeeded(IDocumentationCommentSnippetService service, ITextView view, ITextBuffer subjectBuffer)
+        private void InsertExteriorTriviaIfNeeded(IDocumentationCommentSnippetService service, ITextView textView, ITextBuffer subjectBuffer)
         {
-            var caretPosition = view.GetCaretPoint(subjectBuffer) ?? -1;
+            var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
                 return;
