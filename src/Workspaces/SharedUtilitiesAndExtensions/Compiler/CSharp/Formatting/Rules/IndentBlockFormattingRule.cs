@@ -178,6 +178,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SwitchExpressionSyntax switchExpression:
                     SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
+                case PropertyPatternClauseSyntax propertyPatternClause:
+                    if (propertyPatternClause.Parent is RecursivePatternSyntax { Parent: { } recursivePatternParent })
+                    {
+                        var baseTokenForAlignment = recursivePatternParent.GetFirstToken();
+                        if (baseTokenForAlignment == propertyPatternClause.OpenBraceToken)
+                        {
+                            // It only makes sense to set the alignment for the '{' when it's on a separate line from
+                            // the base token for alignment. This is never the case when they are the same token.
+                            return;
+                        }
+
+                        SetAlignmentBlockOperation(list, baseTokenForAlignment, propertyPatternClause.OpenBraceToken, propertyPatternClause.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    }
+
+                    return;
             }
         }
 
