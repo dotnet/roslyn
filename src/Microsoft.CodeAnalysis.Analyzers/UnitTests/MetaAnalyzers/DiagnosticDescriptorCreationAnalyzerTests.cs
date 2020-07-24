@@ -1220,28 +1220,28 @@ class MyAnalyzer : DiagnosticAnalyzer
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
 # Illegal: spaces in category name
-Category with spaces
-Category with spaces and range: Prefix100-Prefix199
+{|#6:Category with spaces|}
+{|#7:Category with spaces and range: Prefix100-Prefix199|}
 
 # Illegal: Multiple colons
-CategoryMultipleColons: IdWithColon:100
+{|#8:CategoryMultipleColons: IdWithColon:100|}
 
 # Illegal: Duplicate category
 DuplicateCategory1
-DuplicateCategory1
+{|#9:DuplicateCategory1|}
 DuplicateCategory2: Prefix100-Prefix199
-DuplicateCategory2: Prefix200-Prefix299
+{|#10:DuplicateCategory2: Prefix200-Prefix299|}
 
 # Illegal: ID cannot be non-alphanumeric
-CategoryWithBadId1: Prefix_100
-CategoryWithBadId2: Prefix_100-Prefix_199
+{|#11:CategoryWithBadId1: Prefix_100|}
+{|#12:CategoryWithBadId2: Prefix_100-Prefix_199|}
 
 # Illegal: Id cannot have letters after number
-CategoryWithBadId3: Prefix000NotAllowed
-CategoryWithBadId4: Prefix000NotAllowed-Prefix099NotAllowed
+{|#13:CategoryWithBadId3: Prefix000NotAllowed|}
+{|#14:CategoryWithBadId4: Prefix000NotAllowed-Prefix099NotAllowed|}
 
 # Illegal: Different prefixes in ID range
-CategoryWithBadId5: Prefix000-DifferentPrefix099
+{|#15:CategoryWithBadId5: Prefix000-DifferentPrefix099|}
 ";
 
             await new VerifyCS.Test
@@ -1252,16 +1252,16 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
                     AdditionalFiles = { (AdditionalFileName, additionalText) },
                     ExpectedDiagnostics =
                     {
-                        GetRS1021ExpectedDiagnostic(6, 1, "Category with spaces", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(7, 1, "Category with spaces and range: Prefix100-Prefix199", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(10, 1, "CategoryMultipleColons: IdWithColon:100", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(14, 1, "DuplicateCategory1", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(16, 1, "DuplicateCategory2: Prefix200-Prefix299", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(19, 1, "CategoryWithBadId1: Prefix_100", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(20, 1, "CategoryWithBadId2: Prefix_100-Prefix_199", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(23, 1, "CategoryWithBadId3: Prefix000NotAllowed", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(24, 1, "CategoryWithBadId4: Prefix000NotAllowed-Prefix099NotAllowed", AdditionalFileName),
-                        GetRS1021ExpectedDiagnostic(27, 1, "CategoryWithBadId5: Prefix000-DifferentPrefix099", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(6, "Category with spaces", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(7, "Category with spaces and range: Prefix100-Prefix199", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(8, "CategoryMultipleColons: IdWithColon:100", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(9, "DuplicateCategory1", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(10, "DuplicateCategory2: Prefix200-Prefix299", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(11, "CategoryWithBadId1: Prefix_100", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(12, "CategoryWithBadId2: Prefix_100-Prefix_199", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(13, "CategoryWithBadId3: Prefix000NotAllowed", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(14, "CategoryWithBadId4: Prefix000NotAllowed-Prefix099NotAllowed", AdditionalFileName),
+                        GetRS1021ExpectedDiagnostic(15, "CategoryWithBadId5: Prefix000-DifferentPrefix099", AdditionalFileName),
                         GetRS1028ResultAt(0),
                         GetRS1028ResultAt(1),
                         GetRS1028ResultAt(2),
@@ -2426,9 +2426,9 @@ End Class
         /// <summary>
         /// Creates an expected diagnostic for <inheritdoc cref="DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule"/>
         /// </summary>
-        private static DiagnosticResult GetRS1021ExpectedDiagnostic(int line, int column, string invalidEntry, string additionalFile) =>
+        private static DiagnosticResult GetRS1021ExpectedDiagnostic(int markupKey, string invalidEntry, string additionalFile) =>
             new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule)
-                .WithLocation(AdditionalFileName, line, column)
+                .WithLocation(markupKey)
                 .WithArguments(invalidEntry, additionalFile);
 
         /// <summary>
@@ -2448,7 +2448,6 @@ End Class
                     Sources = { source },
                 },
                 ReferenceAssemblies = AdditionalMetadataReferences.Default,
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
             };
 
             test.SolutionTransforms.Add(WithoutEnableReleaseTrackingWarning);
@@ -2465,7 +2464,6 @@ End Class
                     Sources = { source },
                 },
                 ReferenceAssemblies = AdditionalMetadataReferences.Default,
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
             };
 
             test.SolutionTransforms.Add(WithoutEnableReleaseTrackingWarning);

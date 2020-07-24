@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             if (shippedApiText != null)
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             if (shippedApiText != null)
@@ -125,8 +123,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             var test = language == LanguageNames.CSharp
                 ? new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
                 : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
-
-            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
@@ -716,7 +712,7 @@ C.Method() -> void
 ";
 
 #if NETCOREAPP
-            var containingAssembly = "netstandard";
+            var containingAssembly = "System.Runtime";
 #else
             var containingAssembly = "mscorlib";
 #endif
@@ -742,27 +738,41 @@ System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwar
 ";
 
 #if NETCOREAPP
-            var containingAssembly = "netstandard";
+            var containingAssembly = "System.Runtime.Extensions";
+            const string NonNullSuffix = "!";
+            const string NullableSuffix = "?";
 #else
             var containingAssembly = "mscorlib";
+            const string NonNullSuffix = "";
+            const string NullableSuffix = "";
 #endif
             string shippedText = $@"
 System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.InvariantCulture.get -> System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.CurrentCulture.get -> System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.Ordinal.get -> System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.Create(System.Globalization.CultureInfo culture, bool ignoreCase) -> System.StringComparer (forwarded, contained in {containingAssembly})
-System.StringComparer.Compare(object x, object y) -> int (forwarded, contained in {containingAssembly})
-System.StringComparer.Equals(object x, object y) -> bool (forwarded, contained in {containingAssembly})
-System.StringComparer.GetHashCode(object obj) -> int (forwarded, contained in {containingAssembly})
-abstract System.StringComparer.Compare(string x, string y) -> int (forwarded, contained in {containingAssembly})
-abstract System.StringComparer.Equals(string x, string y) -> bool (forwarded, contained in {containingAssembly})
-abstract System.StringComparer.GetHashCode(string obj) -> int (forwarded, contained in {containingAssembly})
+static System.StringComparer.InvariantCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.CurrentCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.Ordinal.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, bool ignoreCase) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+System.StringComparer.Compare(object{NullableSuffix} x, object{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
+System.StringComparer.Equals(object{NullableSuffix} x, object{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
+System.StringComparer.GetHashCode(object{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.Compare(string{NullableSuffix} x, string{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.Equals(string{NullableSuffix} x, string{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
+abstract System.StringComparer.GetHashCode(string{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
 System.StringComparer.StringComparer() -> void (forwarded, contained in {containingAssembly})
 ";
+
+#if NETCOREAPP
+            shippedText = $@"
+#nullable enable
+{shippedText}
+static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, System.Globalization.CompareOptions options) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+static System.StringComparer.FromComparison(System.StringComparison comparisonType) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+";
+#endif
+
             string unshippedText = $@"";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
