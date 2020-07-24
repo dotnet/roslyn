@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
@@ -24,10 +25,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
             Return VisualBasicCodeFixesResources.Convert_GetType_to_NameOf
         End Function
 
-        Protected Overrides Function GetSymbolType(semanticModel As SemanticModel, node As SyntaxNode) As ITypeSymbol
+        Protected Overrides Function GetSymbolTypeExpression(semanticModel As SemanticModel, node As SyntaxNode) As SyntaxNode
+
             Dim expression = DirectCast(node, MemberAccessExpressionSyntax).Expression
             Dim type = DirectCast(expression, GetTypeExpressionSyntax).Type
-            Return semanticModel.GetSymbolInfo(type).Symbol.GetSymbolType()
+            Dim symbolType = semanticModel.GetSymbolInfo(type).Symbol.GetSymbolType()
+            Dim symbolExpression = symbolType.GenerateExpressionSyntax()
+
+            If TypeOf symbolExpression Is IdentifierNameSyntax OrElse TypeOf symbolExpression Is MemberAccessExpressionSyntax Then
+                Return symbolExpression
+            End If
+
+            If TypeOf symbolExpression Is QualifiedNameSyntax Then
+                Dim qualifiedName = DirectCast(symbolExpression, QualifiedNameSyntax)
+                Return SyntaxFactory.SimpleMemberAccessExpression(qualifiedName.Left, qualifiedName.Right) _
+                    .WithAdditionalAnnotations(Simplifier.Annotation)
+            End If
+
+            Return Nothing
         End Function
     End Class
 End Namespace
