@@ -120,6 +120,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
+        public const string SystemDiagnosticsDebuggerNonUserCode = "System.Diagnostics.DebuggerNonUserCodeAttribute";
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemDiagnosticsTraceListener = "System.Diagnostics.TraceListener";
