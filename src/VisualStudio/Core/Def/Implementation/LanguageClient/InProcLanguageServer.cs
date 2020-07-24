@@ -226,6 +226,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => _requestHandlerProvider.ExecuteRequestAsync<GetTextDocumentWithContextParams, ActiveProjectContexts?>(MSLSPMethods.ProjectContextsName,
                 textDocumentWithContextParams, _clientCapabilities, _clientName, cancellationToken);
 
+        [JsonRpcMethod(MSLSPMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
+        public Task<DocumentOnAutoInsertResponseItem> GetDocumentOnAutoInsertAsync(DocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(MSLSPMethods.OnAutoInsertName,
+                autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
+
 #pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
