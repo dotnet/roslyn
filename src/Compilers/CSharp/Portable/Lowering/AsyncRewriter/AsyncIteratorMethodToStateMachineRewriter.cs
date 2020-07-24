@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  }
 
                 node = node.Update(
-                     tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
+                    tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
                     node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
             }
             else if (node.FinallyLabelOpt is object)

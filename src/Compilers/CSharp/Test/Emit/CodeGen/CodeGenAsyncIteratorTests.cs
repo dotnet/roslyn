@@ -7856,7 +7856,16 @@ public class C
         finally
         {
             Console.Write(""BEFORE "");
-            try { Console.Write(""INSIDE ""); } finally { Console.Write(""INSIDE2 ""); }
+
+            try
+            {
+                Console.Write(""INSIDE "");
+            }
+            finally
+            {
+                Console.Write(""INSIDE2 "");
+            }
+
             Console.Write(""AFTER "");
         }
         throw null;
