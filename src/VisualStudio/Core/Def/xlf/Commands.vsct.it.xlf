@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ECMD_RUNFXCOPSEL|ButtonText">
         <source>Run Code &amp;Analysis on Selection</source>
-        <target state="translated">Esegui &amp;analisi del codice sulla selezione</target>
+        <target state="translated">Esegui Code &amp;Analysis sulla selezione</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
         <source>Run C&amp;ode Analysis</source>
-        <target state="translated">Esegui analisi &amp;del codice</target>
+        <target state="translated">Esegui C&amp;ode Analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|CommandName">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
-        <target state="needs-review-translation">GoToImplementation</target>
+        <target state="translated">Vai all'implementazione</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
