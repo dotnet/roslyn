@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Syntax.NullableContextState.State.Enabled => true,
                     Syntax.NullableContextState.State.Disabled => false,
-                    Syntax.NullableContextState.State.ExplicitlyRestored => areWarningsGloballyEnabled(),
+                    Syntax.NullableContextState.State.ExplicitlyRestored => nullableOption.WarningsEnabled(),
                     Syntax.NullableContextState.State.Unknown =>
-                        tree?.IsGeneratedCode(syntaxTreeOptions) != true && areWarningsGloballyEnabled(),
-                    null => areWarningsGloballyEnabled(),
+                        tree?.IsGeneratedCode(syntaxTreeOptions) != true && nullableOption.WarningsEnabled(),
+                    null => nullableOption.WarningsEnabled(),
                     _ => throw ExceptionUtilities.UnexpectedValue(warningsState)
                 };
 
@@ -164,9 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return ReportDiagnostic.Suppress;
                 }
-
-                bool areWarningsGloballyEnabled()
-                    => nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
             }
 
             // 1. Warning level
