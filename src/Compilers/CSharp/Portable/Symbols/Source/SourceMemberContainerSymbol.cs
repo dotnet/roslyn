@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var managedKind = _flags.ManagedKind;
-            if (managedKind == ManagedKind.Unknown)
+            if (managedKind == ManagedKind.Unknown || _managedKindUseSiteDiagnostics.IsDefault)
             {
                 HashSet<DiagnosticInfo>? managedKindUseSiteDiagnostics = null;
                 managedKind = base.GetManagedKind(ref managedKindUseSiteDiagnostics);
@@ -696,7 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _flags.SetManagedKind(managedKind);
             }
 
-            Thread.MemoryBarrier();
             if (!_managedKindUseSiteDiagnostics.IsEmpty)
             {
                 useSiteDiagnostics ??= new HashSet<DiagnosticInfo>();
