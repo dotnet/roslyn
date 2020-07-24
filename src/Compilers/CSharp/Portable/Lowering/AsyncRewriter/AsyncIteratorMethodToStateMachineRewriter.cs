@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Inside a `try` or `catch` with an extracted `finally`, we will use the label preceding the extracted `finally`.
         /// Inside a `finally`, we'll have no/null label (disposal continues without a jump).
         /// </summary>
-        private ArrayBuilder<LabelSymbol> _disposalLabels = new ArrayBuilder<LabelSymbol>();
-
-        private LabelSymbol CurrentDisposalLabel => _disposalLabels.Peek();
+        private LabelSymbol _currentDisposalLabel;
 
         /// <summary>
         /// We use _exprReturnLabel for normal end of method (ie. no more values) and `yield break;`.
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(asyncIteratorInfo != null);
 
             _asyncIteratorInfo = asyncIteratorInfo;
-            _disposalLabels.Add(_exprReturnLabel);
+            _currentDisposalLabel = _exprReturnLabel;
             _exprReturnLabelTrue = F.GenerateLabel("yieldReturn");
         }
 
@@ -157,17 +155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement GenerateJumpToCurrentDisposalLabel()
         {
-            Debug.Assert(CurrentDisposalLabel is object);
+            Debug.Assert(_currentDisposalLabel is object);
             return F.If(
                 // if (disposeMode)
                 F.InstanceField(_asyncIteratorInfo.DisposeModeField),
                 // goto currentDisposalLabel;
-                thenClause: F.Goto(CurrentDisposalLabel));
+                thenClause: F.Goto(_currentDisposalLabel));
         }
 
         private BoundStatement AppendJumpToCurrentDisposalLabel(BoundStatement node)
         {
-            Debug.Assert(CurrentDisposalLabel is object);
+            Debug.Assert(_currentDisposalLabel is object);
             // Append:
             //  if (disposeMode) goto currentDisposalLabel;
 
@@ -209,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenBody = (BoundStatement)Visit(body);
 
-            Debug.Assert(_exprReturnLabel.Equals(CurrentDisposalLabel));
+            Debug.Assert(_exprReturnLabel.Equals(_currentDisposalLabel));
             return F.Block(
                 F.Label(resumeLabel), // initialStateResumeLabel:
                 GenerateJumpToCurrentDisposalLabel(), // if (disposeMode) goto _exprReturnLabel;
@@ -260,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this.state = cachedState = NotStartedStateMachine
                 GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
 
-            Debug.Assert(CurrentDisposalLabel is object); // no yield return allowed inside a finally
+            Debug.Assert(_currentDisposalLabel is object); // no yield return allowed inside a finally
             blockBuilder.Add(
                 // if (disposeMode) goto currentDisposalLabel;
                 GenerateJumpToCurrentDisposalLabel());
@@ -279,12 +277,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  disposeMode = true;
             //  goto currentDisposalLabel;
 
-            Debug.Assert(CurrentDisposalLabel is object); // no yield break allowed inside a finally
+            Debug.Assert(_currentDisposalLabel is object); // no yield break allowed inside a finally
             return F.Block(
                 // disposeMode = true;
                 SetDisposeMode(true),
                 // goto currentDisposalLabel;
-                F.Goto(CurrentDisposalLabel));
+                F.Goto(_currentDisposalLabel));
         }
 
         private BoundExpressionStatement SetDisposeMode(bool value)
@@ -308,12 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            bool addedDisposalLabel;
+            var savedDisposalLabel = _currentDisposalLabel;
+            bool changedDisposalLabel;
             if (node.FinallyBlockOpt is object)
             {
                 var finallyEntry = F.GenerateLabel("finallyEntry");
-                _disposalLabels.Add(finallyEntry);
-                addedDisposalLabel = true;
+                _currentDisposalLabel = finallyEntry;
+                changedDisposalLabel = true;
 
                 // Add finallyEntry label:
                 //  try
@@ -328,22 +327,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (node.FinallyLabelOpt is object)
             {
-                _disposalLabels.Add(node.FinallyLabelOpt);
-                addedDisposalLabel = true;
+                _currentDisposalLabel = node.FinallyLabelOpt;
+                changedDisposalLabel = true;
             }
             else
             {
-                addedDisposalLabel = false;
+                changedDisposalLabel = false;
             }
 
             var result = (BoundStatement)base.VisitTryStatement(node);
 
-            if (addedDisposalLabel)
+            if (changedDisposalLabel)
             {
-                _disposalLabels.Pop();
+                _currentDisposalLabel = savedDisposalLabel;
             }
 
-            if (node.FinallyBlockOpt != null && CurrentDisposalLabel is object)
+            if (node.FinallyBlockOpt != null && _currentDisposalLabel is object)
             {
                 // Append:
                 //  if (disposeMode) goto currentDisposalLabel;
@@ -358,9 +357,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundBlock VisitFinally(BoundBlock finallyBlock)
         {
             // within a finally, continuing disposal doesn't require any jump
-            _disposalLabels.Add(null);
+            var savedDisposalLabel = _currentDisposalLabel;
+            _currentDisposalLabel = null;
             var result = base.VisitFinally(finallyBlock);
-            _disposalLabels.Pop();
+            _currentDisposalLabel = savedDisposalLabel;
             return result;
         }
 
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement result = VisitFinally(extractedFinally.FinallyBlock);
 
-            if (CurrentDisposalLabel is object)
+            if (_currentDisposalLabel is object)
             {
                 result = AppendJumpToCurrentDisposalLabel(result);
             }
