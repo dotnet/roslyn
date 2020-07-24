@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis
         private GeneratorState SetGeneratorException(GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag diagnosticBag, bool isInit = false)
         {
             var message = isInit ? MessageProvider.WRN_GeneratorFailedDuringInitialization : MessageProvider.WRN_GeneratorFailedDuringGeneration;
-            var diagnostic = Diagnostic.Create(MessageProvider, message, generator.GetType().Name, e.ToString());
+            var diagnostic = Diagnostic.Create(MessageProvider, message, generator.GetType().Name);
             diagnosticBag.Add(diagnostic);
             return generatorState.SetError(e, diagnostic);
         }
