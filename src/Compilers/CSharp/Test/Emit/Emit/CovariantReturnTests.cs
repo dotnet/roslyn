@@ -201,7 +201,7 @@ namespace System.Runtime.CompilerServices
             }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CovarantReturnRuntimeOnly))]
         public void SimpleCovariantReturnEndToEndTest()
         {
             var source = @"
@@ -238,6 +238,13 @@ class Program
 Derived.M";
 
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [ConditionalFact(typeof(CovarantReturnRuntimeOnly))]
+        public void SimpleCovariantReturnCanaryTest()
+        {
+            // Test should definitely fail on an appropriate platform.
+            Assert.True(false);
         }
     }
 }
