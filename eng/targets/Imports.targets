@@ -23,7 +23,7 @@
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">false</GenerateRuntimeConfigurationFiles>
 
     <!--
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
