@@ -101,8 +101,8 @@ try {
     git add "test/$LibraryName.Tests/$LibraryName.Tests.csproj"
 
     # Establish a new strong-name key
-    & $sn.Path -k 2048 src/strongname.snk
-    git add src/strongname.snk
+    & $sn.Path -k 2048 strongname.snk
+    git add strongname.snk
 
     # Replace placeholders in source files
     Replace-Placeholders -Path "src/$LibraryName/Calculator.cs" -Replacements @{
