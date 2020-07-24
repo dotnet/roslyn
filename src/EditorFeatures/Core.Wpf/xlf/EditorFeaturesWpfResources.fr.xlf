@@ -57,11 +57,6 @@
         <target state="translated">Regex - autre échappement</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">Supprimer ou configurer les problèmes</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
