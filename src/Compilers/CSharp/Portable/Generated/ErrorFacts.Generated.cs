@@ -226,8 +226,6 @@
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
-                case ErrorCode.WRN_NullCheckedHasDefaultNull:
-                case ErrorCode.WRN_NullCheckingOnNullableValueType:
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_ShouldNotReturn:
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
@@ -247,6 +245,8 @@
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableValueType:
                     return true;
                 default:
                     return false;
