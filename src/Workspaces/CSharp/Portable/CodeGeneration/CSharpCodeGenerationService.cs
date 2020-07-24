@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (method.IsConstructor())
                 {
                     return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 if (method.IsDestructor())
@@ -150,13 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (method.MethodKind == MethodKind.Conversion)
                 {
                     return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 if (method.MethodKind == MethodKind.UserDefinedOperator)
                 {
                     return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
@@ -229,12 +229,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is TypeDeclarationSyntax)
             {
                 return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
-                    Cast<TypeDeclarationSyntax>(destination), property, Workspace, options, availableIndices));
+                    Cast<TypeDeclarationSyntax>(destination), property, options, availableIndices));
             }
             else
             {
                 return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
-                    Cast<CompilationUnitSyntax>(destination), property, Workspace, options, availableIndices));
+                    Cast<CompilationUnitSyntax>(destination), property, options, availableIndices));
             }
         }
 
@@ -587,17 +587,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (method.IsConstructor())
             {
                 return ConstructorGenerator.GenerateConstructorDeclaration(
-                    method, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsUserDefinedOperator())
             {
                 return OperatorGenerator.GenerateOperatorDeclaration(
-                    method, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsConversion())
             {
                 return ConversionGenerator.GenerateConversionDeclaration(
-                    method, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsLocalFunction())
             {
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
             return PropertyGenerator.GeneratePropertyOrIndexer(
-                property, destination, Workspace, options, options.ParseOptions);
+                property, destination, options, options.ParseOptions);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(

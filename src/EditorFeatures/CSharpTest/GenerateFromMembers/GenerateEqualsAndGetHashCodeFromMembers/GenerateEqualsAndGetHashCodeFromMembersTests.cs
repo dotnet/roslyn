@@ -2,41 +2,233 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
     using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+    using static Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest;
+    using VerifyCS = CSharpCodeRefactoringVerifier<GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider>;
 
-    public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
+    [UseExportProvider]
+    public class GenerateEqualsAndGetHashCodeFromMembersTests
     {
+        private class Test : VerifyCS.Test
+        {
+            private static readonly IExportProviderFactory s_factory = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestPickMembersService)));
+
+            public bool UseDialog;
+            public ImmutableArray<string> MemberNames;
+            public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
+            public CompilationOptions CompilationOptions;
+
+            public override AdhocWorkspace CreateWorkspace()
+            {
+                if (!UseDialog)
+                    return base.CreateWorkspace();
+
+                var exportProvider = s_factory.CreateExportProvider();
+                var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(exportProvider));
+
+                var service = (TestPickMembersService)workspace.Services.GetService<IPickMembersService>();
+                service.MemberNames = MemberNames;
+                service.OptionsCallback = OptionsCallback;
+
+                return workspace;
+            }
+
+            protected override CompilationOptions CreateCompilationOptions()
+                => CompilationOptions ?? base.CreateCompilationOptions();
+        }
+
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+
+        private static readonly TestParameters CSharp7 =
+            new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
 
         private static readonly TestParameters CSharpLatest =
             new TestParameters(parseOptions: TestOptions.Regular);
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+        //protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        //    => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
-        private TestParameters CSharp6Implicit => CSharp6.WithOptions(this.PreferImplicitTypeWithInfo());
-        private TestParameters CSharp6Explicit => CSharp6.WithOptions(this.PreferExplicitTypeWithInfo());
-        private TestParameters CSharpLatestImplicit => CSharpLatest.WithOptions(this.PreferImplicitTypeWithInfo());
+        private static readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> offWithInfo = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
+
+        private static OptionsCollection PreferImplicitTypeWithInfo()
+            => new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
+
+        private static OptionsCollection PreferExplicitTypeWithInfo()
+            => new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
+
+        private static TestParameters CSharp6Implicit => CSharp6.WithOptions(PreferImplicitTypeWithInfo());
+        private static TestParameters CSharp7Implicit => CSharp7.WithOptions(PreferImplicitTypeWithInfo());
+        private static TestParameters CSharp6Explicit => CSharp6.WithOptions(PreferExplicitTypeWithInfo());
+        private static TestParameters CSharpLatestImplicit => CSharpLatest.WithOptions(PreferImplicitTypeWithInfo());
+
+        private static Task TestInRegularAndScriptAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            OptionsCollection options = null,
+            List<DiagnosticResult> expectedDiagnostics = null,
+            List<DiagnosticResult> testExpectedDiagnostics = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            return TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup, index, new TestParameters(options: options),
+                expectedDiagnostics, testExpectedDiagnostics, fixedExpectedDiagnostics);
+        }
+
+        private static Task TestInRegularAndScript1Async(
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            TestParameters? parameters = null,
+            List<DiagnosticResult> expectedDiagnostics = null,
+            List<DiagnosticResult> testExpectedDiagnostics = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            return TestInRegularAndScript1Async(
+                new[] { initialMarkup }, new[] { expectedMarkup }, index, parameters,
+                expectedDiagnostics, testExpectedDiagnostics, fixedExpectedDiagnostics);
+        }
+
+        private static async Task TestInRegularAndScript1Async(
+            string[] initialMarkup,
+            string[] expectedMarkup,
+            int index = 0,
+            TestParameters? parameters = null,
+            List<DiagnosticResult> expectedDiagnostics = null,
+            List<DiagnosticResult> testExpectedDiagnostics = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            var test = new Test
+            {
+                CodeActionIndex = index,
+            };
+
+            foreach (var source in initialMarkup)
+                test.TestState.Sources.Add(source);
+
+            foreach (var source in expectedMarkup)
+                test.FixedState.Sources.Add(source);
+
+            if (parameters?.parseOptions != null)
+                test.LanguageVersion = ((CSharpParseOptions)parameters.Value.parseOptions).LanguageVersion;
+
+            if (parameters?.options != null)
+                test.EditorConfig = CodeFixVerifierHelper.GetEditorConfigText(parameters.Value.options);
+
+            if (parameters?.fixProviderData is TestPickMembersService pickMembers)
+            {
+                test.UseDialog = true;
+                test.MemberNames = pickMembers.MemberNames;
+                test.OptionsCallback = pickMembers.OptionsCallback;
+            }
+
+            test.CompilationOptions = parameters?.compilationOptions;
+
+            foreach (var diagnostic in expectedDiagnostics ?? new List<DiagnosticResult>())
+            {
+                test.TestState.ExpectedDiagnostics.Add(diagnostic);
+                test.FixedState.ExpectedDiagnostics.Add(diagnostic);
+            }
+
+            foreach (var diagnostic in testExpectedDiagnostics ?? new List<DiagnosticResult>())
+                test.TestState.ExpectedDiagnostics.Add(diagnostic);
+
+            foreach (var diagnostic in fixedExpectedDiagnostics ?? new List<DiagnosticResult>())
+                test.FixedState.ExpectedDiagnostics.Add(diagnostic);
+
+            await test.RunAsync();
+        }
+
+        internal static Task TestWithPickMembersDialogAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            string[] chosenSymbols,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
+            int index = 0,
+            TestParameters parameters = default,
+            List<DiagnosticResult> expectedDiagnostics = null,
+            List<DiagnosticResult> testExpectedDiagnostics = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            return TestWithPickMembersDialogAsync(
+                new[] { initialMarkup },
+                new[] { expectedMarkup },
+                chosenSymbols,
+                optionsCallback,
+                index,
+                parameters,
+                expectedDiagnostics,
+                testExpectedDiagnostics,
+                fixedExpectedDiagnostics);
+        }
+
+        internal static Task TestWithPickMembersDialogAsync(
+            string[] initialMarkup,
+            string[] expectedMarkup,
+            string[] chosenSymbols,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
+            int index = 0,
+            TestParameters parameters = default,
+            List<DiagnosticResult> expectedDiagnostics = null,
+            List<DiagnosticResult> testExpectedDiagnostics = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
+            return TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup,
+                index,
+                parameters.WithFixProviderData(pickMembersService),
+                expectedDiagnostics,
+                testExpectedDiagnostics,
+                fixedExpectedDiagnostics);
+        }
+
+        internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
+        {
+            var option = options.FirstOrDefault(o => o.Id == id);
+            if (option != null)
+            {
+                option.Value = true;
+            }
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestEqualsSingleField()
+        public async Task TestEqualsSingleField1()
         {
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
@@ -119,7 +311,12 @@ class Program
                EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }",
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(5,11): error CS0535: 'S' does not implement interface member 'IEquatable<S>.Equals(S)'
+    DiagnosticResult.CompilerError("CS0535").WithSpan(5, 11, 5, 24).WithArguments("S", "System.IEquatable<S>.Equals(S)"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -158,7 +355,12 @@ class Program
     {
         return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
     }
-}", index: 1, options: this.PreferImplicitTypeWithInfo());
+}", index: 1, options: PreferImplicitTypeWithInfo(),
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(6,11): error CS0535: 'S' does not implement interface member 'IEquatable<S>.Equals(S)'
+    DiagnosticResult.CompilerError("CS0535").WithSpan(6, 11, 6, 24).WithArguments("S", "System.IEquatable<S>.Equals(S)"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -192,7 +394,12 @@ class Program
                a.Equals(program.a);
     }
 }",
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(5,12): error CS0535: 'S' does not implement interface member 'IEquatable<S>.Equals(S)'
+    DiagnosticResult.CompilerError("CS0535").WithSpan(5, 12, 5, 25).WithArguments("S", "System.IEquatable<S>.Equals(S)"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -318,6 +525,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -333,6 +541,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -365,6 +574,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -384,6 +594,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -535,7 +746,12 @@ struct ReallyLongName : IEquatable<ReallyLongName>
     {
         return !(left == right);
     }
-}");
+}",
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(4,25): error CS0535: 'ReallyLongName' does not implement interface member 'IEquatable<ReallyLongName>.Equals(ReallyLongName)'
+    DiagnosticResult.CompilerError("CS0535").WithSpan(4, 25, 4, 51).WithArguments("ReallyLongName", "System.IEquatable<ReallyLongName>.Equals(ReallyLongName)"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -613,7 +829,11 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 
     public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
     public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
-}");
+}", expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(4,25): error CS0535: 'ReallyLongName' does not implement interface member 'IEquatable<ReallyLongName>.Equals(ReallyLongName)'
+    DiagnosticResult.CompilerError("CS0535").WithSpan(4, 25, 4, 51).WithArguments("ReallyLongName", "System.IEquatable<ReallyLongName>.Equals(ReallyLongName)"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -845,7 +1065,10 @@ class Program
 }",
 index: 1,
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+    options: new OptionsCollection(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+    },
     parseOptions: CSharp6.parseOptions));
         }
 
@@ -953,64 +1176,64 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestSmartTagText1()
-        {
-            await TestSmartTagTextAsync(
-@"using System.Collections.Generic;
+//        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+//        public async Task TestSmartTagText1()
+//        {
+//            await TestSmartTagTextAsync(
+//@"using System.Collections.Generic;
 
-class Program
-{
-    [|bool b;
-    HashSet<string> s;|]
+//class Program
+//{
+//    [|bool b;
+//    HashSet<string> s;|]
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
-}",
-FeaturesResources.Generate_Equals_object);
-        }
+//    public Program(bool b)
+//    {
+//        this.b = b;
+//    }
+//}",
+//FeaturesResources.Generate_Equals_object);
+//        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestSmartTagText2()
-        {
-            await TestSmartTagTextAsync(
-@"using System.Collections.Generic;
+//        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+//        public async Task TestSmartTagText2()
+//        {
+//            await TestSmartTagTextAsync(
+//@"using System.Collections.Generic;
 
-class Program
-{
-    [|bool b;
-    HashSet<string> s;|]
+//class Program
+//{
+//    [|bool b;
+//    HashSet<string> s;|]
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
-}",
-FeaturesResources.Generate_Equals_and_GetHashCode,
-index: 1);
-        }
+//    public Program(bool b)
+//    {
+//        this.b = b;
+//    }
+//}",
+//FeaturesResources.Generate_Equals_and_GetHashCode,
+//index: 1);
+//        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestSmartTagText3()
-        {
-            await TestSmartTagTextAsync(
-@"using System.Collections.Generic;
+//        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+//        public async Task TestSmartTagText3()
+//        {
+//            await TestSmartTagTextAsync(
+//@"using System.Collections.Generic;
 
-class Program
-{
-    [|bool b;
-    HashSet<string> s;|]
+//class Program
+//{
+//    [|bool b;
+//    HashSet<string> s;|]
 
-    public Program(bool b)
-    {
-        this.b = b;
-    }
-}",
-FeaturesResources.Generate_Equals_and_GetHashCode,
-index: 1);
-        }
+//    public Program(bool b)
+//    {
+//        this.b = b;
+//    }
+//}",
+//FeaturesResources.Generate_Equals_and_GetHashCode,
+//index: 1);
+//        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task Tuple_Disabled()
@@ -1036,7 +1259,12 @@ class C
     }
 }",
 index: 0,
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 18).WithArguments("tuples", "7.0"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1062,7 +1290,12 @@ class C
                a.Equals(c.a);
     }
 }",
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>()
+{
+    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 18).WithArguments("tuples", "7.0"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1088,7 +1321,12 @@ class C
                a.Equals(c.a);
     }
 }",
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 22).WithArguments("tuples", "7.0"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1120,7 +1358,12 @@ class Program
     }
 }",
 index: 1,
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 18).WithArguments("tuples", "7.0"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1152,7 +1395,12 @@ class Program
     }
 }",
 index: 1,
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 22).WithArguments("tuples", "7.0"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1709,7 +1957,10 @@ class Program
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+    options: new OptionsCollection(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+    },
     parseOptions: CSharp6.parseOptions));
         }
 
@@ -1745,7 +1996,12 @@ class Program
 }",
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+testExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(9,33): error CS0216: The operator 'Program.operator ==(Program, Program)' requires a matching operator '!=' to also be defined
+    DiagnosticResult.CompilerError("CS0216").WithSpan(9, 33, 9, 35).WithArguments("Program.operator ==(Program, Program)", "!="),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1859,7 +2115,7 @@ struct Bar : IEquatable<Bar>
 {
     private readonly int value;
 
-    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+    public override bool Equals(object obj) => false;
 
     public bool Equals(Bar other) => value == other.value;
 
@@ -1891,7 +2147,7 @@ struct Bar : IEquatable<Bar>
 {
     private readonly int value;
 
-    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+    public override bool Equals(object obj) => false;
 
     public bool Equals(Bar other) => value == other.value;
 
@@ -2284,7 +2540,12 @@ class Program : System.IEquatable<Program>
 }",
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+expectedDiagnostics: new List<DiagnosticResult>()
+{
+    // /0/Test0.cs(4,17): error CS0535: 'Program' does not implement interface member 'IEquatable<Program>.Equals(Program)'
+    DiagnosticResult.CompilerError("CS0535").WithSpan(4, 17, 4, 43).WithArguments("Program", "System.IEquatable<Program>.Equals(Program)"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2874,6 +3135,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -2889,6 +3151,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -2913,13 +3176,19 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestPartialSelection()
         {
-            await TestMissingAsync(
+            var code =
 @"using System.Collections.Generic;
 
 class Program
 {
     int [|a|];
-}");
+}";
+
+            await new Test
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
         }
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
@@ -2968,7 +3237,14 @@ namespace N
 }",
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-parameters: CSharpLatestImplicit);
+parameters: CSharpLatestImplicit,
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(20,55): error CS8604: Possible null reference argument for parameter 'x' in 'bool EqualityComparer<C>.Equals(C x, C y)'.
+    DiagnosticResult.CompilerError("CS8604").WithSpan(20, 55, 20, 59).WithArguments("x", "bool EqualityComparer<C>.Equals(C x, C y)"),
+    // /0/Test0.cs(20,61): error CS8604: Possible null reference argument for parameter 'y' in 'bool EqualityComparer<C>.Equals(C x, C y)'.
+    DiagnosticResult.CompilerError("CS8604").WithSpan(20, 61, 20, 66).WithArguments("y", "bool EqualityComparer<C>.Equals(C x, C y)"),
+});
         }
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
@@ -3024,26 +3300,22 @@ parameters: CSharpLatestImplicit);
         public async Task TestPartialTypes1()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
     int bar;
     [||]
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
 
 
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}",
+},
+new[]
+{
+@"partial class Goo
 {
     int bar;
 
@@ -3057,8 +3329,13 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}",
+@"partial class Goo
+{
+
+
+}"
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
@@ -3068,26 +3345,27 @@ index: 1);
         public async Task TestPartialTypes2()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
     int bar;
 
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
 
 [||]
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}",
+},
+new[]
+{
+@"partial class Goo
+{
+    int bar;
+
+}",
+@"partial class Goo
 {
     public override bool Equals(object obj)
     {
@@ -3099,8 +3377,8 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}",
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
@@ -3110,26 +3388,22 @@ index: 1);
         public async Task TestPartialTypes3()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
 
 [||]
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
     int bar;
 
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}"
+},
+new[]
+{
+@"partial class Goo
 {
     public override bool Equals(object obj)
     {
@@ -3141,8 +3415,13 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}",
+@"partial class Goo
+{
+    int bar;
+
+}"
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
@@ -3152,26 +3431,27 @@ index: 1);
         public async Task TestPartialTypes4()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
 
 
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
     int bar;
 [||]
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}"
+},
+new[]
+{
+@"partial class Goo
+{
+
+
+}",
+@"partial class Goo
 {
     int bar;
 
@@ -3185,8 +3465,8 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}"
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
@@ -3234,7 +3514,16 @@ class Derived : Base
     }
 }",
 index: 1,
-parameters: CSharpLatest);
+parameters: CSharpLatest,
+testExpectedDiagnostics: new List<DiagnosticResult>()
+{
+    // /0/Test0.cs(5,48): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+    DiagnosticResult.CompilerError("CS8632").WithSpan(5, 48, 5, 49),
+    // /0/Test0.cs(9,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Equals(object?)'
+    DiagnosticResult.CompilerError("CS0534").WithSpan(9, 7, 9, 14).WithArguments("Derived", "Base.Equals(object?)"),
+    // /0/Test0.cs(9,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.GetHashCode()'
+    DiagnosticResult.CompilerError("CS0534").WithSpan(9, 7, 9, 14).WithArguments("Derived", "Base.GetHashCode()"),
+});
         }
     }
 }
