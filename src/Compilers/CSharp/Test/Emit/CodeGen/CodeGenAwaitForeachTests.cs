@@ -7030,7 +7030,7 @@ internal static class Extensions
         }
 
         [Fact]
-        public void TestAwaitForEachViaExtensionImplicitlyDisposableStruct()
+        public void TestAwaitForEachViaExtensionImplicitImplementationOfIAsyncDisposableStruct()
         {
             var source = @"
 using System;
