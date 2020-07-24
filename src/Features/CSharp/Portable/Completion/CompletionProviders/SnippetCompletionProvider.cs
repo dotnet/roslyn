@@ -94,45 +94,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }
 
-            var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
             var isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken);
 
-            if (semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
+            if (syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
             {
                 var directive = leftToken.GetAncestor<DirectiveTriviaSyntax>();
-                if (directive.DirectiveNameToken.IsKind(
-                    SyntaxKind.IfKeyword,
-                    SyntaxKind.RegionKeyword,
-                    SyntaxKind.ElseKeyword,
-                    SyntaxKind.ElifKeyword,
-                    SyntaxKind.ErrorKeyword,
-                    SyntaxKind.LineKeyword,
-                    SyntaxKind.PragmaKeyword,
-                    SyntaxKind.EndIfKeyword,
-                    SyntaxKind.UndefKeyword,
-                    SyntaxKind.EndRegionKeyword,
-                    SyntaxKind.WarningKeyword))
+                if (!directive.DirectiveNameToken.IsKind(
+                        SyntaxKind.IfKeyword,
+                        SyntaxKind.RegionKeyword,
+                        SyntaxKind.ElseKeyword,
+                        SyntaxKind.ElifKeyword,
+                        SyntaxKind.ErrorKeyword,
+                        SyntaxKind.LineKeyword,
+                        SyntaxKind.PragmaKeyword,
+                        SyntaxKind.EndIfKeyword,
+                        SyntaxKind.UndefKeyword,
+                        SyntaxKind.EndRegionKeyword,
+                        SyntaxKind.WarningKeyword))
                 {
-                    return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                    var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                    return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true,
+                            isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
-
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true,
-                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
-
-            if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsExpressionContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsStatementContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsTypeContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsTypeDeclarationContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsNamespaceContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
-                semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
+            else
             {
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false,
-                    isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+
+                if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsExpressionContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsStatementContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsTypeContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsTypeDeclarationContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsNamespaceContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
+                    semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
+                {
+                    return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false,
+                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();

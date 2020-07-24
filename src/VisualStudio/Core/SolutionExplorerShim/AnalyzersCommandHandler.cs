@@ -45,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         // Analyzers folder context menu items
         private MenuCommand _addMenuItem;
-        private MenuCommand _openRuleSetMenuItem;
 
         // Analyzer context menu items
         private MenuCommand _removeMenuItem;
@@ -91,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 // Analyzers folder context menu items
                 _addMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.AddAnalyzer, AddAnalyzerHandler);
-                _openRuleSetMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
+                _ = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
 
                 // Analyzer context menu items
                 _removeMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.RemoveAnalyzer, RemoveAnalyzerHandler);

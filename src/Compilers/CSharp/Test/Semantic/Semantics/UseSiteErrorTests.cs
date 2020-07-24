@@ -1028,7 +1028,7 @@ public sealed class A
 
             var lib1 = CreateEmptyCompilation(
                 new[] { Parse(srcLib1) },
-                new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v3_5_30729.SystemCore },
+                new[] { TestMetadata.Net20.mscorlib, TestMetadata.Net35.SystemCore },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
             string srcLib2 = @"

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public SourceCodeKind SourceCodeKind { get; }
         public string? FilePath { get; }
 
-        public bool IsGenerated
+        public static bool IsGenerated
         {
             get
             {
@@ -310,6 +310,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public DocumentInfo ToDocumentInfo()
-            => DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
+            => DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: IsGenerated, _documentServiceProvider);
     }
 }

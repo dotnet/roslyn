@@ -29,7 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
         private Task<RemoteHostClient?>? _remoteClientInitializationTask;
         private SolutionChecksumUpdater? _checksumUpdater;
+#pragma warning disable IDE0044 // Add readonly modifier
         private CancellationTokenSource _disposalCancellationSource;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

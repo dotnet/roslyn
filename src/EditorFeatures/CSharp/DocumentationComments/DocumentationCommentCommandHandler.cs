@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 && lastTextToken.TrailingTrivia.Count == 0;
         }
 
-        private IList<SyntaxToken> GetTextTokensFollowingExteriorTrivia(XmlTextSyntax xmlText)
+        private static IList<SyntaxToken> GetTextTokensFollowingExteriorTrivia(XmlTextSyntax xmlText)
         {
             var result = new List<SyntaxToken>();
 

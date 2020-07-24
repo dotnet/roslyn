@@ -3236,7 +3236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Local
                     Dim localSymbol = DirectCast(lookupResult.SingleSymbol, LocalSymbol)
 
-                    If localSymbol.IsFunctionValue Then
+                    If localSymbol.IsFunctionValue AndAlso Not IsNameOfArgument(node) Then
                         Dim method = DirectCast(localSymbol.ContainingSymbol, MethodSymbol)
 
                         If method.IsAsync OrElse method.IsIterator Then

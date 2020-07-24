@@ -1,4 +1,1 @@
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer = 0, options As Microsoft.CodeAnalysis.ParseOptions = Nothing, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer, consumeFullText As Boolean) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
-*REMOVED*Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer = 0, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetUsedAssemblyReferences(cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.MetadataReference)

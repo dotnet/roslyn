@@ -3459,6 +3459,76 @@ class C
             Assert.Equal(localFunctionSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
         }
 
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LocalFunctionReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        local();
+        return null!;
+        string local()
+        {
+            s.ToString();
+            return s;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Body!.OpenBraceToken.SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String!' because we are speculating within the local function.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LambdaReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        System.Func<string> local = () =>
+        {
+            s.ToString();
+            return s;
+        };
+        local();
+        return null!;
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Block!.OpenBraceToken.SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String!' because we are speculating within the local function.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+        }
+
         [Fact]
         public void NestedLambdaReinference_SpeculativeParamReference()
         {
@@ -3961,7 +4031,7 @@ class B2 : A<int?>
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ToArray();
-            verify(exprs[0], PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.MaybeNull);
+            verify(exprs[0], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
             verify(exprs[1], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
 
             void verify(DefaultExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation, PublicNullableFlowState expectedState)
@@ -4362,6 +4432,50 @@ class C
             {
                 Assert.Null(model.GetOperation(s));
             }
+        }
+
+        [Fact]
+        public void UnconstrainedTypeParameter()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static T F<T>(T t) => t;
+    static T F1<T>(T? x1)
+    {
+        T y1 = F(x1);
+        if (x1 == null) throw null!;
+        T z1 = F(x1);
+        return z1;
+    }
+    static T F2<T>(T x2)
+    {
+        T y2 = F(x2);
+        x2 = default;
+        T z2 = F(x2);
+        return z2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (17,16): warning CS8603: Possible null reference return.
+                //         return z2; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "z2").WithLocation(17, 16));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var invocations = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>();
+            var actualAnnotations = invocations.Select(inv => (((IMethodSymbol)model.GetSymbolInfo(inv).Symbol)).TypeArguments[0].NullableAnnotation).ToArray();
+            var expectedAnnotations = new[]
+            {
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+            };
+            AssertEx.Equal(expectedAnnotations, actualAnnotations);
         }
     }
 }

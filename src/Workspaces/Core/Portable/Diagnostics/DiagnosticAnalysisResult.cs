@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -318,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
-                Debug.Assert(project.GetDocument(documentId)?.SupportsDiagnostics() == true);
+                Debug.Assert(project.GetTextDocument(documentId)?.SupportsDiagnostics() == true);
             }
         }
     }

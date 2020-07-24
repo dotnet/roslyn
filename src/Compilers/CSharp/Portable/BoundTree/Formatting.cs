@@ -163,6 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (Type is null) ? MessageID.IDS_FeatureSwitchExpression.Localize() : base.Display;
     }
 
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_FeatureTargetTypedConditional.Localize() : base.Display;
+    }
+
     internal partial class BoundPassByCopy
     {
         public override object Display => Expression.Display;

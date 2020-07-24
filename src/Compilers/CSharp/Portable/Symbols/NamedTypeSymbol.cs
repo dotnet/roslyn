@@ -1222,13 +1222,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool DeriveUseSiteDiagnosticFromTypeArguments(ref UseSiteInfo<AssemblySymbol> result)
         {
-            foreach (TypeWithAnnotations arg in this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+            NamedTypeSymbol currentType = this;
+
+            do
             {
-                if (DeriveUseSiteInfoFromType(ref result, arg, AllowedRequiredModifierType.None))
+                foreach (TypeWithAnnotations arg in currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                 {
-                    return true;
+                    if (DeriveUseSiteInfoFromType(ref result, arg, AllowedRequiredModifierType.None))
+                    {
+                        return true;
+                    }
                 }
+
+                currentType = currentType.ContainingType;
             }
+            while (currentType?.IsDefinition == false);
 
             return false;
         }

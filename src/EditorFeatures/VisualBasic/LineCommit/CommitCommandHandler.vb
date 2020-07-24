@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldCaretPositionInCurrentSnapshot = oldCaretPositionInOldSnapshot.Value.CreateTrackingPoint(PointTrackingMode.Negative).GetPoint(subjectBuffer.CurrentSnapshot)
             Dim bufferManager = _bufferManagerFactory.CreateForBuffer(subjectBuffer)
 
-            If bufferManager.IsMovementBetweenStatements(oldCaretPositionInCurrentSnapshot, newCaretPosition.Value, cancellationToken) Then
+            If CommitBufferManager.IsMovementBetweenStatements(oldCaretPositionInCurrentSnapshot, newCaretPosition.Value, cancellationToken) Then
                 Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
                 If document Is Nothing Then
                     Return False

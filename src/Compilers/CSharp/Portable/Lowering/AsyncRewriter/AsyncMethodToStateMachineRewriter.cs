@@ -236,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(exceptionLocal),
                 F.Local(exceptionLocal),
                 exceptionLocal.Type,
+                exceptionFilterPrologueOpt: null,
                 exceptionFilterOpt: null,
                 body: F.Block(
                     assignFinishedState, // _state = finishedState;

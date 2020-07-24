@@ -307,8 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
                 text.ToString(), info.Name, info.SourceCodeKind,
-                info.Id, folders: info.Folders,
-                exportProvider: ExportProvider);
+                info.Id, folders: info.Folders, exportProvider: ExportProvider);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -330,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyAdditionalDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, exportProvider: ExportProvider);
             hostProject.AddAdditionalDocument(hostDocument);
             this.OnAdditionalDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -352,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders, exportProvider: ExportProvider);
             hostProject.AddAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -496,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return projectionDocument;
         }
 
-        private void GetSpansAndCaretFromSurfaceBufferMarkup(
+        private static void GetSpansAndCaretFromSurfaceBufferMarkup(
             string markup, IList<TestHostDocument> baseDocuments,
             out IList<object> projectionBufferSpans,
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
@@ -593,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             MapMarkupSpans(markupSpans, out mappedMarkupSpans, projectionBufferSpans, projectionBufferSpanStartingPositions);
         }
 
-        private void MapMarkupSpans(
+        private static void MapMarkupSpans(
             IDictionary<string, ImmutableArray<TextSpan>> markupSpans,
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans,
             IList<object> projectionBufferSpans, IList<int> projectionBufferSpanStartingPositions)

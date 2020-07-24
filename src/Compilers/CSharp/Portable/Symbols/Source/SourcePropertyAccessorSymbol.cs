@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourcePropertyAccessorSymbol : SourceMemberMethodSymbol
+    internal class SourcePropertyAccessorSymbol : SourceMemberMethodSymbol
     {
         private readonly SourcePropertySymbolBase _property;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             SynthesizedRecordPropertySymbol property,
             DeclarationModifiers propertyModifiers,
-            string propertyName,
             Location location,
             CSharpSyntaxNode syntax,
             BindingDiagnosticBag diagnostics)
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
             GetNameAndExplicitInterfaceImplementations(
                 explicitlyImplementedPropertyOpt: null,
-                propertyName,
+                property.Name,
                 property.IsCompilationOutputWinMdObj(),
                 aliasQualifierOpt: null,
                 isGetMethod,
@@ -153,9 +152,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExplicitInterfaceImplementation: false,
                 diagnostics);
         }
+
+        public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
+            NamedTypeSymbol containingType,
+            SynthesizedRecordEqualityContractProperty property,
+            DeclarationModifiers propertyModifiers,
+            Location location,
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics)
+        {
+            string name;
+            ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
+            GetNameAndExplicitInterfaceImplementations(
+                explicitlyImplementedPropertyOpt: null,
+                property.Name,
+                property.IsCompilationOutputWinMdObj(),
+                aliasQualifierOpt: null,
+                isGetMethod: true,
+                out name,
+                out explicitInterfaceImplementations);
+
+            return new SynthesizedRecordEqualityContractProperty.GetAccessorSymbol(
+                containingType,
+                name,
+                property,
+                propertyModifiers,
+                explicitInterfaceImplementations,
+                location,
+                syntax,
+                diagnostics);
+        }
 #nullable restore
 
-        internal override bool IsExpressionBodied
+        internal sealed override bool IsExpressionBodied
             => _isExpressionBodied;
 
         internal sealed override ImmutableArray<string> NotNullMembers
@@ -251,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        private SourcePropertyAccessorSymbol(
+        protected SourcePropertyAccessorSymbol(
             NamedTypeSymbol containingType,
             string name,
             SourcePropertySymbolBase property,
@@ -337,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
             propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
 
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             // These values may not be final, but we need to have something set here in the
             // event that we need to find the overridden accessor.
@@ -376,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Accessibility DeclaredAccessibility
+        public sealed override Accessibility DeclaredAccessibility
         {
             get
             {
@@ -392,22 +421,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public sealed override Symbol AssociatedSymbol
         {
             get { return _property; }
         }
 
-        public override bool IsVararg
+        public sealed override bool IsVararg
         {
             get { return false; }
         }
 
-        public override bool ReturnsVoid
+        public sealed override bool ReturnsVoid
         {
             get { return this.ReturnType.IsVoidType(); }
         }
 
-        public override ImmutableArray<ParameterSymbol> Parameters
+        public sealed override ImmutableArray<ParameterSymbol> Parameters
         {
             get
             {
@@ -416,20 +445,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
+        public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
-        public override RefKind RefKind
+        public sealed override RefKind RefKind
         {
             get { return _property.RefKind; }
         }
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
@@ -438,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations
         {
             get
             {
@@ -460,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         private TypeWithAnnotations ComputeReturnType(BindingDiagnosticBag diagnostics)
         {
@@ -502,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binderFactory.GetBinder(syntax);
         }
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
@@ -528,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
-        internal override bool IsDeclaredReadOnly
+        internal sealed override bool IsDeclaredReadOnly
         {
             get
             {
@@ -579,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsInitOnly => !IsStatic && _usesInit;
+        internal sealed override bool IsInitOnly => !IsStatic && _usesInit;
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
@@ -675,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
         }
 
-        internal override bool IsExplicitInterfaceImplementation
+        internal sealed override bool IsExplicitInterfaceImplementation
         {
             get
             {
@@ -683,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
+        public sealed override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get
             {
@@ -691,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             var syntax = this.GetSyntax();
             switch (syntax.Kind())
@@ -705,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.GetAttributeDeclarations();
         }
 
-        public override string Name
+        public sealed override string Name
         {
             get
             {
@@ -713,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsImplicitlyDeclared
+        public sealed override bool IsImplicitlyDeclared
         {
             get
             {
@@ -732,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool GenerateDebugInfo
+        internal sealed override bool GenerateDebugInfo
         {
             get
             {
@@ -785,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.ToImmutableAndFree();
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal sealed override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
@@ -800,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

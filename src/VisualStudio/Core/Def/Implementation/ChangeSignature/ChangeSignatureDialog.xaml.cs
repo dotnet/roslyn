@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         // Expose localized strings for binding
         public string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
+        public string CurrentParameter { get { return ServicesVSResources.Current_parameter; } }
         public string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
         public string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
         public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }

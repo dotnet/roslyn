@@ -2,21 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../EditorFeaturesWpfResources.resx">
     <body>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="translated">Échec du téléchargement de l'index</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="translated">Échec du téléchargement de l'index : {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="translated">Téléchargement de l'index IntelliSense pour {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">
         <source>Gathering Suggestions - '{0}'</source>
         <target state="translated">Collecte des suggestions - '{0}'</target>
@@ -70,11 +55,6 @@
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="translated">Regex - autre échappement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">Supprimer ou configurer les problèmes</target>
         <note />
       </trans-unit>
     </body>

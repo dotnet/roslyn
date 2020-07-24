@@ -26,6 +26,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using System.Security.Cryptography;
 using static Roslyn.Test.Utilities.TestHelpers;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -310,7 +311,7 @@ namespace A.B {
             listSyntaxTree.Add(t1);
 
             // System.dll
-            listRef.Add(TestReferences.NetFx.v4_0_30319.System.WithEmbedInteropTypes(true));
+            listRef.Add(Net451.System.WithEmbedInteropTypes(true));
             var ops = TestOptions.ReleaseExe;
             // Create Compilation with Option is not null
             var comp = CSharpCompilation.Create("Compilation", listSyntaxTree, listRef, ops);
@@ -443,8 +444,8 @@ namespace A.B {
             var opt = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
             // Create Compilation takes two args
             var comp = CSharpCompilation.Create("Compilation", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.System;
             var ref3 = new TestMetadataReference(fullPath: @"c:\xml.bms");
             var ref4 = new TestMetadataReference(fullPath: @"c:\aaa.dll");
             // Add a new empty item 
@@ -545,18 +546,18 @@ namespace A.B {
             var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(files: new Dictionary<string, PortableExecutableReference>()
                 {
-                    { @"a.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
-                    { @"b.dll", TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic },
+                    { @"a.dll", Net451.MicrosoftCSharp },
+                    { @"b.dll", Net451.MicrosoftVisualBasic },
                 })));
 
             c.VerifyDiagnostics();
 
             // same containing script file name and directive string
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[0]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[1]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd2[0]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2[1]));
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd3[0]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd1[0]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd1[1]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd2[0]));
+            Assert.Same(Net451.MicrosoftVisualBasic, c.GetDirectiveReference(rd2[1]));
+            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd3[0]));
 
             // different script name or directive string:
             Assert.Null(c.GetDirectiveReference(rd4[0]));
@@ -918,7 +919,7 @@ class D
 
             // Create compilation with args is disordered
             CSharpCompilation comp1 = CSharpCompilation.Create(assemblyName: "Compilation", syntaxTrees: null, options: TestOptions.ReleaseDll, references: null);
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var ref1 = Net451.mscorlib;
             var listRef = new List<MetadataReference>();
             listRef.Add(ref1);
             listRef.Add(ref1);
@@ -1137,8 +1138,8 @@ var a = new C2();
 
             var compRef = vbComp.ToMetadataReference(embedInteropTypes: true);
 
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.System;
 
             // Add CompilationReference
             comp = CSharpCompilation.Create(
@@ -1362,10 +1363,10 @@ var a = new C2();
         [Fact, WorkItem(537574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537574")]
         public void NegReference2()
         {
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System;
-            var ref3 = TestReferences.NetFx.v4_0_30319.System_Data;
-            var ref4 = TestReferences.NetFx.v4_0_30319.System_Xml;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.System;
+            var ref3 = Net451.SystemData;
+            var ref4 = Net451.SystemXml;
             var comp = CSharpCompilation.Create("Compilation");
 
             comp = comp.AddReferences(ref1, ref1);
@@ -1403,7 +1404,7 @@ var a = new C2();
         [Fact, WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
         public void NegReference4()
         {
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var ref1 = Net451.mscorlib;
             var comp = CSharpCompilation.Create("Compilation");
 
             Assert.Throws<ArgumentException>(
@@ -1424,8 +1425,8 @@ var a = new C2();
         [Fact, WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")]
         public void NegReference5()
         {
-            var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var ref2 = TestReferences.NetFx.v4_0_30319.System_Xml;
+            var ref1 = Net451.mscorlib;
+            var ref2 = Net451.SystemXml;
             var comp = CSharpCompilation.Create("Compilation");
             Assert.Throws<ArgumentException>(
             delegate
@@ -1439,7 +1440,7 @@ var a = new C2();
             Assert.Throws<ArgumentException>(
             delegate
             {
-                comp.ReplaceReference(newReference: TestReferences.NetFx.v4_0_30319.System, oldReference: ref2);
+                comp.ReplaceReference(newReference: Net451.System, oldReference: ref2);
             });
             Assert.Equal(0, comp.SyntaxTrees.Length);
             Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(newTree: SyntaxFactory.ParseSyntaxTree("Using System;"), oldTree: t1));
@@ -1847,7 +1848,7 @@ class B
         [Fact, WorkItem(750437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750437")]
         public void ConflictingAliases()
         {
-            var alias = TestReferences.NetFx.v4_0_30319.System.WithAliases(new[] { "alias" });
+            var alias = Net451.System.WithAliases(new[] { "alias" });
 
             var text =
 @"extern alias alias;
@@ -2201,8 +2202,8 @@ class C { }", options: TestOptions.Script);
         {
             var references = new MetadataReference[]
             {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
-                TestReferences.NetFx.v4_0_30319.System,
+                Net451.mscorlib,
+                Net451.System,
                 TestReferences.NetFx.silverlight_v5_0_5_0.System
             };
 
@@ -2213,7 +2214,7 @@ class C { }", options: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System.dll' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
-                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll", "System.v5.0.5.0_silverlight.dll"));
+                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll (net451)", "System.v5.0.5.0_silverlight.dll"));
 
             var appConfig = new MemoryStream(Encoding.UTF8.GetBytes(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -2244,7 +2245,7 @@ using System.Runtime.Versioning;
 public class C { public static FrameworkName Goo() { return null; }}";
             var libComp = CreateEmptyCompilation(
                 libSource,
-                references: new[] { MscorlibRef, TestReferences.NetFx.v4_0_30319.System },
+                references: new[] { MscorlibRef, Net451.System },
                 options: TestOptions.ReleaseDll);
 
             libComp.VerifyDiagnostics();
@@ -2254,8 +2255,8 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             var references = new[]
             {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
-                TestReferences.NetFx.v4_0_30319.System,
+                Net451.mscorlib,
+                Net451.System,
                 TestReferences.NetFx.silverlight_v5_0_5_0.System,
                 mdRef
             };
@@ -2270,7 +2271,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             c1.VerifyDiagnostics(
                 // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System.dll' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
-                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll", "System.v5.0.5.0_silverlight.dll"),
+                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll (net451)", "System.v5.0.5.0_silverlight.dll"),
                 // error CS7069: Reference to type 'System.Runtime.Versioning.FrameworkName' claims it is defined in 'System', but it could not be found
                 Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "C.Goo").WithArguments(
                     "System.Runtime.Versioning.FrameworkName", "System"));
@@ -2301,7 +2302,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         public void GetMetadataReferenceAPITest()
         {
             var comp = CSharpCompilation.Create("Compilation");
-            var metadata = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var metadata = Net451.mscorlib;
             comp = comp.AddReferences(metadata);
             var assemblySmb = comp.GetReferencedAssemblySymbol(metadata);
             var reference = comp.GetMetadataReference(assemblySmb);

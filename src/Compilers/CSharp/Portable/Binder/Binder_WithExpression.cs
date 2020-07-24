@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiver.Type;
 
             var lookupResult = LookupResult.GetInstance();
-
             bool hasErrors = false;
 
             if (receiverType is null || receiverType.IsVoidType())
@@ -39,39 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-                LookupMembersInType(
-                    lookupResult,
-                    receiverType,
-                    WellKnownMemberNames.CloneMethodName,
-                    arity: 0,
-                    ConsList<TypeSymbol>.Empty,
-                    LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
-                    this,
-                    diagnose: false,
-                    ref useSiteInfo);
-
-                if (lookupResult.IsMultiViable)
-                {
-                    foreach (var symbol in lookupResult.Symbols)
-                    {
-                        if (symbol is MethodSymbol { ParameterCount: 0 } m)
-                        {
-                            cloneMethod = m;
-                            break;
-                        }
-                    }
-                }
-
-                lookupResult.Clear();
-
-                if (cloneMethod is null ||
-                    !receiverType.IsEqualToOrDerivedFrom(
-                        cloneMethod.ReturnType,
-                        TypeCompareKind.ConsiderEverything,
-                        ref useSiteInfo))
+                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType, ref useSiteInfo);
+                if (cloneMethod is null)
                 {
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
+                }
+                else if (cloneMethod.GetUseSiteDiagnostic() is DiagnosticInfo info)
+                {
+                    (useSiteDiagnostics ??= new HashSet<DiagnosticInfo>()).Add(info);
                 }
 
                 diagnostics.Add(syntax.Expression, useSiteInfo);

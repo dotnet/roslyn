@@ -9,8 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-//test
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
 
             TestTypeKindHelper(assembly);
         }
