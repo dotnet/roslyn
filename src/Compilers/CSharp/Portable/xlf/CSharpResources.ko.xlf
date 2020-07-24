@@ -1983,8 +1983,13 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다.</target>
-        <note />
+        <target state="needs-review-translation">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다.</target>
+        <note>{0} is generator name</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.\n\nException was:\n{1}</source>
+        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.\n\nException was:\n{1}</target>
+        <note>{0} is generator name, {1} is exception that occured.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -1993,8 +1998,13 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다.</target>
-        <note />
+        <target state="needs-review-translation">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다.</target>
+        <note>{0} is generator name</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.\n\nException was:\n{1}.</source>
+        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.\n\nException was:\n{1}.</target>
+        <note>{0} is generator name, {1} is exception that occured.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

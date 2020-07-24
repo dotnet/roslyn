@@ -6195,9 +6195,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
     <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <comment>{0} is generator name</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
     <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <comment>{0} is generator name</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
@@ -6435,5 +6437,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
     <value>extension GetEnumerator</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.\n\nException was:\n{1}</value>
+    <comment>{0} is generator name, {1} is exception that occured.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.\n\nException was:\n{1}.</value>
+    <comment>{0} is generator name, {1} is exception that occured.</comment>
   </data>
 </root>
