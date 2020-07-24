@@ -464,5 +464,77 @@ class TypeName
 
             await AssertFormatAsync(expected, content);
         }
+
+        [Fact]
+        [WorkItem(42861, "https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatMultiLinePattern4()
+        {
+            var content = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        if (value is
+                 {
+                     Length: 2,
+                 })
+{
+}
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        if (value is
+            {
+                Length: 2,
+            })
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact]
+        [WorkItem(42861, "https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatMultiLinePattern5()
+        {
+            var content = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        while (value is
+                 {
+                     Length: 2,
+                 })
+{
+}
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        while (value is
+            {
+                Length: 2,
+            })
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, content);
+        }
     }
 }
