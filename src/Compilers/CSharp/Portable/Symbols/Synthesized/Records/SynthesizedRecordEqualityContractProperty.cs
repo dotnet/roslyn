@@ -30,10 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 setSyntax: null,
                 arrowExpression: null,
                 interfaceSpecifier: null,
-                modifiers: DeclarationModifiers.Protected |
-                           (containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() ?
-                                (containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual) :
-                                DeclarationModifiers.Override),
+                modifiers: (containingType.IsSealed, containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType()) switch
+                {
+                    (true, true) => DeclarationModifiers.Private,
+                    (false, true) => DeclarationModifiers.Protected | DeclarationModifiers.Virtual,
+                    (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
+                },
                 isIndexer: false,
                 hasInitializer: false,
                 isAutoProperty: false,
@@ -67,8 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Nothing to do here
         }
-
-        protected override bool ShouldReportProtectedMemberInSealedTypeError => false;
 
         protected override SourcePropertyAccessorSymbol? CreateAccessorSymbol(
             bool isGet,

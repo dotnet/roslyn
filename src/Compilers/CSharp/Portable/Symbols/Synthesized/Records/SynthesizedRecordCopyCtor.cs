@@ -27,12 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     isNullableEnabled: true,
                     ContainingType),
                 ordinal: 0,
-                RefKind.None));
+                RefKind.None,
+                "original"));
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        public override Accessibility DeclaredAccessibility => Accessibility.Protected;
+        public override Accessibility DeclaredAccessibility => ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 

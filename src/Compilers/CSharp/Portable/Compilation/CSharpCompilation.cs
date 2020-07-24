@@ -17,6 +17,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -2057,6 +2058,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw new NotImplementedException();
         }
 
+        private ConcurrentSet<MethodSymbol>? _moduleInitializerMethods;
+
+        internal void AddModuleInitializerMethod(MethodSymbol method)
+        {
+            Debug.Assert(!_declarationDiagnosticsFrozen);
+            LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
+        }
+
         #endregion
 
         #region Binding
@@ -2857,6 +2866,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag))
+                {
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                }
+
                 bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
                 if (hasDeclarationErrors || hasMethodBodyError)
@@ -2866,6 +2880,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+        }
+
+        private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
+        {
+            Debug.Assert(_declarationDiagnosticsFrozen);
+
+            if (_moduleInitializerMethods is object)
+            {
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+
+                foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
+                {
+                    ilBuilder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+
+                    ilBuilder.EmitToken(
+                        moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
+                        CSharpSyntaxTree.Dummy.GetRoot(),
+                        methodBodyDiagnosticBag);
+                }
+
+                ilBuilder.EmitRet(isVoid: true);
+                ilBuilder.Realize();
+                moduleBeingBuilt.RootModuleType.SetStaticConstructorBody(ilBuilder.RealizedIL);
+            }
         }
 
         internal override bool GenerateResourcesAndDocumentationComments(

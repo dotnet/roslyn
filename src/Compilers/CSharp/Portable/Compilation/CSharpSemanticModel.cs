@@ -2040,8 +2040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
-                    pattern.InputType, pattern.ConvertedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
+                    pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref useSiteDiagnostics));
             }
 
             var boundExpr = lowestBoundNode as BoundExpression;
@@ -2211,6 +2211,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = e.Type;
                     convertedNullability = e.TopLevelNullability;
                     conversion = e.Conversion.IsValid ? e.Conversion : Conversion.NoConversion;
+                }
+                else if (highestBoundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
+                {
+                    type = cond.NaturalTypeOpt;
+                    convertedType = cond.Type;
+                    convertedNullability = nullability;
+                    conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
                 }
                 else
                 {

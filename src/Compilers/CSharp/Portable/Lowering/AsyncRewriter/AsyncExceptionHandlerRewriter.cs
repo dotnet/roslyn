@@ -548,15 +548,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCatchBlock catchAndPend;
             ImmutableArray<LocalSymbol> handlerLocals;
 
+            var filterPrologueOpt = node.ExceptionFilterPrologueOpt;
             var filterOpt = node.ExceptionFilterOpt;
             if (filterOpt == null)
             {
+                Debug.Assert(filterPrologueOpt is null);
                 // store pending exception 
                 // as the first statement in a catch
                 catchAndPend = node.Update(
                     ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
+                    exceptionFilterPrologueOpt: filterPrologueOpt,
                     exceptionFilterOpt: null,
                     body: _F.Block(
                         _F.HiddenSequencePoint(),
@@ -581,6 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // store pending exception 
                 // as the first expression in a filter
                 var sourceOpt = node.ExceptionSourceOpt;
+                var rewrittenPrologue = (BoundStatementList)this.Visit(filterPrologueOpt);
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
                 var newFilter = sourceOpt == null ?
                                 _F.MakeSequence(
@@ -595,6 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
+                    exceptionFilterPrologueOpt: rewrittenPrologue,
                     exceptionFilterOpt: newFilter,
                     body: _F.Block(
                         _F.HiddenSequencePoint(),

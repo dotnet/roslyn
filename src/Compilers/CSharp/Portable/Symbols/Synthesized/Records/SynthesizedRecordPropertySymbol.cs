@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool HaveCorrespondingSynthesizedRecordPropertySymbol(SourceParameterSymbol parameter)
         {
-            return parameter.ContainingType.GetMembersUnordered().Any((s, parameter) => (s as SynthesizedRecordPropertySymbol)?.BackingParameter == (object)parameter, parameter);
+            return parameter.ContainingSymbol is SynthesizedRecordConstructor &&
+                   parameter.ContainingType.GetMembersUnordered().Any((s, parameter) => (s as SynthesizedRecordPropertySymbol)?.BackingParameter == (object)parameter, parameter);
         }
     }
 }

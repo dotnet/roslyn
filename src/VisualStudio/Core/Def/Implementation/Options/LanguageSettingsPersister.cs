@@ -32,7 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IVsTextManager4 _textManager;
         private readonly IGlobalOptionService _optionService;
 
+#pragma warning disable IDE0052 // Remove unread private members - https://github.com/dotnet/roslyn/issues/46167
         private readonly ComEventSink _textManagerEvents2Sink;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// The mapping between language names and Visual Studio language service GUIDs.
@@ -242,13 +244,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (!_supportedOptions.Contains(optionKey.Option))
             {
-                value = null;
                 return false;
             }
 
             if (!_languageMap.TryGetValue(optionKey.Language, out var languageServiceGuid))
             {
-                value = null;
                 return false;
             }
 
