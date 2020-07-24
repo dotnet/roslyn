@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
         where TMemberNode : SyntaxNode
     {
-        protected abstract TMemberNode GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+        protected abstract TMemberNode? GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         protected abstract bool SupportsDocumentationComments(TMemberNode member);
         protected abstract bool HasDocumentationComment(TMemberNode member);
         protected abstract int GetPrecedingDocumentationCommentCount(TMemberNode member);
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         protected abstract bool AddIndent { get; }
 
-        public DocumentationCommentSnippet GetDocumentationCommentSnippetOnCharacterTyped(
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
@@ -60,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var documentationComment = token.GetAncestor<TDocumentationComment>();
+            if (documentationComment == null)
+            {
+                return null;
+            }
+
             if (!IsSingleExteriorTrivia(documentationComment))
             {
                 return null;
@@ -115,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         public bool IsValidTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
             => GetTargetMember(syntaxTree, text, position, cancellationToken) != null;
 
-        private TMemberNode GetTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
+        private TMemberNode? GetTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
         {
             var member = GetContainingMember(syntaxTree, position, cancellationToken);
             if (member == null)
@@ -139,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return member;
         }
 
-        private TMemberNode GetTargetMember(TDocumentationComment documentationComment)
+        private TMemberNode? GetTargetMember(TDocumentationComment documentationComment)
         {
             var targetMember = documentationComment.ParentTrivia.Token.GetAncestor<TMemberNode>();
             if (targetMember == null)
@@ -168,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
         }
 
-        public DocumentationCommentSnippet GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, string exteriorTriviaText, CancellationToken cancellationToken)
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, string exteriorTriviaText, CancellationToken cancellationToken)
         {
             // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
             // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
@@ -186,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return GenerateExteriorTriviaAfterEnter(syntaxTree, text, position, options, exteriorTriviaText, cancellationToken);
         }
 
-        private DocumentationCommentSnippet GenerateDocumentationCommentAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
             var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
@@ -196,6 +204,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var documentationComment = token.GetAncestor<TDocumentationComment>();
+            if (documentationComment == null)
+            {
+                return null;
+            }
+
             if (!IsSingleExteriorTrivia(documentationComment))
             {
                 return null;
@@ -262,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return new DocumentationCommentSnippet(replaceSpan, newText, offset);
         }
 
-        public DocumentationCommentSnippet GetDocumentationCommentSnippetOnCommandInvoke(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
         {
             var targetMember = GetTargetMember(syntaxTree, text, position, cancellationToken);
             if (targetMember == null)
@@ -301,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return new DocumentationCommentSnippet(replaceSpan, comments, offset);
         }
 
-        private DocumentationCommentSnippet GenerateExteriorTriviaAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, string exteriorTriviaText, CancellationToken cancellationToken)
+        private DocumentationCommentSnippet? GenerateExteriorTriviaAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, string exteriorTriviaText, CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
             var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
@@ -345,6 +358,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var documentationComment = token.GetAncestor<TDocumentationComment>();
+            if (documentationComment == null)
+            {
+                return null;
+            }
+
             if (IsMultilineDocComment(documentationComment))
             {
                 return null;

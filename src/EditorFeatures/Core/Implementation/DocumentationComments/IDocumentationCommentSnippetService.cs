@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -11,21 +13,21 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IDocumentationCommentSnippetService : ILanguageService
     {
-        DocumentationCommentSnippet GetDocumentationCommentSnippetOnCharacterTyped(
+        DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
             CancellationToken cancellationToken);
 
-        DocumentationCommentSnippet GetDocumentationCommentSnippetOnCommandInvoke(
+        DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
             DocumentOptionSet options,
             CancellationToken cancellationToken);
 
-        DocumentationCommentSnippet GetDocumentationCommentSnippetOnEnterTyped(
+        DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
             SyntaxTree syntaxTree,
             SourceText text,
             int position,
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor
             string exteriorTriviaText,
             CancellationToken cancellationToken);
 
-        DocumentationCommentSnippet GetDocumentationCommentSnippetFromPreviousLine(
+        DocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(
             DocumentOptionSet options,
             string exteriorTriviaText,
             TextLine currentLine,

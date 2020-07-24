@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable 
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
         }
 
-        protected override MemberDeclarationSyntax GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        protected override MemberDeclarationSyntax? GetContainingMember(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetRoot(cancellationToken).FindToken(position).GetAncestor<MemberDeclarationSyntax>();
         }
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             {
                 var returnType = member.GetMemberType();
                 if (returnType != null &&
-                    !(returnType.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
+                    !(returnType.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType) && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
                 {
                     list.Add("/// <returns></returns>");
                 }

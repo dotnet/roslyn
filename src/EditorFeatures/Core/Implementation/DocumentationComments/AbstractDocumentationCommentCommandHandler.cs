@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             return insertAction(service, syntaxTree, text, caretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var isValidTargetMember = false;
             _waitIndicator.Wait("IntelliSense", allowCancel: true, action: c =>
             {
-                var syntaxTree = document.GetSyntaxTreeSynchronously(c.CancellationToken);
+                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(c.CancellationToken);
                 var text = syntaxTree.GetText(c.CancellationToken);
                 isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.CancellationToken);
             });
