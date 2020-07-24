@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,18 +29,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
+        public readonly IToolTipService ToolTipService;
+        public readonly IViewElementFactoryService ViewElementFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineParameterNameHintsTaggerProvider(IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
                                                        IClassificationFormatMapService classificationFormatMapService,
                                                        IClassificationTypeRegistryService classificationTypeRegistryService,
-                                                       IThreadingContext threadingContext)
+                                                       IThreadingContext threadingContext,
+                                                       IToolTipService toolTipService,
+                                                       IViewElementFactoryService viewElementFactoryService)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;
             this.ClassificationTypeRegistryService = classificationTypeRegistryService;
             this.ThreadingContext = threadingContext;
+            this.ToolTipService = toolTipService;
+            this.ViewElementFactoryService = viewElementFactoryService;
         }
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag

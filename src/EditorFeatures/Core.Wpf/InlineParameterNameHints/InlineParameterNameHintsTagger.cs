@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -44,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hintClassification;
         private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
+        private readonly IToolTipService _toolTipService;
+        private readonly IViewElementFactoryService _viewElementFactoryService;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
@@ -51,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
+            _toolTipService = taggerProvider.ToolTipService;
+            _viewElementFactoryService = taggerProvider.ViewElementFactoryService;
             _textView = textView;
             _buffer = buffer;
             _tagAggregator = tagAggregator;
@@ -118,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView.LineHeight, Format)));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView.LineHeight, Format, _toolTipService, _textView, _viewElementFactoryService)));
                     }
                 }
             }

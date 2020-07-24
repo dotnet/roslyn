@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
@@ -24,12 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
         /// </summary>
         /// <param name="text">The name of the parameter associated with the argument</param>
-        public InlineParameterNameHintsTag(string text, double lineHeight, TextFormattingRunProperties format)
-            : base(CreateElement(text, lineHeight, format), removalCallback: null, PositionAffinity.Successor)
+        public InlineParameterNameHintsTag(string text, double lineHeight, TextFormattingRunProperties format,
+                                           IToolTipService toolTipService, ITextView textView, IViewElementFactoryService viewElementFactoryService)
+            : base(CreateElement(text, lineHeight, format, toolTipService, textView, viewElementFactoryService), removalCallback: null, PositionAffinity.Successor)
         {
         }
 
-        private static UIElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format)
+        private static UIElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format,
+                                               IToolTipService toolTipService, ITextView textView, IViewElementFactoryService viewElementFactoryService)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
@@ -58,7 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 Padding = new Thickness(1),
                 VerticalAlignment = VerticalAlignment.Center,
             };
-
+            var test = ((IEnumerable)"hello world").Cast<object>();
+            border.ToolTip = toolTipService.CreatePresenter(textView);
+            border.ToolTip.StartOrUpdate(textView.ProvisionalTextHighlight, test);
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             return border;
         }
