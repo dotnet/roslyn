@@ -2776,6 +2776,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);
+
+                                operationsToAnalyze.Add(operationBlock.Parent.Parent);
+
                                 break;
 
                             default:
