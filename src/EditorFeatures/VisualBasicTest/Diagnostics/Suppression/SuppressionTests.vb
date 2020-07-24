@@ -25,6 +25,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return actions(0).NestedCodeActions
         End Function
 
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        End Function
+
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic
         End Function

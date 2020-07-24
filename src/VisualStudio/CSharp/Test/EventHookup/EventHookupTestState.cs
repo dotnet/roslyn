@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
     internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
     {
-        // TODO: It seems that we can move EventHookupSessionManager to EditorFeatures.
+        // TODO: It seems that we can move EventHookupSessionManager to EditorFeatures (https://github.com/dotnet/roslyn/issues/46280)
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
             typeof(EventHookupCommandHandler),
             typeof(EventHookupSessionManager));

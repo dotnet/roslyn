@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public static ChangeSignatureTestState Create(XElement workspaceXml)
         {
-            var workspace = TestWorkspace.Create(workspaceXml);
+            var workspace = TestWorkspace.Create(workspaceXml, composition: s_composition);
             return new ChangeSignatureTestState(workspace);
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             get
             {
-                return (TestChangeSignatureOptionsService)InvocationDocument.Project.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
+                return (TestChangeSignatureOptionsService)InvocationDocument.Project.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
             }
         }
 

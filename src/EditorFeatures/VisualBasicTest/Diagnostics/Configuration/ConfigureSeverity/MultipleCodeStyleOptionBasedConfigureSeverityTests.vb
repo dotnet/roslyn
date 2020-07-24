@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
     Partial Public MustInherit Class MultipleCodeStyleOptionBasedConfigureSeverityTests
         Inherits AbstractSuppressionDiagnosticTest
 
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        End Function
+
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic
         End Function

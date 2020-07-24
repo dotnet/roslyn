@@ -55,6 +55,8 @@ class {|Definition:C1|}
     </Project>
 </Workspace>
 
+            ' TODO: Use VisualStudioTestComposition or move the feature down to EditorFeatures and avoid dependency on IServiceProvider.
+            ' https://github.com/dotnet/roslyn/issues/46279
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(MockServiceProvider))
 
             Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)

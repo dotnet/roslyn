@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -457,7 +458,7 @@ End Namespace
         End Function
 
         <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46291")>
         Public Async Function AddMissingImports_Extension_Await() As Task
             Dim code = "
 Imports System.Runtime.CompilerServices
@@ -523,7 +524,7 @@ End Namespace
         End Function
 
         <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46291")>
         Public Async Function AddMissingImports_Extension_Await_Overload() As Task
             Dim code = "
 Imports System.Runtime.CompilerServices

@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected TestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters)
         {
             var composition = GetComposition();
+
             parameters = SetParameterDefaults(parameters);
 
             var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode) ?
@@ -344,7 +345,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             await TestAsync(initialMarkup, expectedMarkup, WithRegularOptions(parameters));
-            await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
+
+            // VB scripting is not supported:
+            if (GetLanguage() == LanguageNames.CSharp)
+            {
+                await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
+            }
         }
 
         internal Task TestAsync(

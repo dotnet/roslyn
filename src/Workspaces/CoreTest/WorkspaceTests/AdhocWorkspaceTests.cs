@@ -408,11 +408,12 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        [Fact]
-        public async Task TestUpdatedDocumentTextIsObservablyConstantAsync()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestUpdatedDocumentTextIsObservablyConstantAsync(bool recoverable)
         {
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspace());
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableSyntaxTrees());
+            var workspace = recoverable ? CreateWorkspaceWithRecoverableSyntaxTrees() : CreateWorkspace();
+            await CheckUpdatedDocumentTextIsObservablyConstantAsync(workspace);
         }
 
         private static async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)

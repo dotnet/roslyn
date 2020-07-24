@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -22,6 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
     {
         private readonly string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
         private readonly string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
+
+        // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
+        protected override TestComposition GetComposition()
+            => EditorTestCompositions.EditorFeaturesWpf;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MoveTypeCodeRefactoringProvider();

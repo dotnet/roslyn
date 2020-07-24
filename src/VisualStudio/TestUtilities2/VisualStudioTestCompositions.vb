@@ -23,7 +23,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             RemoveParts(
                 GetType(StubStreamingFindUsagesPresenter)).
             AddParts(
-                GetType(MockWorkspaceEventListenerProvider)). ' avoid running Solution Crawler
+                GetType(MockWorkspaceEventListenerProvider), ' avoid running Solution Crawler
+                GetType(StubVsEditorAdaptersFactoryService)).
             AddExcludedPartTypes(
                 GetType(HACK_ThemeColorFixer),
                 GetType(INotificationService),      ' EditorNotificationServiceFactory is used 
