@@ -2,17 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Roslyn.Test.Utilities;
-using System;
-using System.Text;
-using Xunit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -22,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         static CovariantReturnTests()
         {
+            if (new CovarantReturnRuntimeOnly().ShouldSkip)
+                return;
+
             const string corLibraryCore = @"
 namespace System
 {
@@ -227,6 +225,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             IEnumerable<MetadataReference> references = null)
         {
+            Assert.NotNull(CorelibraryWithCovariantReturnSupport);
             references = (references == null) ?
                 new[] { CorelibraryWithCovariantReturnSupport } :
                 references.ToArray().Prepend(CorelibraryWithCovariantReturnSupport);
