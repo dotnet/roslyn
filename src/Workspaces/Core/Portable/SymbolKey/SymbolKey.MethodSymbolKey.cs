@@ -18,10 +18,21 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ReceiverType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
-                var reducedFromResolution = reader.ReadSymbolKey();
-                var receiverTypeResolution = reader.ReadSymbolKey();
+                var reducedFromResolution = reader.ReadSymbolKey(out var reducedFromFailureReason);
+                if (reducedFromFailureReason != null)
+                {
+                    failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(reducedFromResolution)} failed -> {reducedFromFailureReason})";
+                    return default;
+                }
+
+                var receiverTypeResolution = reader.ReadSymbolKey(out var receiverTypeFailureReason);
+                if (receiverTypeFailureReason != null)
+                {
+                    failureReason = $"({nameof(ReducedExtensionMethodSymbolKey)} {nameof(receiverTypeResolution)} failed -> {receiverTypeFailureReason})";
+                    return default;
+                }
 
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
                 foreach (var reducedFrom in reducedFromResolution.OfType<IMethodSymbol>())
@@ -32,7 +43,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(ReducedExtensionMethodSymbolKey)} failed)", out failureReason);
             }
         }
     }
@@ -47,14 +58,25 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKeyArray(symbol.TypeArguments);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
-                var constructedFrom = reader.ReadSymbolKey();
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
-
-                if (constructedFrom.SymbolCount == 0 ||
-                    typeArguments.IsDefault)
+                var constructedFrom = reader.ReadSymbolKey(out var constructedFromFailureReason);
+                if (constructedFromFailureReason != null)
                 {
+                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(constructedFrom)} failed -> {constructedFromFailureReason})";
+                    return default;
+                }
+
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+                if (typeArgumentsFailureReason != null)
+                {
+                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
+                    return default;
+                }
+
+                if (constructedFrom.SymbolCount == 0 || typeArguments.IsDefault)
+                {
+                    failureReason = $"({nameof(ConstructedMethodSymbolKey)} {nameof(typeArguments)} failed -> 'constructedFrom.SymbolCount == 0 || typeArguments.IsDefault')";
                     return default;
                 }
 
@@ -69,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(ConstructedMethodSymbolKey)} could not successfully construct)", out failureReason);
             }
         }
     }
@@ -110,10 +132,11 @@ namespace Microsoft.CodeAnalysis
                 visitor.PopMethod(symbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingType = reader.ReadSymbolKey();
+
+                var containingType = reader.ReadSymbolKey(out var containingTypeFailureReason);
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
                 using var parameterRefKinds = reader.ReadRefKindArray();
@@ -158,15 +181,21 @@ namespace Microsoft.CodeAnalysis
                     // read out the values.  We don't actually need to use them, but we have
                     // to effectively read past them in the string.
 
-                    using (reader.ReadSymbolKeyArray<ITypeSymbol>())
+                    using (reader.ReadSymbolKeyArray<ITypeSymbol>(out _))
                     {
-                        _ = reader.ReadSymbolKey();
+                        _ = reader.ReadSymbolKey(out _);
                     }
 
                     reader.PopMethod(methodOpt: null);
                 }
 
-                return CreateResolution(result);
+                if (containingTypeFailureReason != null)
+                {
+                    failureReason = $"({nameof(MethodSymbolKey)} {nameof(containingType)} failed -> {containingTypeFailureReason})";
+                    return default;
+                }
+
+                return CreateResolution(result, $"({nameof(MethodSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
 
             private static IMethodSymbol Resolve(
@@ -207,8 +236,8 @@ namespace Microsoft.CodeAnalysis
             private static IMethodSymbol Resolve(
                 SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
-                using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
-                var returnType = (ITypeSymbol)reader.ReadSymbolKey().GetAnySymbol();
+                using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out _);
+                var returnType = (ITypeSymbol)reader.ReadSymbolKey(out _).GetAnySymbol();
 
                 if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
                 {

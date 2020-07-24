@@ -13,8 +13,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpSquigglesDesktop : CSharpSquigglesCommon
     {
-        public CSharpSquigglesDesktop(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.ClassLibrary)
+        public CSharpSquigglesDesktop(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 

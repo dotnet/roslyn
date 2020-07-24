@@ -210,12 +210,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInfo(code) || IsHidden(code))
             {
-                // Info and hidden diagnostics have least warning level.
-                return Diagnostic.HighestValidWarningLevel;
+                // Info and hidden diagnostics have default warning level.
+                return Diagnostic.DefaultWarningLevel;
             }
 
             switch (code)
             {
+                case ErrorCode.WRN_NubExprIsConstBool2:
+                case ErrorCode.WRN_StaticInAsOrIs:
+                    // Warning level 5 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
+                    return 5;
                 case ErrorCode.WRN_InvalidMainSig:
                 case ErrorCode.WRN_LowercaseEllSuffix:
                 case ErrorCode.WRN_NewNotRequired:
@@ -269,7 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CmpAlwaysFalse:
                 case ErrorCode.WRN_GotoCaseShouldConvert:
                 case ErrorCode.WRN_NubExprIsConstBool:
-                case ErrorCode.WRN_NubExprIsConstBool2:
                 case ErrorCode.WRN_ExplicitImplCollision:
                 case ErrorCode.WRN_DeprecatedSymbolStr:
                 case ErrorCode.WRN_VacuousIntegralComp:

@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public EnvDTE.CodeElements Parts
         {
-            get { return PartialTypeCollection.Create(State, FileCodeModel, this); }
+            get { return PartialTypeCollection.Create(State, this); }
         }
     }
 }

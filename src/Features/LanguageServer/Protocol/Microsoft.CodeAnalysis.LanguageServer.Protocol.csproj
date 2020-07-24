@@ -8,7 +8,7 @@
 
     <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
-    <AssetTargetFallback  Condition="'$(TargetFramework)' == 'netcoreapp3.1'">net472;$(AssetTargetFallback)</AssetTargetFallback>
+    <AssetTargetFallback Condition="'$(TargetFramework)' == 'netcoreapp3.1'">net472;$(AssetTargetFallback)</AssetTargetFallback>
 
     <IsPackable>true</IsPackable>
     <PackageDescription>
@@ -36,6 +36,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />

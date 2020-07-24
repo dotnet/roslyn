@@ -52,6 +52,16 @@
         <target state="new">Downloading index failed:{0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="new">Error creating instance of CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">未导入命名空间中的项</target>
@@ -80,6 +90,11 @@
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">转到基础映像</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Parameter_Name_Hints">
+        <source>Inline Parameter Name Hints</source>
+        <target state="new">Inline Parameter Name Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -139,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
         <source>Rename symbol's _file</source>
-        <target state="new">Rename symbol's _file</target>
+        <target state="translated">重命名包含符号的文件(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -1014,12 +1029,12 @@
       </trans-unit>
       <trans-unit id="Loading_Peek_information">
         <source>Loading Peek information...</source>
-        <target state="translated">正在加载摘要信息...</target>
+        <target state="translated">正在加载速览信息…</target>
         <note />
       </trans-unit>
       <trans-unit id="Peek">
         <source>Peek</source>
-        <target state="translated">快速查看</target>
+        <target state="translated">速览</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">

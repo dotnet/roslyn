@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!hidingMemberIsNew && hiddenMember.Kind == hidingMember.Kind &&
                             !hidingMember.IsAccessor() &&
                             (hiddenMember.IsAbstract || hiddenMember.IsVirtual || hiddenMember.IsOverride) &&
-                            !(hidingMember is SynthesizedRecordEquals))
+                            !IsShadowingSynthesizedRecordMember(hidingMember))
                         {
                             diagnostics.Add(ErrorCode.WRN_NewOrOverrideExpected, hidingMemberLocation, hidingMember, hiddenMember);
                             diagnosticAdded = true;
@@ -1297,11 +1297,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (!hidingMemberIsNew && !(hidingMember is SynthesizedRecordEquals) && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
+                if (!hidingMemberIsNew && !IsShadowingSynthesizedRecordMember(hidingMember) && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
                 {
                     diagnostics.Add(ErrorCode.WRN_NewRequired, hidingMemberLocation, hidingMember, hiddenMembers[0]);
                 }
             }
+        }
+
+        private static bool IsShadowingSynthesizedRecordMember(Symbol hidingMember)
+        {
+            return hidingMember is SynthesizedRecordEquals || hidingMember is SynthesizedRecordDeconstruct || hidingMember is SynthesizedRecordClone;
         }
 
         /// <summary>

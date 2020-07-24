@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// is true, the last parameter will be returned if it is params parameter and the index of
         /// the specified argument is greater than the number of parameters.
         /// </summary>
-        public static IParameterSymbol DetermineParameter(
+        public static IParameterSymbol? DetermineParameter(
             this ArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
@@ -57,7 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            var symbol = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken).Symbol;
+            // Get the symbol as long if it's not null or if there is only one candidate symbol
+            var symbolInfo = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken);
+            var symbol = symbolInfo.Symbol;
+            if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
+            {
+                symbol = symbolInfo.CandidateSymbols[0];
+            }
+
             if (symbol == null)
             {
                 return null;

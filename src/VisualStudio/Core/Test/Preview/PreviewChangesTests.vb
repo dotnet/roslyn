@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
     <[UseExportProvider]>
     Public Class PreviewChangesTests
 
-        Private _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+        Private ReadOnly _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
 
         <WpfFact>
@@ -314,10 +314,6 @@ End Class
         End Sub
 
         Private Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
-            Dim outChangeList As Object = Nothing
-            Dim outCanRecurse As Integer = Nothing
-            Dim outTreeList As Shell.Interop.IVsLiteTreeList = Nothing
-
             Dim flatteningResult = New List(Of Tuple(Of String, Integer))()
             FlattenTree(topLevelList, flatteningResult, 0)
 

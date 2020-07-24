@@ -705,8 +705,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
-
         internal SyntaxTree SyntaxTree
         {
             get
@@ -821,8 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
-            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride &&
-                     ShouldReportProtectedMemberInSealedTypeError)
+            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
@@ -832,8 +829,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(errorCode, location, this);
             }
         }
-
-        protected virtual bool ShouldReportProtectedMemberInSealedTypeError => true;
 
 #nullable enable
         protected abstract SourcePropertyAccessorSymbol? CreateAccessorSymbol(
@@ -980,7 +975,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Attributes
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+        public abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
+
+        public abstract IAttributeTargetSymbol AttributesOwner { get; }
+
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => AttributesOwner;
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 

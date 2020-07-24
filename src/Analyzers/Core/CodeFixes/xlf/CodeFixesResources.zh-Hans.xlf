@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
-        <target state="new">Add file header</target>
+        <target state="translated">添加文件头</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
@@ -27,9 +27,14 @@
         <target state="translated">删除冗余分配</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="new">Suppress or Configure issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Update_suppression_format">
         <source>Update suppression format</source>
-        <target state="new">Update suppression format</target>
+        <target state="translated">更新抑制格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">

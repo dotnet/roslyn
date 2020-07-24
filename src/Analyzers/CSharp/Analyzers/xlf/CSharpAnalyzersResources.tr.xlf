@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
-        <target state="new">Delegate invocation can be simplified.</target>
+        <target state="translated">Temsilci çağrısı basitleştirilebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">
         <source>Inline variable declaration</source>
-        <target state="new">Inline variable declaration</target>
+        <target state="translated">Satır içi değişken bildirimi</target>
         <note />
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -64,22 +64,22 @@
       </trans-unit>
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
-        <target state="new">Negate expression (changes semantics)</target>
+        <target state="translated">İfadeyi tersine çevir (semantiği değiştirir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
-        <target state="new">Remove operator (preserves semantics)</target>
+        <target state="translated">İşleci kaldır (semantiği korur)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
-        <target state="new">Remove suppression operators</target>
+        <target state="translated">Gizleme işleçlerini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
-        <target state="new">Remove unnecessary suppression operator</target>
+        <target state="translated">Gereksiz gizleme işlecini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
         <source>Suppression operator has no effect and can be misinterpreted</source>
-        <target state="new">Suppression operator has no effect and can be misinterpreted</target>
+        <target state="translated">Gizleme işleci hiçbir etkiye sahip değil ve yanlış yorumlanabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Unreachable_code_detected">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
-        <target state="new">Use local function</target>
+        <target state="translated">Yerel işlev kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
-        <target state="new">Variable declaration can be inlined</target>
+        <target state="translated">Değişken bildirimi satır içine alınabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
