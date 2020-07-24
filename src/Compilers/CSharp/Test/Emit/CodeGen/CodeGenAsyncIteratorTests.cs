@@ -7905,7 +7905,16 @@ public class C
         {
             await Task.Yield();
             Console.Write(""BEFORE "");
-            try { Console.Write(""INSIDE ""); } finally { Console.Write(""INSIDE2 ""); }
+
+            try
+            {
+                Console.Write(""INSIDE "");
+            }
+            finally
+            {
+                Console.Write(""INSIDE2 "");
+            }
+
             Console.Write(""AFTER "");
         }
         throw null;
@@ -7944,7 +7953,17 @@ public class C
         finally
         {
             Console.Write(""BEFORE "");
-            try { Console.Write(""INSIDE ""); } finally { Console.Write(""INSIDE2 ""); await Task.Yield(); }
+
+            try
+            {
+                Console.Write(""INSIDE "");
+            }
+            finally
+            {
+                Console.Write(""INSIDE2 "");
+                await Task.Yield();
+            }
+
             Console.Write(""AFTER "");
         }
         throw null;

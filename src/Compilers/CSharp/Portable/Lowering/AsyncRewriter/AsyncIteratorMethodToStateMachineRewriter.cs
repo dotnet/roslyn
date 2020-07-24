@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  disposeMode = true;
             //  goto currentDisposalLabel;
 
+            Debug.Assert(CurrentDisposalLabel is object); // no yield break allowed inside a finally
             return F.Block(
                 // disposeMode = true;
                 SetDisposeMode(true),
