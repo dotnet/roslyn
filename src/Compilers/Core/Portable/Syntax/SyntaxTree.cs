@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         /// A map from diagnostic ID to diagnostic reporting level. The diagnostic
         /// ID string may be case insensitive depending on the language.
         /// </returns>
-        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead")]
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: true)]
         public virtual ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => EmptyDiagnosticOptions;
 
         /// <summary>
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis
         /// A mapping from diagnostic id to diagnostic reporting level. The diagnostic ID may be case-sensitive depending
         /// on the language.
         /// </param>
-        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead")]
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: true)]
         public virtual SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
         {
             throw new NotImplementedException();
