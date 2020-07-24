@@ -1,4 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             => ((TestWorkspace)workspace).ExportProvider.GetExportedValue<CSharpInlineMethodRefactoringProvider>();
 
         [Fact]
-        public Task TestInlineSingleStatement()
+        public Task TestSingleStatementWithoutAnyExtraChange()
             => TestInRegularAndScript1Async(
                 @"
 public class TestClass
@@ -45,7 +49,7 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestInlineArrowExpression()
+        public Task TestExtractArrowExpressionBody()
             => TestInRegularAndScript1Async(@"
 public class TestClass
 {
@@ -71,7 +75,7 @@ System.Console.WriteLine(i + j);
 }");
 
         [Fact]
-        public Task TestInlineArrowExpressionWitReturnValue()
+        public Task TestExtractExpressionBody()
             => TestInRegularAndScript1Async(
                 @"
 public class TestClass
@@ -97,14 +101,70 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestInlineMethodWithIdentiferReplacement()
+        public Task TestDefaultValueReplacementForExpressionStatement()
             => TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
     private void Caller()
     {
-        Caller(10, k:""Hello"")
+        Cal[||]lee();
+    }
+
+    private void Callee(int i = 1, string c = null, bool y = false)
+    {
+        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine(false ? 1 : (null ?? ""Hello"").Length);
+    }
+
+    private void Callee(int i = 1, string c = null, bool y = false)
+    {
+        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+    }
+}");
+
+        [Fact]
+        public Task TestDefaultValueReplacementForArrowExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee();
+    }
+
+    private void Callee(int i = default, string c = default, bool y = false) =>
+        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine(false ? 0 : (null ?? ""Hello"").Length);
+    }
+
+    private void Callee(int i = default, string c = default, bool y = false) =>
+        System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithIdentiferReplacement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller(int m)
+    {
+        Cal[||]lee(10, m, k: ""Hello"")
     }
 
     private void Callee(int i, int j = 100, string k = null)
@@ -115,74 +175,12 @@ public class TestClass
                 @"
 public class TestClass
 {
-    private void Caller()
+    private void Caller(int m)
     {
-        System.Console.WriteLine(10 + 100 + (""Hello"" ?? ""));
+        System.Console.WriteLine(10 + m + (""Hello"" ?? ""));
     }
 
     private void Callee(int i, int j = 100, string k = null)
-    {
-        System.Console.WriteLine(i + j + (k ?? ""));
-    }
-}");
-
-        [Fact]
-        public Task TestInlineMethodWithIdentiferRename()
-            => TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    private void Caller(int x, int y)
-    {
-        Caller(x, y)
-    }
-
-    private void Callee(int i, int j = 100, string k = null)
-    {
-        System.Console.WriteLine(i + j + (k ?? ""));
-    }
-}
-",
-                @"
-public class TestClass
-{
-    private void Caller(int x, int y)
-    {
-        System.Console.WriteLine(x + y + (null ?? ""));
-    }
-
-    private void Callee(int i, int j = 100, string k = null)
-    {
-        System.Console.WriteLine(i + j + (k ?? ""));
-    }
-}");
-
-        [Fact]
-        public Task TestInlineMethodWithIdentiferConflict()
-            => TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    private void Caller(int x, int y)
-    {
-        Caller(x, y)
-    }
-
-    private void Callee(int i, int x, string y = null)
-    {
-        System.Console.WriteLine(i + j + (k ?? ""));
-    }
-}
-",
-                @"
-public class TestClass
-{
-    private void Caller(int x, int y)
-    {
-        System.Console.WriteLine(x + y + (null ?? ""));
-    }
-
-    private void Callee(int i, int x = 100, string y = null)
     {
         System.Console.WriteLine(i + j + (k ?? ""));
     }
@@ -196,7 +194,7 @@ public class TestClass
 {
     private void Caller(float r1, float r2)
     {
-        Callee(SomeCaculation(r1), SomeCaculation(r2))
+        Cal[||]lee(SomeCaculation(r1), SomeCaculation(r2))
     }
 
     private void Callee(float s1, float s2)
@@ -238,7 +236,7 @@ public class TestClass
 {
     private void Caller(float s1, float s2)
     {
-        Callee(SomeCaculation(s1), SomeCaculation(s2))
+        Ca[||]llee(SomeCaculation(s1), SomeCaculation(s2))
     }
 
     private void Callee(float s1, float s2)
@@ -280,7 +278,7 @@ public class TestClass
 {
     private void Caller()
     {
-        Callee(out var x);
+        Cal[||]lee(out var x);
     }
 
     private void Callee(out int z)
@@ -294,7 +292,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int x = 10;
+        int z = 10;
     }
 
     private void Callee(out int z)

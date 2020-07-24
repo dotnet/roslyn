@@ -85,9 +85,22 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     return;
                 }
 
+                var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+                if (root == null)
+                {
+                    return;
+                }
+
                 var codeAction = new CodeAction.DocumentChangeAction(
                     string.Format(FeaturesResources.Inline_0, calleeMethodInvocationSymbol.ToNameDisplayString()),
-                    cancellationToken => InlineMethodAsync(document, semanticModel!, calleeMethodInvocationSyntaxNode, calleeMethodInvocationSymbol, calleeMethodDeclarationSyntaxNode, cancellationToken));
+                    cancellationToken => InlineMethodAsync(
+                        document,
+                        semanticModel!,
+                        calleeMethodInvocationSyntaxNode,
+                        calleeMethodInvocationSymbol,
+                        calleeMethodDeclarationSyntaxNode,
+                        root!,
+                        cancellationToken));
 
                 context.RegisterRefactoring(codeAction);
             }
@@ -154,7 +167,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private static string GenerateNewName(string identifierName)
         {
             var stack = new Stack<char>();
-            for (int i = identifierName.Length - 1; i >= 0; i--)
+            for (var i = identifierName.Length - 1; i >= 0; i--)
             {
                 var currentCharacter = identifierName[i];
                 if (char.IsNumber(currentCharacter))
@@ -177,6 +190,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             SyntaxNode calleeMethodInvocationSyntaxNode,
             IMethodSymbol calleeMethodSymbol,
             SyntaxNode calleeMethodDeclarationSyntaxNode,
+            SyntaxNode root,
             CancellationToken cancellationToken)
         {
             var replacementChanges = ComputeInlineChanges(
@@ -188,13 +202,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             foreach (var change in replacementChanges.OfType<ReplaceVariableChange>())
             {
-                var allReferences =
-                    await SymbolFinder.FindReferencesAsync(change.Symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                await ReplaceAllSyntaxNodeForSymbolAsync(
+                    document.Project.Solution,
+                    root,
+                    calleeMethodDeclarationNodeEditor,
+                    change.Symbol,
+                    change.ReplacementLiteralExpression,
+                    cancellationToken).ConfigureAwait(false);
+            }
 
-                foreach (var nodeToReplace in change.SyntaxNodesToReplace)
-                {
-                    calleeMethodDeclarationNodeEditor.ReplaceNode(nodeToReplace, change.ReplacementLiteralExpression);
-                }
+            foreach (var change in replacementChanges.OfType<IdentifierRenameVariableChange>())
+            {
+                await ReplaceAllSyntaxNodeForSymbolAsync(
+                    document.Project.Solution,
+                    root,
+                    calleeMethodDeclarationNodeEditor,
+                    change.Symbol,
+                    change.IdentifierSyntaxNode,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             var inlineMethodBody = ExtractExpressionFromMethodDeclaration(calleeMethodDeclarationNodeEditor.GetChangedRoot());
@@ -207,6 +232,31 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             documentEditor.ReplaceNode(calleeMethodInvocationSyntaxNode, inlineMethodBody);
             return documentEditor.GetChangedDocument();
+        }
+
+        private static async Task ReplaceAllSyntaxNodeForSymbolAsync(
+            Solution solution,
+            SyntaxNode root,
+            SyntaxEditor editor,
+            ISymbol symbol,
+            SyntaxNode replacementNode,
+            CancellationToken cancellationToken)
+        {
+            var allReferences = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var allSyntaxNodesToReplace = allReferences
+                .SelectMany(reference => reference.Locations
+                    .Select(location => root.FindNode(location.Location.SourceSpan))).ToImmutableArray();
+
+            foreach (var nodeToReplace in allSyntaxNodesToReplace)
+            {
+                if (editor.OriginalRoot.Contains(nodeToReplace))
+                {
+                    var replacementNodeWithTrivia = replacementNode
+                        .WithLeadingTrivia(nodeToReplace.GetLeadingTrivia())
+                        .WithTrailingTrivia(nodeToReplace.GetTrailingTrivia());
+                    editor.ReplaceNode(nodeToReplace, replacementNodeWithTrivia);
+                }
+            }
         }
 
         private class VariableDeclaratorOperationVisitor : OperationWalker

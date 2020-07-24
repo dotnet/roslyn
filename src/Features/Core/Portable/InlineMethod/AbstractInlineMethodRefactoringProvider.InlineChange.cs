@@ -1,4 +1,8 @@
-﻿namespace Microsoft.CodeAnalysis.InlineMethod
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal partial class AbstractInlineMethodRefactoringProvider
     {
@@ -6,9 +10,6 @@
         {
         }
 
-        /// <summary>
-        ///
-        /// </summary>
         protected readonly struct ReplaceVariableChange : IInlineChange
         {
             public SyntaxNode ReplacementLiteralExpression { get; }
@@ -21,21 +22,18 @@
             }
         }
 
-        protected readonly struct RenameVariableChange : IInlineChange
+        protected readonly struct IdentifierRenameVariableChange : IInlineChange
         {
-            public string NewName { get; }
             public ISymbol Symbol { get; }
+            public SyntaxNode IdentifierSyntaxNode { get; }
 
-            public RenameVariableChange(string newName, ISymbol symbol)
+            public IdentifierRenameVariableChange(ISymbol symbol, SyntaxNode identifierSyntaxNode)
             {
-                NewName = newName;
                 Symbol = symbol;
+                IdentifierSyntaxNode = identifierSyntaxNode;
             }
         }
 
-        /// <summary>
-        ///
-        /// </summary>
         protected readonly struct ExtractDeclarationChange : IInlineChange
         {
             public SyntaxNode DeclarationStatement { get; }

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineMethod
@@ -79,13 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return inlineSyntaxNode
         End Function
 
-        Protected Overrides Function ReplaceParametersAndGenericsInMethodDeclaration(methodDeclarationSyntaxNode As SyntaxNode, methodInvocationSyntaxNode As SyntaxNode, methodSymbol As IMethodSymbol, semanticModel As SemanticModel) As SyntaxNode
-            Return methodDeclarationSyntaxNode
-        End Function
-
-        Protected Overrides Function TryGetVariableDeclarationsForOutParameters(methodInvovation As SyntaxNode, semanticModel As SemanticModel, ByRef variableDeclarations As ImmutableArray(Of SyntaxNode)) As Boolean
-            variableDeclarations = Nothing
-            Return False
+        Protected Overrides Function ComputeInlineChanges(calleeInvocationExpressionSyntaxNode As SyntaxNode, semanticModel As SemanticModel, calleeMethodSymbol As IMethodSymbol, calleeMethodDeclarationSyntaxNode As SyntaxNode, cancellation As CancellationToken) As ImmutableArray(Of IInlineChange)
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

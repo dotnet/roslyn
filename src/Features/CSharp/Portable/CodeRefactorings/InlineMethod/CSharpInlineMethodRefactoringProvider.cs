@@ -114,23 +114,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             {
                 var inputArguments = invocationExpressionSyntax.ArgumentList.Arguments;
                 var mappingParameters = inputArguments
-                    .Select(arg => arg.DetermineParameter(semanticModel, allowParams: true, cancellation))
-                    .ToImmutableArray();
+                    .Select(arg => arg.DetermineParameter(semanticModel, allowParams: true, cancellation));
 
                 var argumentsAndMappingParameters = inputArguments
                     .Zip(mappingParameters, (argument, parameter) => (argument, parameter))
+                    .Where(argumentAndParameter => argumentAndParameter.parameter != null)
                     .ToImmutableArray();
 
-                var parametersNeedMoveToCaller = ArrayBuilder<IParameterSymbol>.GetInstance();
-                var parametersNeedRename = ArrayBuilder<(IParameterSymbol parameterSymbol, string argumentName)>.GetInstance();
+                var declarationParametersBuilder = ArrayBuilder<IParameterSymbol>.GetInstance();
+                var parametersNeedRenameBuilder = ArrayBuilder<(IParameterSymbol parameterSymbol, string argumentName)>.GetInstance();
 
-                var paramSymbols = mappingParameters.FirstOrDefault();
-                if (paramSymbols != null)
+                var paramSymbols = argumentsAndMappingParameters
+                    .FirstOrDefault(argumentAndParameter => argumentAndParameter.parameter.IsParams);
+
+                if (paramSymbols != default)
                 {
-                    parametersNeedMoveToCaller.Add(paramSymbols);
+                    declarationParametersBuilder.Add(paramSymbols.parameter);
                 }
 
-                var unprocessedParameters = calleeMethodSymbol.Parameters.ToHashSet();
+                var unprocessedParameters = calleeMethodSymbol.Parameters.ToSet();
 
                 foreach (var (argument, parameterSymbol) in argumentsAndMappingParameters)
                 {
@@ -148,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                             || inputArgumentExpression.IsKind(SyntaxKind.InvocationExpression)
                             || inputArgumentExpression.IsKind(SyntaxKind.ConditionalExpression))
                         {
-                            parametersNeedMoveToCaller.Add(parameterSymbol);
+                            declarationParametersBuilder.Add(parameterSymbol);
                         }
                         else if (inputArgumentExpression is IdentifierNameSyntax identifierNameSyntax
                             && !parameterSymbol.Name.Equals(identifierNameSyntax.Identifier.ValueText))
                         {
-                            parametersNeedRename.Add((parameterSymbol, identifierNameSyntax.Identifier.ValueText));
+                            parametersNeedRenameBuilder.Add((parameterSymbol, identifierNameSyntax.Identifier.ValueText));
                         }
 
                         unprocessedParameters.Remove(parameterSymbol);
@@ -164,16 +166,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                     calleeInvocationExpressionSyntaxNode,
                     semanticModel,
                     calleeMethodDeclarationSyntaxNode,
-                    parametersNeedRename.ToImmutableArray(),
-                    parametersNeedMoveToCaller.ToImmutableArray(),
+                    parametersNeedRenameBuilder.ToImmutableArray(),
+                    declarationParametersBuilder.ToImmutableArray(),
                     cancellation);
 
                 foreach (var (symbol, newName) in renameTable)
                 {
                     if (!newName.Equals(symbol.Name))
                     {
-                        changeBuilder.Add(new RenameVariableChange(newName, symbol));
+                        changeBuilder.Add(new IdentifierRenameVariableChange(symbol, SyntaxFactory.IdentifierName(newName)));
                     }
+                }
+
+                foreach (var symbol in declarationParametersBuilder)
+                {
+                    changeBuilder.Add(new ExtractDeclarationChange(
+                        SyntaxFactory));
                 }
 
                 if (paramSymbols != null && renameTable.TryGetValue(paramSymbols, out var paramArrayNewName))
@@ -184,7 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
                     var listOfArguments = SyntaxFactory.SeparatedList(
                         arguments,
-                        Enumerable.Repeat(SyntaxFactory.Token(SyntaxKind.CommaToken), arguments.Length - 1)) ;
+                        arguments.Length <= 1
+                        ? Enumerable.Empty<SyntaxToken>()
+                        : Enumerable.Repeat(SyntaxFactory.Token(SyntaxKind.CommaToken), arguments.Length - 1));
                     var initializerExpression =
                         SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
 
@@ -206,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                                 unprocessedParameter.Type,
                                 unprocessedParameter.ExplicitDefaultValue,
                                 canUseFieldReference: false),
-                            paramSymbols));
+                            unprocessedParameter));
                 }
             }
 
