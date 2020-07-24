@@ -8,7 +8,7 @@
     # Always use ALL CAPS for env var names since Azure Pipelines converts variable names to all caps and on non-Windows OS, env vars are case sensitive.
     $keyCaps = $_.Key.ToUpper()
     if (Test-Path -Path "env:$keyCaps") {
-        Write-Host "Skipping setting $keyCaps because variable is already set." -ForegroundColor Cyan
+        Write-Host "Skipping setting $keyCaps because variable is already set to '$(Get-Content env:$keyCaps)'." -ForegroundColor Cyan
     } else {
         Write-Host "$keyCaps=$($_.Value)" -ForegroundColor Yellow
         if ($env:TF_BUILD) {
