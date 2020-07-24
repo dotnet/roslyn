@@ -348,18 +348,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Location location in locations)
             {
                 // Location may be null. See https://github.com/dotnet/roslyn/issues/28862.
-                if (location == null)
+                if (location == null || !location.IsInSource)
                 {
                     continue;
                 }
-                if (location.IsInSource)
+
+                if (location.SourceSpan.Length != 0)
                 {
-                    SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
+                    SyntaxToken token = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
                     if (token.Kind() != SyntaxKind.None)
                     {
                         CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
                         if (node != null)
+                        {
                             builder.Add(node.GetReference());
+                        }
+                    }
+                }
+                else
+                {
+                    SyntaxNode parent = location.SourceTree.GetRoot().FindNode(location.SourceSpan);
+                    foreach (var descendant in parent.DescendantNodesAndSelf(c => c.Location.SourceSpan.Contains(location.SourceSpan)))
+                    {
+                        if (descendant is TNode && descendant.Location.SourceSpan.Contains(location.SourceSpan))
+                        {
+                            builder.Add(descendant.GetReference());
+                            break;
+                        }
                     }
                 }
             }

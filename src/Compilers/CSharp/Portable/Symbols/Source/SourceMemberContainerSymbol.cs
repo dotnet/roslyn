@@ -3122,14 +3122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                Debug.Assert(recordParameters.Length == paramList.Parameters.Count);
                 var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
-                for (int i = 0; i < recordParameters.Length; i++)
+                foreach (ParameterSymbol param in recordParameters)
                 {
-                    var param = recordParameters[i];
                     bool isInherited = false;
-                    var syntax = paramList.Parameters[i];
+                    var syntax = param.GetNonNullSyntaxNode();
+
                     var targetProperty = new SignatureOnlyPropertySymbol(param.Name,
                                                                          this,
                                                                          ImmutableArray<ParameterSymbol>.Empty,
