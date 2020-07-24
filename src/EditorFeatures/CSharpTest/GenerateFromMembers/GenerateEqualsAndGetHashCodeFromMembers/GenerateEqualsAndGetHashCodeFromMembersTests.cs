@@ -1173,7 +1173,7 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
-        [Fact(Skip = "Test harness doesn't support validating the title"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestSmartTagText1()
         {
             await TestSmartTagTextAsync(
@@ -1197,7 +1197,7 @@ FeaturesResources.Generate_Equals_object);
             throw new NotImplementedException();
         }
 
-        [Fact(Skip = "Test harness doesn't support validating the title"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestSmartTagText2()
         {
             await TestSmartTagTextAsync(
@@ -1217,7 +1217,7 @@ FeaturesResources.Generate_Equals_and_GetHashCode,
 index: 1);
         }
 
-        [Fact(Skip = "Test harness doesn't support validating the title"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestSmartTagText3()
         {
             await TestSmartTagTextAsync(
@@ -2731,7 +2731,7 @@ fixedExpectedDiagnostics: new List<DiagnosticResult>
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact(Skip = "Multiple projects not supported in testing"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestPublicSystemHashCodeOtherProject()
         {
             await TestInRegularAndScript1Async(
@@ -2801,7 +2801,7 @@ parameters: CSharp6Implicit);
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact(Skip = "Multi project tests not currently supported"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestInternalSystemHashCode()
         {
             await TestInRegularAndScript1Async(
