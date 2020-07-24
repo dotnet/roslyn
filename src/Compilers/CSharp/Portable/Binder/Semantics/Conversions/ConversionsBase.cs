@@ -1517,12 +1517,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
+            var sourceIsPossiblyNullableTypeParameter = IsPossiblyNullableTypeTypeParameter(source);
+            var destinationIsPossiblyNullableTypeParameter = IsPossiblyNullableTypeTypeParameter(destination);
+            if (sourceIsPossiblyNullableTypeParameter && !destinationIsPossiblyNullableTypeParameter)
             {
                 return destination.NullableAnnotation.IsAnnotated();
             }
 
-            if (destination.IsPossiblyNullableTypeTypeParameter() && !source.IsPossiblyNullableTypeTypeParameter())
+            if (destinationIsPossiblyNullableTypeParameter && !sourceIsPossiblyNullableTypeParameter)
             {
                 return source.NullableAnnotation.IsAnnotated();
             }
@@ -1547,12 +1549,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
+            if (IsPossiblyNullableTypeTypeParameter(source) && !IsPossiblyNullableTypeTypeParameter(destination))
             {
                 return false;
             }
 
             return !source.NullableAnnotation.IsAnnotated();
+        }
+
+        private static bool IsPossiblyNullableTypeTypeParameter(in TypeWithAnnotations typeWithAnnotations)
+        {
+            var type = typeWithAnnotations.Type;
+            return type is object &&
+                (type.IsPossiblyNullableReferenceTypeTypeParameter() || type.IsNullableTypeOrTypeParameter());
         }
 
         /// <summary>

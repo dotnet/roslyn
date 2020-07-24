@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_NubExprIsConstBool2:
+                case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_UnassignedThisAutoProperty:
                 case ErrorCode.WRN_UnassignedThis:
                 case ErrorCode.WRN_ParamUnassigned:

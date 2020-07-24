@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_YieldNotAllowedInScript = 7020,
         ERR_NamespaceNotAllowedInScript = 7021,
         WRN_MainIgnored = 7022,
-        ERR_StaticInAsOrIs = 7023,
+        WRN_StaticInAsOrIs = 7023,
         ERR_InvalidDelegateType = 7024,
         ERR_BadVisEventType = 7025,
         ERR_GlobalAttributesNotAllowed = 7026,
@@ -1831,6 +1831,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
+        ERR_OverrideDefaultConstraintNotSatisfied = 8822,
+        ERR_DefaultConstraintOverrideOnly = 8823,
+
+        // The following warnings correspond to errors of the same name, but are reported
+        // when a definite assignment issue is reported due to private fields imported from metadata.
+        WRN_UnassignedThisAutoProperty = 8822,
+        WRN_UnassignedThis = 8823,
+        WRN_ParamUnassigned = 8824,
+        WRN_UseDefViolationProperty = 8825,
+        WRN_UseDefViolationField = 8826,
+        WRN_UseDefViolationThis = 8827,
+        WRN_UseDefViolationOut = 8828,
+        WRN_UseDefViolation = 8829,
 
         // The following warnings correspond to errors of the same name, but are reported
         // when a definite assignment issue is reported due to private fields imported from metadata.
