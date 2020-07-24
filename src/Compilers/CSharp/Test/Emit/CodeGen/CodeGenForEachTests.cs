@@ -4124,8 +4124,6 @@ public static class Extensions
         [Fact]
         public void TestGetEnumeratorPatternViaRefExtensionOnNonAssignableVariable()
         {
-            // See https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
-            // I imagine same decision should apply here
             var source = @"
 using System;
 public struct C
@@ -4157,8 +4155,6 @@ public static class Extensions
         [Fact]
         public void TestGetEnumeratorPatternViaRefExtensionOnAssignableVariable()
         {
-            // See https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
-            // I imagine same decision should apply here
             var source = @"
 using System;
 public struct C
@@ -4187,6 +4183,43 @@ public static class Extensions
                     //         foreach (var i in c)
                     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "c").WithLocation(8, 27)
                 );
+        }
+
+        [Fact]
+        public void TestGetEnumeratorPatternViaOutExtension()
+        {
+            var source = @"
+using System;
+public struct C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public struct Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetEnumerator(this out C self) => new C.Enumerator();
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,27): error CS1620: Argument 1 must be passed with the 'out' keyword
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_BadArgRef, "new C()").WithArguments("1", "out").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27),
+                    // (20,51): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
+                    //     public static C.Enumerator GetEnumerator(this out C self) => new C.Enumerator();
+                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(20, 51));
         }
 
         [Fact]

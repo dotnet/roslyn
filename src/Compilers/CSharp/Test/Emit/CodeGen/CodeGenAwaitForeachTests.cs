@@ -6592,8 +6592,6 @@ public static class Extensions
         [Fact]
         public void TestGetAsyncEnumeratorPatternViaRefExtensionOnNonAssignableVariable()
         {
-            // See https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
-            // I imagine same decision should apply here
             string source = @"
 using System;
 using System.Threading.Tasks;
@@ -6626,8 +6624,6 @@ public static class Extensions
         [Fact]
         public void TestGetAsyncEnumeratorPatternViaRefExtensionOnAssignableVariable()
         {
-            // See https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
-            // I imagine same decision should apply here
             string source = @"
 using System;
 using System.Threading.Tasks;
@@ -6657,6 +6653,44 @@ public static class Extensions
                 //         await foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "c").WithLocation(9, 33)
                 );
+        }
+
+        [Fact]
+        public void TestGetAsyncEnumeratorPatternViaOutExtension()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+public struct C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public struct Enumerator
+    {
+        public int Current { get; private set; }
+        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetAsyncEnumerator(this out C self) => new C.Enumerator();
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,33): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_BadArgRef, "new C()").WithArguments("1", "out").WithLocation(8, 33),
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33),
+                // (21,56): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
+                //     public static C.Enumerator GetAsyncEnumerator(this out C self) => new C.Enumerator();
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(21, 56));
         }
 
         [Fact]
