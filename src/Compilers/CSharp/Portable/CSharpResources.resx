@@ -3896,8 +3896,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="WRN_MainIgnored_Title" xml:space="preserve">
     <value>The entry point of the program is global code; ignoring entry point</value>
   </data>
-  <data name="ERR_StaticInAsOrIs" xml:space="preserve">
+  <data name="WRN_StaticInAsOrIs" xml:space="preserve">
     <value>The second operand of an 'is' or 'as' operator may not be static type '{0}'</value>
+  </data>
+  <data name="WRN_StaticInAsOrIs_Title" xml:space="preserve">
+    <value>The second operand of an 'is' or 'as' operator may not be a static type</value>
   </data>
   <data name="ERR_BadVisEventType" xml:space="preserve">
     <value>Inconsistent accessibility: event type '{1}' is less accessible than event '{0}'</value>

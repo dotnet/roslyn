@@ -2416,6 +2416,16 @@
         <target state="translated">不应返回标记为 [DoesNotReturn] 的方法。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs">
+        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
+        <target state="new">The second operand of an 'is' or 'as' operator may not be static type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs_Title">
+        <source>The second operand of an 'is' or 'as' operator may not be a static type</source>
+        <target state="new">The second operand of an 'is' or 'as' operator may not be a static type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered.</source>
         <target state="translated">switch 表达式不处理其输入类型的所有可能的值(它不是穷举)。例如，模式“{0}”未包含在内。</target>
@@ -8287,11 +8297,6 @@ You should consider suppressing the warning only if you're sure that you don't w
       <trans-unit id="WRN_MainIgnored_Title">
         <source>The entry point of the program is global code; ignoring entry point</source>
         <target state="translated">程序的入口点是全局代码；将忽略此入口点</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StaticInAsOrIs">
-        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
-        <target state="translated">“is”或“as”运算符的第二个操作数不能是静态类型“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisEventType">
