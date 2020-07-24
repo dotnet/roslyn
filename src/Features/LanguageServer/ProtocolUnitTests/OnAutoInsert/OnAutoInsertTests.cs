@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 {
     public class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [Fact]
         public async Task OnAutoInsert_CommentCharacter()
         {
             var markup =
@@ -36,18 +35,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
-            var characterTyped = "/";
-            var locationTyped = locations["type"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
-
-            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
-            Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
-            var actualText = ApplyTextEdits(new[] { result.TextEdit }, documentText);
-            Assert.Equal(expected, actualText);
+            await VerifyMarkupAndExpected("/", markup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [Fact]
+        public async Task OnAutoInsert_CommentCharacterInsideMethod_Ignored()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        ///{|type:|}
+    }
+}";
+            await VerifyNoResult("/", markup);
+        }
+
+        [Fact]
+        public async Task OnAutoInsert_VisualBasicCommentCharacter_Ignored()
+        {
+            var markup =
+@"class A
+{
+    '''{|type:|}
+    void M()
+    {
+    }
+}";
+            await VerifyNoResult("'", markup);
+        }
+
+        [Fact]
         public async Task OnAutoInsert_EnterKey()
         {
             var markup =
@@ -72,15 +91,59 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
+            await VerifyMarkupAndExpected("\n", markup, expected);
+        }
+
+        [Fact]
+        public async Task OnAutoInsert_EnterKey2()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// Foo
+{|type:|}
+    /// </summary>
+    void M()
+    {
+    }
+}";
+            var expected =
+@"class A
+{
+    /// <summary>
+    /// Foo
+    /// $0
+    /// </summary>
+    void M()
+    {
+    }
+}";
+            await VerifyMarkupAndExpected("\n", markup, expected);
+        }
+
+        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected)
+        {
             using var workspace = CreateTestWorkspace(markup, out var locations);
-            var characterTyped = "\n";
             var locationTyped = locations["type"].Single();
             var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
             var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+
             Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
             var actualText = ApplyTextEdits(new[] { result.TextEdit }, documentText);
             Assert.Equal(expected, actualText);
+        }
+
+        private async Task VerifyNoResult(string characterTyped, string markup)
+        {
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var locationTyped = locations["type"].Single();
+            var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+
+            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+
+            Assert.Null(result.TextEdit);
         }
 
         private static async Task<LSP.DocumentOnAutoInsertResponseItem> RunOnAutoInsertAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
