@@ -307,12 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var savedDisposalLabel = _currentDisposalLabel;
-            bool changedDisposalLabel;
             if (node.FinallyBlockOpt is object)
             {
                 var finallyEntry = F.GenerateLabel("finallyEntry");
                 _currentDisposalLabel = finallyEntry;
-                changedDisposalLabel = true;
 
                 // Add finallyEntry label:
                 //  try
@@ -328,19 +326,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (node.FinallyLabelOpt is object)
             {
                 _currentDisposalLabel = node.FinallyLabelOpt;
-                changedDisposalLabel = true;
-            }
-            else
-            {
-                changedDisposalLabel = false;
             }
 
             var result = (BoundStatement)base.VisitTryStatement(node);
 
-            if (changedDisposalLabel)
-            {
-                _currentDisposalLabel = savedDisposalLabel;
-            }
+            _currentDisposalLabel = savedDisposalLabel;
 
             if (node.FinallyBlockOpt != null && _currentDisposalLabel is object)
             {
