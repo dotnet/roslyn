@@ -12368,12 +12368,12 @@ class C
             // Verify analyzers were executed only if both the following conditions were satisfied:
             //  1. Current assembly was added as an analyzer reference, i.e. "includeCurrentAssemblyAsAnalyzerReference = true" and
             //  2. We did not explicitly request skipping analyzers, i.e. "skipAnalyzers = false".
-            var expectedAnalayzerExecution = includeCurrentAssemblyAsAnalyzerReference && !skipAnalyzers;
+            var expectedAnalyzerExecution = includeCurrentAssemblyAsAnalyzerReference && !skipAnalyzers;
 
             // 'WarningDiagnosticAnalyzer' generates a warning for each named type.
             // We expect two warnings for this test: type "C" defined in source and the source generator defined type.
             // Additionally, we also have an analyzer that generates "warning CS8032: An instance of analyzer cannot be created"
-            var expectedWarningCount = expectedAnalayzerExecution ? 3 : 0;
+            var expectedWarningCount = expectedAnalyzerExecution ? 3 : 0;
 
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference,
                 expectedWarningCount: expectedWarningCount,
@@ -12384,7 +12384,7 @@ class C
             var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
             ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
 
-            if (expectedAnalayzerExecution)
+            if (expectedAnalyzerExecution)
             {
                 Assert.Contains("warning Warning01", output, StringComparison.Ordinal);
                 Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
