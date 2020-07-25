@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 // issues. There's no need to add the actual cshtml file to the workspace - so filter those out.
                 var filesTasks = project.SourceFiles
                     .Where(f => f.Scheme != SystemUriSchemeExternal)
-                    .Where(f => !f.LocalPath.EndsWith(".cshtml"))
+                    .Where(f => !f.LocalPath.EndsWith(".cshtml") && !f.LocalPath.EndsWith(".html"))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
                 string language;

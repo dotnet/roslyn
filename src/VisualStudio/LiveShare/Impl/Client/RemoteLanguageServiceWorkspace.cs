@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
 using Microsoft.VisualStudio.LiveShare;
@@ -39,7 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     /// A Roslyn workspace that contains projects that exist on a remote machine.
     /// </summary>
     [Export(typeof(RemoteLanguageServiceWorkspace))]
-    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IRunningDocumentTableEventListener
+    [Export(typeof(IVsTypeScriptRemoteLanguageServiceWorkspace))]
+    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IRunningDocumentTableEventListener, IVsTypeScriptRemoteLanguageServiceWorkspace
     {
         /// <summary>
         /// Gate to make sure we only update the paths and trigger RDT one at a time.

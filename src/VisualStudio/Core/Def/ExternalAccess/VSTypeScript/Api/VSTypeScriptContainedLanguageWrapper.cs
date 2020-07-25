@@ -6,6 +6,7 @@
 #pragma warning disable CS0618 // Type or member is obsolete
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -35,6 +36,27 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
                 workspace,
                 project.Id,
                 project.VisualStudioProject,
+                filePath,
+                languageServiceGuid,
+                vbHelperFormattingRule: null);
+        }
+
+        public VSTypeScriptContainedLanguageWrapper(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            CodeAnalysis.Workspace workspace,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            Guid languageServiceGuid)
+        {
+            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
+
+            _underlyingObject = new ContainedLanguage(
+                bufferCoordinator,
+                componentModel,
+                workspace,
+                ProjectId.CreateNewId($"Project for {filePath}"),
+                null,
                 filePath,
                 languageServiceGuid,
                 vbHelperFormattingRule: null);
