@@ -598,14 +598,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See Type::computeManagedType.
         /// </remarks>
-        internal bool IsManagedType(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => GetManagedKind(ref useSiteDiagnostics) == ManagedKind.Managed;
+        internal bool IsManagedType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => GetManagedKind(ref useSiteInfo) == ManagedKind.Managed;
 
         internal bool IsManagedTypeNoUseSiteDiagnostics
         {
             get
             {
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                return IsManagedType(ref useSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return IsManagedType(ref discardedUseSiteInfo);
             }
         }
 
@@ -613,14 +613,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Indicates whether a type is managed or not (i.e. you can take a pointer to it).
         /// Contains additional cases to help implement FeatureNotAvailable diagnostics.
         /// </summary>
-        internal abstract ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics);
+        internal abstract ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
         internal ManagedKind ManagedKindNoUseSiteDiagnostics
         {
             get
             {
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                return GetManagedKind(ref useSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return GetManagedKind(ref discardedUseSiteInfo);
             }
         }
 #nullable restore

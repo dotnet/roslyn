@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private Flags _flags;
         private ImmutableArray<DiagnosticInfo> _managedKindUseSiteDiagnostics;
+        private ImmutableArray<AssemblySymbol> _managedKindUseSiteDependencies;
 
         private readonly DeclarationModifiers _declModifiers;
         private readonly NamespaceOrTypeSymbol _containingSymbol;
@@ -685,21 +686,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var managedKind = _flags.ManagedKind;
-            if (managedKind == ManagedKind.Unknown || _managedKindUseSiteDiagnostics.IsDefault)
+            if (managedKind == ManagedKind.Unknown)
             {
-                HashSet<DiagnosticInfo>? managedKindUseSiteDiagnostics = null;
-                managedKind = base.GetManagedKind(ref managedKindUseSiteDiagnostics);
-                ImmutableInterlocked.InterlockedExchange(ref _managedKindUseSiteDiagnostics, managedKindUseSiteDiagnostics.ToImmutableArrayOrEmpty());
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(ContainingAssembly);
+                managedKind = base.GetManagedKind(ref managedKindUseSiteInfo);
+                ImmutableInterlocked.InterlockedInitialize(ref _managedKindUseSiteDiagnostics, managedKindUseSiteInfo.Diagnostics?.ToImmutableArray() ?? ImmutableArray<DiagnosticInfo>.Empty);
+                ImmutableInterlocked.InterlockedInitialize(ref _managedKindUseSiteDependencies, managedKindUseSiteInfo.Dependencies?.ToImmutableArray() ?? ImmutableArray<AssemblySymbol>.Empty);
                 _flags.SetManagedKind(managedKind);
             }
 
-            if (!_managedKindUseSiteDiagnostics.IsEmpty)
+            if (useSiteInfo.AccumulatesDiagnostics)
             {
-                useSiteDiagnostics ??= new HashSet<DiagnosticInfo>();
-                useSiteDiagnostics.AddAll(_managedKindUseSiteDiagnostics);
+                ImmutableArray<DiagnosticInfo> useSiteDiagnostics = _managedKindUseSiteDiagnostics;
+                // Ensure we have the latest value from the field
+                useSiteDiagnostics = ImmutableInterlocked.InterlockedCompareExchange(ref _managedKindUseSiteDiagnostics, useSiteDiagnostics, useSiteDiagnostics);
+                Debug.Assert(!useSiteDiagnostics.IsDefault);
+                useSiteInfo.AddDiagnostics(useSiteDiagnostics);
+            }
+
+            if (useSiteInfo.AccumulatesDependencies)
+            {
+                ImmutableArray<AssemblySymbol> useSiteDependencies = _managedKindUseSiteDependencies;
+                // Ensure we have the latest value from the field
+                useSiteDependencies = ImmutableInterlocked.InterlockedCompareExchange(ref _managedKindUseSiteDependencies, useSiteDependencies, useSiteDependencies);
+                Debug.Assert(!useSiteDependencies.IsDefault);
+                useSiteInfo.AddDependencies(useSiteDependencies);
             }
 
             return managedKind;

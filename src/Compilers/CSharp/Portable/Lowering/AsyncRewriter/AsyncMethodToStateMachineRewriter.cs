@@ -254,9 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that they can be collected by GC if needed
             foreach (var hoistedLocal in hoistedLocals)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteDiagnostics);
-                F.Diagnostics.Add(hoistedLocal.Locations.FirstOrNone(), useSiteDiagnostics);
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+                var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
+                F.Diagnostics.Add(hoistedLocal.Locations.FirstOrNone(), useSiteInfo);
                 if (!isManagedType)
                 {
                     continue;

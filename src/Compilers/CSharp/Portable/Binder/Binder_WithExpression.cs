@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    useSiteInfo.Add(cloneMethod.GetUseSiteInfo());
+                    cloneMethod.AddUseSiteInfo(ref useSiteInfo);
                 }
 
                 diagnostics.Add(syntax.Expression, useSiteInfo);

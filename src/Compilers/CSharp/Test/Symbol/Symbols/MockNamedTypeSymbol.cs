@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics) => ManagedKind.Managed;
+        internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 
         internal override bool ShouldAddWinRTMembers
         {

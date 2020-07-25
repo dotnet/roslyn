@@ -2737,9 +2737,9 @@ public struct S3
 
             void verifyIsManagedType()
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Assert.True(s3.IsManagedType(ref useSiteDiagnostics));
-                useSiteDiagnostics.Verify(
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(s3.ContainingAssembly);
+                Assert.True(s3.IsManagedType(ref managedKindUseSiteInfo));
+                managedKindUseSiteInfo.Diagnostics.Verify(
                     // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                     Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
                     );
@@ -2754,9 +2754,9 @@ public struct S3
 
             void verifyIsUnmanagedType()
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Assert.False(s3.IsManagedType(ref useSiteDiagnostics));
-                Assert.Null(useSiteDiagnostics);
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(s3.ContainingAssembly);
+                Assert.False(s3.IsManagedType(ref managedKindUseSiteInfo));
+                Assert.Null(managedKindUseSiteInfo.Diagnostics);
             }
         }
     }

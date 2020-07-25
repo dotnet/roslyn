@@ -2237,9 +2237,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType = operand.Type;
             Debug.Assert((object)operandType != null, "BindValue should have caught a null operand type");
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            ManagedKind managedKind = operandType.GetManagedKind(ref useSiteDiagnostics);
-            diagnostics.Add(node.Location, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            ManagedKind managedKind = operandType.GetManagedKind(ref useSiteInfo);
+            diagnostics.Add(node.Location, useSiteInfo);
 
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)

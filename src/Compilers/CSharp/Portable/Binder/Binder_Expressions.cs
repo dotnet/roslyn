@@ -1317,15 +1317,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            var managedKind = type.GetManagedKind(ref useSiteDiagnostics);
-            diagnostics.Add(location, useSiteDiagnostics);
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
+            var managedKind = type.GetManagedKind(ref useSiteInfo);
+            diagnostics.Add(location, useSiteInfo);
 
             return CheckManagedAddr(compilation, type, managedKind, location, diagnostics);
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
-        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, ManagedKind managedKind, Location location, DiagnosticBag diagnostics)
+        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, ManagedKind managedKind, Location location, BindingDiagnosticBag diagnostics)
         {
             switch (managedKind)
             {

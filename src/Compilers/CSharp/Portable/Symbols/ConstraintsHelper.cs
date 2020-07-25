@@ -786,7 +786,8 @@ hasRelatedInterfaces:
             TypeParameterSymbol typeParameter,
             TypeWithAnnotations typeArgument,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt)
+            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
+            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
         {
             if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.IsRestrictedType() || typeArgument.IsVoidType())
             {
@@ -816,9 +817,9 @@ hasRelatedInterfaces:
 
             if (typeParameter.HasUnmanagedTypeConstraint)
             {
-                HashSet<DiagnosticInfo> managedKindUseSiteDiagnostics = null;
-                var managedKind = typeArgument.Type.GetManagedKind(ref managedKindUseSiteDiagnostics);
-                AppendUseSiteDiagnostics(managedKindUseSiteDiagnostics, typeParameter, ref useSiteDiagnosticsBuilder);
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(args.Template);
+                var managedKind = typeArgument.Type.GetManagedKind(ref useSiteInfo);
+                AppendUseSiteDiagnostics(useSiteInfo, typeParameter, ref useSiteDiagnosticsBuilder);
 
                 if (managedKind == ManagedKind.Managed || !typeArgument.Type.IsNonNullableValueType())
                 {
@@ -876,7 +877,7 @@ hasRelatedInterfaces:
                 return true;
             }
 
-            if (!CheckBasicConstraints(containingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt))
+            if (!CheckBasicConstraints(containingSymbol, in args, typeParameter, typeArgument, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteDiagnosticsBuilder))
             {
                 return false;
             }
