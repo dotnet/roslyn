@@ -3360,11 +3360,10 @@ moreArguments:
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything))
             {
                 return false;
             }
-
 
             if (field.IsStatic)
             {
@@ -3372,7 +3371,7 @@ moreArguments:
             }
             else
             {
-                return method.MethodKind == MethodKind.Constructor &&
+                return (method.MethodKind == MethodKind.Constructor || method.IsInitOnly) &&
                     fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
             }
         }
