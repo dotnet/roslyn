@@ -245,7 +245,7 @@
     <vswhereVersion>2.4.1</vswhereVersion>
     <XamarinMacVersion>1.0.0</XamarinMacVersion>
     <xunitVersion>2.4.1</xunitVersion>
-    <xunitanalyzersVersion>0.10.0</xunitanalyzersVersion>
+    <xunitanalyzersVersion>0.12.0-pre.20</xunitanalyzersVersion>
     <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
     <XunitCombinatorialVersion>1.3.2</XunitCombinatorialVersion>
     <XUnitXmlTestLoggerVersion>2.1.26</XUnitXmlTestLoggerVersion>
