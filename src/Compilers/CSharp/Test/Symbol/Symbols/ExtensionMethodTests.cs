@@ -2729,7 +2729,7 @@ class Program
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
             var parameter = methodSymbol.ThisParameter;
-            Assert.Equal(parameter.Ordinal, -1);
+            Assert.Equal(-1, parameter.Ordinal);
             Assert.Equal(parameter.ContainingSymbol, methodSymbol);
 
             // Get the GenericNameSyntax node Cast<T1> for binding

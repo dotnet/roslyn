@@ -1402,7 +1402,7 @@ class C : B<string>
             {
                 field = sourceType.EnumValueField;
                 Assert.NotNull(field);
-                Assert.Equal(field.Name, WellKnownMemberNames.EnumBackingFieldName);
+                Assert.Equal(WellKnownMemberNames.EnumBackingFieldName, field.Name);
                 Assert.False(field.IsStatic);
                 Assert.False(field.IsConst);
                 Assert.False(field.IsReadOnly);

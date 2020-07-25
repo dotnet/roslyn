@@ -387,7 +387,7 @@ class C
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData);
                 Assert.Null(error);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 ReadOnlyCollection<byte> customTypeInfo;
                 var customTypeInfoId = result.GetCustomTypeInfo(out customTypeInfo);
                 ReadOnlyCollection<byte> dynamicFlags;
