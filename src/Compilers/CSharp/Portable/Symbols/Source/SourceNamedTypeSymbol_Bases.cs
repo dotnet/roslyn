@@ -121,21 +121,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Records can only inherit from other records or object
             if (this.IsClassType() && !localBase.IsObjectType() && !baseContainsErrorTypes)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
                 if (declaration.Kind == DeclarationKind.Record)
                 {
-                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null)
+                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
                     }
                 }
-                else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is object)
+                else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is object)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
                 }
 
-                diagnostics.Add(baseLocation, useSiteDiagnostics);
+                diagnostics.Add(baseLocation, useSiteInfo);
             }
         }
 

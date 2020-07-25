@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedConditionalOperator source,
             TypeSymbol destination,
             Conversion? conversionIfTargetTyped,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool hasErrors = false)
         {
             bool targetTyped = conversionIfTargetTyped is { };

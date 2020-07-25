@@ -2972,13 +2972,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
                 DiagnosticBag? methodBodyDiagnosticBag = DiagnosticBag.GetInstance();
 
+                Debug.Assert(moduleBeingBuilt is object);
+
                 MethodCompiler.CompileMethodBodies(
                     this,
                     moduleBeingBuilt,
                     emittingPdb,
                     emitTestCoverageData,
                     hasDeclarationErrors,
-                    emitMethodBodies: moduleBeingBuilt is object,
+                    emitMethodBodies: true,
                     diagnostics: new BindingDiagnosticBag(methodBodyDiagnosticBag),
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);

@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual void ValidatePropertyType(DiagnosticBag diagnostics)
+        protected virtual void ValidatePropertyType(BindingDiagnosticBag diagnostics)
         {
             var type = this.Type;
             if (type.IsRestrictedType(ignoreSpanLikeTypes: true))

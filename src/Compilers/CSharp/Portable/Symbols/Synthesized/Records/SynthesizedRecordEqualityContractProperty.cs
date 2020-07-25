@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedRecordEqualityContractProperty(
             SourceMemberContainerTypeSymbol containingType,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 binder: null,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => new SyntaxTokenList();
 
-        protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             // Nothing to do here
         }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (!isGet)
             {
@@ -100,18 +100,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol? explicitlyImplementedPropertyOpt,
             string? aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             // There should be no expression-bodied synthesized record properties
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             return ImmutableArray<ParameterSymbol>.Empty;
         }
 
-        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             // No need to worry about reporting use-site diagnostics, we already did that in the constructor
             return TypeWithAnnotations.Create(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated);
@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override bool HasPointerTypeSyntactically => false;
 
-        protected override void ValidatePropertyType(DiagnosticBag diagnostics)
+        protected override void ValidatePropertyType(BindingDiagnosticBag diagnostics)
         {
             base.ValidatePropertyType(diagnostics);
             VerifyOverridesEqualityContractFromBase(this, diagnostics);
         }
 
-        internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, DiagnosticBag diagnostics)
+        internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, BindingDiagnosticBag diagnostics)
         {
             if (overriding.ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
             {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<MethodSymbol> explicitInterfaceImplementations,
                 Location location,
                 CSharpSyntaxNode syntax,
-                DiagnosticBag diagnostics)
+                BindingDiagnosticBag diagnostics)
                 : base(
                        containingType,
                        name,

@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Parser will only have accepted static/async as allowed modifiers on this construct.
             // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
             // are reported now.
-            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics);
+            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics.DiagnosticBag ?? new DiagnosticBag());
 
             if (data.HasNames)
             {

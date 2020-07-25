@@ -2191,17 +2191,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedConditionalOperator:
                     {
                         var conditionalOperator = (BoundUnconvertedConditionalOperator)operand;
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                         bool reportedError = false;
-                        tryConversion(conditionalOperator.Consequence, ref reportedError, ref useSiteDiagnostics);
-                        tryConversion(conditionalOperator.Alternative, ref reportedError, ref useSiteDiagnostics);
+                        tryConversion(conditionalOperator.Consequence, ref reportedError, ref discardedUseSiteInfo);
+                        tryConversion(conditionalOperator.Alternative, ref reportedError, ref discardedUseSiteInfo);
                         Debug.Assert(reportedError);
                         return;
                     }
 
-                    void tryConversion(BoundExpression expr, ref bool reportedError, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+                    void tryConversion(BoundExpression expr, ref bool reportedError, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
                     {
-                        var conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, targetType, ref useSiteDiagnostics);
+                        var conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, targetType, ref useSiteInfo);
                         if (!conversion.IsImplicit || !conversion.IsValid)
                         {
                             GenerateImplicitConversionError(diagnostics, expr.Syntax, conversion, expr, targetType);

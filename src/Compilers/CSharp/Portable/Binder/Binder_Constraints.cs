@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            static void reportTypeConstraintsMustBeUniqueAndFirst(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+            static void reportTypeConstraintsMustBeUniqueAndFirst(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, syntax.GetLocation());
             }

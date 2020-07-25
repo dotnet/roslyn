@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
                 }
-                else if (cloneMethod.GetUseSiteDiagnostic() is DiagnosticInfo info)
+                else
                 {
-                    (useSiteDiagnostics ??= new HashSet<DiagnosticInfo>()).Add(info);
+                    useSiteInfo.Add(cloneMethod.GetUseSiteInfo());
                 }
 
                 diagnostics.Add(syntax.Expression, useSiteInfo);

@@ -1005,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
         End Function
 
-        Private Function DeriveUseSiteErrorInfoFromTypeArguments() As DiagnosticInfo
+        Private Function DeriveUseSiteInfoFromTypeArguments() As UseSiteInfo(Of AssemblySymbol)
             Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             Dim currentType As NamedTypeSymbol = Me
 
@@ -1018,7 +1018,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If currentType.HasTypeArgumentsCustomModifiers Then
                     For i As Integer = 0 To Me.Arity - 1
-                        modifiersUseSiteInfo = MergeUseSiteInfo(modifiersUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)))
                         If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)), ERRID.ERR_UnsupportedType1) Then
                             Return argsUseSiteInfo
                         End If
