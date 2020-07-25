@@ -12,7 +12,10 @@
     } else {
         Write-Host "$keyCaps=$($_.Value)" -ForegroundColor Yellow
         if ($env:TF_BUILD) {
-            Write-Host "##vso[task.setvariable variable=$keyCaps;]$($_.Value)"
+            # Create two variables: the first that can be used by its simple name and accessible only within this job.
+            Write-Host "##vso[task.setvariable variable=$keyCaps]$($_.Value)"
+            # and the second that works across jobs and stages but must be fully qualified when referenced.
+            Write-Host "##vso[task.setvariable variable=$keyCaps;isOutput=true]$($_.Value)"
         } elseif ($env:GITHUB_ACTIONS) {
             Write-Host "::set-env name=$keyCaps::$($_.Value)"
         }
