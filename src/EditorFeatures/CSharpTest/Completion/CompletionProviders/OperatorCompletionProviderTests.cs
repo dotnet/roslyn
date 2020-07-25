@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         // The suggestion is e.g. "+". If the user actually types "+" the completion list is closed. Operators therefore do not support partially written items.
         protected override string? ItemPartiallyWritten(string? expectedItemOrNull) => "";
 
-        private static IEnumerable<string[]> BinaryArithmeticAndLogicalOperators()
+        private static IEnumerable<object[]> BinaryArithmeticAndLogicalOperators()
         {
             yield return new[] { "+" };
             yield return new[] { "&" };
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "-" };
         }
 
-        private static IEnumerable<string[]> BinaryEqualityAndRelationalOperators()
+        private static IEnumerable<object[]> BinaryEqualityAndRelationalOperators()
         {
             yield return new[] { "==" };
             yield return new[] { ">" };
@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "<=" };
         }
 
-        private static IEnumerable<string[]> PostfixOperators()
+        private static IEnumerable<object[]> PostfixOperators()
         {
             yield return new[] { "++" };
             yield return new[] { "--" };
         }
 
-        private static IEnumerable<string[]> PrefixOperators()
+        private static IEnumerable<object[]> PrefixOperators()
         {
             yield return new[] { "!" };
             yield return new[] { "~" };
@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "+" };
         }
 
-        private static IEnumerable<string[]> BinaryOperators()
+        private static IEnumerable<object[]> BinaryOperators()
             => BinaryArithmeticAndLogicalOperators().Union(BinaryEqualityAndRelationalOperators());
 
-        private static IEnumerable<string[]> UnaryOperators()
+        private static IEnumerable<object[]> UnaryOperators()
             => PostfixOperators().Union(PrefixOperators());
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
