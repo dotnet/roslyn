@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     throw new InvalidOperationException(
-                        $"We should always be able to resolve a symbol back on the host side:\r\n{SymbolKeyData}\r\n{failureReason}");
+                        $"We should always be able to resolve a symbol back on the host side:\r\n{project.Name}\r\n{SymbolKeyData}\r\n{failureReason}");
                 }
                 catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
                 {
