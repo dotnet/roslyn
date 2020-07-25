@@ -28,19 +28,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             SetAddressSharedEntities(analysisContext.InterproceduralAnalysisDataOpt?.AddressSharedEntities);
         }
 
-        public void SetAddressSharedEntities(ImmutableDictionary<AnalysisEntity, CopyAbstractValue>? addressSharedEntitiesOpt)
+        public void SetAddressSharedEntities(ImmutableDictionary<AnalysisEntity, CopyAbstractValue>? addressSharedEntities)
         {
             _addressSharedEntitiesBuilder.Clear();
-            if (addressSharedEntitiesOpt != null)
+            if (addressSharedEntities != null)
             {
-                _addressSharedEntitiesBuilder.AddRange(addressSharedEntitiesOpt);
+                _addressSharedEntitiesBuilder.AddRange(addressSharedEntities);
             }
         }
 
-        public void UpdateAddressSharedEntitiesForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValueOpt)
+        public void UpdateAddressSharedEntitiesForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValue)
         {
             if (parameter.RefKind != RefKind.None &&
-                assignedValueOpt?.AnalysisEntityOpt != null)
+                assignedValue?.AnalysisEntityOpt != null)
             {
                 var addressSharedEntities = ComputeAddressSharedEntities();
                 var isReferenceCopy = !addressSharedEntities.Any(a => a.Type.IsValueType);
@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             ImmutableHashSet<AnalysisEntity> ComputeAddressSharedEntities()
             {
-                RoslynDebug.Assert(assignedValueOpt?.AnalysisEntityOpt != null);
+                RoslynDebug.Assert(assignedValue?.AnalysisEntityOpt != null);
 
                 var builder = PooledHashSet<AnalysisEntity>.GetInstance();
                 AddIfHasKnownInstanceLocation(analysisEntity, builder);
-                AddIfHasKnownInstanceLocation(assignedValueOpt.AnalysisEntityOpt, builder);
+                AddIfHasKnownInstanceLocation(assignedValue.AnalysisEntityOpt, builder);
 
                 // We need to handle multiple ref/out parameters passed the same location.
                 // For example, "M(ref a, ref a);"
-                if (_addressSharedEntitiesBuilder.TryGetValue(assignedValueOpt.AnalysisEntityOpt, out var existingValue))
+                if (_addressSharedEntitiesBuilder.TryGetValue(assignedValue.AnalysisEntityOpt, out var existingValue))
                 {
                     foreach (var entity in existingValue.AnalysisEntities)
                     {

@@ -35,64 +35,64 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly ImmutableArray<int> _ignoringLocationHashCodeParts;
 
         private AnalysisEntity(
-            ISymbol? symbolOpt,
+            ISymbol? symbol,
             ImmutableArray<AbstractIndex> indices,
-            SyntaxNode? instanceReferenceOperationSyntaxOpt,
-            InterproceduralCaptureId? captureIdOpt,
+            SyntaxNode? instanceReferenceOperationSyntax,
+            InterproceduralCaptureId? captureId,
             PointsToAbstractValue location,
             ITypeSymbol type,
-            AnalysisEntity? parentOpt,
+            AnalysisEntity? parent,
             bool isThisOrMeInstance)
         {
             Debug.Assert(!indices.IsDefault);
-            Debug.Assert(symbolOpt != null || !indices.IsEmpty || instanceReferenceOperationSyntaxOpt != null || captureIdOpt.HasValue);
-            Debug.Assert(parentOpt == null || parentOpt.Type.HasValueCopySemantics() || !indices.IsEmpty);
+            Debug.Assert(symbol != null || !indices.IsEmpty || instanceReferenceOperationSyntax != null || captureId.HasValue);
+            Debug.Assert(parent == null || parent.Type.HasValueCopySemantics() || !indices.IsEmpty);
 
-            SymbolOpt = symbolOpt;
+            SymbolOpt = symbol;
             Indices = indices;
-            InstanceReferenceOperationSyntaxOpt = instanceReferenceOperationSyntaxOpt;
-            CaptureIdOpt = captureIdOpt;
+            InstanceReferenceOperationSyntaxOpt = instanceReferenceOperationSyntax;
+            CaptureIdOpt = captureId;
             InstanceLocation = location;
             Type = type;
-            ParentOpt = parentOpt;
+            ParentOpt = parent;
             IsThisOrMeInstance = isThisOrMeInstance;
 
             _ignoringLocationHashCodeParts = ComputeIgnoringLocationHashCodeParts();
             EqualsIgnoringInstanceLocationId = HashUtilities.Combine(_ignoringLocationHashCodeParts);
         }
 
-        private AnalysisEntity(ISymbol? symbolOpt, ImmutableArray<AbstractIndex> indices, PointsToAbstractValue location, ITypeSymbol type, AnalysisEntity? parentOpt)
-            : this(symbolOpt, indices, instanceReferenceOperationSyntaxOpt: null, captureIdOpt: null, location: location, type: type, parentOpt: parentOpt, isThisOrMeInstance: false)
+        private AnalysisEntity(ISymbol? symbol, ImmutableArray<AbstractIndex> indices, PointsToAbstractValue location, ITypeSymbol type, AnalysisEntity? parent)
+            : this(symbol, indices, instanceReferenceOperationSyntax: null, captureId: null, location: location, type: type, parent: parent, isThisOrMeInstance: false)
         {
-            Debug.Assert(symbolOpt != null || !indices.IsEmpty);
+            Debug.Assert(symbol != null || !indices.IsEmpty);
         }
 
         private AnalysisEntity(IInstanceReferenceOperation instanceReferenceOperation, PointsToAbstractValue location)
-            : this(symbolOpt: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntaxOpt: instanceReferenceOperation.Syntax,
-                  captureIdOpt: null, location: location, type: instanceReferenceOperation.Type, parentOpt: null, isThisOrMeInstance: false)
+            : this(symbol: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntax: instanceReferenceOperation.Syntax,
+                  captureId: null, location: location, type: instanceReferenceOperation.Type, parent: null, isThisOrMeInstance: false)
         {
             Debug.Assert(instanceReferenceOperation != null);
         }
 
         private AnalysisEntity(InterproceduralCaptureId captureId, ITypeSymbol capturedType, PointsToAbstractValue location)
-            : this(symbolOpt: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntaxOpt: null,
-                  captureIdOpt: captureId, location: location, type: capturedType, parentOpt: null, isThisOrMeInstance: false)
+            : this(symbol: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntax: null,
+                  captureId: captureId, location: location, type: capturedType, parent: null, isThisOrMeInstance: false)
         {
         }
 
         private AnalysisEntity(INamedTypeSymbol namedType, PointsToAbstractValue location, bool isThisOrMeInstance)
-            : this(symbolOpt: namedType, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntaxOpt: null,
-                  captureIdOpt: null, location: location, type: namedType, parentOpt: null, isThisOrMeInstance: isThisOrMeInstance)
+            : this(symbol: namedType, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntax: null,
+                  captureId: null, location: location, type: namedType, parent: null, isThisOrMeInstance: isThisOrMeInstance)
         {
         }
 
-        public static AnalysisEntity Create(ISymbol? symbolOpt, ImmutableArray<AbstractIndex> indices,
-            ITypeSymbol type, PointsToAbstractValue instanceLocation, AnalysisEntity? parentOpt)
+        public static AnalysisEntity Create(ISymbol? symbol, ImmutableArray<AbstractIndex> indices,
+            ITypeSymbol type, PointsToAbstractValue instanceLocation, AnalysisEntity? parent)
         {
-            Debug.Assert(symbolOpt != null || !indices.IsEmpty);
-            Debug.Assert(parentOpt == null || parentOpt.InstanceLocation == instanceLocation);
+            Debug.Assert(symbol != null || !indices.IsEmpty);
+            Debug.Assert(parent == null || parent.InstanceLocation == instanceLocation);
 
-            return new AnalysisEntity(symbolOpt, indices, instanceLocation, type, parentOpt);
+            return new AnalysisEntity(symbol, indices, instanceLocation, type, parent);
         }
 
         public static AnalysisEntity Create(IInstanceReferenceOperation instanceReferenceOperation, PointsToAbstractValue instanceLocation)

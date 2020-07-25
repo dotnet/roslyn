@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             PointsToAnalysisKind pointsToAnalysisKind,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
         {
             return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                pointsToAnalysisKind, out _, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
+                pointsToAnalysisKind, out _, interproceduralAnalysisConfig, interproceduralAnalysisPredicate,
                 pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
@@ -47,22 +47,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             PointsToAnalysisKind pointsToAnalysisKind,
-            out CopyAnalysisResult? copyAnalysisResultOpt,
+            out CopyAnalysisResult? copyAnalysisResult,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
         {
             if (pointsToAnalysisKind == PointsToAnalysisKind.None)
             {
-                copyAnalysisResultOpt = null;
+                copyAnalysisResult = null;
                 return null;
             }
 
-            copyAnalysisResultOpt = performCopyAnalysis ?
+            copyAnalysisResult = performCopyAnalysis ?
                 CopyAnalysis.CopyAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
-                    interproceduralAnalysisPredicateOpt, pessimisticAnalysis, pointsToAnalysisKind, exceptionPathsAnalysis) :
+                    interproceduralAnalysisPredicate, pessimisticAnalysis, pointsToAnalysisKind, exceptionPathsAnalysis) :
                 null;
 
             if (cfg == null)
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             }
 
             var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
-                owningSymbol, analyzerOptions, pointsToAnalysisKind, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt,
-                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
+                owningSymbol, analyzerOptions, pointsToAnalysisKind, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResult,
+                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicate);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 

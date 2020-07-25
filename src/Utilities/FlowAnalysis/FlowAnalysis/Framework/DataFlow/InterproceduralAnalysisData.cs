@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         public InterproceduralAnalysisData(
             TAnalysisData initialAnalysisData,
-            (AnalysisEntity?, PointsToAbstractValue)? invocationInstanceOpt,
-            (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCallerOpt,
+            (AnalysisEntity?, PointsToAbstractValue)? invocationInstance,
+            (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCaller,
             ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
             ImmutableDictionary<ISymbol, PointsToAbstractValue> capturedVariablesMap,
             ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<ISymbol, ImmutableStack<IOperation>?> getInterproceduralCallStackForOwningSymbol)
         {
             InitialAnalysisData = initialAnalysisData;
-            InvocationInstanceOpt = invocationInstanceOpt;
-            ThisOrMeInstanceForCallerOpt = thisOrMeInstanceForCallerOpt;
+            InvocationInstanceOpt = invocationInstance;
+            ThisOrMeInstanceForCallerOpt = thisOrMeInstanceForCaller;
             ArgumentValuesMap = argumentValuesMap;
             CapturedVariablesMap = capturedVariablesMap;
             AddressSharedEntities = addressSharedEntities;
@@ -77,13 +77,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         private static void AddHashCodeParts(
-            (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? instanceAndPointsToValueOpt,
+            (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? instanceAndPointsToValue,
             Action<int> addPart)
         {
-            if (instanceAndPointsToValueOpt.HasValue)
+            if (instanceAndPointsToValue.HasValue)
             {
-                addPart(instanceAndPointsToValueOpt.Value.InstanceOpt.GetHashCodeOrDefault());
-                addPart(instanceAndPointsToValueOpt.Value.PointsToValue.GetHashCode());
+                addPart(instanceAndPointsToValue.Value.InstanceOpt.GetHashCodeOrDefault());
+                addPart(instanceAndPointsToValue.Value.PointsToValue.GetHashCode());
             }
             else
             {

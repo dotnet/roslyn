@@ -86,7 +86,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     wellKnownTypeProvider,
                     PointsToAnalysisKind.Complete,
                     interproceduralAnalysisConfig,
-                    interproceduralAnalysisPredicateOpt: null,
+                    interproceduralAnalysisPredicate: null,
                     pessimisticAnalysis: true,
                     performCopyAnalysis: false);
                 if (pointsToAnalysisResult == null)
@@ -103,7 +103,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 analyzerOptions,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
-                copyAnalysisResultOpt: copyAnalysisResult,
+                copyAnalysisResult: copyAnalysisResult,
                 pointsToAnalysisResult: pointsToAnalysisResult,
                 valueContentAnalysisResult: valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult: TryGetOrComputeResultForAnalysisContext,
