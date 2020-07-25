@@ -77,6 +77,93 @@ class Test : MyBase
         }
 
         [Fact]
+        public async Task TestInNamespace()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test
+    {
+        int [||]Method()
+        {
+            return 1 + 1;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+namespace MyNamespace
+{
+    class Test : MyBase
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">namespace MyNamespace
+{
+    internal class MyBase
+    {
+        int Method()
+        {
+            return 1 + 1;
+        }
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected);
+        }
+
+        [Fact]
+        public async Task TestAccessibility()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+public class Test
+{
+    int [||]Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+public class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">public class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(input, expected);
+        }
+
+        [Fact]
         public async Task TestEvent()
         {
             var input = @"
