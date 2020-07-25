@@ -394,15 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind ManagedKind
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            get
-            {
-                // CONSIDER: we could cache this, but it's only expensive for non-special struct types
-                // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
-                // nicely into the flags variable.
-                return BaseTypeAnalysis.GetManagedKind(this);
-            }
+            // CONSIDER: we could cache this, but it's only expensive for non-special struct types
+            // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
+            // nicely into the flags variable.
+            return BaseTypeAnalysis.GetManagedKind(this, ref useSiteDiagnostics);
         }
 
         /// <summary>

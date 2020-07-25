@@ -590,6 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public virtual ImmutableArray<FieldSymbol> TupleElements => default(ImmutableArray<FieldSymbol>);
 
+#nullable enable
         /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
         /// some struct types).
@@ -597,13 +598,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See Type::computeManagedType.
         /// </remarks>
-        internal bool IsManagedType => ManagedKind == ManagedKind.Managed;
+        internal bool IsManagedType(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => GetManagedKind(ref useSiteDiagnostics) == ManagedKind.Managed;
+
+        internal bool IsManagedTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                return IsManagedType(ref useSiteDiagnostics);
+            }
+        }
 
         /// <summary>
         /// Indicates whether a type is managed or not (i.e. you can take a pointer to it).
         /// Contains additional cases to help implement FeatureNotAvailable diagnostics.
         /// </summary>
-        internal abstract ManagedKind ManagedKind { get; }
+        internal abstract ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics);
+
+        internal ManagedKind ManagedKindNoUseSiteDiagnostics
+        {
+            get
+            {
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                return GetManagedKind(ref useSiteDiagnostics);
+            }
+        }
+#nullable restore
 
         internal bool NeedsNullableAttribute()
         {

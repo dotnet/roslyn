@@ -2237,13 +2237,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType = operand.Type;
             Debug.Assert((object)operandType != null, "BindValue should have caught a null operand type");
 
-            bool isManagedType = operandType.IsManagedType;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            ManagedKind managedKind = operandType.GetManagedKind(ref useSiteDiagnostics);
+            diagnostics.Add(node.Location, useSiteDiagnostics);
+
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)
             {
                 if (!hasErrors)
                 {
-                    hasErrors = CheckManagedAddr(Compilation, operandType, node.Location, diagnostics);
+                    hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
                 }
 
                 if (!hasErrors)
@@ -2257,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol pointedAtType = isManagedType && allowManagedAddressOf
+            TypeSymbol pointedAtType = managedKind == ManagedKind.Managed && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
                 : operandType ?? CreateErrorType();
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
