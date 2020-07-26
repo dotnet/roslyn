@@ -4388,7 +4388,7 @@ localI();
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
-                // (14,14): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                // (14,14): error CS0751: A partial method must be declared within a partial class, partial record, partial struct, or partial interface
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "localG").WithLocation(14, 14),
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context

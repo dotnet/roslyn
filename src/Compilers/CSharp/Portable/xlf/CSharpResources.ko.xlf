@@ -5426,8 +5426,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">부분 메서드(Partial method)는 partial 클래스, partial 구조체 또는 partial 인터페이스 내에 선언해야 합니다.</target>
+        <source>A partial method must be declared within a partial class, partial record, partial struct, or partial interface</source>
+        <target state="needs-review-translation">부분 메서드(Partial method)는 partial 클래스, partial 구조체 또는 partial 인터페이스 내에 선언해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">

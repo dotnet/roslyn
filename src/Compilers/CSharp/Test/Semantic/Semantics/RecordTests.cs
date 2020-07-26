@@ -19088,5 +19088,20 @@ static record R(int I)
                 Diagnostic(ErrorCode.ERR_DestructorInStaticClass, "R").WithArguments("R.~R()").WithLocation(5, 6)
                 );
         }
+
+        [Fact]
+        public void RecordWithPartialMethodExplicitImplementation()
+        {
+            var source =
+@"record R
+{
+    partial void M();
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,18): error CS0751: A partial method must be declared within a partial class, partial record, partial struct, or partial interface
+                //     partial void M();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 18)
+                );
+        }
     }
 }
