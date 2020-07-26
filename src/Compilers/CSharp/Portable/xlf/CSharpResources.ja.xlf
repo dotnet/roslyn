@@ -5236,8 +5236,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'{1}': 静的クラス '{0}' から派生することはできません。</target>
+        <source>'{1}': cannot derive from static type '{0}'</source>
+        <target state="needs-review-translation">'{1}': 静的クラス '{0}' から派生することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">

@@ -5236,8 +5236,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'"{1}": Von der statischen {0}-Klasse kann nicht abgeleitet werden.</target>
+        <source>'{1}': cannot derive from static type '{0}'</source>
+        <target state="needs-review-translation">'"{1}": Von der statischen {0}-Klasse kann nicht abgeleitet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">

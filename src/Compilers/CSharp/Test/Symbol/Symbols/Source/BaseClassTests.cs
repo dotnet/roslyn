@@ -390,7 +390,7 @@ public partial class C1
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,15): error CS0709: 'C1': cannot derive from static class 'NV'
+                // (10,15): error CS0709: 'C1': cannot derive from static type 'NV'
                 // partial class C1 : NV
                 Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 15),
                 // (10,15): error CS0060: Inconsistent accessibility: base type 'NV' is less accessible than class 'C1'

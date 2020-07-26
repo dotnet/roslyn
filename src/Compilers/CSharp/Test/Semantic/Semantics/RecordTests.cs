@@ -18973,5 +18973,69 @@ namespace x
                 //         ~iiii(){}
                 Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
+
+        [Fact]
+        public void StaticBasePartial()
+        {
+            var text = @"
+static record NV
+{
+}
+
+public partial record C1
+{
+}
+
+partial record C1 : NV
+{
+}
+
+public partial record C1
+{
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0708: 'NV.EqualityContract': cannot declare instance members in a static type
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("NV.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS0722: 'NV': static types cannot be used as return types
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "NV").WithArguments("NV").WithLocation(2, 15),
+                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static type
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("GetHashCode").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static type
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static type
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS1057: 'NV.NV(NV)': static classes cannot contain protected members
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.NV(NV)").WithLocation(2, 15),
+                // (2,15): error CS1057: 'NV.EqualityContract': static classes cannot contain protected members
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS1057: 'NV.EqualityContract.get': static classes cannot contain protected members
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.EqualityContract.get").WithLocation(2, 15),
+                // (6,23): error CS0050: Inconsistent accessibility: return type 'NV' is less accessible than method 'C1.<Clone>$()'
+                // public partial record C1
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "C1").WithArguments("C1.<Clone>$()", "NV").WithLocation(6, 23),
+                // (6,23): error CS0722: 'NV': static types cannot be used as return types
+                // public partial record C1
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C1").WithArguments("NV").WithLocation(6, 23),
+                // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
+                // public partial record C1
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
+                // (10,16): error CS0709: 'C1': cannot derive from static type 'NV'
+                // partial record C1 : NV
+                Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 16),
+                // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial record C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
+                );
+        }
     }
 }

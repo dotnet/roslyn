@@ -5236,8 +5236,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'{1}' non può derivare dalla classe statica '{0}'</target>
+        <source>'{1}': cannot derive from static type '{0}'</source>
+        <target state="needs-review-translation">'{1}' non può derivare dalla classe statica '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">

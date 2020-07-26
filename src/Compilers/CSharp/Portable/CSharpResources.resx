@@ -2010,7 +2010,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot declare instance members in a static type</value>
   </data>
   <data name="ERR_StaticBaseClass" xml:space="preserve">
-    <value>'{1}': cannot derive from static class '{0}'</value>
+    <value>'{1}': cannot derive from static type '{0}'</value>
   </data>
   <data name="ERR_ConstructorInStaticClass" xml:space="preserve">
     <value>Static classes cannot have instance constructors</value>

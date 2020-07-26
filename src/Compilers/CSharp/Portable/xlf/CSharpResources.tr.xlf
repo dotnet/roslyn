@@ -5236,8 +5236,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'{1}': '{0}' statik sınıfından türetilemiyor</target>
+        <source>'{1}': cannot derive from static type '{0}'</source>
+        <target state="needs-review-translation">'{1}': '{0}' statik sınıfından türetilemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">

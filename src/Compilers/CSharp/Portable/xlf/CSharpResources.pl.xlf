@@ -5236,8 +5236,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'„{1}”: nie można utworzyć na podstawie klasy statycznej „{0}”</target>
+        <source>'{1}': cannot derive from static type '{0}'</source>
+        <target state="needs-review-translation">'„{1}”: nie można utworzyć na podstawie klasy statycznej „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
