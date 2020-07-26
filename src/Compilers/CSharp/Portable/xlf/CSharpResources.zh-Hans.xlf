@@ -6650,8 +6650,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">无法分配到只读字段(除非在定义了该字段的类的构造函数或 init-only 资源库中，或者在变量初始值设定项中)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">无法分配到只读字段(除非在定义了该字段的类的构造函数或 init-only 资源库中，或者在变量初始值设定项中)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

@@ -6650,8 +6650,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Nie można przypisać do pola tylko do odczytu (poza konstruktorem lub metodą ustawiającą tylko do inicjowania klasy, w której pole jest zdefiniowane, lub inicjatorze zmiennej)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">Nie można przypisać do pola tylko do odczytu (poza konstruktorem lub metodą ustawiającą tylko do inicjowania klasy, w której pole jest zdefiniowane, lub inicjatorze zmiennej)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

@@ -6650,8 +6650,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">無法指派給唯讀欄位 (除非位於建構函式內; 或位於已定義此欄位的類別中，僅供初始化的 Setter 內; 或位於變數的初始設定式內)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">無法指派給唯讀欄位 (除非位於建構函式內; 或位於已定義此欄位的類別中，僅供初始化的 Setter 內; 或位於變數的初始設定式內)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

@@ -6650,8 +6650,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">No se puede asignar a un campo de solo lectura un valor (excepto en un constructor o un establecedor solo de inicialización de la clase en la que se define el campo o un inicializador de variable)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">No se puede asignar a un campo de solo lectura un valor (excepto en un constructor o un establecedor solo de inicialización de la clase en la que se define el campo o un inicializador de variable)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

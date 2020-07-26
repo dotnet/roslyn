@@ -6650,8 +6650,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Полю, которое доступно только для чтения, не может быть присвоено значение (значение может быть присвоено только в классе, в котором определено поле: в конструкторе класса или в методе задания значения, вызываемом только при инициализации класса, либо в инициализаторе переменной)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">Полю, которое доступно только для чтения, не может быть присвоено значение (значение может быть присвоено только в классе, в котором определено поле: в конструкторе класса или в методе задания значения, вызываемом только при инициализации класса, либо в инициализаторе переменной)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
