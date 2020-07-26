@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (different.IsDerivedFrom(same, ComparisonForUserDefinedOperators, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
-                    // '{0}': user-defined conversions to or from a derived class are not allowed
+                    // '{0}': user-defined conversions to or from a derived type are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.Locations[0], this);
                 }
 

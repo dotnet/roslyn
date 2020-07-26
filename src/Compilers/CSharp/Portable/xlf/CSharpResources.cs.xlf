@@ -4591,8 +4591,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'{0}: Uživatelem definované převody na odvozenou třídu nebo z ní nejsou povolené.</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="needs-review-translation">'{0}: Uživatelem definované převody na odvozenou třídu nebo z ní nejsou povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">

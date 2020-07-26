@@ -4591,8 +4591,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'"{0}": Benutzerdefinierte Konvertierungen in eine oder aus einer abgeleiteten Klasse sind nicht zulässig.</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="needs-review-translation">'"{0}": Benutzerdefinierte Konvertierungen in eine oder aus einer abgeleiteten Klasse sind nicht zulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">

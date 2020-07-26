@@ -4591,8 +4591,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'{0}': non sono consentite conversioni definite dall'utente da o verso una classe derivata</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="needs-review-translation">'{0}': non sono consentite conversioni definite dall'utente da o verso una classe derivata</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">

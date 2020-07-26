@@ -4591,8 +4591,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'{0}": не разрешено пользовательское преобразование в производный класс или из производного класса.</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="needs-review-translation">'{0}": не разрешено пользовательское преобразование в производный класс или из производного класса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">

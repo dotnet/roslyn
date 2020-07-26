@@ -18930,5 +18930,26 @@ public record Derived : Base<(int a, int b)>
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Base<(int, int)>").WithArguments("Derived.explicit operator Base<(int, int)>(Derived)").WithLocation(5, 37)
                 );
         }
+
+        [Fact]
+        public void CS0554ERR_ConversionWithDerived()
+        {
+            var text = @"
+public record B
+{
+    public static implicit operator B(D d) // CS0554
+    {
+        return null;
+    }
+}
+public record D : B {}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived type are not allowed
+                //     public static implicit operator B(D d) // CS0554
+                Diagnostic(ErrorCode.ERR_ConversionWithDerived, "B").WithArguments("B.implicit operator B(D)")
+                );
+        }
     }
 }

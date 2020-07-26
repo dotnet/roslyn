@@ -10287,7 +10287,7 @@ public class D : B {}
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived class are not allowed
+// (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived type are not allowed
 //     public static implicit operator B(D d) // CS0554
 Diagnostic(ErrorCode.ERR_ConversionWithDerived, "B").WithArguments("B.implicit operator B(D)")
                 );
