@@ -27,11 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpPullMemberUpCodeRefactoringProvider() : base(null)
+        public CSharpPullMemberUpCodeRefactoringProvider() : this(service: null)
         {
         }
 
-        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context) => GetSelectedDeclarationOrVariableAsync(context);
+        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
+            => GetSelectedDeclarationOrVariableAsync(context);
 
         internal static async Task<SyntaxNode> GetSelectedDeclarationOrVariableAsync(CodeRefactoringContext context)
         {

@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 {
     internal abstract class AbstractExtractClassRefactoringProvider : CodeRefactoringProvider
     {
-        public AbstractExtractClassRefactoringProvider()
+        private readonly IExtractClassOptionsService? _optionsService;
+
+        public AbstractExtractClassRefactoringProvider() : this(service: null)
         {
         }
 
-        public AbstractExtractClassRefactoringProvider(IExtractClassOptionsService service)
+        public AbstractExtractClassRefactoringProvider(IExtractClassOptionsService? service)
         {
             _optionsService = service;
         }
-
-        private readonly IExtractClassOptionsService? _optionsService;
 
         protected abstract Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context);
         protected abstract Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context);

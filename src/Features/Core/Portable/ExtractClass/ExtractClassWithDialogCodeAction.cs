@@ -153,9 +153,14 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<(ISymbol member, bool makeAbstract)>.GetInstance(out var pullMembersBuilder);
+            using var _1 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(memberAnalysisResults.Length, out var remainingResults);
+            remainingResults.AddRange(memberAnalysisResults);
 
-            var remainingResults = new List<ExtractClassMemberAnalysisResult>(memberAnalysisResults);
-
+            // For each document in the symbol mappings, we want to find the annotated nodes
+            // of the members and get the current symbol that represents those after
+            // any changes we made before members get pulled up into the base class.
+            // We only need to worry about symbols that are actually being moved, so we track
+            // the symbols from the member analysis. 
             foreach (var documentId in symbolMapping.DocumentIds)
             {
                 if (remainingResults.Count == 0)
@@ -165,18 +170,19 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 }
 
                 var document = solution.GetRequiredDocument(documentId);
-
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var typeDeclaration = root.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).SingleOrDefault();
-                if (typeDeclaration == null)
-                {
-                    continue;
-                }
+                Contract.ThrowIfNull(typeDeclaration);
 
-                foreach (var memberAnalysis in remainingResults.ToArray())
+                using var _2 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(remainingResults.Count, out var resultsToRemove);
+
+                // Out of the remaining members that we need to move, does this
+                // document contain the definition for that symbol? If so, add it to the builder
+                // and remove it from the symbols we're looking for
+                foreach (var memberAnalysis in remainingResults)
                 {
                     var annotation = symbolMapping.SymbolToDeclarationAnnotationMap[memberAnalysis.Member];
 
@@ -197,10 +203,18 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                     }
 
                     pullMembersBuilder.Add((currentSymbol, memberAnalysis.MakeAbstract));
-                    remainingResults.Remove(memberAnalysis);
+                    resultsToRemove.Remove(memberAnalysis);
+                }
+
+                // Remove the symbols we found in this document from the list 
+                // that we are looking for
+                foreach (var resultToRemove in resultsToRemove)
+                {
+                    remainingResults.Remove(resultToRemove);
                 }
             }
 
+            // If we didn't find all of the symbols then something went really wrong
             Contract.ThrowIfFalse(remainingResults.Count == 0);
 
             var pullMemberUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, pullMembersBuilder.ToImmutable());

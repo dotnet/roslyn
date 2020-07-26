@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpExtractClassCodeRefactoringProvider()
-            : base()
         {
         }
 
@@ -37,7 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass
         }
 
         protected override async Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context)
-            => (await context.GetRelevantNodesAsync<ClassDeclarationSyntax>().ConfigureAwait(false)).FirstOrDefault();
+        {
+            var relaventNodes = await context.GetRelevantNodesAsync<ClassDeclarationSyntax>().ConfigureAwait(false);
+            return relaventNodes.FirstOrDefault();
+        }
 
         protected override Task<SyntaxNode?> GetSelectedNodeAsync(CodeRefactoringContext context) => CSharpPullMemberUpCodeRefactoringProvider.GetSelectedDeclarationOrVariableAsync(context);
     }

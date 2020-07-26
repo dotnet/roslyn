@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 {
     internal class ExtractClassOptions
     {
+        public string FileName { get; }
+        public string TypeName { get; }
+        public bool SameFile { get; }
+        public ImmutableArray<ExtractClassMemberAnalysisResult> MemberAnalysisResults { get; }
+
         public ExtractClassOptions(
             string fileName,
             string typeName,
@@ -20,11 +25,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             MemberAnalysisResults = memberAnalysisResults;
             SameFile = sameFile;
         }
-
-        public string FileName { get; }
-        public string TypeName { get; }
-        public ImmutableArray<ExtractClassMemberAnalysisResult> MemberAnalysisResults { get; }
-        public bool SameFile { get; }
     }
 
     internal class ExtractClassMemberAnalysisResult
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         /// <summary>
         /// The member needs to be pulled up.
         /// </summary>
-        public readonly ISymbol Member;
+        public ISymbol Member { get; }
 
         /// <summary>
         /// Whether to make the member abstract when added to the new class
         /// </summary>
-        public readonly bool MakeAbstract;
+        public bool MakeAbstract { get; }
 
         public ExtractClassMemberAnalysisResult(
             ISymbol member,
