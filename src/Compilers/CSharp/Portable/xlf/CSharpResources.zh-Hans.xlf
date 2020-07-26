@@ -3687,8 +3687,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
-        <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">不要直接调用基类 Finalize 方法。它将从析构函数中自动调用。</target>
+        <source>Do not directly call your base type Finalize method. It is called automatically from your destructor.</source>
+        <target state="needs-review-translation">不要直接调用基类 Finalize 方法。它将从析构函数中自动调用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">

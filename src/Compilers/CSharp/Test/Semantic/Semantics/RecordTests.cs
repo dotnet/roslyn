@@ -18725,5 +18725,31 @@ record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8)
                 );
         }
+
+        [Fact]
+        public void CS0250ERR_CallingBaseFinalizeDeprecated()
+        {
+            var text = @"
+record B
+{
+}
+
+record C : B
+{
+    ~C()
+    {
+        base.Finalize();   // CS0250
+    }
+
+    public static void Main()
+    {
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,7): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
+                Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()")
+                );
+        }
     }
 }

@@ -1057,7 +1057,7 @@
     <value>Do not override object.Finalize. Instead, provide a destructor.</value>
   </data>
   <data name="ERR_CallingBaseFinalizeDeprecated" xml:space="preserve">
-    <value>Do not directly call your base class Finalize method. It is called automatically from your destructor.</value>
+    <value>Do not directly call your base type Finalize method. It is called automatically from your destructor.</value>
   </data>
   <data name="WRN_NegativeArrayIndex" xml:space="preserve">
     <value>Indexing an array with a negative index (array indices always start at zero)</value>

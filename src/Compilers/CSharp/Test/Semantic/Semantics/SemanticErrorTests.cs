@@ -8894,7 +8894,7 @@ class C : B
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (10,7): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (10,7): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"));
         }
 
