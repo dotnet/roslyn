@@ -7135,8 +7135,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="translated">{0}' sınıfının birden çok temel sınıfı olamaz: '{1}' ve '{2}'</target>
+        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <target state="needs-review-translation">{0}' sınıfının birden çok temel sınıfı olamaz: '{1}' ve '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">

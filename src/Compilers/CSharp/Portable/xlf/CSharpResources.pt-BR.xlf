@@ -7134,8 +7134,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="translated">Classe "{0}" não pode ter várias classes base: "{1}" e "{2}"</target>
+        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <target state="needs-review-translation">Classe "{0}" não pode ter várias classes base: "{1}" e "{2}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">

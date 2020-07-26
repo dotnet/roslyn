@@ -19103,5 +19103,21 @@ static record R(int I)
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 18)
                 );
         }
+
+        [Fact]
+        public void RecordWithMultipleBaseTypes()
+        {
+            var source = @"
+record Base1;
+record Base2;
+record R : Base1, Base2
+{
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,19): error CS1721: Class 'R' cannot have multiple base types: 'Base1' and 'Base2'
+                // record R : Base1, Base2
+                Diagnostic(ErrorCode.ERR_NoMultipleInheritance, "Base2").WithArguments("R", "Base1", "Base2").WithLocation(4, 19)
+                );
+        }
     }
 }

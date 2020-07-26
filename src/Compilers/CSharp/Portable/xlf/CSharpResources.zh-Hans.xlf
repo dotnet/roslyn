@@ -7135,8 +7135,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="translated">类“{0}”不能具有多个基类:“{1}”和“{2}”</target>
+        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <target state="needs-review-translation">类“{0}”不能具有多个基类:“{1}”和“{2}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">

@@ -3197,7 +3197,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Expression will always cause a System.NullReferenceException because the type's default value is null</value>
   </data>
   <data name="ERR_NoMultipleInheritance" xml:space="preserve">
-    <value>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</value>
+    <value>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</value>
   </data>
   <data name="ERR_BaseClassMustBeFirst" xml:space="preserve">
     <value>Base class '{0}' must come before any interfaces</value>

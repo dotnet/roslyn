@@ -7135,8 +7135,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="translated">Klasa „{0}” nie może zawierać wielu klas bazowych: „{1}” i „{2}”</target>
+        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <target state="needs-review-translation">Klasa „{0}” nie może zawierać wielu klas bazowych: „{1}” i „{2}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
