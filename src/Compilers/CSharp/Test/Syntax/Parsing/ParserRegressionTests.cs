@@ -178,7 +178,7 @@ class A
     public int
 }";
             ParseAndValidate(test,
-                // (6,1): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // (6,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1),
                 // (4,16): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity

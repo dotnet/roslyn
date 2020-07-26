@@ -6050,8 +6050,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">類別、結構或介面成員宣告中的語彙基元 '{0}' 無效。</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">類別、結構或介面成員宣告中的語彙基元 '{0}' 無效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

@@ -6050,8 +6050,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">클래스, 구조체 또는 인터페이스 멤버 선언에 잘못된 '{0}' 토큰이 있습니다.</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">클래스, 구조체 또는 인터페이스 멤버 선언에 잘못된 '{0}' 토큰이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

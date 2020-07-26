@@ -6050,8 +6050,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">Ungültiges Token "{0}" in Klassen-, Struktur- oder Schnittstellenmemberdeklaration.</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">Ungültiges Token "{0}" in Klassen-, Struktur- oder Schnittstellenmemberdeklaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

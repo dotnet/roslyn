@@ -6050,8 +6050,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">El token '{0}' no es válido en una clase, una estructura o una declaración de miembro de interfaz</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">El token '{0}' no es válido en una clase, una estructura o una declaración de miembro de interfaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

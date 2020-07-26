@@ -646,7 +646,7 @@ class Test : Itest
                 // (4,20): error CS8124: Tuple must contain at least two elements.
                 //    event D ITest.E()   // CS0071
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 20),
-                // (5,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (5,4): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(5, 4),
                 // (7,4): error CS8803: Top-level statements must precede namespace and type declarations.

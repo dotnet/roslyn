@@ -1270,7 +1270,7 @@ record C9 : System.ICloneable
                 // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
-                // (13,10): error CS1519: Invalid token 'string' in class, struct, or interface member declaration
+                // (13,10): error CS1519: Invalid token 'string' in class, record, struct, or interface member declaration
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),
                 // (13,17): error CS8859: Members named 'Clone' are disallowed in records.

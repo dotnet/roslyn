@@ -6050,8 +6050,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">クラス、構造体、またはインターフェイス メンバーの宣言でトークン '{0}' が無効です。</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">クラス、構造体、またはインターフェイス メンバーの宣言でトークン '{0}' が無効です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

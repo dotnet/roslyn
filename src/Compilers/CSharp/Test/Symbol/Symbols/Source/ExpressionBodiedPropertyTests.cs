@@ -210,7 +210,7 @@ class C
     // (4,24): error CS1597: Semicolon after method or accessor block is not valid
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(4, 24),
-    // (4,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+    // (4,26): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 26));
         }

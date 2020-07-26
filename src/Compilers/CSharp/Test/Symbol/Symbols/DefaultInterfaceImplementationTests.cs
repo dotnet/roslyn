@@ -3555,7 +3555,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,36): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 36),
                 // (4,22): error CS1014: A get, set or init accessor expected
@@ -3592,7 +3592,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,33): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,33): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int this[int i] {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 33)
                 );
@@ -5125,7 +5125,7 @@ class Test1 : I1
 ";
             ValidateEventImplementation_101(source1,
                 new[] {
-                // (8,7): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (8,7): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     } => 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 7),
                 // (6,9): error CS1055: An add or remove accessor expected
@@ -19575,7 +19575,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,45): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,45): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     public virtual int this[int x] { get; } = 0; 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 45),
                 // (4,38): error CS0501: 'I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
@@ -19830,7 +19830,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (14,37): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (14,37): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     private int this[long x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(14, 37),
                 // (4,26): error CS0621: 'I1.this[byte]': virtual or abstract members cannot be private
@@ -20686,7 +20686,7 @@ class Test2 : I1, I2, I3
 {}
 ";
             ValidatePropertyModifiers_14(source1,
-                // (4,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     public sealed int this[int x] {get;} = 0; 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 42),
                 // (4,36): error CS0501: 'I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
@@ -21173,7 +21173,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
 {}
 ";
             ValidatePropertyModifiers_15(source1,
-                // (44,45): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (44,45): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract virtual int this[int x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(44, 45),
                 // (4,26): error CS0503: The abstract property 'I0.this[int]' cannot be marked virtual
@@ -21396,7 +21396,7 @@ class Test2 : I1, I2, I3, I4, I5
 }
 ";
             ValidatePropertyModifiers_17(source1,
-                // (20,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (20,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     extern sealed int this[int x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(20, 42),
                 // (4,25): error CS0180: 'I1.this[int]' cannot be both extern and abstract
@@ -21475,7 +21475,7 @@ class Test2 : I1, I2, I3, I4, I5
 }
 ";
             ValidatePropertyModifiers_18(source1,
-                // (20,44): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (20,44): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     override sealed int this[int x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(20, 44),
                 // (4,31): error CS0500: 'I1.this[int].get' cannot declare a body because it is marked abstract
@@ -23556,7 +23556,7 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (7,40): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (7,40): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int this[ushort x] {internal get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(7, 40),
                 // (4,42): error CS0442: 'I1.this[sbyte].get': abstract properties cannot have private accessors
@@ -37322,7 +37322,7 @@ class Test2 : I4
 ";
 
             ValidatePropertyImplementationInDerived_05(source1,
-                // (44,38): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (44,38): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     int I3.this[short x] {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(44, 38),
                 // (10,12): error CS0551: Explicit interface implementation 'I2.I1.this[int]' is missing accessor 'I1.this[int].set'
@@ -54364,7 +54364,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,47): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,47): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract int I1.this[int i] { get; set; } = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 47),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
@@ -54393,7 +54393,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract int I1.this[int i] { get; } = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 42),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
@@ -54422,7 +54422,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1,
-                // (9,42): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,42): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     abstract int I1.this[int i] { set; } = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 42),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'

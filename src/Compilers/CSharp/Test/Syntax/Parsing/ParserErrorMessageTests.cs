@@ -50,7 +50,7 @@ class Test : Itest
                 // (9,20): error CS8124: Tuple must contain at least two elements.
                 //    event D ITest.E()   // CS0071
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 20),
-                // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (10,4): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
                 // (12,4): error CS8803: Top-level statements must precede namespace and type declarations.
@@ -4037,19 +4037,19 @@ struct s1
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (4,5): error CS1519: Invalid token 'goto' in class, struct, or interface member declaration
+    // (4,5): error CS1519: Invalid token 'goto' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "goto").WithArguments("goto"),
-    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    // (6,9): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
     //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"),
-    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    // (6,9): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
     //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"));
         }
@@ -5911,7 +5911,7 @@ class MyClass
                 // (6,15): error CS1513: } expected
                 //         if (b)
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
-                // (9,1): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // (9,1): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
                 // 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
                 // (8,11): error CS1513: } expected
