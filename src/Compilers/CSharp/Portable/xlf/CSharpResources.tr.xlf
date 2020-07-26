@@ -4566,8 +4566,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
-        <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0}', '{1}' korumalı sınıfındaki yeni sanal üyedir</target>
+        <source>'{0}' is a new virtual member in sealed type '{1}'</source>
+        <target state="needs-review-translation">'{0}', '{1}' korumalı sınıfındaki yeni sanal üyedir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">

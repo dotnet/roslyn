@@ -10139,16 +10139,16 @@ public sealed class C
             // events themselves.  On the other hand, property accessors can have modifiers,
             // whereas event accessors cannot.
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,40): error CS0549: 'C.E' is a new virtual member in sealed class 'C'
+                // (4,40): error CS0549: 'C.E' is a new virtual member in sealed type 'C'
                 //     public virtual event System.Action E;
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "E").WithArguments("C.E", "C"),
-                // (5,40): error CS0549: 'C.F' is a new virtual member in sealed class 'C'
+                // (5,40): error CS0549: 'C.F' is a new virtual member in sealed type 'C'
                 //     public virtual event System.Action F { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "F").WithArguments("C.F", "C"),
-                // (6,38): error CS0549: 'C.this[int].get' is a new virtual member in sealed class 'C'
+                // (6,38): error CS0549: 'C.this[int].get' is a new virtual member in sealed type 'C'
                 //     public virtual int this[int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "get").WithArguments("C.this[int].get", "C"),
-                // (6,56): error CS0549: 'C.this[int].set' is a new virtual member in sealed class 'C'
+                // (6,56): error CS0549: 'C.this[int].set' is a new virtual member in sealed type 'C'
                 //     public virtual int this[int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "set").WithArguments("C.this[int].set", "C"),
 

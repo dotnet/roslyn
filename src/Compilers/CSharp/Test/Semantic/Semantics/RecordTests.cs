@@ -13430,7 +13430,7 @@ record D
                 // (16,35): error CS8879: Record member 'C.EqualityContract' must be private.
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(16, 35),
-                // (17,12): error CS0549: 'C.EqualityContract.get' is a new virtual member in sealed class 'C'
+                // (17,12): error CS0549: 'C.EqualityContract.get' is a new virtual member in sealed type 'C'
                 //         => throw null;
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("C.EqualityContract.get", "C").WithLocation(17, 12)
                 );
@@ -13518,7 +13518,7 @@ sealed record H : A
                 // (19,35): warning CS0114: 'D.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("D.EqualityContract", "A.EqualityContract").WithLocation(19, 35),
-                // (20,12): error CS0549: 'D.EqualityContract.get' is a new virtual member in sealed class 'D'
+                // (20,12): error CS0549: 'D.EqualityContract.get' is a new virtual member in sealed type 'D'
                 //         => throw null;
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("D.EqualityContract.get", "D").WithLocation(20, 12),
                 // (25,35): error CS8876: 'E.EqualityContract' does not override expected property from 'A'.

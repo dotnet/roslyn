@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsVirtual && ContainingType.IsSealed)
             {
-                // '{0}' is a new virtual member in sealed class '{1}'
+                // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
             else if (!hasBody && IsAsync)

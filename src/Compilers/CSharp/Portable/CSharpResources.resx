@@ -1593,7 +1593,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>__arglist cannot have an argument of void type</value>
   </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
-    <value>'{0}' is a new virtual member in sealed class '{1}'</value>
+    <value>'{0}' is a new virtual member in sealed type '{1}'</value>
   </data>
   <data name="ERR_ExplicitPropertyAddingAccessor" xml:space="preserve">
     <value>'{0}' adds an accessor not found in interface member '{1}'</value>
