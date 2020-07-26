@@ -7140,8 +7140,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base class '{0}' must come before any interfaces</source>
-        <target state="translated">Základní třída {0} musí předcházet všem rozhraním.</target>
+        <source>Base type '{0}' must come before any interfaces</source>
+        <target state="needs-review-translation">Základní třída {0} musí předcházet všem rozhraním.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

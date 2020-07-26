@@ -7140,8 +7140,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base class '{0}' must come before any interfaces</source>
-        <target state="translated">基底クラス '{0}' は、すべてのインターフェイスより前に指定する必要があります。</target>
+        <source>Base type '{0}' must come before any interfaces</source>
+        <target state="needs-review-translation">基底クラス '{0}' は、すべてのインターフェイスより前に指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

@@ -7140,8 +7140,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base class '{0}' must come before any interfaces</source>
-        <target state="translated">La classe base '{0}' deve precedere le interfacce</target>
+        <source>Base type '{0}' must come before any interfaces</source>
+        <target state="needs-review-translation">La classe base '{0}' deve precedere le interfacce</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

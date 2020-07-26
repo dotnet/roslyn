@@ -19119,5 +19119,20 @@ record R : Base1, Base2
                 Diagnostic(ErrorCode.ERR_NoMultipleInheritance, "Base2").WithArguments("R", "Base1", "Base2").WithLocation(4, 19)
                 );
         }
+
+        [Fact]
+        public void RecordWithInterfaceBeforeBase()
+        {
+            var source = @"
+record Base;
+interface I { }
+record R : I, Base;
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,15): error CS1722: Base type 'Base' must come before any interfaces
+                // record R : I, Base;
+                Diagnostic(ErrorCode.ERR_BaseClassMustBeFirst, "Base").WithArguments("Base").WithLocation(4, 15)
+                );
+        }
     }
 }

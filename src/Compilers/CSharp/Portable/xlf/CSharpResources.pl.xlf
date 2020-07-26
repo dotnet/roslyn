@@ -7140,8 +7140,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base class '{0}' must come before any interfaces</source>
-        <target state="translated">Przed interfejsami musi występować klasa bazowa „{0}”</target>
+        <source>Base type '{0}' must come before any interfaces</source>
+        <target state="needs-review-translation">Przed interfejsami musi występować klasa bazowa „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">
