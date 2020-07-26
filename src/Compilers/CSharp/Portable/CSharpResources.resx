@@ -1494,7 +1494,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot derive from sealed type '{1}'</value>
   </data>
   <data name="ERR_AbstractInConcreteClass" xml:space="preserve">
-    <value>'{0}' is abstract but it is contained in non-abstract class '{1}'</value>
+    <value>'{0}' is abstract but it is contained in non-abstract type '{1}'</value>
   </data>
   <data name="ERR_StaticConstructorWithExplicitConstructorCall" xml:space="preserve">
     <value>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</value>

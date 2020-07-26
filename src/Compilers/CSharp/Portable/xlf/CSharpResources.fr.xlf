@@ -4406,8 +4406,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'{0}' est abstract, mais il est contenu dans la classe non abstraite '{1}'</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="needs-review-translation">'{0}' est abstract, mais il est contenu dans la classe non abstraite '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">

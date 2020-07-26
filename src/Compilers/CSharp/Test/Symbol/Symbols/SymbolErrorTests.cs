@@ -2113,10 +2113,10 @@ class B : A
     // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),
-    // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract class 'B'
+    // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
-    // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract class 'B'
+    // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
         }
@@ -8326,19 +8326,19 @@ namespace N2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'
+                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("NS.clx.P.get", "NS.clx").WithLocation(8, 36),
-                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'
+                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("NS.clx.P.set", "NS.clx").WithLocation(8, 41),
-                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'
+                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract type 'clx'
                 //         internal abstract object M2();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M2").WithArguments("NS.clx.M2()", "NS.clx").WithLocation(6, 34),
-                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'
+                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract type 'clx'
                 //         protected abstract internal void M3(sbyte p);
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("NS.clx.M3(sbyte)", "NS.clx").WithLocation(7, 42),
-                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'
+                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract type 'clx'
                 //         abstract public void M1();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("NS.clx.M1()", "NS.clx").WithLocation(5, 30));
         }
@@ -8354,13 +8354,13 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract class 'C'
+                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract event System.Action E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("C.E", "C"),
-                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract class 'C'
+                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract int this[int x] { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.this[int].get", "C"),
-                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract class 'C'
+                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract int this[int x] { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.this[int].set", "C"));
         }
@@ -13261,11 +13261,11 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (4,23): error CS0722: 'S': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("S").WithLocation(4, 23),
-                // (4,23): error CS0513: 'C.F()' is abstract but it is contained in non-abstract class 'C'
+                // (4,23): error CS0513: 'C.F()' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "F").WithArguments("C.F()", "C").WithLocation(4, 23),
-                // (5,27): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract class 'C'
+                // (5,27): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.P.get", "C").WithLocation(5, 27),
-                // (6,27): error CS0513: 'C.Q.set' is abstract but it is contained in non-abstract class 'C'
+                // (6,27): error CS0513: 'C.Q.set' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.Q.set", "C").WithLocation(6, 27),
                 // (5,27): error CS0722: 'S': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(5, 27),
@@ -19915,13 +19915,13 @@ internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
-                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract object P { get; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
-                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
@@ -19937,13 +19937,13 @@ internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
             var submission = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
             submission.VerifyDiagnostics(
-                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
-                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract object P { get; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
-                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }

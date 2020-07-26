@@ -4406,8 +4406,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'{0}' è di tipo astratto ma è contenuto in una classe non astratta '{1}'</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="needs-review-translation">'{0}' è di tipo astratto ma è contenuto in una classe non astratta '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">

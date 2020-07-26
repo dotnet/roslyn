@@ -81,7 +81,7 @@ class C
     // (4,29): error CS0500: 'C.P.get' cannot declare a body because it is marked abstract
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractHasBody, "1").WithArguments("C.P.get").WithLocation(4, 29),
-    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract class 'C'
+    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract type 'C'
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "1").WithArguments("C.P.get", "C").WithLocation(4, 29));
         }

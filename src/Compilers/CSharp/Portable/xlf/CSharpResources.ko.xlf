@@ -4406,8 +4406,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'{0}'은(는) 추상이지만 비추상 클래스인 '{1}'에 포함되어 있습니다.</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="needs-review-translation">'{0}'은(는) 추상이지만 비추상 클래스인 '{1}'에 포함되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">

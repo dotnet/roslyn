@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
-                // '{0}' is abstract but it is contained in non-abstract class '{1}'
+                // '{0}' is abstract but it is contained in non-abstract type '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
             }
             else if (IsVirtual && ContainingType.IsSealed && ContainingType.TypeKind != TypeKind.Struct) // error CS0106 on struct already

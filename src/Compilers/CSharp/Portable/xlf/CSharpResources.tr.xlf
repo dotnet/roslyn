@@ -4406,8 +4406,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'{0}' soyut ancak soyut olmayan '{1}' sınıfında bulunuyor</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="needs-review-translation">'{0}' soyut ancak soyut olmayan '{1}' sınıfında bulunuyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">

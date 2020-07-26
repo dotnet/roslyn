@@ -18880,5 +18880,27 @@ sealed static record R;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 22)
                 );
         }
+
+        [Fact]
+        public void CS0513ERR_AbstractInConcreteClass02()
+        {
+            var text = @"
+record C
+{
+    public abstract event System.Action E;
+    public abstract int this[int x] { get; set; }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract type 'C'
+                //     public abstract event System.Action E;
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("C.E", "C"),
+                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract type 'C'
+                //     public abstract int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.this[int].get", "C"),
+                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract type 'C'
+                //     public abstract int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.this[int].set", "C"));
+        }
     }
 }
