@@ -24,16 +24,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
             GetType(NoCompilationContentTypeLanguageService),
             GetType(InProcRemoteHostClientProvider.Factory))
 
-        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
-            Await VerifyHighlightsAsync(test, optionIsEnabled, TestHost.InProcess)
-            Await VerifyHighlightsAsync(test, optionIsEnabled, TestHost.OutOfProcess)
-        End Function
-
-        Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, testHost As TestHost) As Task
-            Using workspace = TestWorkspace.Create(test, composition:=s_composition)
+        Protected Async Function VerifyHighlightsAsync(test As XElement, testHost As TestHost, Optional optionIsEnabled As Boolean = True) As Task
+            Using workspace = TestWorkspace.Create(test, composition:=s_composition.WithTestHostParts(testHost))
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, testHost = TestHost.OutOfProcess)))
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),

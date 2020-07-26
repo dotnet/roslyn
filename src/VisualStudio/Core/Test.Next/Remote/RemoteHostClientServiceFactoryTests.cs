@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     public class RemoteHostClientServiceFactoryTests
     {
         private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
-            typeof(InProcRemoteHostClientProvider.Factory),
-            typeof(RemoteTestHostOptions));
+            typeof(InProcRemoteHostClientProvider.Factory));
 
         private static AdhocWorkspace CreateWorkspace()
             => new AdhocWorkspace(s_composition.GetHostServices());
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var workspace = new AdhocWorkspace(hostServices);
 
             var options = workspace.CurrentSolution.Options
-                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
-                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
@@ -74,11 +72,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task TestSessionWithNoSolution()
         {
             using var workspace = CreateWorkspace();
-
-            var options = workspace.CurrentSolution.Options
-                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 

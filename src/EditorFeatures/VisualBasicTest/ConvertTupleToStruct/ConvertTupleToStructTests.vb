@@ -23,10 +23,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
             Return FlattenActions(actions)
         End Function
 
-        Private Function GetTestOptions(host As TestHost) As OptionsCollection
-            Return [Option](RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess)
-        End Function
-
 #Region "update containing member tests"
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -82,7 +78,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")>
@@ -139,7 +135,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -195,7 +191,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -251,7 +247,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -309,7 +305,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -367,7 +363,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -424,7 +420,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -481,7 +477,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -541,7 +537,7 @@ namespace N
     End Structure
 end namespace
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -596,7 +592,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -651,7 +647,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -708,7 +704,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -765,7 +761,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -832,7 +828,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -893,7 +889,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -954,7 +950,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1021,7 +1017,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1090,7 +1086,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1147,7 +1143,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1204,7 +1200,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1267,7 +1263,7 @@ End Structure
             Await TestExactActionSetOfferedAsync(text, {
                 FeaturesResources.updating_usages_in_containing_member
             })
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1328,7 +1324,7 @@ Friend Structure NewStruct1
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1389,7 +1385,7 @@ Friend Structure NewStruct1
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1444,7 +1440,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1509,7 +1505,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1574,7 +1570,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1643,7 +1639,7 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_type
             })
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1712,7 +1708,7 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_type
             })
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1787,7 +1783,7 @@ Friend Structure NewStruct
 End Structure
 "
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, testHost:=host)
         End Function
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
@@ -1878,7 +1874,7 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_member,
                 FeaturesResources.updating_usages_in_containing_type
             })
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1955,7 +1951,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2034,7 +2030,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2150,7 +2146,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, testHost:=host)
         End Function
 
 #End Region
@@ -2274,7 +2270,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=2, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=2, testHost:=host)
         End Function
 
 #End Region
@@ -2387,7 +2383,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=3, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=3, testHost:=host)
         End Function
 
         <Theory(Skip:="https://github.com/dotnet/roslyn/issues/46291"), CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2494,7 +2490,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=3, options:=GetTestOptions(host))
+            Await TestInRegularAndScriptAsync(text, expected, index:=3, testHost:=host)
         End Function
 
 #End Region

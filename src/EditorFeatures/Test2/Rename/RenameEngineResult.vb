@@ -55,9 +55,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
             workspace.SetTestLogger(AddressOf helper.WriteLine)
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host <> RenameTestHost.InProcess)))
-
             Dim engineResult As RenameEngineResult = Nothing
             Try
                 If workspace.Documents.Where(Function(d) d.CursorPosition.HasValue).Count <> 1 Then

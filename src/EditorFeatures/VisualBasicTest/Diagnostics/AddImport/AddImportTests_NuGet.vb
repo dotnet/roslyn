@@ -15,6 +15,7 @@ Imports Moq
 Imports ProviderData = System.Tuple(Of Microsoft.CodeAnalysis.Packaging.IPackageInstallerService, Microsoft.CodeAnalysis.SymbolSearch.ISymbolSearchService)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImport
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
     Public Class AddImportNuGetTests
         Inherits AbstractAddImportTests
 
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestSearchPackageSingleName() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
@@ -73,7 +74,7 @@ Class C
 End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestSearchPackageMultipleNames() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
@@ -102,7 +103,7 @@ Class C
 End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestFailedInstallDoesNotChangeFile() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
@@ -129,7 +130,7 @@ Class C
 End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestMissingIfPackageAlreadyInstalled() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
@@ -151,7 +152,7 @@ End Class",
 New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestOptionsOffered() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
@@ -194,7 +195,7 @@ FeaturesResources.Find_and_install_latest_version,
 parameters:=New TestParameters(index:=2, fixProviderData:=data))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestInstallGetsCalledNoVersion() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
@@ -224,7 +225,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Verify()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestInstallGetsCalledWithVersion() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
