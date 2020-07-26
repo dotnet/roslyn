@@ -3772,8 +3772,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Модификатор "partial" может использоваться только перед "class", "struct", "interface" или "void".</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <target state="needs-review-translation">Модификатор "partial" может использоваться только перед "class", "struct", "interface" или "void".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

@@ -18792,5 +18792,20 @@ public partial record C3 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.Equals(object?)").WithLocation(3, 23)
                 );
         }
+
+        [Fact]
+        public void CS0267ERR_PartialMisplaced()
+        {
+            var test = @"
+partial public record C  // CS0267
+{
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // partial public class C  // CS0267
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
+        }
     }
 }

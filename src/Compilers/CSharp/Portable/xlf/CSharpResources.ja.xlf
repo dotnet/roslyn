@@ -3772,8 +3772,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">partial' 修飾子は、'class'、'struct'、'interface'、または 'void' の直前にのみ指定できます</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <target state="needs-review-translation">partial' 修飾子は、'class'、'struct'、'interface'、または 'void' の直前にのみ指定できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
