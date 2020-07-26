@@ -14,17 +14,17 @@
       </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
-        <target state="new">A type and name must be provided.</target>
+        <target state="translated">Bir tür ve ad verilmesi gerekiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add">
         <source>_Add</source>
-        <target state="new">_Add</target>
+        <target state="translated">_Ekle</target>
         <note>Adding an element to a list</note>
       </trans-unit>
       <trans-unit id="Add_Parameter">
         <source>Add Parameter</source>
-        <target state="new">Add Parameter</target>
+        <target state="translated">Parametre Ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Added_Parameter">
         <source>Added parameter.</source>
-        <target state="new">Added parameter.</target>
+        <target state="translated">Parametre eklendi.</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="All_sources">
         <source>All sources</source>
-        <target state="new">All sources</target>
+        <target state="translated">Tüm kaynaklar</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_colon">
@@ -119,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
-        <target state="new">Call site value:</target>
+        <target state="translated">Çağrı konumu değeri:</target>
         <note />
       </trans-unit>
       <trans-unit id="Callsite">
         <source>Call site</source>
-        <target state="new">Call site</target>
+        <target state="translated">Çağrı konumu</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Code_analysis_terminated_before_completion_for_0">
         <source>Code analysis terminated before completion for '{0}'.</source>
-        <target state="new">Code analysis terminated before completion for '{0}'.</target>
+        <target state="translated">Kod analizi, '{0}' için tamamlanmadan önce sonlandırıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
         <source>Code analysis terminated before completion for Solution.</source>
-        <target state="new">Code analysis terminated before completion for Solution.</target>
+        <target state="translated">Kod analizi, Çözüm için tamamlanmadan önce sonlandırıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -172,14 +172,19 @@
         <target state="new">Current parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints (experimental)</source>
+        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
-        <target state="new">_Edit</target>
+        <target state="translated">_Düzenle</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_0">
         <source>Edit {0}</source>
-        <target state="new">Edit {0}</target>
+        <target state="translated">{0} öğesini düzenle</target>
         <note>{0} is a parameter description</note>
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
@@ -199,12 +204,12 @@
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
-        <target state="new">Enter a call site value or choose a different value injection kind</target>
+        <target state="translated">Bir çağrı sitesi değeri girin veya farklı bir değer yerleştirme tipi seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_repository">
         <source>Entire repository</source>
-        <target state="new">Entire repository</target>
+        <target state="translated">Tüm depo</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_solution">
@@ -239,27 +244,27 @@
       </trans-unit>
       <trans-unit id="Index">
         <source>Index</source>
-        <target state="new">Index</target>
+        <target state="translated">Dizin</target>
         <note>Index of parameter in original signature</note>
       </trans-unit>
       <trans-unit id="Infer_from_context">
         <source>Infer from context</source>
-        <target state="new">Infer from context</target>
+        <target state="translated">Bağlamdan çıkarsa</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexed_in_organization">
         <source>Indexed in organization</source>
-        <target state="new">Indexed in organization</target>
+        <target state="translated">Kuruluş içinde dizini oluşturulmuş</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
-        <target state="new">Indexed in repo</target>
+        <target state="translated">Depo içinde dizini oluşturulmuş</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
-        <target state="new">Inserting call site value '{0}'</target>
+        <target state="translated">Çağırma yeri değeri '{0}' ekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
@@ -274,12 +279,12 @@
       </trans-unit>
       <trans-unit id="IntroduceUndefinedTodoVariables">
         <source>Introduce undefined TODO variables</source>
-        <target state="new">Introduce undefined TODO variables</target>
+        <target state="translated">Tanımsız TODO değişkenlerini tanıtın</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
-        <target state="new">Item origin</target>
+        <target state="translated">Öğe çıkış noktası</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -304,22 +309,22 @@
       </trans-unit>
       <trans-unit id="Loaded_items">
         <source>Loaded items</source>
-        <target state="new">Loaded items</target>
+        <target state="translated">Öğeler yüklendi</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_solution">
         <source>Loaded solution</source>
-        <target state="new">Loaded solution</target>
+        <target state="translated">Çözüm yüklendi</target>
         <note />
       </trans-unit>
       <trans-unit id="Local">
         <source>Local</source>
-        <target state="new">Local</target>
+        <target state="translated">Yerel</target>
         <note />
       </trans-unit>
       <trans-unit id="Local_metadata">
         <source>Local metadata</source>
-        <target state="new">Local metadata</target>
+        <target state="translated">Yerel meta veriler</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -514,12 +519,12 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="new">None</target>
+        <target state="translated">yok</target>
         <note />
       </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
-        <target state="new">Omit (only for optional parameters)</target>
+        <target state="translated">Atla (yalnızca isteğe bağlı parametreler için)</target>
         <note />
       </trans-unit>
       <trans-unit id="Open_documents">
@@ -529,42 +534,42 @@
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
         <source>Optional parameters must provide a default value</source>
-        <target state="new">Optional parameters must provide a default value</target>
+        <target state="translated">İsteğe bağlı parametrelerde varsayılan değer sağlanmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_with_default_value_colon">
         <source>Optional with default value:</source>
-        <target state="new">Optional with default value:</target>
+        <target state="translated">Varsayılan değerle isteğe bağlı:</target>
         <note />
       </trans-unit>
       <trans-unit id="Other">
         <source>Others</source>
-        <target state="new">Others</target>
+        <target state="translated">Diğer</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
         <source>Parameter Details</source>
-        <target state="new">Parameter Details</target>
+        <target state="translated">Parametre Ayrıntıları</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
-        <target state="new">Parameter name:</target>
+        <target state="translated">Parametre adı:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_information">
         <source>Parameter information</source>
-        <target state="new">Parameter information</target>
+        <target state="translated">Parametre bilgileri</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_kind">
         <source>Parameter kind</source>
-        <target state="new">Parameter kind</target>
+        <target state="translated">Parametre tipi</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_name_contains_invalid_characters">
         <source>Parameter name contains invalid character(s).</source>
-        <target state="new">Parameter name contains invalid character(s).</target>
+        <target state="translated">Parametre adı geçersiz karakterler içeriyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -574,7 +579,7 @@
       </trans-unit>
       <trans-unit id="Parameter_type_contains_invalid_characters">
         <source>Parameter type contains invalid character(s).</source>
-        <target state="new">Parameter type contains invalid character(s).</target>
+        <target state="translated">Parametre türü geçersiz karakterler içeriyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -589,7 +594,7 @@
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
-        <target state="new">Please enter a type name</target>
+        <target state="translated">Lütfen bir tür adı yazın</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
@@ -659,12 +664,12 @@
       </trans-unit>
       <trans-unit id="Repository">
         <source>Repository</source>
-        <target state="new">Repository</target>
+        <target state="translated">Depo</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
         <source>Required</source>
-        <target state="new">Required</target>
+        <target state="translated">Gerekli</target>
         <note />
       </trans-unit>
       <trans-unit id="Requires_System_HashCode_be_present_in_project">
@@ -684,7 +689,7 @@
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
-        <target state="translated">{0} Öğesinde Kod Analizini Çalıştır</target>
+        <target state="translated">{0} Öğesinde Code Analysis Çalıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -764,22 +769,22 @@
       </trans-unit>
       <trans-unit id="Type_Name">
         <source>Type name:</source>
-        <target state="new">Type name:</target>
+        <target state="translated">Tür adı:</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_name_has_a_syntax_error">
         <source>Type name has a syntax error</source>
-        <target state="new">Type name has a syntax error</target>
+        <target state="translated">Tür adında söz dizimi hatası var</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Type_name_is_not_recognized">
         <source>Type name is not recognized</source>
-        <target state="new">Type name is not recognized</target>
+        <target state="translated">Tür adı tanınmıyor</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Type_name_is_recognized">
         <source>Type name is recognized</source>
-        <target state="new">Type name is recognized</target>
+        <target state="translated">Tür adı tanınıyor</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -814,7 +819,7 @@
       </trans-unit>
       <trans-unit id="Use_named_argument">
         <source>Use named argument</source>
-        <target state="new">Use named argument</target>
+        <target state="translated">Adlandırılmış bağımsız değişken kullan</target>
         <note>"argument" is a programming term for a value passed to a function</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
@@ -834,7 +839,7 @@
       </trans-unit>
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
-        <target state="new">Value to inject at call sites</target>
+        <target state="translated">Çağrı sitelerinde eklenecek değer</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">
@@ -849,12 +854,12 @@
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>
-        <target state="new">Warning: duplicate parameter name</target>
+        <target state="translated">Uyarı: Yinelenen parametre adı</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_type_does_not_bind">
         <source>Warning: type does not bind</source>
-        <target state="new">Warning: type does not bind</target>
+        <target state="translated">Uyarı: Tür bağlamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
@@ -869,7 +874,7 @@
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
         <source>You must change the signature</source>
-        <target state="new">You must change the signature</target>
+        <target state="translated">İmzayı değiştirmelisiniz</target>
         <note>"signature" here means the definition of a method</note>
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1172,16 +1177,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Proje: {0}
 
 Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçiş yapmak için açılan menüyü kullanın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">{0} kural kümesi dosyası okunurken hata - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
