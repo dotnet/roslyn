@@ -7211,9 +7211,9 @@ extern alias FT1;
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (3,25): error CS0441: 'NS.Test': a class cannot be both static and sealed
+                // (3,25): error CS0441: 'NS.Test': a type cannot be both static and sealed
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "Test").WithArguments("NS.Test"),
-                // (11,25): error CS0441: 'NS.StaticClass': a class cannot be both static and sealed
+                // (11,25): error CS0441: 'NS.StaticClass': a type cannot be both static and sealed
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "StaticClass").WithArguments("NS.StaticClass"),
 
                 //CONSIDER: Dev10 skips these cascading errors

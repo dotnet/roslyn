@@ -4167,8 +4167,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
-        <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'"{0}": Eine Klasse kann nicht gleichzeitig statisch und versiegelt sein.</target>
+        <source>'{0}': a type cannot be both static and sealed</source>
+        <target state="needs-review-translation">'"{0}": Eine Klasse kann nicht gleichzeitig statisch und versiegelt sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">

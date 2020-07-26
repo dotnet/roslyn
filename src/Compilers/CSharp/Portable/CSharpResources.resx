@@ -1345,7 +1345,7 @@
     <value>Defining an alias named 'global' is ill-advised</value>
   </data>
   <data name="ERR_SealedStaticClass" xml:space="preserve">
-    <value>'{0}': a class cannot be both static and sealed</value>
+    <value>'{0}': a type cannot be both static and sealed</value>
   </data>
   <data name="ERR_PrivateAbstractAccessor" xml:space="preserve">
     <value>'{0}': abstract properties cannot have private accessors</value>
