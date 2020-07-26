@@ -658,6 +658,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (symbol.TypeKind)
                     {
+                        case TypeKind.Class when !symbol.GetMembers(WellKnownMemberNames.CloneMethodName).IsEmpty:
+                            AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            break;
+
                         case TypeKind.Module:
                         case TypeKind.Class:
                             AddKeyword(SyntaxKind.ClassKeyword);
