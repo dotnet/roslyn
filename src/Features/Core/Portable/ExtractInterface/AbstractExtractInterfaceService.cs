@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             INamedTypeSymbol extractedInterfaceSymbol,
             INamedTypeSymbol typeToExtractFrom,
             IEnumerable<ISymbol> includedMembers,
-            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
+            ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
             CancellationToken cancellationToken);
 
         internal abstract string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace);
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var originalDocumentSyntaxRoot = await refactoringResult.DocumentToExtractFrom.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var fileBanner = syntaxFactsService.GetFileBanner(originalDocumentSyntaxRoot);
 
-            var unformattedInterfaceDocument = await ExtractTypeHelpers.AddTypeToNewFileAsync(
+            var (unformattedInterfaceDocument, _) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
                 symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,
                 extractInterfaceOptions.FileName,
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             var document = symbolMapping.AnnotatedSolution.GetDocument(refactoringResult.DocumentToExtractFrom.Id);
 
-            var documentWithInterface = await ExtractTypeHelpers.AddTypeToExistingFileAsync(
+            var (documentWithInterface, _) = await ExtractTypeHelpers.AddTypeToExistingFileAsync(
                 document,
                 extractedInterfaceSymbol,
                 symbolMapping,
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             INamedTypeSymbol typeToExtractFrom,
             INamedTypeSymbol extractedInterfaceSymbol,
             IEnumerable<ISymbol> includedMembers,
-            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
+            ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
             CancellationToken cancellationToken)
         {
             // If an interface "INewInterface" is extracted from an interface "IExistingInterface",

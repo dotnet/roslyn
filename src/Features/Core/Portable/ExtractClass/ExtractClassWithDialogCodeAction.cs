@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 // Add the new type to the solution. It can go in a new file or
                 // be added to an existing. The returned document is always the document
                 // containing the new type
-                var updatedDocument = extractClassOptions.SameFile
+                var (updatedDocument, typeAnnotation) = extractClassOptions.SameFile
                     ? await ExtractTypeHelpers.AddTypeToExistingFileAsync(
                         symbolMapping.AnnotatedSolution.GetRequiredDocument(_document.Id),
                         newType,
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 // After all the changes, make sure we're using the most up to date symbol 
                 // as the destination for pulling members into
                 var documentWithTypeDeclaration = solutionWithUpdatedOriginalType.GetRequiredDocument(updatedDocument.Id);
-                newType = await GetNewTypeSymbolAsync(documentWithTypeDeclaration, newType, cancellationToken).ConfigureAwait(false);
+                newType = await GetNewTypeSymbolAsync(documentWithTypeDeclaration, typeAnnotation, cancellationToken).ConfigureAwait(false);
 
                 // Use Members Puller to move the members to the new symbol
                 var finalSolution = await PullMembersUpAsync(
@@ -223,10 +223,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<INamedTypeSymbol> GetNewTypeSymbolAsync(Document document, INamedTypeSymbol typeToBeLookedFor, CancellationToken cancellationToken)
+        private static async Task<INamedTypeSymbol> GetNewTypeSymbolAsync(Document document, SyntaxAnnotation typeAnnotation, CancellationToken cancellationToken)
         {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return (INamedTypeSymbol)semanticModel.Compilation.GetSymbolsWithName(typeToBeLookedFor.Name, SymbolFilter.Type, cancellationToken).Single();
+            var declarationNode = root.GetAnnotatedNodes(typeAnnotation).Single();
+
+            return (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(declarationNode, cancellationToken);
         }
 
         private static async Task<Solution> GetSolutionWithBaseAddedAsync(

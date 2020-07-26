@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class ExtractTypeHelpers
     {
-        public static async Task<Document> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CancellationToken cancellationToken)
+        public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CancellationToken cancellationToken)
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
@@ -28,12 +29,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, cancellationToken: cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
+            var typeAnnotation = new SyntaxAnnotation();
+            newTypeNode = newTypeNode.WithAdditionalAnnotations(typeAnnotation);
+
             editor.InsertBefore(typeDeclaration, newTypeNode);
 
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
+            var newDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
+            return (newDocument, typeAnnotation);
         }
 
-        public static async Task<Document> AddTypeToNewFileAsync(
+        public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToNewFileAsync(
             Solution solution,
             string containingNamespaceDisplay,
             string fileName,
@@ -59,10 +64,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var rootWithBanner = syntaxRoot.WithPrependedLeadingTrivia(fileBanner);
 
-            newTypeDocument = newTypeDocument.WithSyntaxRoot(rootWithBanner);
+            var typeAnnotation = new SyntaxAnnotation();
+            var syntaxFacts = newTypeDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            var declarationNode = rootWithBanner.DescendantNodes().First(syntaxFacts.IsTypeDeclaration);
+            var annotatedRoot = rootWithBanner.ReplaceNode(declarationNode, declarationNode.WithAdditionalAnnotations(typeAnnotation));
+
+            newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 
             var simplified = await Simplifier.ReduceAsync(newTypeDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return await Formatter.FormatAsync(simplified).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(simplified).ConfigureAwait(false);
+
+            return (formattedDocument, typeAnnotation);
         }
     }
 }
