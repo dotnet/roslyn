@@ -19039,12 +19039,13 @@ public partial record C1
         }
 
         [Fact]
-        public void StaticRecord()
+        public void StaticRecordWithConstructorAndDestructor()
         {
             var text = @"
 static record R(int I)
 {
     R() : this(0) { }
+    ~R() { }
 }
 ";
             var comp = CreateCompilation(text);
@@ -19052,9 +19053,6 @@ static record R(int I)
                 // (2,15): error CS0708: 'R.EqualityContract': cannot declare instance members in a static type
                 // static record R(int I)
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("R.EqualityContract").WithLocation(2, 15),
-                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static type
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 15),
                 // (2,15): error CS0708: 'Deconstruct': cannot declare instance members in a static type
                 // static record R(int I)
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Deconstruct").WithLocation(2, 15),
@@ -19067,6 +19065,9 @@ static record R(int I)
                 // (2,15): error CS0708: 'Equals': cannot declare instance members in a static type
                 // static record R(int I)
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static type
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 15),
                 // (2,15): error CS1057: 'R.R(R)': static classes cannot contain protected members
                 // static record R(int I)
                 Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.R(R)").WithLocation(2, 15),
@@ -19081,7 +19082,10 @@ static record R(int I)
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "I").WithArguments("R.I").WithLocation(2, 21),
                 // (4,5): error CS0710: Static types cannot have instance constructors
                 //     R() : this(0) { }
-                Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "R").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "R").WithLocation(4, 5),
+                // (5,6): error CS0711: Static types cannot contain destructors
+                //     ~R() { }
+                Diagnostic(ErrorCode.ERR_DestructorInStaticClass, "R").WithArguments("R.~R()").WithLocation(5, 6)
                 );
         }
     }

@@ -5246,8 +5246,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static classes cannot contain destructors</source>
-        <target state="translated">Статические классы не могут содержать деструкторы.</target>
+        <source>Static types cannot contain destructors</source>
+        <target state="needs-review-translation">Статические классы не могут содержать деструкторы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">

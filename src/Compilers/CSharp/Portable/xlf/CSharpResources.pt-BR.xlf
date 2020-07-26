@@ -5245,8 +5245,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static classes cannot contain destructors</source>
-        <target state="translated">Classes static não podem conter destruidores</target>
+        <source>Static types cannot contain destructors</source>
+        <target state="needs-review-translation">Classes static não podem conter destruidores</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">

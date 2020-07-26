@@ -2016,7 +2016,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Static types cannot have instance constructors</value>
   </data>
   <data name="ERR_DestructorInStaticClass" xml:space="preserve">
-    <value>Static classes cannot contain destructors</value>
+    <value>Static types cannot contain destructors</value>
   </data>
   <data name="ERR_InstantiatingStaticClass" xml:space="preserve">
     <value>Cannot create an instance of the static class '{0}'</value>

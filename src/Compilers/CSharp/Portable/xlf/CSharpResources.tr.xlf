@@ -5246,8 +5246,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static classes cannot contain destructors</source>
-        <target state="translated">Statik sınıflar yıkıcı içeremez</target>
+        <source>Static types cannot contain destructors</source>
+        <target state="needs-review-translation">Statik sınıflar yıkıcı içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">

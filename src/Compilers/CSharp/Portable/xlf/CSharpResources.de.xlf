@@ -5246,8 +5246,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static classes cannot contain destructors</source>
-        <target state="translated">Statische Klassen können keine Destruktoren enthalten.</target>
+        <source>Static types cannot contain destructors</source>
+        <target state="needs-review-translation">Statische Klassen können keine Destruktoren enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">

@@ -5246,8 +5246,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static classes cannot contain destructors</source>
-        <target state="translated">Statické třídy nemůžou obsahovat destruktory.</target>
+        <source>Static types cannot contain destructors</source>
+        <target state="needs-review-translation">Statické třídy nemůžou obsahovat destruktory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
