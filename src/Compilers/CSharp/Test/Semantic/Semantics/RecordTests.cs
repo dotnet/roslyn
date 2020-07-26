@@ -18829,5 +18829,28 @@ record Goo<T>
                 );
         }
 
+        [Fact]
+        public void CS0406ERR_ClassBoundNotFirst()
+        {
+            var source =
+@"interface I { }
+record A { }
+record B { }
+class C<T, U>
+    where T : I, A
+    where U : A, B
+{
+    void M<V>() where V : U, A, B { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,18): error CS0406: The class type constraint 'A' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(5, 18),
+                // (6,18): error CS0406: The class type constraint 'B' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(6, 18),
+                // (8,30): error CS0406: The class type constraint 'A' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 30),
+                // (8,33): error CS0406: The class type constraint 'B' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(8, 33));
+        }
     }
 }
