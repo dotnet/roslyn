@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Editor;
@@ -125,7 +128,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public int OnBeforeSave(uint docCookie)
             => VSConstants.E_NOTIMPL;
 
-        public bool IsFileOpen(string fileName) => _runningDocumentTable.IsMonikerValid(fileName);
+        public bool IsFileOpen(string fileName)
+        {
+            _foregroundAffinitization.AssertIsForeground();
+            return _runningDocumentTable.IsFileOpen(fileName);
+        }
 
         /// <summary>
         /// Attempts to get a text buffer from the specified moniker.
@@ -133,26 +140,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <param name="moniker">the moniker to retrieve the text buffer for.</param>
         /// <param name="textBuffer">the output text buffer or null if the moniker is invalid / document is not initialized.</param>
         /// <returns>true if the buffer was found with a non null value.</returns>
-        public bool TryGetBufferFromMoniker(string moniker, out ITextBuffer textBuffer)
+        public bool TryGetBufferFromMoniker(string moniker, [NotNullWhen(true)] out ITextBuffer? textBuffer)
         {
             _foregroundAffinitization.AssertIsForeground();
 
-            textBuffer = null;
-            if (!IsFileOpen(moniker))
-            {
-                return false;
-            }
-
-            var cookie = _runningDocumentTable.GetDocumentCookie(moniker);
-            if (!_runningDocumentTable.IsDocumentInitialized(cookie))
-            {
-                return false;
-            }
-
-            return TryGetBuffer(cookie, out textBuffer);
+            return _runningDocumentTable.TryGetBufferFromMoniker(_editorAdaptersFactoryService, moniker, out textBuffer);
         }
 
-        public IVsHierarchy GetDocumentHierarchy(string moniker)
+        public IVsHierarchy? GetDocumentHierarchy(string moniker)
         {
             if (!IsFileOpen(moniker))
             {
@@ -213,20 +208,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return !string.IsNullOrEmpty(moniker);
         }
 
-        private bool TryGetBuffer(uint docCookie, out ITextBuffer textBuffer)
-        {
-            textBuffer = null;
-
-            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
-            // which saves us JIT time in this method and an assembly load.
-            if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer bufferAdapter)
-            {
-                textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
-                return textBuffer != null;
-            }
-
-            return false;
-        }
+        private bool TryGetBuffer(uint docCookie, [NotNullWhen(true)] out ITextBuffer? textBuffer)
+            => _runningDocumentTable.TryGetBuffer(_editorAdaptersFactoryService, docCookie, out textBuffer);
 
         public void Dispose()
         {

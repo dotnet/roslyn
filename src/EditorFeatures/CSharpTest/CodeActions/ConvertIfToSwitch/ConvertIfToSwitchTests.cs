@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         [CombinatorialData]
         public async Task TestIsExpression(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             var source =
 @"class C
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
     }
 }",
-                LanguageVersionExtensions.CSharp9 =>
+                LanguageVersion.CSharp9 =>
 @"class C
 {
     void M(object o)
@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -1542,7 +1542,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -1714,7 +1714,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -2275,7 +2275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -2336,7 +2336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -2384,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8510").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = "SwitchExpression",
             }.RunAsync();
@@ -2459,7 +2459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(1),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -2497,7 +2497,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -2535,7 +2535,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -2583,7 +2583,7 @@ enum ET1
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             };
 

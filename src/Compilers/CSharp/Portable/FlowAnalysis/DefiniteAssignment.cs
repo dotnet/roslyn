@@ -1695,10 +1695,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
+            LocalSymbol localSymbol = node.LocalSymbol;
+            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                // Since we've already reported a use of the variable where not permitted, we
+                // suppress the diagnostic that the variable may not be assigned where used.
+                int slot = GetOrCreateSlot(node.LocalSymbol);
+                _alreadyReported[slot] = true;
+            }
+
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
             // an assignment (if a simple variable or this-qualified or deconstruction variables) or an out parameter.
             // That's because this code assumes the variable is being read, not written.
-            LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
 
             if (localSymbol.IsFixed && this.CurrentSymbol is MethodSymbol currentMethod &&

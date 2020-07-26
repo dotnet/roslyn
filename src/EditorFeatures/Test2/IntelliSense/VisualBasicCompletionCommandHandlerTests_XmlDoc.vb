@@ -641,7 +641,7 @@ End Class
             Return InvokeWithKeywordCommitSeeLangword("Await")
         End Function
 
-        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, Optional unique As Boolean = True) As Task
+        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, Optional unique As Boolean = True) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Class C

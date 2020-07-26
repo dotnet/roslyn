@@ -48,7 +48,7 @@ End Class</text>.Value.Replace("$", text)
             Await TestAsync(text, expectedType, mode)
         End Function
 
-        Private Function FindExpressionSyntaxFromSpan(root As SyntaxNode, textSpan As TextSpan) As ExpressionSyntax
+        Private Shared Function FindExpressionSyntaxFromSpan(root As SyntaxNode, textSpan As TextSpan) As ExpressionSyntax
             Dim token = root.FindToken(textSpan.Start)
             Dim currentNode = token.Parent
             While currentNode IsNot Nothing

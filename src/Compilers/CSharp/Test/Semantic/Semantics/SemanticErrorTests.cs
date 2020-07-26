@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1504,9 +1505,9 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,23): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
+                // (6,9): error CS0127: Since 'C.M1()' returns void, a return keyword must not be followed by an object expression
                 //         return true ? throw null : M2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M1()").WithLocation(6, 9));
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -1524,9 +1525,9 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,29): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
+                // (6,42): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         object obj = true ? throw null : M2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 42));
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -1537,16 +1538,17 @@ class C
 {
     void M1()
     {
-        object obj = true ? 0 : M2();
+        var obj = true ? 0 : M2();
     }
 
     void M2() { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,22): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
-                //         object obj = true ? 0 : M2();
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 22));
+                // (6,19): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
+                //         var obj = true ? 0 : M2();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 19)
+                );
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -1564,9 +1566,12 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,22): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                // (6,29): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         object obj = true ? M2() : M2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true ? M2() : M2()").WithArguments("void", "object").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 29),
+                // (6,36): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                //         object obj = true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 36));
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -6514,11 +6519,18 @@ public class Square
    {
       Circle aa = new Circle();
       Square ii = new Square();
-      object o = (1 == 1) ? aa : ii;   // CS0172
+      var o1 = (1 == 1) ? aa : ii;   // CS0172
+      object o2 = (1 == 1) ? aa : ii;   // CS8652
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigQM, Line = 21, Column = 18 } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (21,16): error CS0172: Type of conditional expression cannot be determined because 'Square.Circle' and 'Square' implicitly convert to one another
+                //       var o1 = (1 == 1) ? aa : ii;   // CS0172
+                Diagnostic(ErrorCode.ERR_AmbigQM, "(1 == 1) ? aa : ii").WithArguments("Square.Circle", "Square").WithLocation(21, 16),
+                // (22,19): error CS8652: The feature 'target-typed conditional expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //       object o2 = (1 == 1) ? aa : ii;   // CS8652
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(1 == 1) ? aa : ii").WithArguments("target-typed conditional expression").WithLocation(22, 19)
+                );
         }
 
         [Fact]
@@ -6534,7 +6546,7 @@ public class MyClass
    {
       A a = new A();
       C c = new C();
-      object o = b ? a : c;  // CS0173
+      var o = b ? a : c;  // CS0173
    }
 
    public static void Main()
@@ -6542,8 +6554,11 @@ public class MyClass
        F(true);
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidQM, Line = 11, Column = 18 } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,15): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A' and 'C'
+                //       var o = b ? a : c;  // CS0173
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? a : c").WithArguments("A", "C").WithLocation(11, 15)
+                );
         }
 
         [WorkItem(528331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528331")]
@@ -6572,14 +6587,17 @@ class Program
     {
         A<string> a = new A<string>();
         A<int> b = new A<int>();
-        System.Console.WriteLine(1 > 2 ? a : b);	// Invalid, Can't implicit convert 
+        var o = 1 > 2 ? a : b; // Invalid, Can't implicit convert
     }
 }
 class A<T>
 {
 }";
-            CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidQM, "1 > 2 ? a : b").WithArguments("A<string>", "A<int>").WithLocation(8, 34));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A<string>' and 'A<int>'
+                //         var o = 1 > 2 ? a : b; // Invalid, Can't implicit convert
+                Diagnostic(ErrorCode.ERR_InvalidQM, "1 > 2 ? a : b").WithArguments("A<string>", "A<int>").WithLocation(8, 17)
+                );
         }
 
         [WorkItem(540902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540902")]
@@ -9728,7 +9746,7 @@ struct S
             // Note that none of these errors except the first one are reported by the native compiler, because
             // it does not report additional errors after an error is found in a formal parameter of a method.
 
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     internal static void E<U>(D<U> d) { } // Error: missing constraint on E<U> to satisfy constraint on D<U>
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "d").WithArguments("D<T>", "T", "U").WithLocation(9, 36),
@@ -9838,7 +9856,7 @@ static class S
 {
     internal static void E<T>(this T t) where T : new() { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (15,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
                 //         M(b);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "B").WithLocation(15, 9),
@@ -12625,7 +12643,7 @@ namespace TestNamespace
         [Fact]
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
-            var systemRef = TestReferences.NetFx.v4_0_30319.System;
+            var systemRef = Net451.System;
             CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
@@ -13410,7 +13428,7 @@ static class SC
     static void M4(this S s) { }
     static void M5(this double d) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (24,29): error CS1113: Extension methods 'SC.M3(E)' defined on value type 'E' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.M3").WithArguments("SC.M3(E)", "E").WithLocation(24, 29),
                 // (26,29): error CS1113: Extension methods 'SC.M4(S)' defined on value type 'S' cannot be used to create delegates
@@ -13456,7 +13474,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (13,13): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(13, 13),
                 // (14,13): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -13517,7 +13535,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (12,11): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(12, 11),
                 // (13,11): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -16617,7 +16635,7 @@ static class S
 {
     internal static void F(this double d) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore });
             // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
@@ -16640,7 +16658,7 @@ static class S
 {
     internal static void E(this B b) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'A' does not contain a definition for 'E' and the best extension method overload 'S.E(B)' requires a receiver of type 'B'
                 //         a.E();
@@ -16844,7 +16862,7 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-             // (8,40): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+             // (8,40): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
              // nums
              Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "nums").WithArguments("int[]", "Where"));
         }
@@ -20391,7 +20409,7 @@ class Test
             // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null",
             // but does for "int == null". Roslyn corrects this lapse and produces warnings for both built-in
             // and user-defined lifted equality operators, but the new warnings for user-defined types are
-            // only given in "strict" more.
+            // only given with /warn:n where n >= 5.
 
             var text = @"
 using System;
@@ -20597,7 +20615,7 @@ ftftftft";
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
             this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]
@@ -22084,7 +22102,7 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
                 //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
@@ -22097,7 +22115,7 @@ static class C
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
                 //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
                 );
         }
 
@@ -22191,13 +22209,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -23773,7 +23791,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (9,44): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<string>> s = () => x?.ToString();
     Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(9, 44),
@@ -23814,7 +23832,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (10,87): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[1]").WithLocation(10, 87)
@@ -23854,7 +23872,7 @@ namespace ConsoleApplication31
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
     //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
     Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
@@ -23882,7 +23900,7 @@ class C
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (9,53): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)

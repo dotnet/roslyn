@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
     <[UseExportProvider]>
     Public Class DataTipInfoGetterTests
 
-        Private Async Function TestNoDataTipAsync(input As XElement) As Task
+        Private Shared Async Function TestNoDataTipAsync(input As XElement) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             MarkupTestFile.GetPosition(input.NormalizedValue, parsedInput, expectedPosition)
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
                                       End Function)
         End Function
 
-        Private Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
+        Private Shared Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             Dim textSpan As TextSpan
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
                                       End Function)
         End Function
 
-        Private Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
+        Private Shared Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(parsedInput)
                 Dim debugInfo = New VisualBasicLanguageDebugInfoService()
                 Await continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
