@@ -3177,8 +3177,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">No se puede crear una instancia de la clase o interfaz abstracta '{0}'</target>
+        <source>Cannot create an instance of the abstract type '{0}'</source>
+        <target state="needs-review-translation">No se puede crear una instancia de la clase o interfaz abstracta '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3187,8 +3187,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">Dependencia de clase base circular que requiere '{0}' y '{1}'</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="needs-review-translation">Dependencia de clase base circular que requiere '{0}' y '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">

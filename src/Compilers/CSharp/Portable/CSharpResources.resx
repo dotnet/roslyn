@@ -748,7 +748,7 @@
     <value>A const field requires a value to be provided</value>
   </data>
   <data name="ERR_CircularBase" xml:space="preserve">
-    <value>Circular base class dependency involving '{0}' and '{1}'</value>
+    <value>Circular base type dependency involving '{0}' and '{1}'</value>
   </data>
   <data name="ERR_BadDelegateConstructor" xml:space="preserve">
     <value>The delegate '{0}' does not have a valid constructor</value>

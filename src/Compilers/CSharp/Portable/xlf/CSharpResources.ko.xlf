@@ -3177,8 +3177,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">{0}' 추상 클래스 또는 인터페이스의 인스턴스를 만들 수 없습니다.</target>
+        <source>Cannot create an instance of the abstract type '{0}'</source>
+        <target state="needs-review-translation">{0}' 추상 클래스 또는 인터페이스의 인스턴스를 만들 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3187,8 +3187,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">{0}' 및 '{1}'과(와) 관련된 순환 기본 클래스 종속성입니다.</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="needs-review-translation">{0}' 및 '{1}'과(와) 관련된 순환 기본 클래스 종속성입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">

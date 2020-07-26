@@ -107,7 +107,7 @@ class A<T>
             var x_base = e.BaseType() as ErrorTypeSymbol;
             var er = x_base.ErrorInfo;
 
-            Assert.Equal("error CS0146: Circular base class dependency involving 'A<A<T>.E>.E' and 'A<T>.E'",
+            Assert.Equal("error CS0146: Circular base type dependency involving 'A<A<T>.E>.E' and 'A<T>.E'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -136,7 +136,7 @@ class B {
             var x_base = d.BaseType() as ErrorTypeSymbol;
             var er = x_base.ErrorInfo;
 
-            Assert.Equal("error CS0146: Circular base class dependency involving 'A<int>.C' and 'B.D'",
+            Assert.Equal("error CS0146: Circular base type dependency involving 'A<int>.C' and 'B.D'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -201,10 +201,10 @@ class B<T> : A<B<T>> {
 ";
             var comp = CreateCompilation(text);
             comp.GetDeclarationDiagnostics().Verify(
-    // (2,7): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
+    // (2,7): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
     // class A<T> : B<A<T>> { }
     Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>"),
-    // (3,7): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
+    // (3,7): error CS0146: Circular base type dependency involving 'A<B<T>>' and 'B<T>'
     // class B<T> : A<B<T>> {
     Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>")
                 );
@@ -696,7 +696,7 @@ class A : A { }
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // (2,7): error CS0146: Circular base type dependency involving 'A' and 'A'
                 Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("A", "A"));
         }
 
@@ -709,9 +709,9 @@ class B : A { }
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'B' and 'A'
+                // (2,7): error CS0146: Circular base type dependency involving 'B' and 'A'
                 Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B", "A"),
-                // (3,7): error CS0146: Circular base class dependency involving 'A' and 'B'
+                // (3,7): error CS0146: Circular base type dependency involving 'A' and 'B'
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "B"));
         }
 
@@ -726,7 +726,7 @@ class A : A.B
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'A.B' and 'A'
+                // (2,7): error CS0146: Circular base type dependency involving 'A.B' and 'A'
                 Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("A.B", "A"));
         }
 
@@ -915,7 +915,7 @@ interface I<T> { }
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,21): error CS0146: Circular base class dependency involving 'C' and 'C'
+                // (7,21): error CS0146: Circular base type dependency involving 'C' and 'C'
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("C", "C"));
         }
 
@@ -975,7 +975,7 @@ class B : A<B.Y.Z>
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (15,17): error CS0146: Circular base class dependency involving 'B.Y' and 'B'
+                // (15,17): error CS0146: Circular base type dependency involving 'B.Y' and 'B'
                 Diagnostic(ErrorCode.ERR_CircularBase, "X").WithArguments("B", "B.Y"),
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Z").WithArguments("Z", "B.Y"),
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "V").WithArguments("V", "B.Y"));
@@ -1142,7 +1142,7 @@ public class ClassB : ClassA {}
             var errorBase = B_base as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
 
-            Assert.Equal("error CS0146: Circular base class dependency involving 'ClassA' and 'ClassB'",
+            Assert.Equal("error CS0146: Circular base type dependency involving 'ClassA' and 'ClassB'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var errorBase1 = A_base as ErrorTypeSymbol;
@@ -1936,7 +1936,7 @@ struct S : C.I
             // Ideally report "CS0426: The type name 'I' does not exist in the type 'S'"
             // instead. Bug #896959.
             compilation.VerifyDiagnostics(
-                // (1,14): error CS0146: Circular base class dependency involving 'S' and 'S'
+                // (1,14): error CS0146: Circular base type dependency involving 'S' and 'S'
                 // struct S : S.I
                 Diagnostic(ErrorCode.ERR_CircularBase, "I").WithArguments("S", "S").WithLocation(1, 14));
         }
@@ -2316,7 +2316,7 @@ class A : I<(object, A.B)>
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,24): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // (4,24): error CS0146: Circular base type dependency involving 'A' and 'A'
                 // class A : I<(object, A.B)>
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 24));
         }
@@ -2334,7 +2334,7 @@ class B : A<(object, B.C)>
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,24): error CS0146: Circular base class dependency involving 'B' and 'B'
+                // (4,24): error CS0146: Circular base type dependency involving 'B' and 'B'
                 // class B : A<(object, B.C)>
                 Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("B", "B").WithLocation(4, 24));
         }
@@ -2351,7 +2351,7 @@ class A : I<System.ValueTuple<object, A.B>>
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,41): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // (4,41): error CS0146: Circular base type dependency involving 'A' and 'A'
                 // class A : I<System.ValueTuple<object, A.B>>
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 41));
         }

@@ -3177,8 +3177,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">抽象クラスまたはインターフェイス '{0}' のインスタンスを作成できません。</target>
+        <source>Cannot create an instance of the abstract type '{0}'</source>
+        <target state="needs-review-translation">抽象クラスまたはインターフェイス '{0}' のインスタンスを作成できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3187,8 +3187,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">{0}' と '{1}' を含む、循環する基底クラスの依存関係です。</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="needs-review-translation">{0}' と '{1}' を含む、循環する基底クラスの依存関係です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">

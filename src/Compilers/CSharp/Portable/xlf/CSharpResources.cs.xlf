@@ -3177,8 +3177,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">Nejde vytvořit instanci abstraktní třídy nebo rozhraní {0}.</target>
+        <source>Cannot create an instance of the abstract type '{0}'</source>
+        <target state="needs-review-translation">Nejde vytvořit instanci abstraktní třídy nebo rozhraní {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3187,8 +3187,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">Prvky {0} a {1} jsou součástí cyklické závislosti základních tříd.</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="needs-review-translation">Prvky {0} a {1} jsou součástí cyklické závislosti základních tříd.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">

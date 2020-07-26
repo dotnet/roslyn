@@ -18686,5 +18686,44 @@ abstract record C
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
                 );
         }
+
+        [Fact]
+        public void CyclicBases4()
+        {
+            var text =
+@"
+record A<T> : B<A<T>> { }
+record B<T> : A<B<T>> {
+    A<T> F() { return null; }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (2,8): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>").WithLocation(2, 8),
+                // (3,8): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>").WithLocation(3, 8),
+                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
+                // (3,8): error CS0115: 'B<T>.EqualityContract': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.EqualityContract").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B<T>.Equals(object?)': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.Equals(object?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B<T>.GetHashCode()': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8)
+                );
+        }
     }
 }

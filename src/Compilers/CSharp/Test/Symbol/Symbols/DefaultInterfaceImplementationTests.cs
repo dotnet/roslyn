@@ -57266,7 +57266,7 @@ public class CD : CD.ICD.CB
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (2,14): error CS0146: Circular base class dependency involving 'CD.ICD.CB' and 'CD'
+                // (2,14): error CS0146: Circular base type dependency involving 'CD.ICD.CB' and 'CD'
                 // public class CD : CD.ICD.CB
                 Diagnostic(ErrorCode.ERR_CircularBase, "CD").WithArguments("CD.ICD.CB", "CD").WithLocation(2, 14)
                 );
@@ -57354,7 +57354,7 @@ interface IB : CA.I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // (2,7): error CS0146: Circular base type dependency involving 'IB.CQ' and 'CA'
                 // class CA : IB.CQ
                 Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(2, 7),
                 // (8,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
@@ -57391,7 +57391,7 @@ class CA : IB.CQ
                 // (2,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
                 // interface IB : CA.I1
                 Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "CA.I1").WithLocation(2, 11),
-                // (8,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // (8,7): error CS0146: Circular base type dependency involving 'IB.CQ' and 'CA'
                 // class CA : IB.CQ
                 Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(8, 7)
                 );
