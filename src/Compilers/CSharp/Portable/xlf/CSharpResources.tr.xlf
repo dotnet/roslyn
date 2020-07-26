@@ -5241,8 +5241,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Statik sınıflarda örnek oluşturucular olamaz</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Statik sınıflarda örnek oluşturucular olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

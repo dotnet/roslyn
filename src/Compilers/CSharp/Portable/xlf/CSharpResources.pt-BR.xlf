@@ -5240,8 +5240,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Classes static não podem ter construtores de instância</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Classes static não podem ter construtores de instância</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

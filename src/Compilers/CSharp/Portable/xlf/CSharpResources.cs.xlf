@@ -5241,8 +5241,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Statické třídy nemůžou mít konstruktory instancí.</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Statické třídy nemůžou mít konstruktory instancí.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

@@ -5241,8 +5241,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Les classes static ne peuvent pas avoir de constructeurs d'instance</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Les classes static ne peuvent pas avoir de constructeurs d'instance</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

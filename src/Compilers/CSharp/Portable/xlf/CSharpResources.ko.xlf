@@ -5241,8 +5241,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">정적 클래스는 인스턴스 생성자를 포함할 수 없습니다.</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">정적 클래스는 인스턴스 생성자를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

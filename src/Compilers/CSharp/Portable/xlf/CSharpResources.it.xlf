@@ -5241,8 +5241,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Le classi statiche non possono avere costruttori di istanze</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Le classi statiche non possono avere costruttori di istanze</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

@@ -5241,8 +5241,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Las clases estáticas no pueden tener constructores de instancia</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Las clases estáticas no pueden tener constructores de instancia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

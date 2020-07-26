@@ -5241,8 +5241,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">静态类不能有实例构造函数</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">静态类不能有实例构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

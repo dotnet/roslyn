@@ -5241,8 +5241,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Statische Klassen können keine Instanzenkonstruktoren haben.</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Statische Klassen können keine Instanzenkonstruktoren haben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

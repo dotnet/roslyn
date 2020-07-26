@@ -5241,8 +5241,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static classes cannot have instance constructors</source>
-        <target state="translated">Klasy statyczne nie mogą mieć konstruktorów wystąpienia.</target>
+        <source>Static types cannot have instance constructors</source>
+        <target state="needs-review-translation">Klasy statyczne nie mogą mieć konstruktorów wystąpienia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">

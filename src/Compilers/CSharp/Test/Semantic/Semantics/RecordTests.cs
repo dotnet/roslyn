@@ -19037,5 +19037,52 @@ public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
                 );
         }
+
+        [Fact]
+        public void StaticRecord()
+        {
+            var text = @"
+static record R(int I)
+{
+    R() : this(0) { }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0708: 'R.EqualityContract': cannot declare instance members in a static type
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("R.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static type
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Deconstruct': cannot declare instance members in a static type
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Deconstruct").WithLocation(2, 15),
+                // (2,15): error CS0722: 'R': static types cannot be used as return types
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "R").WithArguments("R").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static type
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static type
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS1057: 'R.R(R)': static classes cannot contain protected members
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.R(R)").WithLocation(2, 15),
+                // (2,15): error CS1057: 'R.EqualityContract': static classes cannot contain protected members
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS1057: 'R.EqualityContract.get': static classes cannot contain protected members
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.EqualityContract.get").WithLocation(2, 15),
+                // (2,21): error CS0708: 'R.I': cannot declare instance members in a static type
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "I").WithArguments("R.I").WithLocation(2, 21),
+                // (4,5): error CS0710: Static types cannot have instance constructors
+                //     R() : this(0) { }
+                Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "R").WithLocation(4, 5)
+                );
+        }
     }
 }

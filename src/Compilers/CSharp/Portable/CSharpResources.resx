@@ -2013,7 +2013,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{1}': cannot derive from static type '{0}'</value>
   </data>
   <data name="ERR_ConstructorInStaticClass" xml:space="preserve">
-    <value>Static classes cannot have instance constructors</value>
+    <value>Static types cannot have instance constructors</value>
   </data>
   <data name="ERR_DestructorInStaticClass" xml:space="preserve">
     <value>Static classes cannot contain destructors</value>
