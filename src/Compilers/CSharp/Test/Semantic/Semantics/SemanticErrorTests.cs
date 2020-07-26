@@ -11319,7 +11319,7 @@ namespace x
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (6,10): error CS0574: Name of destructor must match name of class
+                // (6,10): error CS0574: Name of destructor must match name of type
                 //         ~iiii(){}
                 Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }

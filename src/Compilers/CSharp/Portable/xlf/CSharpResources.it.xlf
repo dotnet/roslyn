@@ -4671,8 +4671,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">Il nome del distruttore deve corrispondere al nome della classe</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">Il nome del distruttore deve corrispondere al nome della classe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">

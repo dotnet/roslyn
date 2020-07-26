@@ -4671,8 +4671,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">Název destruktoru musí odpovídat názvu třídy.</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">Název destruktoru musí odpovídat názvu třídy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">

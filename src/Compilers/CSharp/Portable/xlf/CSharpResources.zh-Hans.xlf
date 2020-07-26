@@ -4671,8 +4671,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">析构函数的名称必须与类的名称匹配</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">析构函数的名称必须与类的名称匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">

@@ -18951,5 +18951,27 @@ public record D : B {}
                 Diagnostic(ErrorCode.ERR_ConversionWithDerived, "B").WithArguments("B.implicit operator B(D)")
                 );
         }
+
+        [Fact]
+        public void CS0574ERR_BadDestructorName()
+        {
+            var test = @"
+namespace x
+{
+    public record iii
+    {
+        ~iiii(){}
+        public static void Main()
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,10): error CS0574: Name of destructor must match name of type
+                //         ~iiii(){}
+                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
+        }
     }
 }

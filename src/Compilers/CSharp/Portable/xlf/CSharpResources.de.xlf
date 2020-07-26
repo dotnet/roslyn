@@ -4671,8 +4671,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">Der Name des Destruktors muss mit dem Namen der Klasse übereinstimmen.</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">Der Name des Destruktors muss mit dem Namen der Klasse übereinstimmen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">

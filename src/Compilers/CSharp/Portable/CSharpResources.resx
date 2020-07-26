@@ -1662,7 +1662,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot have instance property or field initializers in structs</value>
   </data>
   <data name="ERR_BadDestructorName" xml:space="preserve">
-    <value>Name of destructor must match name of class</value>
+    <value>Name of destructor must match name of type</value>
   </data>
   <data name="ERR_OnlyClassesCanContainDestructors" xml:space="preserve">
     <value>Only class types can contain destructors</value>

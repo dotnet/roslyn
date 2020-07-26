@@ -4671,8 +4671,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">デストラクターの名前をクラスの名前と同じにしてください。</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">デストラクターの名前をクラスの名前と同じにしてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">
