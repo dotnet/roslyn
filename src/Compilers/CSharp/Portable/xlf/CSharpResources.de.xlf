@@ -6170,8 +6170,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">'"{0}", angegeben für die Main-Methode, muss eine nicht generische Klasse, Struktur oder Schnittstelle sein.</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">'"{0}", angegeben für die Main-Methode, muss eine nicht generische Klasse, Struktur oder Schnittstelle sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">

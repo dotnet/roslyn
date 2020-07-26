@@ -6169,8 +6169,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">O '{0}' especificado para o método Main precisa ser uma classe, um struct ou uma interface não genérica válida</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">O '{0}' especificado para o método Main precisa ser uma classe, um struct ou uma interface não genérica válida</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">

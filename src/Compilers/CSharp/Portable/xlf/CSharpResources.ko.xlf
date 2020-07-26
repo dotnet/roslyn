@@ -6170,8 +6170,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">Main 메서드에 지정된 '{0}'은(는) 제네릭이 아닌 클래스, 구조체 또는 인터페이스여야 합니다.</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">Main 메서드에 지정된 '{0}'은(는) 제네릭이 아닌 클래스, 구조체 또는 인터페이스여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">

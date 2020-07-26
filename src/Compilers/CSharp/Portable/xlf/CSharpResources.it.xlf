@@ -6170,8 +6170,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">L'elemento '{0}' specificato per il metodo Main deve essere una classe o uno struct non generico valido</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">L'elemento '{0}' specificato per il metodo Main deve essere una classe o uno struct non generico valido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">

@@ -6170,8 +6170,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">为 Main 方法指定的“{0}”必须是非泛型类、结构或接口</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">为 Main 方法指定的“{0}”必须是非泛型类、结构或接口</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">

@@ -6170,8 +6170,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">La "{0}" especificada para el método Main debe ser una clase, estructura o interfaz no genérica</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">La "{0}" especificada para el método Main debe ser una clase, estructura o interfaz no genérica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">

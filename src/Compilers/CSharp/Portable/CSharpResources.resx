@@ -2573,7 +2573,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find '{0}' specified for Main method</value>
   </data>
   <data name="ERR_MainClassNotClass" xml:space="preserve">
-    <value>'{0}' specified for Main method must be a non-generic class, struct, or interface</value>
+    <value>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</value>
   </data>
   <data name="ERR_NoMainInClass" xml:space="preserve">
     <value>'{0}' does not have a suitable static 'Main' method</value>
