@@ -1608,7 +1608,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': user-defined conversions to or from an interface are not allowed</value>
   </data>
   <data name="ERR_ConversionWithBase" xml:space="preserve">
-    <value>'{0}': user-defined conversions to or from a base class are not allowed</value>
+    <value>'{0}': user-defined conversions to or from a base type are not allowed</value>
   </data>
   <data name="ERR_ConversionWithDerived" xml:space="preserve">
     <value>'{0}': user-defined conversions to or from a derived class are not allowed</value>

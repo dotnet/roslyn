@@ -4586,8 +4586,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'„{0}”: zdefiniowane przez użytkownika konwersje na lub z klasy bazowej nie są dozwolone</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="needs-review-translation">'„{0}”: zdefiniowane przez użytkownika konwersje na lub z klasy bazowej nie są dozwolone</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">

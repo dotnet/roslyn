@@ -4586,8 +4586,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'{0}': 인터페이스(로)부터의 사용자 정의 변환은 허용되지 않습니다.</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="needs-review-translation">'{0}': 인터페이스(로)부터의 사용자 정의 변환은 허용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">

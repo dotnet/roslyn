@@ -4585,8 +4585,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'"{0}": conversões definidas pelo usuário para ou de uma classe básica não são permitidas</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="needs-review-translation">'"{0}": conversões definidas pelo usuário para ou de uma classe básica não são permitidas</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">

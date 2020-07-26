@@ -4586,8 +4586,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'{0}': temel sınıfa veya temel sınıftan kullanıcı tanımlı dönüştürmelere izin verilmiyor</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="needs-review-translation">'{0}': temel sınıfa veya temel sınıftan kullanıcı tanımlı dönüştürmelere izin verilmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">

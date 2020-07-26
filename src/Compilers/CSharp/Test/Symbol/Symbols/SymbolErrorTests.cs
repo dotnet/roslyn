@@ -10264,10 +10264,10 @@ public struct C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (5,37): error CS0553: 'D.implicit operator B(D)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'D.implicit operator B(D)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator B(D d) // CS0553
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "B").WithArguments("D.implicit operator B(D)"),
-                // (12,37): error CS0553: 'C.implicit operator C?(object)': user-defined conversions to or from a base class are not allowed
+                // (12,37): error CS0553: 'C.implicit operator C?(object)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator C?(object c) // CS0553
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "C?").WithArguments("C.implicit operator C?(object)"));
         }
