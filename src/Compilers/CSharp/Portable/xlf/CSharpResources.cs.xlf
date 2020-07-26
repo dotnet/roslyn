@@ -4526,8 +4526,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">{0}: Explicitní deklaraci rozhraní jde použít jenom ve třídě, struktuře nebo rozhraní.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">{0}: Explicitní deklaraci rozhraní jde použít jenom ve třídě, struktuře nebo rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

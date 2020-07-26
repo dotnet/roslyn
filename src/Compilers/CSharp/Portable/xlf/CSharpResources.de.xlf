@@ -4526,8 +4526,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">{0}: Eine explizite Schnittstellendeklaration kann nur in einer Klasse, einer Struktur oder einer Schnittstelle erfolgen.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">{0}: Eine explizite Schnittstellendeklaration kann nur in einer Klasse, einer Struktur oder einer Schnittstelle erfolgen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

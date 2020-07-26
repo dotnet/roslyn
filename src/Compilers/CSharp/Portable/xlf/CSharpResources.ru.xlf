@@ -4526,8 +4526,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">"{0}": явное объявление интерфейса может содержаться только в классе, структуре или интерфейсе.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">"{0}": явное объявление интерфейса может содержаться только в классе, структуре или интерфейсе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

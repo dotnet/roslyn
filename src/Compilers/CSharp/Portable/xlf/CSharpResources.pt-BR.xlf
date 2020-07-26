@@ -4525,8 +4525,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">'{0}': a declaração de interface explícita pode ser declarada somente em uma classe, um struct ou uma interface</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">'{0}': a declaração de interface explícita pode ser declarada somente em uma classe, um struct ou uma interface</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

@@ -4526,8 +4526,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">'{0}': 明確的介面宣告只能在類別、結構或介面中宣告</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">'{0}': 明確的介面宣告只能在類別、結構或介面中宣告</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

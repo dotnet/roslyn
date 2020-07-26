@@ -1566,7 +1566,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': containing type does not implement interface '{1}'</value>
   </data>
   <data name="ERR_ExplicitInterfaceImplementationInNonClassOrStruct" xml:space="preserve">
-    <value>'{0}': explicit interface declaration can only be declared in a class, struct or interface</value>
+    <value>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</value>
   </data>
   <data name="ERR_MemberNameSameAsType" xml:space="preserve">
     <value>'{0}': member names cannot be the same as their enclosing type</value>
