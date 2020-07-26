@@ -4875,13 +4875,13 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'"{0}": novo membro protegido declarado na classe sealed</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'"{0}": novo membro protegido declarado na classe sealed</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">Novo membro protegido declarado na classe bloqueada</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">Novo membro protegido declarado na classe bloqueada</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">

@@ -4876,13 +4876,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}': sealed 클래스에 새 protected 멤버가 선언되었습니다.</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'{0}': sealed 클래스에 새 protected 멤버가 선언되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">sealed 클래스에 새 protected 멤버가 선언되었습니다.</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">sealed 클래스에 새 protected 멤버가 선언되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">

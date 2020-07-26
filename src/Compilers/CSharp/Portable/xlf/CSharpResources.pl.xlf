@@ -4876,13 +4876,13 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'„{0}”: w klasie zapieczętowanej została zadeklarowana nowa chroniona składowa</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'„{0}”: w klasie zapieczętowanej została zadeklarowana nowa chroniona składowa</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">W klasie zapieczętowanej zadeklarowano nową chronioną składową</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">W klasie zapieczętowanej zadeklarowano nową chronioną składową</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">

@@ -4876,13 +4876,13 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}': yeni korunan üye korumalı sınıfta belirtildi</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'{0}': yeni korunan üye korumalı sınıfta belirtildi</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">Korumalı sınıfta bildirilen yeni korunan üye </target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">Korumalı sınıfta bildirilen yeni korunan üye </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">

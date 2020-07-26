@@ -1785,10 +1785,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Method, operator, or accessor is marked external and has no attributes on it</value>
   </data>
   <data name="WRN_ProtectedInSealed" xml:space="preserve">
-    <value>'{0}': new protected member declared in sealed class</value>
+    <value>'{0}': new protected member declared in sealed type</value>
   </data>
   <data name="WRN_ProtectedInSealed_Title" xml:space="preserve">
-    <value>New protected member declared in sealed class</value>
+    <value>New protected member declared in sealed type</value>
   </data>
   <data name="ERR_InterfaceImplementedByConditional" xml:space="preserve">
     <value>Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'</value>

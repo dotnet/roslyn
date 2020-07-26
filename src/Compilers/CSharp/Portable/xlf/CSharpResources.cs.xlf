@@ -4876,13 +4876,13 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}: V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'{0}: V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">

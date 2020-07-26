@@ -17613,13 +17613,13 @@ sealed class D : C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,21): warning CS0628: 'D.Nested': new protected member declared in sealed class
+                // (13,21): warning CS0628: 'D.Nested': new protected member declared in sealed type
                 //     protected class Nested {} // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Nested").WithArguments("D.Nested"),
-                // (11,28): warning CS0628: 'D.Q': new protected member declared in sealed class
+                // (11,28): warning CS0628: 'D.Q': new protected member declared in sealed type
                 //     protected internal int Q { get { return 0; } } // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Q").WithArguments("D.Q"),
-                // (10,20): warning CS0628: 'D.N()': new protected member declared in sealed class
+                // (10,20): warning CS0628: 'D.N()': new protected member declared in sealed type
                 //     protected void N() { } // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "N").WithArguments("D.N()")
                 );
@@ -17635,7 +17635,7 @@ sealed class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,35): warning CS0628: 'C.E': new protected member declared in sealed class
+                // (4,35): warning CS0628: 'C.E': new protected member declared in sealed type
                 //     protected event System.Action E;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "E").WithArguments("C.E"),
                 // (4,35): warning CS0067: The event 'C.E' is never used
@@ -17665,13 +17665,13 @@ sealed class D : C
                 // (9,24): error CS0106: The modifier 'override' is not valid for this item
                 //     protected override D() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("override").WithLocation(9, 24),
-                // (10,15): warning CS0628: 'D.D(byte)': new protected member declared in sealed class
+                // (10,15): warning CS0628: 'D.D(byte)': new protected member declared in sealed type
                 //     protected D(byte b) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(byte)").WithLocation(10, 15),
-                // (11,24): warning CS0628: 'D.D(short)': new protected member declared in sealed class
+                // (11,24): warning CS0628: 'D.D(short)': new protected member declared in sealed type
                 //     protected internal D(short s) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(short)").WithLocation(11, 24),
-                // (12,24): warning CS0628: 'D.D(int)': new protected member declared in sealed class
+                // (12,24): warning CS0628: 'D.D(int)': new protected member declared in sealed type
                 //     internal protected D(int i) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(int)").WithLocation(12, 24));
         }

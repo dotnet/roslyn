@@ -4876,13 +4876,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}': 在密封類別中宣告了新的 Protected 成員</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'{0}': 在密封類別中宣告了新的 Protected 成員</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">在密封類別中已宣告新的受保護成員</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">在密封類別中已宣告新的受保護成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
