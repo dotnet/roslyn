@@ -292,7 +292,8 @@ public class TestClass
 {
     private void Caller()
     {
-        int z = 10;
+        int x;
+        x = 10;
     }
 
     private void Callee(out int z)

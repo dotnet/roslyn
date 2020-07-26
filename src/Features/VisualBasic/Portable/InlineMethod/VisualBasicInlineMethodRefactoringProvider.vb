@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return Nothing
         End Function
 
-        Protected Overrides Function ExtractExpressionFromMethodDeclaration(calleeMethodDeclarationSyntaxNode As SyntaxNode) As SyntaxNode
+        Protected Overrides Function GetInlineStatement(calleeMethodDeclarationSyntaxNode As SyntaxNode) As SyntaxNode
             Dim methodStatementSyntaxNode = TryCast(calleeMethodDeclarationSyntaxNode, MethodStatementSyntax)
             Dim inlineSyntaxNode As SyntaxNode = Nothing
             If methodStatementSyntaxNode IsNot Nothing Then
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return inlineSyntaxNode
         End Function
 
-        Protected Overrides Function ComputeInlineChanges(calleeInvocationExpressionSyntaxNode As SyntaxNode, semanticModel As SemanticModel, calleeMethodSymbol As IMethodSymbol, calleeMethodDeclarationSyntaxNode As SyntaxNode, cancellation As CancellationToken) As ImmutableArray(Of IInlineChange)
+        Protected Overrides Function ComputeInlineChanges(calleeInvocationExpressionSyntaxNode As SyntaxNode, semanticModel As SemanticModel, calleeMethodSymbol As IMethodSymbol, calleeMethodDeclarationSyntaxNode As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of IInlineChange)
             Throw New NotImplementedException()
         End Function
     End Class

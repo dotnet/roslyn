@@ -7,6 +7,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return false;
         }
 
-        protected override SyntaxNode ExtractExpressionFromMethodDeclaration(SyntaxNode calleeMethodDeclarationSyntaxNode)
+        protected override SyntaxNode GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode)
         {
             SyntaxNode? inlineSyntaxNode = null;
             if (calleeMethodDeclarationSyntaxNode is MethodDeclarationSyntax declarationSyntax)
@@ -75,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                     if (blockStatements.Count == 1)
                     {
                         inlineSyntaxNode = GetExpressionFromStatementSyntaxNode(blockStatements[0]);
-
                     }
                 }
                 else
@@ -96,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         private static SyntaxNode? GetExpressionFromStatementSyntaxNode(StatementSyntax statementSyntax)
             => statementSyntax switch
             {
-                ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression,
-                ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax.Expression,
-                ThrowStatementSyntax throwExpressionSyntax => throwExpressionSyntax.Expression,
+                ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression == null ? null : SyntaxFactory.ExpressionStatement(returnStatementSyntax.Expression),
+                ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax,
+                ThrowStatementSyntax throwExpressionSyntax => throwExpressionSyntax,
                 _ => null
             };
 
@@ -107,102 +108,81 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             SemanticModel semanticModel,
             IMethodSymbol calleeMethodSymbol,
             SyntaxNode calleeMethodDeclarationSyntaxNode,
-            CancellationToken cancellation)
+            CancellationToken cancellationToken)
         {
             var changeBuilder = ArrayBuilder<IInlineChange>.GetInstance();
             if (calleeInvocationExpressionSyntaxNode is InvocationExpressionSyntax invocationExpressionSyntax)
             {
-                var inputArguments = invocationExpressionSyntax.ArgumentList.Arguments;
-                var mappingParameters = inputArguments
-                    .Select(arg => arg.DetermineParameter(semanticModel, allowParams: true, cancellation));
+                var argumentExpressionSyntaxNodes = invocationExpressionSyntax.ArgumentList.Arguments;
+                var allParameters = calleeMethodSymbol.Parameters;
 
-                var argumentsAndMappingParameters = inputArguments
-                    .Zip(mappingParameters, (argument, parameter) => (argument, parameter))
-                    .Where(argumentAndParameter => argumentAndParameter.parameter != null)
-                    .ToImmutableArray();
+                // Track the parameter needs renaming according to the input argument from caller
+                var renameParametersBuilder =
+                    ArrayBuilder<(IParameterSymbol parameterSymbol, string argumentName)>.GetInstance();
+                // Track the 'out' variable declaration expression. A declaration needs to be put to caller's body after inlining
+                var declarationExpressionParametersBuilder =
+                    ArrayBuilder<(IParameterSymbol parameterSymbol, DeclarationExpressionSyntax expressionSyntax)>.GetInstance();
+                // Track the expression argument. It needs to be put to caller's body after inlining.
+                var expressionArgumentsBuilder =
+                    ArrayBuilder<(IParameterSymbol parameterSymbol, ExpressionSyntax argumentExpression)>.GetInstance();
+                // Track the possible param array arguments in the parameter.
+                var paramArrayArgumentsBuilder = ArrayBuilder<ExpressionSyntax>.GetInstance();
+                // Used to track if a parameter has been mapped to an arguments.
+                var unprocessedParameters = allParameters.ToSet();
+                var paramArrayParameter = allParameters.FirstOrDefault(p => p.IsParams);
 
-                var declarationParametersBuilder = ArrayBuilder<IParameterSymbol>.GetInstance();
-                var parametersNeedRenameBuilder = ArrayBuilder<(IParameterSymbol parameterSymbol, string argumentName)>.GetInstance();
-
-                var paramSymbols = argumentsAndMappingParameters
-                    .FirstOrDefault(argumentAndParameter => argumentAndParameter.parameter.IsParams);
-
-                if (paramSymbols != default)
+                foreach (var argumentSyntaxNode in argumentExpressionSyntaxNodes)
                 {
-                    declarationParametersBuilder.Add(paramSymbols.parameter);
-                }
-
-                var unprocessedParameters = calleeMethodSymbol.Parameters.ToSet();
-
-                foreach (var (argument, parameterSymbol) in argumentsAndMappingParameters)
-                {
-                    if (!parameterSymbol.IsDiscard && !parameterSymbol.IsParams)
+                    var argumentExpression = argumentSyntaxNode.Expression;
+                    var argumentSymbol = TryGetBestMatchSymbol(argumentExpression, semanticModel, cancellationToken);
+                    var parameterSymbol =
+                        argumentSyntaxNode.DetermineParameter(semanticModel, allowParams: true, cancellationToken);
+                    // In case there is syntax error the parameter symbol might be null.
+                    if (parameterSymbol != null && !parameterSymbol.IsDiscard)
                     {
-                        var inputArgumentExpression = argument.Expression;
-
-                        if (inputArgumentExpression.IsAnyLiteralExpression())
-                        {
-                            changeBuilder.Add(
-                                new ReplaceVariableChange(inputArgumentExpression, parameterSymbol));
-                        }
-                        else if (inputArgumentExpression.IsKind(SyntaxKind.DeclarationExpression)
-                            || inputArgumentExpression.IsAnyLambdaOrAnonymousMethod()
-                            || inputArgumentExpression.IsKind(SyntaxKind.InvocationExpression)
-                            || inputArgumentExpression.IsKind(SyntaxKind.ConditionalExpression))
-                        {
-                            declarationParametersBuilder.Add(parameterSymbol);
-                        }
-                        else if (inputArgumentExpression is IdentifierNameSyntax identifierNameSyntax
-                            && !parameterSymbol.Name.Equals(identifierNameSyntax.Identifier.ValueText))
-                        {
-                            parametersNeedRenameBuilder.Add((parameterSymbol, identifierNameSyntax.Identifier.ValueText));
-                        }
-
                         unprocessedParameters.Remove(parameterSymbol);
+                        if (!parameterSymbol.IsParams)
+                        {
+                            if (argumentExpression.IsAnyLiteralExpression())
+                            {
+                                changeBuilder.Add(new ReplaceVariableChange(argumentExpression, parameterSymbol));
+                            }
+                            else if (argumentSymbol == null)
+                            {
+                                // Argument could be some special expressions, like Conditional Expression.
+                                expressionArgumentsBuilder.Add((parameterSymbol, argumentExpression));
+                            }
+                            else if (argumentSymbol.IsKind(SymbolKind.Field)
+                                     || argumentSymbol.IsKind(SymbolKind.Parameter)
+                                     || argumentSymbol.IsKind(SymbolKind.Property))
+                            {
+                                renameParametersBuilder.Add((parameterSymbol, argumentSymbol.Name));
+                            }
+                            else if (argumentSymbol.IsKind(SymbolKind.Local))
+                            {
+                                // If the argument is "int out x", then two operations need to be done.
+                                // 1. 'int x;' declaration should be generated in the caller.
+                                // 2. 'x' should replace all the mapping parameter in callee
+                                if (argumentExpression is DeclarationExpressionSyntax declarationExpressionSyntax)
+                                {
+                                    declarationExpressionParametersBuilder.Add((parameterSymbol, declarationExpressionSyntax));
+                                }
+
+                                renameParametersBuilder.Add((parameterSymbol, argumentSymbol.Name));
+                            }
+                            else if (argumentSymbol.IsKind(SymbolKind.Method))
+                            {
+                                expressionArgumentsBuilder.Add((parameterSymbol, argumentExpression));
+                            }
+                        }
+                        else
+                        {
+                            paramArrayArgumentsBuilder.Add(argumentSyntaxNode.Expression);
+                        }
                     }
                 }
 
-                var renameTable = ComputeRenameTable(
-                    calleeInvocationExpressionSyntaxNode,
-                    semanticModel,
-                    calleeMethodDeclarationSyntaxNode,
-                    parametersNeedRenameBuilder.ToImmutableArray(),
-                    declarationParametersBuilder.ToImmutableArray(),
-                    cancellation);
-
-                foreach (var (symbol, newName) in renameTable)
-                {
-                    if (!newName.Equals(symbol.Name))
-                    {
-                        changeBuilder.Add(new IdentifierRenameVariableChange(symbol, SyntaxFactory.IdentifierName(newName)));
-                    }
-                }
-
-                foreach (var symbol in declarationParametersBuilder)
-                {
-                    changeBuilder.Add(new ExtractDeclarationChange(
-                        SyntaxFactory));
-                }
-
-                if (paramSymbols != null && renameTable.TryGetValue(paramSymbols, out var paramArrayNewName))
-                {
-                    var arguments = argumentsAndMappingParameters
-                        .Where(arguAndParamSymbol => arguAndParamSymbol.parameter.IsParams)
-                        .SelectAsArray(arguAndParamSymbol => arguAndParamSymbol.argument.Expression);
-
-                    var listOfArguments = SyntaxFactory.SeparatedList(
-                        arguments,
-                        arguments.Length <= 1
-                        ? Enumerable.Empty<SyntaxToken>()
-                        : Enumerable.Repeat(SyntaxFactory.Token(SyntaxKind.CommaToken), arguments.Length - 1));
-                    var initializerExpression =
-                        SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
-
-                    changeBuilder.Add(new ExtractDeclarationChange(
-                        SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)paramSymbols.Type.GenerateTypeSyntax(),
-                            initializerExpression)));
-                }
-
+                // Replace the unprocessed parameter by using its default value if it is an optional parameter
                 foreach (var unprocessedParameter in unprocessedParameters
                     .Where(unprocessedParameter =>
                         !unprocessedParameter.IsDiscard
@@ -218,9 +198,78 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                                 canUseFieldReference: false),
                             unprocessedParameter));
                 }
+
+                var renameParameters = renameParametersBuilder.ToImmutableAndFree();
+                var expressionArguments = expressionArgumentsBuilder.ToImmutableAndFree();
+                var declarationParameters = declarationExpressionParametersBuilder.ToImmutableAndFree();
+                var renameTable = ComputeRenameTable(
+                    calleeInvocationExpressionSyntaxNode,
+                    semanticModel,
+                    calleeMethodDeclarationSyntaxNode,
+                    paramArrayParameter,
+                    renameParameters,
+                    expressionArguments.Select(parameterAndArgument => parameterAndArgument.parameterSymbol).ToImmutableArray(),
+                    cancellationToken);
+
+                foreach (var (symbol, newName) in renameTable)
+                {
+                    if (!newName.Equals(symbol.Name))
+                    {
+                        changeBuilder.Add(new IdentifierRenameVariableChange(symbol, SyntaxFactory.IdentifierName(newName)));
+                    }
+                }
+
+                foreach (var (parameterSymbol, argumentExpression) in expressionArguments)
+                {
+                    var equalsValueCause = SyntaxFactory.EqualsValueClause(argumentExpression);
+                    changeBuilder.Add(new ExtractDeclarationChange(
+                        SyntaxFactory.LocalDeclarationStatement(
+                            SyntaxFactory.VariableDeclaration(
+                                parameterSymbol.Type.GenerateTypeSyntax(),
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.VariableDeclarator(
+                                        SyntaxFactory.Identifier(renameTable[parameterSymbol]),
+                                        argumentList: null, initializer: equalsValueCause))))));
+                }
+
+                foreach (var (parameterSymbol, argument) in declarationParameters)
+                {
+                    if (argument.Designation is SingleVariableDesignationSyntax singleVariableDesignationSyntax)
+                    {
+                        var identifier = singleVariableDesignationSyntax.Identifier;
+                        changeBuilder.Add(new ExtractDeclarationChange(
+                            SyntaxFactory.LocalDeclarationStatement(
+                                SyntaxFactory.VariableDeclaration(
+                                    parameterSymbol.Type.GenerateTypeSyntax(),
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.VariableDeclarator(identifier))))));
+                    }
+                }
+
+                if (paramArrayParameter != null && renameTable.TryGetValue(paramArrayParameter, out var paramArrayNewName))
+                {
+                    var arguments = paramArrayArgumentsBuilder.ToImmutableAndFree();
+                    var listOfArguments = SyntaxFactory.SeparatedList(
+                        arguments,
+                        arguments.Length <= 1
+                            ? Enumerable.Empty<SyntaxToken>()
+                            : Enumerable.Repeat(SyntaxFactory.Token(SyntaxKind.CommaToken), arguments.Length - 1));
+                    var initializerExpression =
+                        SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
+                    var equalValueClause = SyntaxFactory.EqualsValueClause(initializerExpression);
+
+                    changeBuilder.Add(new ExtractDeclarationChange(SyntaxFactory
+                        .LocalDeclarationStatement(
+                            SyntaxFactory.VariableDeclaration(
+                                paramArrayParameter.Type.GenerateTypeSyntax(),
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.VariableDeclarator(
+                                            SyntaxFactory.Identifier(paramArrayNewName),
+                                            argumentList: null, initializer: equalValueClause))))));
+                }
             }
 
-            return changeBuilder.ToImmutableArray();
+            return changeBuilder.ToImmutableAndFree();
         }
     }
 }

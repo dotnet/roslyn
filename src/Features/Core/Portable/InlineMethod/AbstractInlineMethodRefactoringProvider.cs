@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -30,14 +31,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// <summary>
         /// Extract the expression from the single one statement or Arrow Expression in <param name="calleeMethodDeclarationSyntaxNode"/>.
         /// </summary>
-        protected abstract SyntaxNode ExtractExpressionFromMethodDeclaration(SyntaxNode calleeMethodDeclarationSyntaxNode);
+        protected abstract SyntaxNode GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
 
         protected abstract ImmutableArray<IInlineChange> ComputeInlineChanges(
             SyntaxNode calleeInvocationExpressionSyntaxNode,
             SemanticModel semanticModel,
             IMethodSymbol calleeMethodSymbol,
             SyntaxNode calleeMethodDeclarationSyntaxNode,
-            CancellationToken cancellation);
+            CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -54,13 +55,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var symbolInfo = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode);
-            var methodSymbol = symbolInfo.Symbol;
-            if (methodSymbol == null && symbolInfo.CandidateSymbols.Any())
-            {
-                methodSymbol = symbolInfo.CandidateSymbols[0];
-            }
-
+            var methodSymbol = TryGetBestMatchSymbol(calleeMethodInvocationSyntaxNode, semanticModel, cancellationToken);
             if (methodSymbol == null
                 || methodSymbol.DeclaredAccessibility != Accessibility.Private
                 || !methodSymbol.IsOrdinaryMethod())
@@ -106,12 +101,32 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
         }
 
+        protected static ISymbol? TryGetBestMatchSymbol(
+            SyntaxNode node,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+            var symbol = symbolInfo.Symbol;
+            if (symbol != null)
+            {
+                return symbol;
+            }
+            else if (symbolInfo.CandidateSymbols.Any())
+            {
+                return symbolInfo.CandidateSymbols[0];
+            }
+
+            return null;
+        }
+
         protected static Dictionary<ISymbol, string> ComputeRenameTable(
             SyntaxNode calleeInvocationExpressionSyntaxNode,
             SemanticModel semanticModel,
             SyntaxNode calleeDeclarationSyntaxNode,
-            ImmutableArray<(IParameterSymbol parameter, string argumentName)> parameterNeedRename,
-            ImmutableArray<IParameterSymbol> parametersNeedMoveToCaller,
+            IParameterSymbol? paramArrayParameter,
+            ImmutableArray<(IParameterSymbol parameterSymbol, string argumentName)> renameParameters,
+            ImmutableArray<IParameterSymbol> expressionParameters,
             CancellationToken cancellationToken)
         {
             var operationVisitor = new VariableDeclaratorOperationVisitor(cancellationToken);
@@ -123,38 +138,53 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .ToImmutableHashSet();
 
             var renameTable = new Dictionary<ISymbol, string>();
-            foreach (var (parameter, argumentName) in parameterNeedRename)
+            foreach (var (parameter, argumentName) in renameParameters)
             {
                 renameTable[parameter] = argumentName;
             }
 
-            // 1. Make sure no local variable conflict
-            var parameterNames = parameterNeedRename
-                .Select(paramAndArg => paramAndArg.argumentName).ToSet();
+            // 1. Make sure after replacing the parameters with the identifier from Caller, there is no variable conflict in callee
+            var calleeParameterNames = renameParameters
+                .Select(parameterAndArgument => parameterAndArgument.argumentName).ToSet();
             var localSymbolsOfCallee = operationVisitor.FindAllLocalSymbols(calleeOperation);
+
             foreach (var localSymbol in localSymbolsOfCallee)
             {
                 var localSymbolName = localSymbol.Name;
-                while (parameterNames.Contains(localSymbolName))
+                while (calleeParameterNames.Contains(localSymbolName))
                 {
                     localSymbolName = GenerateNewName(localSymbolName);
                 }
 
                 renameTable[localSymbol] = localSymbolName;
-                parameterNames.Add(localSymbolName);
+                calleeParameterNames.Add(localSymbolName);
             }
 
             // 2. Make sure no variable conflict after the parameter is moved to caller
-            foreach (var parameterSymbol in parametersNeedMoveToCaller)
+            //     I. For expression argument, use the parameter name from the callee.
+            foreach (var parameterSymbol in expressionParameters)
             {
                 var parameterName = parameterSymbol.Name;
-                while (localSymbolNamesOfCaller.Contains(parameterName) || parameterNames.Contains(parameterName))
+                while (localSymbolNamesOfCaller.Contains(parameterName) || calleeParameterNames.Contains(parameterName))
                 {
                     parameterName = GenerateNewName(parameterName);
                 }
 
                 renameTable[parameterSymbol] = parameterName;
-                parameterNames.Add(parameterName);
+                calleeParameterNames.Add(parameterName);
+            }
+
+            //    II. For param array, use the
+            if (paramArrayParameter != null)
+            {
+                var parameterName = paramArrayParameter.Name;
+                while (localSymbolNamesOfCaller.Contains(parameterName) || calleeParameterNames.Contains(parameterName))
+                {
+                    parameterName = GenerateNewName(parameterName);
+                }
+
+                renameTable[paramArrayParameter] = parameterName;
+                calleeParameterNames.Add(parameterName);
             }
 
             return renameTable;
@@ -202,7 +232,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             foreach (var change in replacementChanges.OfType<ReplaceVariableChange>())
             {
-                await ReplaceAllSyntaxNodeForSymbolAsync(
+                await ReplaceAllSyntaxNodesForSymbolAsync(
                     document.Project.Solution,
                     root,
                     calleeMethodDeclarationNodeEditor,
@@ -213,7 +243,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             foreach (var change in replacementChanges.OfType<IdentifierRenameVariableChange>())
             {
-                await ReplaceAllSyntaxNodeForSymbolAsync(
+                await ReplaceAllSyntaxNodesForSymbolAsync(
                     document.Project.Solution,
                     root,
                     calleeMethodDeclarationNodeEditor,
@@ -222,19 +252,19 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     cancellationToken).ConfigureAwait(false);
             }
 
-            var inlineMethodBody = ExtractExpressionFromMethodDeclaration(calleeMethodDeclarationNodeEditor.GetChangedRoot());
+            var inlineMethodBody = GetInlineStatement(calleeMethodDeclarationNodeEditor.GetChangedRoot());
 
             var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var change in replacementChanges.OfType<ExtractDeclarationChange>())
             {
-                documentEditor.InsertBefore(calleeMethodInvocationSyntaxNode, change.DeclarationStatement);
+                documentEditor.InsertBefore(calleeMethodInvocationSyntaxNode.Parent, change.DeclarationStatement);
             }
 
             documentEditor.ReplaceNode(calleeMethodInvocationSyntaxNode, inlineMethodBody);
             return documentEditor.GetChangedDocument();
         }
 
-        private static async Task ReplaceAllSyntaxNodeForSymbolAsync(
+        private static async Task ReplaceAllSyntaxNodesForSymbolAsync(
             Solution solution,
             SyntaxNode root,
             SyntaxEditor editor,
