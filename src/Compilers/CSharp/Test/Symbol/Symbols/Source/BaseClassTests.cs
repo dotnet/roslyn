@@ -335,7 +335,7 @@ internal class F : A
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (16,22): error CS0060: Inconsistent accessibility: base class 'A.B.C.X' is less accessible than class 'F.D.E'
+                // (16,22): error CS0060: Inconsistent accessibility: base type 'A.B.C.X' is less accessible than type 'F.D.E'
                 //         public class E : C.X { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "E").WithArguments("F.D.E", "A.B.C.X")
                 );
@@ -363,7 +363,7 @@ public partial class C1
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // (10,15): error CS0060: Inconsistent accessibility: base type 'NV' is less accessible than type 'C1'
                 // partial class C1 : NV
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
         }
@@ -393,7 +393,7 @@ public partial class C1
                 // (10,15): error CS0709: 'C1': cannot derive from static class 'NV'
                 // partial class C1 : NV
                 Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 15),
-                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // (10,15): error CS0060: Inconsistent accessibility: base type 'NV' is less accessible than type 'C1'
                 // partial class C1 : NV
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
         }

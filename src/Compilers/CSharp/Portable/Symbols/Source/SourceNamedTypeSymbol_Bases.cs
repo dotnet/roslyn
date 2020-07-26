@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!this.IsNoMoreVisibleThan(baseType, ref useSiteDiagnostics))
                 {
-                    // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
+                    // Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
                 }
             }

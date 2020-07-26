@@ -646,7 +646,7 @@
     <value>Member hides inherited member; missing new keyword</value>
   </data>
   <data name="WRN_NewRequired_Description" xml:space="preserve">
-    <value>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
+    <value>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
   </data>
   <data name="WRN_NewNotRequired" xml:space="preserve">
     <value>The member '{0}' does not hide an accessible member. The new keyword is not required.</value>
