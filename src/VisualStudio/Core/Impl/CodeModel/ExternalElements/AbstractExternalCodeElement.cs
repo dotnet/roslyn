@@ -299,6 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get { throw new NotImplementedException(); }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - Implements interface methods for sub-types.
         public EnvDTE.CodeAttribute AddAttribute(string name, string value, object position)
             => throw Exceptions.ThrowEFail();
 
@@ -314,5 +315,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
         public string get_Prototype(int flags = 0)
             => CodeModelService.GetPrototype(null, LookupSymbol(), (PrototypeFlags)flags);
+#pragma warning restore IDE0060 // Remove unused parameter
     }
 }

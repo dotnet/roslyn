@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="needs-review-translation">在關係運算子中: &lt; &gt; &lt;= &gt;= 如同 == !=</target>
+        <target state="translated">在關係運算子中: &lt; &gt; &lt;= &gt;= 如同 == !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -804,7 +804,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
-        <target state="needs-review-translation">在其他二元運算子中: &amp;&amp; || ??</target>
+        <target state="translated">在其他二進位運算子中:  &amp;&amp;   ||   ??   and   or</target>
         <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>

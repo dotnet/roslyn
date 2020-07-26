@@ -1697,6 +1697,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitLvalue(catchBlock.ExceptionSourceOpt);
             }
 
+            if (catchBlock.ExceptionFilterPrologueOpt is { })
+            {
+                VisitStatementList(catchBlock.ExceptionFilterPrologueOpt);
+            }
+
             if (catchBlock.ExceptionFilterOpt != null)
             {
                 VisitCondition(catchBlock.ExceptionFilterOpt);
@@ -2585,31 +2590,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            return VisitConditionalOperatorCore(node, isByRef: false, node.Condition, node.Consequence, node.Alternative);
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            var isByRef = node.IsRef;
+            return VisitConditionalOperatorCore(node, node.IsRef, node.Condition, node.Consequence, node.Alternative);
+        }
 
-            VisitCondition(node.Condition);
+        protected virtual BoundNode VisitConditionalOperatorCore(
+            BoundExpression node,
+            bool isByRef,
+            BoundExpression condition,
+            BoundExpression consequence,
+            BoundExpression alternative)
+        {
+            VisitCondition(condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
-            if (IsConstantTrue(node.Condition))
+            if (IsConstantTrue(condition))
             {
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                VisitConditionalOperand(alternativeState, alternative, isByRef);
+                VisitConditionalOperand(consequenceState, consequence, isByRef);
                 // it may be a boolean state at this point.
             }
-            else if (IsConstantFalse(node.Condition))
+            else if (IsConstantFalse(condition))
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                VisitConditionalOperand(consequenceState, consequence, isByRef);
+                VisitConditionalOperand(alternativeState, alternative, isByRef);
                 // it may be a boolean state at this point.
             }
             else
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                VisitConditionalOperand(consequenceState, consequence, isByRef);
                 Unsplit();
                 consequenceState = this.State;
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                VisitConditionalOperand(alternativeState, alternative, isByRef);
                 Unsplit();
                 Join(ref this.State, ref consequenceState);
                 // it may not be a boolean state at this point (5.3.3.28)

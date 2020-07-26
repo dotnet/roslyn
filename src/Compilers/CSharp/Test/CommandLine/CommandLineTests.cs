@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
@@ -4130,7 +4131,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
   </runtime>
 </configuration>");
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
             var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             // Test linking two appconfig dlls with simple src
@@ -5179,23 +5180,19 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new string[] { "/w:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
+                // error CS1900: Warning level must be zero or greater
                 Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("w"));
 
             parsedArgs = DefaultParse(new string[] { "/w:5", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("w"));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new string[] { "/warn:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
+                // error CS1900: Warning level must be zero or greater
                 Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("warn"));
 
             parsedArgs = DefaultParse(new string[] { "/warn:5", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("warn"));
+            parsedArgs.Errors.Verify();
 
             // Previous versions of the compiler used to report a warning (CS1691)
             // whenever an unrecognized warning code was supplied via /nowarn or /warnaserror.
@@ -5208,49 +5205,6 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new string[] { "/nowarn:1;2;;3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-        }
-
-        [Fact]
-        public void WarningVersion()
-        {
-            var parsedArgs = DefaultParse(new string[] { "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
-
-            parsedArgs = DefaultParse(new string[] { "/warnversion", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.ERR_SwitchNeedsNumber).WithArguments("warnversion").WithLocation(1, 1)
-                );
-            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
-
-            parsedArgs = DefaultParse(new string[] { "/warnversion:", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.ERR_SwitchNeedsNumber).WithArguments("warnversion").WithLocation(1, 1)
-                );
-            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
-
-            parsedArgs = DefaultParse(new string[] { "/warnversion:-1", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // Warning version must be greater than or equal to '0'.
-                Diagnostic(ErrorCode.ERR_BadWarningVersion).WithArguments("warnversion").WithLocation(1, 1)
-                );
-            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
-
-            parsedArgs = DefaultParse(new string[] { "/warnversion:0", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(0m, parsedArgs.CompilationOptions.WarningVersion);
-
-            parsedArgs = DefaultParse(new string[] { "/warnversion:5", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(5m, parsedArgs.CompilationOptions.WarningVersion);
-
-            parsedArgs = DefaultParse(new string[] { "/warnversion:5.1", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(5.1m, parsedArgs.CompilationOptions.WarningVersion);
-
-            parsedArgs = DefaultParse(new string[] { "/warnversion:9999", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(9999m, parsedArgs.CompilationOptions.WarningVersion);
         }
 
         private static void AssertSpecificDiagnostics(int[] expectedCodes, ReportDiagnostic[] expectedOptions, CSharpCommandLineArguments args)
@@ -11148,12 +11102,13 @@ class C
 
 #if NET472
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
-        public void LoadingAnalyzerNetStandard13()
+        public void LoadinganalyzerNetStandard13()
         {
             var analyzerFileName = "AnalyzerNS13.dll";
             var srcFileName = "src.cs";
 
             var analyzerDir = Temp.CreateDirectory();
+
             var analyzerFile = analyzerDir.CreateFile(analyzerFileName).WriteAllBytes(DesktopTestHelpers.CreateCSharpAnalyzerNetStandard13(Path.GetFileNameWithoutExtension(analyzerFileName)));
             var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
 
@@ -11170,6 +11125,7 @@ System.NotImplementedException: 28
             Assert.Equal(0, result.ExitCode);
         }
 #endif
+
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()
@@ -12661,63 +12617,7 @@ key3 = value3");
 
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
-
-        [Fact, WorkItem(45702, "https://github.com/dotnet/roslyn/issues/45702")]
-        public void TestWarningVersion()
-        {
-            string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
-class Program
-{
-    public static void Main() { }
-    public static void M(S s)
-    {
-        if (s == null) { }
     }
-}
-struct S
-{
-    public static bool operator==(S s1, S s2) => false;
-    public static bool operator!=(S s1, S s2) => true;
-    public override bool Equals(object other) => false;
-    public override int GetHashCode() => 0;
-}
-").Path;
-
-            var baseDir = Path.GetDirectoryName(source);
-            var fileName = Path.GetFileName(source);
-            decimal requiredVersion = ErrorCode.WRN_NubExprIsConstBool2.GetWarningVersion();
-            Assert.Equal(5m, requiredVersion);
-
-            foreach (decimal level in new[] { -1m, 0m, 4m, 4.9m, 5m, 5.0m, 5.1m, 9999m })
-            {
-                var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-                int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", FormattableString.Invariant($"/warnversion:{level}"), source.ToString() }).Run(outWriter);
-
-                if (level < 0)
-                {
-                    Assert.Equal(1, exitCode);
-                    Assert.Equal(
-                        "error CS8848: Warning version must be greater than or equal to '0'.",
-                        outWriter.ToString().Trim());
-                }
-                else if (level >= requiredVersion)
-                {
-                    Assert.Equal(0, exitCode);
-                    Assert.Equal(
-                        $@"{fileName}(7,13): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'S?'",
-                        outWriter.ToString().Trim());
-                }
-                else
-                {
-                    Assert.Equal(0, exitCode);
-                    Assert.Equal("", outWriter.ToString().Trim());
-                }
-
-                CleanupAllGeneratedFiles(source);
-            }
-        }
-    }
-
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal abstract class CompilationStartedAnalyzer : DiagnosticAnalyzer
     {

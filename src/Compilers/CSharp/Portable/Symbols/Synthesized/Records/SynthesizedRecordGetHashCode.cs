@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
+                    if (_equalityContract.IsStatic)
+                    {
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     // There are no base record types.
                     // Get hash code of the equality contract and combine it with hash codes for field values.
                     ensureEqualityComparerHelpers(F, ref equalityComparer_GetHashCode, ref equalityComparer_get_Default);

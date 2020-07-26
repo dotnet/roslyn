@@ -2237,13 +2237,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType = operand.Type;
             Debug.Assert((object)operandType != null, "BindValue should have caught a null operand type");
 
-            bool isManagedType = operandType.IsManagedType;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            ManagedKind managedKind = operandType.GetManagedKind(ref useSiteDiagnostics);
+            diagnostics.Add(node.Location, useSiteDiagnostics);
+
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)
             {
                 if (!hasErrors)
                 {
-                    hasErrors = CheckManagedAddr(Compilation, operandType, node.Location, diagnostics);
+                    hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
                 }
 
                 if (!hasErrors)
@@ -2257,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol pointedAtType = isManagedType && allowManagedAddressOf
+            TypeSymbol pointedAtType = managedKind == ManagedKind.Managed && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
                 : operandType ?? CreateErrorType();
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
@@ -2875,12 +2878,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The native compiler allows "x is C" where C is a static class. This
             // is strictly illegal according to the specification (see the section
             // called "Referencing Static Class Types".) To retain compatibility we
-            // allow it, but when /feature:strict is enabled we break with the native
-            // compiler and turn this into an error, as it should be.
-            if (targetType.IsStatic && Compilation.FeatureStrictEnabled)
+            // allow it, but when /warn:5 or higher we break with the native
+            // compiler and turn this into a warning.
+            if (targetType.IsStatic)
             {
-                Error(diagnostics, ErrorCode.ERR_StaticInAsOrIs, node, targetType);
-                return true;
+                Error(diagnostics, ErrorCode.WRN_StaticInAsOrIs, node, targetType);
             }
 
             if ((object)operandType != null && operandType.IsPointerOrFunctionPointer() || targetType.IsPointerOrFunctionPointer())
@@ -3401,12 +3403,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a static type C to be an expression of type C.
             // It also allows "someObject as C" if "someObject"
             // is of type object. To retain compatibility we
-            // allow it, but when /feature:strict is enabled we break with the native
-            // compiler and turn this into an error, as it should be.
-            if (targetType.IsStatic && Compilation.FeatureStrictEnabled)
+            // allow it, but when /warn:5 or higher we break with the native
+            // compiler and turn this into a warning.
+            if (targetType.IsStatic)
             {
-                Error(diagnostics, ErrorCode.ERR_StaticInAsOrIs, node, targetType);
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                Error(diagnostics, ErrorCode.WRN_StaticInAsOrIs, node, targetType);
             }
 
             if (operand.IsLiteralNull())
@@ -3863,7 +3864,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var whenFalse = node.WhenFalse.CheckAndUnwrapRefExpression(diagnostics, out var whenFalseRefKind);
 
             var isRef = whenTrueRefKind == RefKind.Ref && whenFalseRefKind == RefKind.Ref;
-
             if (!isRef)
             {
                 if (whenFalseRefKind == RefKind.Ref)
@@ -3881,119 +3881,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefConditional, diagnostics);
             }
 
+            return isRef ? BindRefConditionalOperator(node, whenTrue, whenFalse, diagnostics) : BindValueConditionalOperator(node, whenTrue, whenFalse, diagnostics);
+        }
+
+        private BoundExpression BindValueConditionalOperator(ConditionalExpressionSyntax node, ExpressionSyntax whenTrue, ExpressionSyntax whenFalse, DiagnosticBag diagnostics)
+        {
+            ErrorCode noCommonTypeError = 0;
+
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);
+            BoundExpression trueExpr = BindValue(whenTrue, diagnostics, BindValueKind.RValue);
+            BoundExpression falseExpr = BindValue(whenFalse, diagnostics, BindValueKind.RValue);
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            TypeSymbol type = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+            if (type is null)
+                noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
 
-            var valKind = BindValueKind.RValue;
-            if (isRef)
-            {
-                valKind |= BindValueKind.RefersToLocation;
-            }
+            var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
+            bool hasErrors = type?.IsErrorType() == true || constantValue?.IsBad == true;
+            return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, type, hasErrors);
+        }
 
-            BoundExpression trueExpr = BindValue(whenTrue, diagnostics, valKind);
-            BoundExpression falseExpr = BindValue(whenFalse, diagnostics, valKind);
-
+        private BoundExpression BindRefConditionalOperator(ConditionalExpressionSyntax node, ExpressionSyntax whenTrue, ExpressionSyntax whenFalse, DiagnosticBag diagnostics)
+        {
+            BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);
+            BoundExpression trueExpr = BindValue(whenTrue, diagnostics, BindValueKind.RValue | BindValueKind.RefersToLocation);
+            BoundExpression falseExpr = BindValue(whenFalse, diagnostics, BindValueKind.RValue | BindValueKind.RefersToLocation);
+            bool hasErrors = trueExpr.HasErrors | falseExpr.HasErrors;
             TypeSymbol trueType = trueExpr.Type;
             TypeSymbol falseType = falseExpr.Type;
 
             TypeSymbol type;
-            bool hasErrors = false;
-
-            if (TypeSymbol.Equals(trueType, falseType, TypeCompareKind.ConsiderEverything2))
+            if (!Conversions.HasIdentityConversion(trueType, falseType))
             {
-                // NOTE: Dev10 lets the type inferrer handle this case (presumably, for maximum consistency),
-                // but it seems like a worthwhile short-circuit for a common case.
+                if (!hasErrors)
+                    diagnostics.Add(ErrorCode.ERR_RefConditionalDifferentTypes, falseExpr.Syntax.Location, trueType);
 
-                if ((object)trueType == null)
-                {
-                    // If trueExpr and falseExpr both have type null, then we don't have any symbols
-                    // to pass to a SymbolDistinguisher (which ERR_InvalidQM would usually require).
-                    diagnostics.Add(ErrorCode.ERR_InvalidQM, node.Location, trueExpr.Display, falseExpr.Display);
-                    type = CreateErrorType();
-                    hasErrors = true;
-                }
-                else
-                {
-                    // <expr> ? T : T
-                    type = trueType;
-                    trueExpr = BindToNaturalType(trueExpr, diagnostics);
-                    falseExpr = BindToNaturalType(falseExpr, diagnostics);
-                }
+                type = CreateErrorType();
+                hasErrors = true;
             }
             else
             {
-                bool hadMultipleCandidates;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+                type = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, hadMultipleCandidates: out _, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                if ((object)bestType == null)
-                {
-                    // CONSIDER: Dev10 suppresses ERR_InvalidQM unless the following is true for both trueType and falseType
-                    // (!T->type->IsErrorType() || T->type->AsErrorType()->HasTypeParent() || T->type->AsErrorType()->HasNSParent())
-                    if (hadMultipleCandidates)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AmbigQM, node.Location, trueExpr.Display, falseExpr.Display);
-                    }
-                    else
-                    {
-                        object trueArg = trueExpr.Display;
-                        object falseArg = falseExpr.Display;
-
-                        Symbol trueSymbol = trueArg as Symbol;
-                        Symbol falseSymbol = falseArg as Symbol;
-                        if ((object)trueSymbol != null && (object)falseSymbol != null)
-                        {
-                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
-                            trueArg = distinguisher.First;
-                            falseArg = distinguisher.Second;
-                        }
-
-                        diagnostics.Add(ErrorCode.ERR_InvalidQM, node.Location, trueArg, falseArg);
-                    }
-
-                    type = CreateErrorType();
-                    hasErrors = true;
-                }
-                else if (bestType.IsErrorType())
-                {
-                    type = bestType;
-                    hasErrors = true;
-                }
-                else if (isRef)
-                {
-                    if (!Conversions.HasIdentityConversion(trueType, falseType))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_RefConditionalDifferentTypes, falseExpr.Syntax.Location, trueType);
-                        type = CreateErrorType();
-                        hasErrors = true;
-                    }
-                    else
-                    {
-                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
-                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
-                        type = bestType;
-                    }
-                }
-                else
-                {
-                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
-                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
-
-                    if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
-                    {
-                        // If one of the conversions went wrong (e.g. return type of method group being converted
-                        // didn't match), then we don't want to use bestType because it's not accurate.
-                        type = CreateErrorType();
-                        hasErrors = true;
-                    }
-                    else
-                    {
-                        type = bestType;
-                    }
-                }
+                Debug.Assert(type is { });
+                Debug.Assert(Conversions.HasIdentityConversion(trueType, type));
+                Debug.Assert(Conversions.HasIdentityConversion(falseType, type));
             }
 
-            if (!hasErrors && isRef)
+            if (!hasErrors)
             {
                 var currentScope = this.LocalScopeDepth;
 
@@ -4005,30 +3943,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
                     if (whenTrueEscape < whenFalseEscape)
-                    {
                         CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
-                    }
                     else
-                    {
                         CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
-                    }
 
                     diagnostics.Add(ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
                     hasErrors = true;
                 }
             }
 
-            ConstantValue constantValue = null;
-
-            if (!hasErrors)
-            {
-                constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
-                hasErrors = constantValue != null && constantValue.IsBad;
-            }
-
             trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
             falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
-            return new BoundConditionalOperator(node, isRef, condition, trueExpr, falseExpr, constantValue, type, hasErrors);
+            return new BoundConditionalOperator(node, isRef: true, condition, trueExpr, falseExpr, constantValueOpt: null, type, wasTargetTyped: false, type, hasErrors);
         }
 
         /// <summary>

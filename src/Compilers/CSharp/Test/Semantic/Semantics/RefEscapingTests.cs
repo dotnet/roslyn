@@ -3780,5 +3780,22 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(8, 24)
                 );
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40583")]
+        public void ConvertedSpanReturn()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    D M1() => stackalloc byte[10];
+    D M2() { return stackalloc byte[10]; }
+}
+class D
+{
+    public static implicit operator D(Span<byte> span) => new D();
+}
+", options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        }
     }
 }

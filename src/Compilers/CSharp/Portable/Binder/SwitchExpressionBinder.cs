@@ -91,23 +91,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only report exhaustive warnings when the default label is reachable through some series of
             // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
-            if (!hasErrors)
+            bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors, out var nodes);
+            // Since decisionDag.RootNode is acyclic by construction, its subset of nodes sorted here cannot be cyclic
+            Debug.Assert(wasAcyclic);
+            foreach (var n in nodes)
             {
-                var nodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors);
-                foreach (var n in nodes)
+                if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
                 {
-                    if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
-                    {
-                        diagnostics.Add(
-                            ErrorCode.WRN_SwitchExpressionNotExhaustive,
-                            node.SwitchKeyword.GetLocation(),
-                            PatternExplainer.SamplePatternForPathToDagNode(BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false));
-                        return true;
-                    }
+                    diagnostics.Add(
+                        ErrorCode.WRN_SwitchExpressionNotExhaustive,
+                        node.SwitchKeyword.GetLocation(),
+                        PatternExplainer.SamplePatternForPathToDagNode(BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false));
+                    return true;
                 }
             }
 
-            return hasErrors;
+            return false;
 
             ImmutableArray<BoundDecisionDagNode> nonNullSuccessors(BoundDecisionDagNode n)
             {
