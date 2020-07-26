@@ -3017,8 +3017,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">Temel sınıftaki değişken ile aynı adlı bir değişken bildirildi. Ancak, yeni anahtar sözcük kullanılmadı. Bu uyarı yeniyi kullanmanız gerektiğini bildirir; değişken bildirimde yeni kullanılmış gibi bildirildi.</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="needs-review-translation">Temel sınıftaki değişken ile aynı adlı bir değişken bildirildi. Ancak, yeni anahtar sözcük kullanılmadı. Bu uyarı yeniyi kullanmanız gerektiğini bildirir; değişken bildirimde yeni kullanılmış gibi bildirildi.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">

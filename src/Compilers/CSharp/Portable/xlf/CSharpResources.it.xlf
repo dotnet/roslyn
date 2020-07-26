@@ -3017,8 +3017,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">Una variabile è stata dichiarata con lo stesso nome di una variabile nella classe base, tuttavia non è stata usata la parola chiave new. Questo avviso informa l'utente che è necessario usare new. La variabile viene dichiarata come se nella dichiarazione fosse stata usata la parola chiave new.</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="needs-review-translation">Una variabile è stata dichiarata con lo stesso nome di una variabile nella classe base, tuttavia non è stata usata la parola chiave new. Questo avviso informa l'utente che è necessario usare new. La variabile viene dichiarata come se nella dichiarazione fosse stata usata la parola chiave new.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">

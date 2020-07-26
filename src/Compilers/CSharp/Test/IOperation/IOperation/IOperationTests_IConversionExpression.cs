@@ -1064,7 +1064,7 @@ IVariableDeclaratorOperation (Symbol: C1 i1) (OperationKind.VariableDeclarator, 
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0144: Cannot create an instance of the abstract class or interface 'I1'
+                // CS0144: Cannot create an instance of the abstract type 'I1'
                 //         C1 /*<bind>*/i1 = new I1()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I1()").WithArguments("I1").WithLocation(12, 27)
             };

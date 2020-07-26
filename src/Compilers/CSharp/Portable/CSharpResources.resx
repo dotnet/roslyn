@@ -742,7 +742,7 @@
     <value>The type '{0}' has no constructors defined</value>
   </data>
   <data name="ERR_NoNewAbstract" xml:space="preserve">
-    <value>Cannot create an instance of the abstract class or interface '{0}'</value>
+    <value>Cannot create an instance of the abstract type '{0}'</value>
   </data>
   <data name="ERR_ConstValueRequired" xml:space="preserve">
     <value>A const field requires a value to be provided</value>

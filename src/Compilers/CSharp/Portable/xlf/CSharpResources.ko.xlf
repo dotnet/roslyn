@@ -3017,8 +3017,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">변수가 기본 클래스의 변수와 동일한 이름으로 선언되었습니다. 그러나 new 키워드가 사용되지 않았습니다. 이 경고는 new를 사용해야 하므로 선언에 new가 사용된 경우처럼 변수가 선언됨을 알려줍니다.</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="needs-review-translation">변수가 기본 클래스의 변수와 동일한 이름으로 선언되었습니다. 그러나 new 키워드가 사용되지 않았습니다. 이 경고는 new를 사용해야 하므로 선언에 new가 사용된 경우처럼 변수가 선언됨을 알려줍니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">

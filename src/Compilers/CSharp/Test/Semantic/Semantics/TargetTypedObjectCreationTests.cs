@@ -538,10 +538,10 @@ abstract class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                // (6,16): error CS0144: Cannot create an instance of the abstract type 'C'
                 //         C x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
-                // (7,21): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                // (7,21): error CS0144: Cannot create an instance of the abstract type 'C'
                 //         var x1 = (C)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
                 );
@@ -563,10 +563,10 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (7,16): error CS0144: Cannot create an instance of the abstract type 'I'
                 //         I x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("I").WithLocation(7, 16),
-                // (8,21): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (8,21): error CS0144: Cannot create an instance of the abstract type 'I'
                 //         var x1 = (I)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("I").WithLocation(8, 21)
                 );
@@ -2074,7 +2074,7 @@ class C
                 // (10,24): error CS8754: There is no target type for 'new()'
                 //         using (var x = new())
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(10, 24),
-                // (14,39): error CS0144: Cannot create an instance of the abstract class or interface 'IDisposable'
+                // (14,39): error CS0144: Cannot create an instance of the abstract type 'IDisposable'
                 //         using (System.IDisposable x = new())
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
                 );

@@ -1817,7 +1817,7 @@ class UsePia
 }";
 
             DiagnosticDescription[] expected = {
-                // (10,16): error CS0144: Cannot create an instance of the abstract class or interface 'ITest28'
+                // (10,16): error CS0144: Cannot create an instance of the abstract type 'ITest28'
                 //         return new ITest28();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new ITest28()").WithArguments("ITest28")
                                                };

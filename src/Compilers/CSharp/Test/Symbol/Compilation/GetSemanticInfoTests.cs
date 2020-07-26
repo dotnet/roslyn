@@ -4446,7 +4446,7 @@ public class B : A
             Assert.Equal(classAnother, rightInfo.CandidateSymbols.Single());
 
             compilation.VerifyDiagnostics(
-                // (12,14): error CS0060: Inconsistent accessibility: base type 'A' is less accessible than type 'B'
+                // (12,14): error CS0060: Inconsistent accessibility: base type 'A' is less accessible than class 'B'
                 // public class B : A
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "B").WithArguments("B", "A"),
                 // (14,12): error CS0122: 'A.Nested' is inaccessible due to its protection level

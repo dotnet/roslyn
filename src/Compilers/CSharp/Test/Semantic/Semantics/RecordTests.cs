@@ -18662,5 +18662,29 @@ record B
                     Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
                     );
         }
+
+        [Fact]
+        public void TestTargetType_Abstract()
+        {
+            var source = @"
+abstract record C
+{
+    void M()
+    {
+        C x0 = new();
+        var x1 = (C)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0144: Cannot create an instance of the abstract type 'C'
+                //         C x0 = new();
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
+                // (7,21): error CS0144: Cannot create an instance of the abstract type 'C'
+                //         var x1 = (C)new();
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
+                );
+        }
     }
 }
