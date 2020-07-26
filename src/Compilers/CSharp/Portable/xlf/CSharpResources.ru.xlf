@@ -3752,8 +3752,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">Разделяемые объявления "{0}" не должны указывать различные базовые классы.</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">Разделяемые объявления "{0}" не должны указывать различные базовые классы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">

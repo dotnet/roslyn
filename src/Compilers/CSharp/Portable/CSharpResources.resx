@@ -1096,7 +1096,7 @@
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
   </data>
   <data name="ERR_PartialMultipleBases" xml:space="preserve">
-    <value>Partial declarations of '{0}' must not specify different base classes</value>
+    <value>Partial declarations of '{0}' must not specify different base types</value>
   </data>
   <data name="ERR_PartialWrongTypeParams" xml:space="preserve">
     <value>Partial declarations of '{0}' must have the same type parameter names in the same order</value>

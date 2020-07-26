@@ -3751,8 +3751,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">Declarações parciais de "{0}" não devem especificar classes base diferentes</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">Declarações parciais de "{0}" não devem especificar classes base diferentes</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">

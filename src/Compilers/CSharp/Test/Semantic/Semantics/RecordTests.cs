@@ -18751,5 +18751,46 @@ record C : B
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()")
                 );
         }
+
+        [Fact]
+        public void PartialClassWithDifferentTupleNamesInBaseTypes()
+        {
+            var source = @"
+public record Base<T> { }
+public partial record C1 : Base<(int a, int b)> { }
+public partial record C1 : Base<(int notA, int notB)> { }
+public partial record C2 : Base<(int a, int b)> { }
+public partial record C2 : Base<(int, int)> { }
+public partial record C3 : Base<(int a, int b)> { }
+public partial record C3 : Base<(int a, int b)> { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base types
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23),
+                // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base types
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 23),
+                // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(5, 23),
+                // (5,23): error CS0115: 'C2.EqualityContract': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(5, 23),
+                // (5,23): error CS0115: 'C2.Equals(object?)': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(5, 23),
+                // (3,23): error CS0115: 'C1.GetHashCode()': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.GetHashCode()").WithLocation(3, 23),
+                // (3,23): error CS0115: 'C1.EqualityContract': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.EqualityContract").WithLocation(3, 23),
+                // (3,23): error CS0115: 'C1.Equals(object?)': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.Equals(object?)").WithLocation(3, 23)
+                );
+        }
     }
 }

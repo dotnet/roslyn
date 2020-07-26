@@ -3752,8 +3752,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">Částečné deklarace {0} nesmí určovat různé základní třídy.</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">Částečné deklarace {0} nesmí určovat různé základní třídy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">

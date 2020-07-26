@@ -3752,8 +3752,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">{0}' の partial 宣言では、異なる基底クラスを指定してはいけません。</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">{0}' の partial 宣言では、異なる基底クラスを指定してはいけません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">

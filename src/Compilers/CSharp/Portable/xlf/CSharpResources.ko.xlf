@@ -3752,8 +3752,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">{0}'의 partial 선언에는 서로 다른 기본 클래스를 지정할 수 없습니다.</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">{0}'의 partial 선언에는 서로 다른 기본 클래스를 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
