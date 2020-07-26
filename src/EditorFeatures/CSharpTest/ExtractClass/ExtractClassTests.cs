@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             bool expectNullMember = false,
             TestParameters testParameters = default)
         {
-            var service = new ExtractClassOptionsService(dialogSelection, sameFile, expectNullMember);
+            var service = new TestExtractClassOptionsService(dialogSelection, sameFile, expectNullMember);
 
             return TestInRegularAndScript1Async(
                 input,
@@ -411,7 +411,7 @@ class Test : MyBase
             await TestAsync(
                 input,
                 expected,
-                dialogSelection: new[] { ("Method", false) });
+                dialogSelection: MakeSelection("Method"));
         }
 
         [Fact]
@@ -454,7 +454,7 @@ class Test : MyBase
             await TestAsync(
                 input,
                 expected,
-                dialogSelection: new[] { ("Method", true) });
+                dialogSelection: MakeAbstractSelection("Method"));
         }
 
         [Fact]
@@ -505,7 +505,7 @@ class Test : MyBase
             await TestAsync(
                 input,
                 expected,
-                dialogSelection: new[] { ("Method", true), ("Method2", true), ("Method3", true) });
+                dialogSelection: MakeAbstractSelection("Method", "Method2", "Method3"));
         }
 
         [Fact]
@@ -551,7 +551,7 @@ class Test : MyBase
             await TestAsync(
                 input,
                 expected,
-                dialogSelection: new[] { ("Method", false), ("Method2", false) });
+                dialogSelection: MakeSelection("Method", "Method2"));
         }
 
         [Fact]
@@ -597,7 +597,7 @@ class Test : MyBase
             await TestAsync(
                 input,
                 expected,
-                dialogSelection: new[] { ("Method2", false) });
+                dialogSelection: MakeSelection("Method2"));
         }
 
         [Fact]
@@ -1477,13 +1477,19 @@ class Test : MyBase
             await TestAsync(input, expected, expectNullMember: true);
         }
 
-        private class ExtractClassOptionsService : IExtractClassOptionsService
+        private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
+            => memberNames.Select(m => (m, true));
+
+        private static IEnumerable<(string name, bool makeAbstract)> MakeSelection(params string[] memberNames)
+           => memberNames.Select(m => (m, false));
+
+        private class TestExtractClassOptionsService : IExtractClassOptionsService
         {
             private readonly IEnumerable<(string name, bool makeAbstract)> _dialogSelection;
             private readonly bool _sameFile;
             private readonly bool _expectNullMember;
 
-            public ExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool expectNullMember = false)
+            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool expectNullMember = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
