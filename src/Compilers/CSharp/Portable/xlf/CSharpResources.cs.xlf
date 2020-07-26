@@ -5231,8 +5231,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}: Nejde deklarovat členy instance ve statické třídě.</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'{0}: Nejde deklarovat členy instance ve statické třídě.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">

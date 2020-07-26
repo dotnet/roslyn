@@ -18863,19 +18863,19 @@ sealed static record R;
                 // (2,22): error CS0441: 'R': a type cannot be both static and sealed
                 // sealed static record R;
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "R").WithArguments("R").WithLocation(2, 22),
-                // (2,22): error CS0708: 'R.EqualityContract': cannot declare instance members in a static class
+                // (2,22): error CS0708: 'R.EqualityContract': cannot declare instance members in a static type
                 // sealed static record R;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("R.EqualityContract").WithLocation(2, 22),
-                // (2,22): error CS0708: 'GetHashCode': cannot declare instance members in a static class
+                // (2,22): error CS0708: 'GetHashCode': cannot declare instance members in a static type
                 // sealed static record R;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 22),
                 // (2,22): error CS0722: 'R': static types cannot be used as return types
                 // sealed static record R;
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "R").WithArguments("R").WithLocation(2, 22),
-                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static class
+                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static type
                 // sealed static record R;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 22),
-                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static class
+                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static type
                 // sealed static record R;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 22)
                 );

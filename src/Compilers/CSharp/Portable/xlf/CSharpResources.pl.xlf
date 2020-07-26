@@ -5231,8 +5231,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'„{0}”: nie można zadeklarować składowych wystąpienia w klasie statycznej</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'„{0}”: nie można zadeklarować składowych wystąpienia w klasie statycznej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">

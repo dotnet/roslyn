@@ -2007,7 +2007,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</value>
   </data>
   <data name="ERR_InstanceMemberInStaticClass" xml:space="preserve">
-    <value>'{0}': cannot declare instance members in a static class</value>
+    <value>'{0}': cannot declare instance members in a static type</value>
   </data>
   <data name="ERR_StaticBaseClass" xml:space="preserve">
     <value>'{1}': cannot derive from static class '{0}'</value>

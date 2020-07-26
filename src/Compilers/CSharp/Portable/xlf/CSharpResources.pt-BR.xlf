@@ -5230,8 +5230,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'"{0}": não pode declarar membros de instância em uma classe estática</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'"{0}": não pode declarar membros de instância em uma classe estática</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">

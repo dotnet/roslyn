@@ -5231,8 +5231,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}': 정적 클래스에 인스턴스 멤버를 선언할 수 없습니다.</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'{0}': 정적 클래스에 인스턴스 멤버를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">

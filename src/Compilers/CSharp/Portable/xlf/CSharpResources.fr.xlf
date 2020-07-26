@@ -5231,8 +5231,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}' : impossible de déclarer des membres d'instance dans une classe static</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'{0}' : impossible de déclarer des membres d'instance dans une classe static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">

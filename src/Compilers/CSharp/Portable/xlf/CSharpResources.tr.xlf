@@ -5231,8 +5231,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}': bir statik sınıftaki örnek üyeleri ifade edemez</target>
+        <source>'{0}': cannot declare instance members in a static type</source>
+        <target state="needs-review-translation">'{0}': bir statik sınıftaki örnek üyeleri ifade edemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
