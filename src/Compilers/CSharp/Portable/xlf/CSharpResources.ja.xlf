@@ -3777,8 +3777,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">インポートされた型 '{0}' は無効です。この型には循環する基底クラスの依存関係が含まれています。</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="needs-review-translation">インポートされた型 '{0}' は無効です。この型には循環する基底クラスの依存関係が含まれています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">

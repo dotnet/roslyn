@@ -3777,8 +3777,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">导入的类型“{0}”无效。它包含循环的基类依赖项。</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="needs-review-translation">导入的类型“{0}”无效。它包含循环的基类依赖项。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">

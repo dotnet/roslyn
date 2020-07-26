@@ -3777,8 +3777,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">가져온 '{0}' 형식이 잘못되었습니다. 이 형식에는 기본 클래스 순환 종속성이 포함되어 있습니다.</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="needs-review-translation">가져온 '{0}' 형식이 잘못되었습니다. 이 형식에는 기본 클래스 순환 종속성이 포함되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">

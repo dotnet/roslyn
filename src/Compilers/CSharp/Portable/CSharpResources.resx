@@ -1111,7 +1111,7 @@
     <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
-    <value>Imported type '{0}' is invalid. It contains a circular base class dependency.</value>
+    <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
   </data>
   <data name="ERR_UseDefViolationOut" xml:space="preserve">
     <value>Use of unassigned out parameter '{0}'</value>

@@ -3801,7 +3801,7 @@ namespace N
         }
 
         /// <summary>
-        /// Class1.dll: error CS0268: Imported type 'C1' is invalid. It contains a circular base class dependency.
+        /// Class1.dll: error CS0268: Imported type 'C1' is invalid. It contains a circular base type dependency.
         /// </summary>
         [Fact()]
         public void CS0268ERR_ImportedCircularBase01()
@@ -3817,10 +3817,10 @@ namespace N
 
             var comp = CreateCompilation(text, new[] { ref1, ref2 });
             comp.VerifyDiagnostics(
-                // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.
+                // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.
                 //     public class C3 : C1 { }
                 Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2", "C1"),
-                // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base class dependency.
+                // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.
                 //     public interface I3 : I1 { }
                 Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2", "I1")
                 );

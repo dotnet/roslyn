@@ -3777,8 +3777,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">Importowany typ „{0}” jest nieprawidłowy. Zawiera on cykliczną zależność klasy bazowej.</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="needs-review-translation">Importowany typ „{0}” jest nieprawidłowy. Zawiera on cykliczną zależność klasy bazowej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
