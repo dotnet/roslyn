@@ -1264,7 +1264,7 @@
     <value>'{0}': cannot provide arguments when creating an instance of a variable type</value>
   </data>
   <data name="ERR_AbstractSealedStatic" xml:space="preserve">
-    <value>'{0}': an abstract class cannot be sealed or static</value>
+    <value>'{0}': an abstract type cannot be sealed or static</value>
   </data>
   <data name="WRN_AmbiguousXMLReference" xml:space="preserve">
     <value>Ambiguous reference in cref attribute: '{0}'. Assuming '{1}', but could have also matched other overloads including '{2}'.</value>

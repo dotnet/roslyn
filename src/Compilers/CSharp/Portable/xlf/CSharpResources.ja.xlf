@@ -4032,8 +4032,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
-        <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'{0}': 抽象クラスを sealed または static に指定することはできません。</target>
+        <source>'{0}': an abstract type cannot be sealed or static</source>
+        <target state="needs-review-translation">'{0}': 抽象クラスを sealed または static に指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">

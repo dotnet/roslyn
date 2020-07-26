@@ -1465,7 +1465,7 @@ abstract sealed record C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,24): error CS0418: 'C1': an abstract class cannot be sealed or static
+                // (2,24): error CS0418: 'C1': an abstract type cannot be sealed or static
                 // abstract sealed record C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C1").WithArguments("C1").WithLocation(2, 24)
                 );
@@ -1491,7 +1491,7 @@ sealed abstract record C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,24): error CS0418: 'C1': an abstract class cannot be sealed or static
+                // (2,24): error CS0418: 'C1': an abstract type cannot be sealed or static
                 // sealed abstract record C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C1").WithArguments("C1").WithLocation(2, 24)
                 );
@@ -1518,7 +1518,7 @@ abstract sealed record C2 : C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (3,24): error CS0418: 'C2': an abstract class cannot be sealed or static
+                // (3,24): error CS0418: 'C2': an abstract type cannot be sealed or static
                 // abstract sealed record C2 : C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C2").WithArguments("C2").WithLocation(3, 24)
                 );
@@ -1545,7 +1545,7 @@ sealed abstract record C2 : C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (3,24): error CS0418: 'C2': an abstract class cannot be sealed or static
+                // (3,24): error CS0418: 'C2': an abstract type cannot be sealed or static
                 // sealed abstract record C2 : C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C2").WithArguments("C2").WithLocation(3, 24)
                 );
