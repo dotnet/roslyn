@@ -18807,5 +18807,27 @@ partial public record C  // CS0267
                 // partial public class C  // CS0267
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
+
+        [Fact]
+        public void AttributeContainsGeneric()
+        {
+            string source = @"
+[Goo<int>]
+class G
+{
+}
+record Goo<T>
+{
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0404: Cannot apply attribute type 'Goo<T>' because it is generic
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2)
+                );
+        }
+
     }
 }

@@ -3962,8 +3962,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">ジェネリックであるため属性クラス '{0}' を適用できません</target>
+        <source>Cannot apply attribute type '{0}' because it is generic</source>
+        <target state="needs-review-translation">ジェネリックであるため属性クラス '{0}' を適用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4971,8 +4971,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
-        <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="translated">抽象であるため属性クラス '{0}' を適用できません。</target>
+        <source>Cannot apply attribute type '{0}' because it is abstract</source>
+        <target state="needs-review-translation">抽象であるため属性クラス '{0}' を適用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">

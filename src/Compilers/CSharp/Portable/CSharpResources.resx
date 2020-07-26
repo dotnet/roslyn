@@ -1222,7 +1222,7 @@
     <value>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</value>
   </data>
   <data name="ERR_AttributeCantBeGeneric" xml:space="preserve">
-    <value>Cannot apply attribute class '{0}' because it is generic</value>
+    <value>Cannot apply attribute type '{0}' because it is generic</value>
   </data>
   <data name="ERR_DuplicateBound" xml:space="preserve">
     <value>Duplicate constraint '{0}' for type parameter '{1}'</value>
@@ -1845,7 +1845,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Comparison to integral constant is useless; the constant is outside the range of the type</value>
   </data>
   <data name="ERR_AbstractAttributeClass" xml:space="preserve">
-    <value>Cannot apply attribute class '{0}' because it is abstract</value>
+    <value>Cannot apply attribute type '{0}' because it is abstract</value>
   </data>
   <data name="ERR_BadNamedAttributeArgumentType" xml:space="preserve">
     <value>'{0}' is not a valid named attribute argument because it is not a valid attribute parameter type</value>

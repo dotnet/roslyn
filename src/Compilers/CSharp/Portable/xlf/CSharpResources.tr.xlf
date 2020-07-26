@@ -3962,8 +3962,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">Genel olduğundan '{0}' öznitelik sınıfı uygulanamaz</target>
+        <source>Cannot apply attribute type '{0}' because it is generic</source>
+        <target state="needs-review-translation">Genel olduğundan '{0}' öznitelik sınıfı uygulanamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4971,8 +4971,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
-        <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="translated">Soyut olduğu için '{0}' öznitelik sınıfı uygulanamıyor</target>
+        <source>Cannot apply attribute type '{0}' because it is abstract</source>
+        <target state="needs-review-translation">Soyut olduğu için '{0}' öznitelik sınıfı uygulanamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">

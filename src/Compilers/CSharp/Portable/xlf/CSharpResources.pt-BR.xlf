@@ -3961,8 +3961,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">Não é possível aplicar classe de atributo "{0}" porque ela é genérica</target>
+        <source>Cannot apply attribute type '{0}' because it is generic</source>
+        <target state="needs-review-translation">Não é possível aplicar classe de atributo "{0}" porque ela é genérica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4970,8 +4970,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
-        <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="translated">Não é possível aplicar classe de atributo "{0}" porque ela é abstract</target>
+        <source>Cannot apply attribute type '{0}' because it is abstract</source>
+        <target state="needs-review-translation">Não é possível aplicar classe de atributo "{0}" porque ela é abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
