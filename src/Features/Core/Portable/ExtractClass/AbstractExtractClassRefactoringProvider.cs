@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
             // If we register the action on a class node, no need to find selected members. Just allow
             // the action to be invoked with the dialog 
-            if (await TryRegisterClassActionAsync(context, optionsService).ConfigureAwait(false))
+            var didRegisterClassAction = await TryRegisterClassActionAsync(context, optionsService).ConfigureAwait(false);
+            if (didRegisterClassAction)
             {
                 return;
             }
