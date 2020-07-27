@@ -3476,7 +3476,6 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Argument
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
                 // System_Runtime_CompilerServices_NativeIntegerAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags

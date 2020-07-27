@@ -197,14 +197,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public int GetLine()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndCharacter(out int lineNumber, out int characterIndex);
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(out var lineNumber, out var characterIndex);
                 return lineNumber;
             });
 
         public int GetColumn()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndCharacter(out int lineNumber, out int characterIndex);
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(out var lineNumber, out var characterIndex);
                 return characterIndex;
             });
 
@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 IWpfTextView preview = null;
-                object pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
+                var pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
                 if (pane is System.Windows.Controls.UserControl)
                 {
                     var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;
@@ -416,14 +416,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             if (rootObject != null)
             {
-                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
+                for (var i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
                 {
-                    DependencyObject child = VisualTreeHelper.GetChild(rootObject, i);
+                    var child = VisualTreeHelper.GetChild(rootObject, i);
 
                     if (child != null && child is T)
                         yield return (T)child;
 
-                    foreach (T descendant in FindDescendants<T>(child))
+                    foreach (var descendant in FindDescendants<T>(child))
                         yield return descendant;
                 }
             }
@@ -468,29 +468,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
-        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen, CancellationToken cancellationToken)
-        {
-            return Retry(
-                _ => FindDialogWorker(dialogAutomationName),
-                stoppingCondition: (automationElement, _) => isOpen ? automationElement != null : automationElement == null,
-                delay: TimeSpan.FromMilliseconds(250),
-                cancellationToken);
-        }
-
-        private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
-        {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
-
-            var elementCondition = Helper.Automation.CreateAndConditionFromArray(
-                new[]
-                {
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, dialogAutomationName),
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ControlTypeProperty.Id, ControlType.Window.Id),
-                });
-
-            return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
-        }
-
         private static IUIAutomationElement FindNavigateTo()
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
@@ -499,13 +476,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
-            var beginTime = DateTime.UtcNow;
-            var retval = default(T);
-
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                T retval;
                 try
                 {
                     retval = action(cancellationToken);
@@ -749,7 +724,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
                 var languageContextProvider = languageService as IVsLanguageContextProvider;
 
-                IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
+                var monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
                 Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
                 Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
                 var span = new TextManager.Interop.TextSpan()
@@ -762,7 +737,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
                 Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
                     results.Add(value);

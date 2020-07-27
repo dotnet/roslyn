@@ -39,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpLspEditorClassificationFactoryService(CSharpLspClientServiceFactory csharpLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
+        public CSharpLspEditorClassificationFactoryService(CSharpLspClientServiceFactory csharpLspClientServiceFactory,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
-            : base(csharpLspClientServiceFactory, remoteLanguageServiceWorkspace, classificationTypeMap, threadingContext)
+            : base(csharpLspClientServiceFactory, classificationTypeMap, threadingContext)
         {
         }
     }
@@ -51,9 +51,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VBLspEditorClassificationFactoryService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
+        public VBLspEditorClassificationFactoryService(VisualBasicLspClientServiceFactory vbLspClientServiceFactory,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
-            : base(vbLspClientServiceFactory, remoteLanguageServiceWorkspace, classificationTypeMap, threadingContext)
+            : base(vbLspClientServiceFactory, classificationTypeMap, threadingContext)
         {
         }
     }

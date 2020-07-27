@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 : null;
         }
 
-        bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedType;
+        bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedTypeNoUseSiteDiagnostics;
 
         bool ITypeSymbol.IsReferenceType
         {

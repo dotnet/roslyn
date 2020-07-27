@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression? rewrittenExceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
+            BoundBlock? rewrittenFilterPrologue = (BoundBlock?)this.Visit(node.ExceptionFilterPrologueOpt);
             BoundExpression? rewrittenFilter = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
             BoundBlock? rewrittenBody = (BoundBlock?)this.Visit(node.Body);
             Debug.Assert(rewrittenBody is { });
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Locals,
                 rewrittenExceptionSourceOpt,
                 rewrittenExceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBody,
                 node.IsSynthesizedAsyncCatchAll);

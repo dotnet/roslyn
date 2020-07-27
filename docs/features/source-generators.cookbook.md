@@ -115,26 +115,26 @@ namespace GeneratedNamespace
 ```csharp
 [Generator]
 public class FileTransformGenerator : ISourceGenerator
+{
+    public void Initialize(InitializationContext context) {}
+
+    public void Execute(SourceGeneratorContext context)
     {
-        public void Initialize(InitializationContext context) {}
-
-        public void Execute(SourceGeneratorContext context)
+        // find anything that matches our files
+        var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
+        foreach (var file in myFiles)
         {
-            // find anything that matches our files
-            var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
-            foreach (var file in myFiles)
-            {
-                var content = file.GetText(context.CancellationToken);
+            var content = file.GetText(context.CancellationToken);
 
-                // do some transforms based on the file context
-                string output = MyXmlToCSharpCompiler.Compile(content);
+            // do some transforms based on the file context
+            string output = MyXmlToCSharpCompiler.Compile(content);
 
-                var sourceText = SourceText.From(output, Encoding.UTF8);
+            var sourceText = SourceText.From(output, Encoding.UTF8);
 
-                context.AddSource($"{file.Name}generated.cs", sourceText);
-            }
+            context.AddSource($"{file.Name}generated.cs", sourceText);
         }
     }
+}
 ```
 
 ### Augment user code
@@ -628,7 +628,7 @@ partial class MyRecord
 }
 ```
 
-This attribute could also be used for #participate-in-the-ide-experience,
+This attribute could also be used for [Participate in the IDE experience](#participate-in-the-ide-experience),
 when the full scope of that feature is fully designed. In that scenario,
 instead of the generator finding every type marked with the given attribute,
 the compiler would notify the generator of every type marked with the given
@@ -670,8 +670,8 @@ public string Serialize()
 ```
 
 Obviously this is heavily simplified -- this example only handles the `string` and `int`
-types properly and has no error recovery, but it should serve to demonstrate the kind
-of code a source generator could add to a compilation.
+types properly, adds a trailing comma to the json output and has no error recovery, but
+it should serve to demonstrate the kind of code a source generator could add to a compilation.
 
 Our next task is design a generator to generate the above code, since the
 above code is itself customized in the `// Body` section according to the
