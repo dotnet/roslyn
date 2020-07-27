@@ -199,7 +199,7 @@
       "packageFeeds": "default",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.8p1" ],
-      "vsBranch": "rel/16.8",
+      "vsBranch": "rel/d16.8",
       "vsMajorVersion": 16
     },
     "master-vs-deps": {
