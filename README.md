@@ -1,8 +1,8 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
-Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
-
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Chat on Discord](https://discordapp.com/api/guilds/143867839282020352/widget.png)](http://aka.ms/discord-csharp-roslyn)
+
+Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
 ### Language Design Discussion
 
@@ -24,8 +24,9 @@ To install the latest release without Visual Studio, download the [.NET SDK nigh
 See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/wiki/Changelog-for-C%23-and-VB-compilers).
 
 **Pre-release builds** are available from the following public NuGet feeds: 
-- [Compiler](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet5): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json`
+- [Compiler](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json`
 - [IDE Services](https://devdiv.visualstudio.com/DevDiv/_packaging?_a=feed&feed=vssdk): `https://devdiv.pkgs.visualstudio.com/_packaging/vssdk/nuget/v3/index.json` 
+- [.NET SDK](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet5): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json`
 
 ### Source code
 
