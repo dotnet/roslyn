@@ -4,17 +4,25 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.ReleaseTracking;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using PooledLocalizabeStringsConcurrentDictionary = PooledConcurrentDictionary<INamedTypeSymbol, PooledConcurrentSet<(IFieldSymbol field, IArgumentOperation argument)>>;
+    using PooledResourcesDataValueConcurrentDictionary = PooledConcurrentDictionary<string, ImmutableDictionary<string, (string value, Location location)>>;
+    using PooledFieldToResourceNameAndFileNameConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, (string nameOfResource, string resourceFileName)>;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed partial class DiagnosticDescriptorCreationAnalyzer : DiagnosticAnalyzer
     {
@@ -25,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string IsEnabledByDefaultParameterName = "isEnabledByDefault";
         private const string DefaultSeverityParameterName = "defaultSeverity";
         private const string RuleLevelParameterName = "ruleLevel";
+
+        internal const string DefineDescriptorArgumentCorrectlyFixValue = nameof(DefineDescriptorArgumentCorrectlyFixValue);
+        private const string DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo = nameof(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo);
 
         private static readonly ImmutableHashSet<string> CADiagnosticIdAllowedAssemblies = ImmutableHashSet.Create(
             StringComparer.Ordinal,
@@ -165,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableDefineDiagnosticTitleCorrectlyMessage,
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         /// <summary>
@@ -177,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableDefineDiagnosticMessageCorrectlyMessage,
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         /// <summary>
@@ -189,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableDefineDiagnosticDescriptionCorrectlyMessage,
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
@@ -225,8 +236,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol? diagnosticDescriptorType = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticDescriptor);
-                if (diagnosticDescriptorType == null)
+                if (!compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticDescriptor, out var diagnosticDescriptorType) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString, out var localizableResourceType) ||
+                    !compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableResourceString, out var localizableResourceStringType))
                 {
                     return;
                 }
@@ -247,6 +259,20 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     out var unshippedData,
                     out List<Diagnostic>? invalidReleaseFileEntryDiagnostics);
 
+                PooledLocalizabeStringsConcurrentDictionary? localizableTitles = null;
+                PooledLocalizabeStringsConcurrentDictionary? localizableMessages = null;
+                PooledLocalizabeStringsConcurrentDictionary? localizableDescriptions = null;
+                PooledResourcesDataValueConcurrentDictionary? resourcesDataValueMap = null;
+
+                var analyzeResourceStrings = HasResxAdditionalFiles(compilationContext.Options);
+                if (analyzeResourceStrings)
+                {
+                    localizableTitles = PooledLocalizabeStringsConcurrentDictionary.GetInstance();
+                    localizableMessages = PooledLocalizabeStringsConcurrentDictionary.GetInstance();
+                    localizableDescriptions = PooledLocalizabeStringsConcurrentDictionary.GetInstance();
+                    resourcesDataValueMap = PooledResourcesDataValueConcurrentDictionary.GetInstance();
+                }
+
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 var seenRuleIds = PooledConcurrentSet<string>.GetInstance();
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
@@ -257,9 +283,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         return;
                     }
 
-                    AnalyzeTitle(operationAnalysisContext, creationArguments, fieldInitializer);
-                    AnalyzeMessage(operationAnalysisContext, creationArguments);
-                    AnalyzeDescription(operationAnalysisContext, creationArguments);
+                    var containingType = operationAnalysisContext.ContainingSymbol.ContainingType;
+                    AnalyzeTitle(operationAnalysisContext, creationArguments, fieldInitializer, containingType,
+                        localizableTitles, resourcesDataValueMap, localizableResourceType, localizableResourceStringType);
+                    AnalyzeMessage(operationAnalysisContext, creationArguments, containingType,
+                        localizableMessages, resourcesDataValueMap, localizableResourceType, localizableResourceStringType);
+                    AnalyzeDescription(operationAnalysisContext, creationArguments, containingType,
+                        localizableDescriptions, resourcesDataValueMap, localizableResourceType, localizableResourceStringType);
                     AnalyzeHelpLinkUri(operationAnalysisContext, creationArguments, out var helpLink);
                     AnalyzeCustomTags(operationAnalysisContext, creationArguments);
                     var (isEnabledByDefault, defaultSeverity) = GetDefaultSeverityAndEnabledByDefault(operationAnalysisContext.Compilation, creationArguments);
@@ -276,6 +306,45 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         category, analyzerName, helpLink, isEnabledByDefault, defaultSeverity, allowedIdsInfoList, idToAnalyzerMap);
 
                 }, OperationKind.FieldInitializer);
+
+                if (analyzeResourceStrings)
+                {
+                    compilationContext.RegisterSymbolStartAction(context =>
+                    {
+                        var symbolToResourceMap = PooledFieldToResourceNameAndFileNameConcurrentDictionary.GetInstance(SymbolEqualityComparer.Default);
+                        context.RegisterOperationAction(context =>
+                        {
+                            var fieldInitializer = (IFieldInitializerOperation)context.Operation;
+                            if (TryGetLocalizableResourceStringCreation(fieldInitializer.Value, localizableResourceStringType,
+                                    out var nameOfLocalizableResource, out var resourceFileName))
+                            {
+                                foreach (var field in fieldInitializer.InitializedFields)
+                                {
+                                    symbolToResourceMap.TryAdd(field, (nameOfLocalizableResource, resourceFileName));
+                                }
+                            }
+                        }, OperationKind.FieldInitializer);
+
+                        context.RegisterSymbolEndAction(context =>
+                        {
+                            RoslynDebug.Assert(localizableTitles != null);
+                            RoslynDebug.Assert(localizableMessages != null);
+                            RoslynDebug.Assert(localizableDescriptions != null);
+                            RoslynDebug.Assert(resourcesDataValueMap != null);
+
+                            var namedType = (INamedTypeSymbol)context.Symbol;
+
+                            AnalyzeLocalizableStrings(localizableTitles, AnalyzeTitleCore, symbolToResourceMap, namedType,
+                                resourcesDataValueMap, context.Options, context.ReportDiagnostic, context.CancellationToken);
+                            AnalyzeLocalizableStrings(localizableMessages, AnalyzeMessageCore, symbolToResourceMap, namedType,
+                                resourcesDataValueMap, context.Options, context.ReportDiagnostic, context.CancellationToken);
+                            AnalyzeLocalizableStrings(localizableDescriptions, AnalyzeDescriptionCore, symbolToResourceMap, namedType,
+                                resourcesDataValueMap, context.Options, context.ReportDiagnostic, context.CancellationToken);
+
+                            symbolToResourceMap.Free();
+                        });
+                    }, SymbolKind.NamedType);
+                }
 
                 compilationContext.RegisterCompilationEndAction(compilationEndContext =>
                 {
@@ -323,15 +392,37 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
 
                     seenRuleIds.Free();
+                    if (analyzeResourceStrings)
+                    {
+                        RoslynDebug.Assert(localizableTitles != null);
+                        RoslynDebug.Assert(localizableMessages != null);
+                        RoslynDebug.Assert(localizableDescriptions != null);
+                        RoslynDebug.Assert(resourcesDataValueMap != null);
+
+                        FreeLocalizableStringsMap(localizableTitles);
+                        FreeLocalizableStringsMap(localizableMessages);
+                        FreeLocalizableStringsMap(localizableDescriptions);
+                        resourcesDataValueMap.Free();
+                    }
                 });
             });
+
+            static void FreeLocalizableStringsMap(PooledLocalizabeStringsConcurrentDictionary localizableStrings)
+            {
+                foreach (var builder in localizableStrings.Values)
+                {
+                    builder.Free();
+                }
+
+                localizableStrings.Free();
+            }
         }
 
         private static bool TryGetDescriptorCreateMethodAndArguments(
             IFieldInitializerOperation fieldInitializer,
             INamedTypeSymbol diagnosticDescriptorType,
-            out IMethodSymbol creationMethod,
-            out ImmutableArray<IArgumentOperation> creationArguments)
+            [NotNullWhen(returnValue: true)] out IMethodSymbol? creationMethod,
+            [NotNullWhen(returnValue: true)] out ImmutableArray<IArgumentOperation> creationArguments)
         {
             (creationMethod, creationArguments) = fieldInitializer.Value switch
             {
@@ -356,84 +447,409 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     method.Parameters[0].Type.SpecialType == SpecialType.System_String;
         }
 
-        private static void AnalyzeTitle(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments, IFieldInitializerOperation creation)
+        private static bool TryGetLocalizableResourceStringCreation(
+            IOperation operation,
+            INamedTypeSymbol localizableResourceStringType,
+            [NotNullWhen(returnValue: true)] out string? nameOfLocalizableResource,
+            [NotNullWhen(returnValue: true)] out string? resourceFileName)
+        {
+            if (operation.WalkDownConversion() is IObjectCreationOperation objectCreation &&
+                objectCreation.Constructor.ContainingType.Equals(localizableResourceStringType) &&
+                objectCreation.Arguments.Length >= 3 &&
+                objectCreation.Arguments.GetArgumentForParameterAtIndex(0) is { } firstParamArgument &&
+                firstParamArgument.Parameter.Type.SpecialType == SpecialType.System_String &&
+                firstParamArgument.Value.ConstantValue.HasValue &&
+                firstParamArgument.Value.ConstantValue.Value is string nameOfResource &&
+                objectCreation.Arguments.GetArgumentForParameterAtIndex(2) is { } thirdParamArgument &&
+                thirdParamArgument.Value is ITypeOfOperation typeOfOperation &&
+                typeOfOperation.TypeOperand is { } typeOfType)
+            {
+                nameOfLocalizableResource = nameOfResource;
+                resourceFileName = typeOfType.Name;
+                return true;
+            }
+
+            nameOfLocalizableResource = null;
+            resourceFileName = null;
+            return false;
+        }
+
+        private static void AnalyzeTitle(
+            OperationAnalysisContext operationAnalysisContext,
+            ImmutableArray<IArgumentOperation> creationArguments,
+            IFieldInitializerOperation creation,
+            INamedTypeSymbol containingType,
+            PooledLocalizabeStringsConcurrentDictionary? localizableTitles,
+            PooledResourcesDataValueConcurrentDictionary? resourceDataValueMap,
+            INamedTypeSymbol localizableStringType,
+            INamedTypeSymbol localizableResourceStringType)
         {
             IArgumentOperation titleArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("title", StringComparison.OrdinalIgnoreCase));
-            if (titleArgument?.Parameter.Type.SpecialType != SpecialType.System_String)
+            if (titleArgument != null)
             {
-                return;
-            }
+                if (titleArgument.Parameter.Type.SpecialType == SpecialType.System_String)
+                {
+                    operationAnalysisContext.ReportDiagnostic(creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString));
+                }
 
-            operationAnalysisContext.ReportDiagnostic(creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString));
-
-            if (!TryGetNonEmptyConstantStringValue(titleArgument, out var title))
-            {
-                return;
-            }
-
-            if (IsMultiSentences(title) || EndsWithPeriod(title) || ContainsLineReturn(title))
-            {
-                operationAnalysisContext.ReportDiagnostic(titleArgument.CreateDiagnostic(DefineDiagnosticTitleCorrectlyRule));
+                AnalyzeDescriptorArgument(operationAnalysisContext, titleArgument,
+                    AnalyzeTitleCore, containingType, localizableTitles, resourceDataValueMap,
+                    localizableStringType, localizableResourceStringType);
             }
         }
 
-        private static void AnalyzeMessage(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments)
+        private static void AnalyzeTitleCore(string title, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
         {
-            IArgumentOperation messageArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("messageFormat", StringComparison.OrdinalIgnoreCase));
-            if (!TryGetNonEmptyConstantStringValue(messageArgument, out var message))
+            var isMultiSentences = IsMultiSentences(title);
+            var endsWithPeriod = EndsWithPeriod(title);
+            var containsLineReturn = ContainsLineReturn(title);
+            if (isMultiSentences || endsWithPeriod || containsLineReturn)
             {
-                return;
-            }
+                var fixedTitle = endsWithPeriod ? RemoveTrailingPeriod(title) : title;
+                fixedTitle = isMultiSentences ? FixMultiSentences(fixedTitle) : fixedTitle;
+                fixedTitle = containsLineReturn ? FixLineReturns(fixedTitle, allowMultisentences: false) : fixedTitle;
+                Debug.Assert(title != fixedTitle);
 
-            var isMultiSentenceMessage = message.Contains(". ");
-            if ((IsMultiSentences(message) ^ EndsWithPeriod(message)) || ContainsLineReturn(message))
-            {
-                operationAnalysisContext.ReportDiagnostic(messageArgument.CreateDiagnostic(DefineDiagnosticMessageCorrectlyRule));
+                ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticTitleCorrectlyRule,
+                    argumentOperation, fixedTitle, fixLocation, reportDiagnostic);
             }
         }
 
-        private static void AnalyzeDescription(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments)
+        private static void ReportDefineDiagnosticArgumentCorrectlyDiagnostic(
+            DiagnosticDescriptor descriptor,
+            IArgumentOperation argumentOperation,
+            string fixValue,
+            Location fixLocation,
+            Action<Diagnostic> reportDiagnostic)
+        {
+            // Additional location in an additional document does not seem to be preserved
+            // from analyzer to code fix due to a Roslyn bug.
+            // We workaround this bug by passing additional document file path and location span as strings.
+            // TODO: File a Roslyn bug.
+
+            var additionalLocations = ImmutableArray<Location>.Empty;
+            var properties = ImmutableDictionary<string, string>.Empty.Add(DefineDescriptorArgumentCorrectlyFixValue, fixValue);
+            if (fixLocation.IsInSource)
+            {
+                additionalLocations = additionalLocations.Add(fixLocation);
+            }
+            else
+            {
+                var span = fixLocation.SourceSpan;
+                var locationInfo = $"{span.Start};{span.Length};{fixLocation.GetLineSpan().Path}";
+                properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, locationInfo);
+            }
+
+            var location = argumentOperation.Syntax.GetLocation();
+            var diagnostic = Diagnostic.Create(descriptor, location, additionalLocations: additionalLocations, properties: properties);
+            reportDiagnostic(diagnostic);
+        }
+
+        internal static bool TryGetAdditionalDocumentLocationInfo(Diagnostic diagnostic,
+            [NotNullWhen(returnValue: true)] out string? filePath,
+            [NotNullWhen(returnValue: true)] out TextSpan? fileSpan)
+        {
+            Debug.Assert(diagnostic.Id == DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId ||
+                diagnostic.Id == DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId ||
+                diagnostic.Id == DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
+
+            if (diagnostic.Properties.TryGetValue(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, out var locationInfo))
+            {
+                var index = locationInfo.IndexOf(';');
+                if (index > 0 &&
+                    int.TryParse(locationInfo.Substring(0, index), out var spanSpart))
+                {
+                    locationInfo = locationInfo.Substring(index + 1);
+                    index = locationInfo.IndexOf(';');
+                    if (index > 0 &&
+                        int.TryParse(locationInfo.Substring(0, index), out var spanLength))
+                    {
+                        fileSpan = new TextSpan(spanSpart, spanLength);
+                        filePath = locationInfo.Substring(index + 1);
+                        return !string.IsNullOrEmpty(filePath);
+                    }
+                }
+            }
+
+            filePath = null;
+            fileSpan = null;
+            return false;
+        }
+
+        private static void AnalyzeMessage(
+            OperationAnalysisContext operationAnalysisContext,
+            ImmutableArray<IArgumentOperation> creationArguments,
+            INamedTypeSymbol containingType,
+            PooledLocalizabeStringsConcurrentDictionary? localizableMessages,
+            PooledResourcesDataValueConcurrentDictionary? resourceDataValueMap,
+            INamedTypeSymbol localizableStringType,
+            INamedTypeSymbol localizableResourceStringType)
+        {
+            var messageArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("messageFormat", StringComparison.OrdinalIgnoreCase));
+            if (messageArgument != null)
+            {
+                AnalyzeDescriptorArgument(operationAnalysisContext, messageArgument,
+                    AnalyzeMessageCore, containingType, localizableMessages, resourceDataValueMap,
+                    localizableStringType, localizableResourceStringType);
+            }
+        }
+
+        private static void AnalyzeMessageCore(string message, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
+        {
+            var isMultiSentences = IsMultiSentences(message);
+            var endsWithPeriod = EndsWithPeriod(message);
+            var containsLineReturn = ContainsLineReturn(message);
+            if (isMultiSentences ^ endsWithPeriod || containsLineReturn)
+            {
+                var fixedMessage = containsLineReturn ? FixLineReturns(message, allowMultisentences: true) : message;
+                isMultiSentences = IsMultiSentences(fixedMessage);
+                endsWithPeriod = EndsWithPeriod(fixedMessage);
+
+                if (isMultiSentences ^ endsWithPeriod)
+                {
+                    fixedMessage = endsWithPeriod ? RemoveTrailingPeriod(fixedMessage) : fixedMessage + ".";
+                }
+
+                ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticMessageCorrectlyRule,
+                    argumentOperation, fixedMessage, fixLocation, reportDiagnostic);
+            }
+        }
+
+        private static void AnalyzeDescription(
+            OperationAnalysisContext operationAnalysisContext,
+            ImmutableArray<IArgumentOperation> creationArguments,
+            INamedTypeSymbol containingType,
+            PooledLocalizabeStringsConcurrentDictionary? localizableDescriptions,
+            PooledResourcesDataValueConcurrentDictionary? resourceDataValueMap,
+            INamedTypeSymbol localizableStringType,
+            INamedTypeSymbol localizableResourceStringType)
         {
             IArgumentOperation descriptionArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("description", StringComparison.OrdinalIgnoreCase));
-            if (!TryGetNonEmptyConstantStringValue(descriptionArgument, out var description))
+            if (descriptionArgument != null)
             {
-                return;
+                AnalyzeDescriptorArgument(operationAnalysisContext, descriptionArgument,
+                    AnalyzeDescriptionCore, containingType, localizableDescriptions, resourceDataValueMap,
+                    localizableStringType, localizableResourceStringType);
             }
+        }
 
+        private static void AnalyzeDescriptionCore(string description, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
+        {
             if (!EndsWithPunctuation(description))
             {
-                operationAnalysisContext.ReportDiagnostic(descriptionArgument.CreateDiagnostic(DefineDiagnosticDescriptionCorrectlyRule));
+                var fixedDescription = description + ".";
+                ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticDescriptionCorrectlyRule,
+                    argumentOperation, fixedDescription, fixLocation, reportDiagnostic);
             }
         }
 
-        private static bool TryGetNonEmptyConstantStringValue([NotNullWhen(true)] IArgumentOperation? argumentOperation, [NotNullWhen(true)] out string? value)
+        private static void AnalyzeDescriptorArgument(
+            OperationAnalysisContext operationAnalysisContext,
+            IArgumentOperation argument,
+            Action<string, IArgumentOperation, Location, Action<Diagnostic>> analyzeStringValueCore,
+            INamedTypeSymbol containingType,
+            PooledLocalizabeStringsConcurrentDictionary? localizableStringsMap,
+            PooledResourcesDataValueConcurrentDictionary? resourceDataValueMap,
+            INamedTypeSymbol localizableStringType,
+            INamedTypeSymbol localizableResourceStringType)
+        {
+            if (TryGetNonEmptyConstantStringValue(argument, out var argumentValue, out var argumentValueLocation))
+            {
+                analyzeStringValueCore(argumentValue, argument, argumentValueLocation, operationAnalysisContext.ReportDiagnostic);
+            }
+            else if (localizableStringsMap != null &&
+                argument.Parameter.Type.Equals(localizableStringType))
+            {
+                RoslynDebug.Assert(resourceDataValueMap != null);
+
+                if (TryGetLocalizableResourceStringCreation(argument.Value, localizableResourceStringType,
+                        out var nameOfLocalizableResource, out var resourceFileName))
+                {
+                    AnalyzeLocalizableDescriptorArgument(analyzeStringValueCore, nameOfLocalizableResource, resourceFileName,
+                        argument, resourceDataValueMap, operationAnalysisContext.Options,
+                        operationAnalysisContext.ReportDiagnostic, operationAnalysisContext.CancellationToken);
+                }
+                else
+                {
+                    var value = argument.Value.WalkDownConversion();
+                    if (value is IFieldReferenceOperation fieldReference &&
+                        fieldReference.Field.Type.DerivesFrom(localizableStringType, baseTypesOnly: true))
+                    {
+                        var builder = localizableStringsMap.GetOrAdd(containingType, _ => PooledConcurrentSet<(IFieldSymbol, IArgumentOperation)>.GetInstance());
+                        builder.Add((fieldReference.Field, argument));
+                    }
+                }
+            }
+        }
+
+        private static void AnalyzeLocalizableDescriptorArgument(
+            Action<string, IArgumentOperation, Location, Action<Diagnostic>> analyzeStringValueCore,
+            string nameOfLocalizableResource,
+            string resourceFileName,
+            IArgumentOperation argument,
+            PooledResourcesDataValueConcurrentDictionary resourceDataValueMap,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            CancellationToken cancellationToken)
+        {
+            var map = GetOrCreateResourceMap(options, resourceFileName, resourceDataValueMap, cancellationToken);
+            if (map.TryGetValue(nameOfLocalizableResource, out var resourceStringTuple))
+            {
+                analyzeStringValueCore(resourceStringTuple.value, argument, resourceStringTuple.location, reportDiagnostic);
+            }
+        }
+
+        private static void AnalyzeLocalizableStrings(
+            PooledLocalizabeStringsConcurrentDictionary localizableStringsMap,
+            Action<string, IArgumentOperation, Location, Action<Diagnostic>> analyzeLocalizableStringValueCore,
+            PooledFieldToResourceNameAndFileNameConcurrentDictionary symbolToResourceMap,
+            INamedTypeSymbol namedType,
+            PooledResourcesDataValueConcurrentDictionary resourceDataValueMap,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            CancellationToken cancellationToken)
+        {
+            if (localizableStringsMap.TryRemove(namedType, out var localizableFieldsWithOriginalArguments))
+            {
+                foreach (var (field, argument) in localizableFieldsWithOriginalArguments)
+                {
+                    if (symbolToResourceMap.TryGetValue(field, out var resourceTuple))
+                    {
+                        AnalyzeLocalizableDescriptorArgument(analyzeLocalizableStringValueCore, resourceTuple.nameOfResource, resourceTuple.resourceFileName,
+                            argument, resourceDataValueMap, options, reportDiagnostic, cancellationToken);
+                    }
+                }
+
+                localizableFieldsWithOriginalArguments.Dispose();
+            }
+        }
+
+        private static bool TryGetNonEmptyConstantStringValue(
+            IArgumentOperation argumentOperation,
+            [NotNullWhen(true)] out string? value,
+            [NotNullWhen(true)] out Location? valueLocation)
         {
             value = null;
+            valueLocation = null;
 
-            if (argumentOperation == null ||
-                !argumentOperation.Value.ConstantValue.HasValue)
+            IOperation valueOperation;
+            var argumentValueOperation = argumentOperation.Value.WalkDownConversion();
+            if (argumentValueOperation is ILiteralOperation literalOperation)
+            {
+                valueOperation = literalOperation;
+            }
+            else if (argumentValueOperation is IFieldReferenceOperation fieldReferenceOperation &&
+                fieldReferenceOperation.Syntax.SyntaxTree == argumentValueOperation.Syntax.SyntaxTree &&
+                fieldReferenceOperation.Field.DeclaringSyntaxReferences.Length == 1 &&
+                fieldReferenceOperation.Field.DeclaringSyntaxReferences[0].GetSyntax() is { } fieldDeclaration &&
+                GetFieldInitializer(fieldDeclaration, argumentValueOperation.SemanticModel) is { } fieldInitializer &&
+                fieldInitializer.Value.WalkDownConversion() is ILiteralOperation fieldInitializerLiteral)
+            {
+                valueOperation = fieldInitializerLiteral;
+            }
+            else
+            {
+                valueOperation = argumentValueOperation;
+            }
+
+            if (!TryGetNonEmptyConstantStringValueCore(valueOperation, out var literalValue))
             {
                 return false;
             }
 
-            if (!(argumentOperation.Value.ConstantValue.Value is string s) ||
-                s.Length == 0)
-            {
-                return false;
-            }
-
-            value = s;
+            value = literalValue;
+            valueLocation = valueOperation.Syntax.GetLocation();
             return true;
+
+            static IFieldInitializerOperation? GetFieldInitializer(SyntaxNode fieldDeclaration, SemanticModel model)
+            {
+                if (fieldDeclaration.Language == LanguageNames.VisualBasic)
+                {
+                    // For VB, the field initializer is on the parent node.
+                    fieldDeclaration = fieldDeclaration.Parent;
+                }
+
+                foreach (var node in fieldDeclaration.DescendantNodes())
+                {
+                    if (model.GetOperation(node) is IFieldInitializerOperation initializer)
+                    {
+                        return initializer;
+                    }
+                }
+
+                return null;
+            }
         }
 
+        private static bool TryGetNonEmptyConstantStringValueCore(IOperation operation, [NotNullWhen(returnValue: true)] out string? literalValue)
+        {
+            if (operation.ConstantValue.HasValue &&
+                operation.ConstantValue.Value is string value &&
+                !string.IsNullOrEmpty(value))
+            {
+                literalValue = value;
+                return true;
+            }
+
+            literalValue = null;
+            return false;
+        }
+
+        // Assumes that a string is a multi-sentences if it contains a period followed by a whitespace ('. ').
+        private const string MultiSentenceSeparator = ". ";
+
         private static bool IsMultiSentences(string s)
-            => s.Contains(". "); // Assumes that a string is a multi-sentences if it contains a period followed by a whitespace ('. ').
+            => s.Contains(MultiSentenceSeparator);
+
+        private static string FixMultiSentences(string s)
+        {
+            Debug.Assert(IsMultiSentences(s));
+            var index = s.IndexOf(MultiSentenceSeparator, StringComparison.OrdinalIgnoreCase);
+            return s.Substring(0, index);
+        }
 
         private static bool EndsWithPeriod(string s)
             => s[^1] == '.';
 
+        private static string RemoveTrailingPeriod(string s)
+        {
+            Debug.Assert(EndsWithPeriod(s));
+            return s[0..^1];
+        }
+
         private static bool ContainsLineReturn(string s)
             => s.Contains("\r") || s.Contains("\n");
+
+        private static string FixLineReturns(string s, bool allowMultisentences)
+        {
+            Debug.Assert(ContainsLineReturn(s));
+
+            var parts = s.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            if (!allowMultisentences)
+            {
+                return parts[0];
+            }
+
+            var builder = new StringBuilder();
+            for (var i = 0; i < parts.Length; i++)
+            {
+                var part = parts[i];
+                if (!EndsWithPeriod(part))
+                {
+                    part += ".";
+                }
+
+                if (part.TrimEnd().Length == part.Length &&
+                    i < parts.Length - 1)
+                {
+                    part += " ";
+                }
+
+                builder.Append(part);
+            }
+
+            return builder.ToString();
+        }
 
         private static bool EndsWithPunctuation(string s)
         {
@@ -442,7 +858,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return lastChar.Equals('.') || lastChar.Equals('!') || lastChar.Equals('?');
         }
 
-        private static void AnalyzeHelpLinkUri(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments, out string? helpLink)
+        private static string RemoveTrailingPunctuation(string s)
+        {
+            Debug.Assert(EndsWithPunctuation(s));
+            return s[0..^1];
+        }
+
+        private static void AnalyzeHelpLinkUri(
+            OperationAnalysisContext operationAnalysisContext,
+            ImmutableArray<IArgumentOperation> creationArguments,
+            out string? helpLink)
         {
             helpLink = null;
 
