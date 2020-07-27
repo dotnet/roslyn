@@ -500,7 +500,7 @@ class C
             // Test with CompileExpression rather than CompileExpressions
             // so field references in IL are named.
             // Debug build.
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { TestMetadata.Net40.SystemCore });
             WithRuntimeInstance(
                 comp,
                 references: null,

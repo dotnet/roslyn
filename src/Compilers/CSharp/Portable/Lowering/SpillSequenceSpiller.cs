@@ -524,6 +524,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(expression));
         }
 
+        public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+        {
+            BoundExpression exceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
+            var locals = node.Locals;
+
+            var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
+            Debug.Assert(exceptionFilterPrologueOpt is null); // it is introduced by this pass
+            BoundSpillSequenceBuilder builder = null;
+            var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt);
+            if (builder is { })
+            {
+                Debug.Assert(builder.Value is null);
+                locals = locals.AddRange(builder.GetLocals());
+                exceptionFilterPrologueOpt = new BoundStatementList(node.Syntax, builder.GetStatements());
+            }
+
+            BoundBlock body = (BoundBlock)this.Visit(node.Body);
+            TypeSymbol exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+            return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
+        }
+
 #if DEBUG
         public override BoundNode DefaultVisit(BoundNode node)
         {
@@ -856,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (consequenceBuilder == null && alternativeBuilder == null)
             {
-                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
+                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type));
             }
 
             if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder((consequenceBuilder ?? alternativeBuilder).Syntax);

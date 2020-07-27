@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
-        internal override ManagedKind ManagedKind => ManagedKind.Managed;
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 

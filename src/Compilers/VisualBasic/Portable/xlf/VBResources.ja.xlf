@@ -378,12 +378,12 @@
       </trans-unit>
       <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
         <source>There are no function pointer types in VB.</source>
-        <target state="new">There are no function pointer types in VB.</target>
+        <target state="translated">VB に関数ポインター型はありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">VB にネイティブの整数型はありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -788,7 +788,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="translated">stdin 引数 '-' が指定されていますが、入力が標準入力ストリームからリダイレクトされませんでした。</target>
+        <target state="translated">stdin 引数 '-' が指定されていますが、入力が標準入力ストリームからリダイレクトされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">

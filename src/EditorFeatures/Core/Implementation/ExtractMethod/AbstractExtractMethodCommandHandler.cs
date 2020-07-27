@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         ///       Extract Method does not proceed further and is done.
         /// False: the user proceeded to a best effort scenario.
         /// </returns>
-        private bool TryNotifyFailureToUser(Document document, ExtractMethodResult result, IUIThreadOperationContext waitContext)
+        private static bool TryNotifyFailureToUser(Document document, ExtractMethodResult result, IUIThreadOperationContext waitContext)
         {
             // We are about to show a modal UI dialog so we should take over the command execution
             // wait context. That means the command system won't attempt to show its own wait dialog 

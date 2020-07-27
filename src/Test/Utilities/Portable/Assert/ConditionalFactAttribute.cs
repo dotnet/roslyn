@@ -44,6 +44,8 @@ namespace Roslyn.Test.Utilities
         public const string TestHasWindowsPaths = "Test depends on Windows style paths";
         public const string TestExecutionNeedsFusion = "Test depends on desktop fusion loader API";
 
+        public const string WinRTNeedsWindowsDesktop = "WinRT is only supported on Windows desktop";
+
         /// <summary>
         /// Mono issues around Default Interface Methods
         /// </summary>

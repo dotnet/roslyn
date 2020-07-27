@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return FindLiteralOrSymbolReferencesAsync(document, position, new DefinitionTrackingContext(context));
         }
 
-        private async Task FindLiteralOrSymbolReferencesAsync(
+        private static async Task FindLiteralOrSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             // First, see if we're on a literal.  If so search for literals in the solution with
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 document, position, context).ConfigureAwait(false);
         }
 
-        private ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
+        private static ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
             Solution solution,
             ImmutableArray<DefinitionItem> definitions,
             CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                               .ToImmutableArray();
         }
 
-        private async Task FindSymbolReferencesAsync(
+        private static async Task FindSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 symbol, project.Solution, progress, documents: null, options, context.CancellationToken);
         }
 
-        private async Task<bool> TryFindLiteralReferencesAsync(
+        private static async Task<bool> TryFindLiteralReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;

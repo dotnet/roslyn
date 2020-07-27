@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
 #Region "Preview Text"
 
-        Private Shared s_fieldDeclarationPreviewTrue As String = "
+        Private Const s_fieldDeclarationPreviewTrue As String = "
 Class C
     Private capacity As Integer
     Sub Method()
@@ -26,7 +26,7 @@ Class C
 End Class
 "
 
-        Private Shared s_fieldDeclarationPreviewFalse As String = "
+        Private Const s_fieldDeclarationPreviewFalse As String = "
 Class C
     Private capacity As Integer
     Sub Method()
@@ -37,7 +37,7 @@ Class C
 End Class
 "
 
-        Private Shared s_propertyDeclarationPreviewTrue As String = "
+        Private Const s_propertyDeclarationPreviewTrue As String = "
 Class C
     Public Property Id As Integer
     Sub Method()
@@ -48,7 +48,7 @@ Class C
 End Class
 "
 
-        Private Shared s_propertyDeclarationPreviewFalse As String = "
+        Private Const s_propertyDeclarationPreviewFalse As String = "
 Class C
     Public Property Id As Integer
     Sub Method()
@@ -59,7 +59,7 @@ Class C
 End Class
 "
 
-        Private Shared s_methodDeclarationPreviewTrue As String = "
+        Private Const s_methodDeclarationPreviewTrue As String = "
 Class C
     Sub Display()
         '//[
@@ -69,7 +69,7 @@ Class C
 End Class
 "
 
-        Private Shared s_methodDeclarationPreviewFalse As String = "
+        Private Const s_methodDeclarationPreviewFalse As String = "
 Class C
     Sub Display()
         '//[
@@ -79,7 +79,7 @@ Class C
 End Class
 "
 
-        Private Shared s_eventDeclarationPreviewTrue As String = "
+        Private Const s_eventDeclarationPreviewTrue As String = "
 Imports System
 Class C
     Public Event Elapsed As EventHandler
@@ -91,7 +91,7 @@ Class C
 End Class
 "
 
-        Private Shared s_eventDeclarationPreviewFalse As String = "
+        Private Const s_eventDeclarationPreviewFalse As String = "
 Imports System
 Class C
     Public Event Elapsed As EventHandler
@@ -103,7 +103,7 @@ Class C
 End Class
 "
 
-        Private _intrinsicDeclarationPreviewTrue As String = <a><![CDATA[
+        Private ReadOnly _intrinsicDeclarationPreviewTrue As String = <a><![CDATA[
 Class Program
     '//[
     Private _member As Integer
@@ -114,7 +114,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private _intrinsicDeclarationPreviewFalse As String = <a><![CDATA[
+        Private ReadOnly _intrinsicDeclarationPreviewFalse As String = <a><![CDATA[
 Class Program
     '//[
     Private _member As Int32
@@ -125,7 +125,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private _intrinsicMemberAccessPreviewTrue As String = <a><![CDATA[
+        Private ReadOnly _intrinsicMemberAccessPreviewTrue As String = <a><![CDATA[
 Imports System
 Class Program
     '//[
@@ -136,7 +136,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private _intrinsicMemberAccessPreviewFalse As String = <a><![CDATA[
+        Private ReadOnly _intrinsicMemberAccessPreviewFalse As String = <a><![CDATA[
 Imports System
 Class Program
     '//[

@@ -1007,22 +1007,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function DeriveUseSiteInfoFromTypeArguments() As UseSiteInfo(Of AssemblySymbol)
             Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim currentType As NamedTypeSymbol = Me
 
-            For Each arg As TypeSymbol In Me.TypeArgumentsNoUseSiteDiagnostics
-                If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg), ERRID.ERR_UnsupportedType1) Then
-                    Return argsUseSiteInfo
-                End If
-            Next
-
-            If Me.HasTypeArgumentsCustomModifiers Then
-                Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
-
-                For i As Integer = 0 To Me.Arity - 1
-                    modifiersUseSiteInfo = MergeUseSiteInfo(modifiersUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)))
+            Do
+                For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
+                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg), ERRID.ERR_UnsupportedType1) Then
+                        Return argsUseSiteInfo
+                    End If
                 Next
 
-                Return MergeUseSiteInfo(argsUseSiteInfo, modifiersUseSiteInfo)
-            End If
+                If currentType.HasTypeArgumentsCustomModifiers Then
+                    For i As Integer = 0 To Me.Arity - 1
+                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)), ERRID.ERR_UnsupportedType1) Then
+                            Return argsUseSiteInfo
+                        End If
+                    Next
+                End If
+
+                currentType = currentType.ContainingType
+            Loop While currentType IsNot Nothing AndAlso Not currentType.IsDefinition
 
             Return argsUseSiteInfo
         End Function

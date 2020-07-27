@@ -484,7 +484,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
         {
             var markup =
@@ -528,7 +528,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete()
         {
             var markup =
@@ -539,16 +539,16 @@ public class Program
 
     void M()
     {
-        _ = this is ({ $$ }) // no deconstruction into 1 element
+        _ = this is ({ $$ }) // Can deconstruct into a parenthesized property pattern
     }
 
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyNoItemsExistAsync(markup);
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
         {
             var markup =
@@ -559,13 +559,13 @@ public class Program
 
     void M()
     {
-        _ = this is ({ $$  // no deconstruction into 1 element
+        _ = this is ({ $$   // Can deconstruct into a parenthesized property pattern
     }
 
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyNoItemsExistAsync(markup);
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
         }
 
         [Fact]

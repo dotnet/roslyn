@@ -236,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(exceptionLocal),
                 F.Local(exceptionLocal),
                 exceptionLocal.Type,
+                exceptionFilterPrologueOpt: null,
                 exceptionFilterOpt: null,
                 body: F.Block(
                     assignFinishedState, // _state = finishedState;
@@ -253,7 +254,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that they can be collected by GC if needed
             foreach (var hoistedLocal in hoistedLocals)
             {
-                if (!hoistedLocal.Type.IsManagedType)
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+                var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
+                F.Diagnostics.Add(hoistedLocal.Locations.FirstOrNone(), useSiteInfo);
+                if (!isManagedType)
                 {
                     continue;
                 }

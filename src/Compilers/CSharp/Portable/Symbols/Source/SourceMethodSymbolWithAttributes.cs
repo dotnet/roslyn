@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -487,6 +488,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
+            {
+                MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                DecodeModuleInitializerAttribute(arguments);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -765,6 +771,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         bestFitMapping,
                         throwOnUnmappable),
                     preserveSig);
+            }
+        }
+
+        private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                return;
+            }
+
+            Debug.Assert(ContainingType is object);
+            var hasError = false;
+
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+            if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteInfo))
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteInfo);
+
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            if (IsGenericMethod || ContainingType.IsGenericType)
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
+            {
+                DeclaringCompilation.AddModuleInitializerMethod(this);
             }
         }
 #nullable restore

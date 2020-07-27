@@ -2304,12 +2304,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (t2MatchesExactly)
             {
-                // - E exactly matches T2
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, t1, t2, ref useSiteInfo, false);
                 return BetterResult.Right;
             }
 
-            // - T1 is a better conversion target than T2
+            // - C1 is not a conditional expression conversion and C2 is a conditional expression conversion
+            if (!conv1.IsConditionalExpression && conv2.IsConditionalExpression)
+                return BetterResult.Left;
+            if (!conv2.IsConditionalExpression && conv1.IsConditionalExpression)
+                return BetterResult.Right;
+
+            // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
+            //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
         }
 
@@ -2553,7 +2559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BetterResult.Neither;
             }
 
-            // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists, 
+            // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists,
             // and at least one of the following holds:
             bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteInfo).IsImplicit;
             bool type2ToType1 = Conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteInfo).IsImplicit;
@@ -2567,13 +2573,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BetterResult.Neither;
                 }
 
-                // - An implicit conversion from T1 to T2 exists 
+                // - An implicit conversion from T1 to T2 exists
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, type1, type2, ref useSiteInfo, true);
                 return BetterResult.Left;
             }
             else if (type2ToType1)
             {
-                // - An implicit conversion from T1 to T2 exists 
+                // - An implicit conversion from T1 to T2 exists
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, type1, type2, ref useSiteInfo, true);
                 return BetterResult.Right;
             }

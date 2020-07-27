@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -13,8 +12,8 @@ namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>();
-        private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>();
+        private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
+        private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
         protected bool typeReferenceNeedsToken;
 
         internal ReferenceIndexerBase(EmitContext context)

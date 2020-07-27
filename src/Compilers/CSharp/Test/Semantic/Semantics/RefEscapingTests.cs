@@ -2769,9 +2769,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(13, 23),
                 // (14,22): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (local, _) = local; // error 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(14, 22),
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(14, 22)
             );
         }
 
@@ -2799,9 +2797,7 @@ public static class Extensions
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (9,22): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (M(), M()) = local; // error
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(9, 22),
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(9, 22)
             );
         }
 
@@ -2833,9 +2829,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "(global, global) = global").WithArguments("(global, global) = global").WithLocation(8, 9),
                 // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28),
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28)
             );
         }
 
@@ -2863,9 +2857,7 @@ public static class Extensions
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (10,28): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         (global, global) = local; // error
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(10, 28),
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(10, 28)
             );
         }
 
@@ -2907,9 +2899,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 19),
                 // (8,27): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var t = ((global, global) = global); // error
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 27),
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 27)
             );
         }
 
@@ -3215,10 +3205,7 @@ public static class Extensions
 }
 ";
 
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
-            );
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3253,10 +3240,8 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "local1").WithArguments("local1").WithLocation(10, 18),
                 // (11,18): error CS8352: Cannot use local 'local2' in this context because it may expose referenced variables outside of their declaration scope
                 //         global = local2; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local2").WithArguments("local2").WithLocation(11, 18),
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
-                );
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local2").WithArguments("local2").WithLocation(11, 18)
+            );
         }
 
         [Fact]
@@ -3794,6 +3779,23 @@ class C
                 //         return null ?? x;
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(8, 24)
                 );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40583")]
+        public void ConvertedSpanReturn()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    D M1() => stackalloc byte[10];
+    D M2() { return stackalloc byte[10]; }
+}
+class D
+{
+    public static implicit operator D(Span<byte> span) => new D();
+}
+", options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
     }
 }

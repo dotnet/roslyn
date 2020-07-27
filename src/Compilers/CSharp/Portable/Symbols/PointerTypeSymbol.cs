@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind ManagedKind => ManagedKind.Unmanaged;
+        internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Unmanaged;
 
         public sealed override bool IsRefLikeType
         {

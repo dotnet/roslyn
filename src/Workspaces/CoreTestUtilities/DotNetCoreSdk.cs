@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
-            bool DotNetExeExists(string directory)
+            bool DotNetExeExists(string? directory)
                 => directory != null
                 && File.Exists(Path.Combine(directory, dotNetExeName));
 
             var dotNetInstallDir = Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR");
             if (!DotNetExeExists(dotNetInstallDir))
             {
-                dotNetInstallDir = Environment.GetEnvironmentVariable("PATH")
+                dotNetInstallDir = Environment.GetEnvironmentVariable("PATH")!
                     .Split(Path.PathSeparator)
                     .FirstOrDefault(DotNetExeExists);
             }

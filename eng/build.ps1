@@ -201,8 +201,7 @@ function Process-Arguments() {
 }
 
 function BuildSolution() {
-  # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
-  $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
+  $solution = "Roslyn.sln"
 
   Write-Host "$($solution):"
 
@@ -311,6 +310,8 @@ function GetIbcDropName() {
     
     # Find the matching drop
     $branch = GetIbcSourceBranchName
+    Write-Host "Optimization data branch name is '$branch'."
+
     $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch
     return $drop.Name
 }

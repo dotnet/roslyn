@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         {
             _exportProvider = exportProvider.AsExportProvider();
 
-            var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
             Evaluator = new TestInteractiveEvaluator();
             Window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
             Window.InitializeAsync().Wait();

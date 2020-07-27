@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
                 // With NuGetPackageResolver.
                 var resolver = new RuntimeMetadataReferenceResolver(
-                    new RelativePathResolver(ImmutableArray.Create(directory.Path), baseDirectory: directory.Path),
-                    new PackageResolver(ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("nuget:N/1.0", ImmutableArray.Create(assembly1.Path, assembly2.Path))),
+                    new RelativePathResolver(ImmutableArray.Create(directory.Path), directory.Path),
+                    packageResolver: new PackageResolver(ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("nuget:N/1.0", ImmutableArray.Create(assembly1.Path, assembly2.Path))),
                     gacFileResolver: null,
-                    useCoreResolver: false);
+                    trustedPlatformAssemblies: ImmutableDictionary<string, string>.Empty);
 
                 // Recognized NuGet reference.
                 var actualReferences = resolver.ResolveReference("nuget:N/1.0", baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
@@ -46,10 +46,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
                 // Without NuGetPackageResolver.
                 resolver = new RuntimeMetadataReferenceResolver(
-                    new RelativePathResolver(ImmutableArray.Create(directory.Path), baseDirectory: directory.Path),
-                    packageResolver: null,
-                    gacFileResolver: null,
-                    useCoreResolver: false);
+                    searchPaths: ImmutableArray.Create(directory.Path),
+                    baseDirectory: directory.Path);
 
                 // Unrecognized NuGet reference.
                 actualReferences = resolver.ResolveReference("nuget:N/1.0", baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
