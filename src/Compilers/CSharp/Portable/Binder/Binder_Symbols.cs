@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!ShouldCheckConstraints)
                 {
-                    diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(Compilation.LanguageVersion, constructedType), syntax.GetLocation());
+                    diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
                 }
                 else if (constructedType.IsNullableType())
                 {
@@ -521,9 +521,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var location = syntax.Location;
                     type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
                 }
-                else if (GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(Compilation.LanguageVersion, constructedType) is { } diagnosticInfo)
+                else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
                 {
-                    diagnostics.Add(diagnosticInfo, syntax.Location);
+                    diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
                 }
 
                 return constructedType;
@@ -570,21 +570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_TypeExpected, syntax.GetLocation());
                 return TypeWithAnnotations.Create(CreateErrorType());
             }
-        }
-
-        internal static CSDiagnosticInfo? GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(LanguageVersion languageVersion, in TypeWithAnnotations type)
-        {
-            if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8())
-            {
-                // Check IDS_FeatureDefaultTypeParameterConstraint feature since `T?` and `where ... : default`
-                // are treated as a single feature, even though the errors reported for the two cases are distinct.
-                var requiredVersion = MessageID.IDS_FeatureDefaultTypeParameterConstraint.RequiredVersion();
-                if (requiredVersion > languageVersion)
-                {
-                    return new CSDiagnosticInfo(ErrorCode.ERR_NullableUnconstrainedTypeParameter, new CSharpRequiredLanguageVersion(requiredVersion));
-                }
-            }
-            return null;
         }
 #nullable restore
 
