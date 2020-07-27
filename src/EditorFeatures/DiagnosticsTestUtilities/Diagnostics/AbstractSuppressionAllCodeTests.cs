@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private CodeAction GetFix(IEnumerable<CodeAction> fixes, bool pragma)
+        private static CodeAction GetFix(IEnumerable<CodeAction> fixes, bool pragma)
         {
             if (pragma)
             {

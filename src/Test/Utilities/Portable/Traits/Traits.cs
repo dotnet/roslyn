@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvertLogical = "CodeActions.InvertLogical";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
+            public const string CodeActionsMakeClassAbstract = "CodeActions.MakeClassAbstract";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
@@ -182,6 +183,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseIsNullCheck = "CodeActions.UseIsNullCheck";
             public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
+            public const string CodeActionsUsePatternCombinators = "CodeActions.UsePatternCombinators";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";

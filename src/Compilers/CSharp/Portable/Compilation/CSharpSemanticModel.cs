@@ -2212,6 +2212,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedNullability = e.TopLevelNullability;
                     conversion = e.Conversion.IsValid ? e.Conversion : Conversion.NoConversion;
                 }
+                else if (highestBoundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
+                {
+                    type = cond.NaturalTypeOpt;
+                    convertedType = cond.Type;
+                    convertedNullability = nullability;
+                    // PROTOTYPE(ngafter): Should we preserve the set of conversions?
+                    // By now they have been pushed into the subexpressions.
+                    conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
+                }
                 else
                 {
                     convertedType = type;

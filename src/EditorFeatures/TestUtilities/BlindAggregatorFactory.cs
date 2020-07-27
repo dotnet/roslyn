@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             private struct VTable
             {
                 // Need these to keep the delegates alive
-                private static unsafe readonly QueryInterfaceDelegateType s_queryInterface = BlindAggregator.QueryInterface;
-                private static unsafe readonly AddRefDelegateType s_addRef = BlindAggregator.AddRef;
-                private static unsafe readonly ReleaseDelegateType s_release = BlindAggregator.Release;
-                private static unsafe readonly GetGCHandlePtrDelegateType s_get_GCHandlePtr = BlindAggregator.GetGCHandlePtr;
+                private static readonly unsafe QueryInterfaceDelegateType s_queryInterface = BlindAggregator.QueryInterface;
+                private static readonly unsafe AddRefDelegateType s_addRef = BlindAggregator.AddRef;
+                private static readonly unsafe ReleaseDelegateType s_release = BlindAggregator.Release;
+                private static readonly unsafe GetGCHandlePtrDelegateType s_get_GCHandlePtr = BlindAggregator.GetGCHandlePtr;
 
                 private IntPtr _queryInterfacePtr;
                 private IntPtr _addRefPtr;

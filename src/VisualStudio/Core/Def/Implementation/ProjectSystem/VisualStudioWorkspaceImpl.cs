@@ -1002,40 +1002,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var document = this.CurrentSolution.GetTextDocument(documentId);
             if (document != null)
             {
-                if (TryGetFrame(document, out var frame))
+                OpenDocumentFromPath(document.FilePath, document.Project.Id, activate);
+            }
+        }
+
+        internal void OpenDocumentFromPath(string? filePath, ProjectId projectId, bool activate = true)
+        {
+            if (TryGetFrame(filePath, projectId, out var frame))
+            {
+                if (activate)
                 {
-                    if (activate)
-                    {
-                        frame.Show();
-                    }
-                    else
-                    {
-                        frame.ShowNoActivate();
-                    }
+                    frame.Show();
+                }
+                else
+                {
+                    frame.ShowNoActivate();
                 }
             }
         }
 
-        private bool TryGetFrame(CodeAnalysis.TextDocument document, [NotNullWhen(returnValue: true)] out IVsWindowFrame? frame)
+        /// <summary>
+        /// Opens a file and retrieves the window frame.
+        /// </summary>
+        /// <param name="filePath">the file path of the file to open.</param>
+        /// <param name="projectId">used to retrieve the IVsHierarchy to ensure the file is opened in a matching context.</param>
+        /// <param name="frame">the window frame.</param>
+        /// <returns></returns>
+        private bool TryGetFrame(string? filePath, ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsWindowFrame? frame)
         {
             frame = null;
 
-            if (document.FilePath == null)
+            if (filePath == null)
             {
                 return false;
             }
 
-            var hierarchy = GetHierarchy(document.Project.Id);
-            var itemId = hierarchy?.TryGetItemId(document.FilePath) ?? (uint)VSConstants.VSITEMID.Nil;
+            var hierarchy = GetHierarchy(projectId);
+            var itemId = hierarchy?.TryGetItemId(filePath) ?? (uint)VSConstants.VSITEMID.Nil;
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
                 // If the ItemId is Nil, then IVsProject would not be able to open the
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only
                 // depends on the file path.
 
-                var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
+                var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
                 return ErrorHandler.Succeeded(openDocumentService.OpenDocumentViaProject(
-                    document.FilePath,
+                    filePath,
                     VSConstants.LOGVIEWID.TextView_guid,
                     out var oleServiceProvider,
                     out var uiHierarchy,
@@ -1072,7 +1084,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var filePath = this.GetFilePath(documentId);
                 if (filePath != null)
                 {
-                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
+                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
                     if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out var uiHierarchy, null, out var frame, out var isOpen)))
                     {
                         // TODO: do we need save argument for CloseDocument?

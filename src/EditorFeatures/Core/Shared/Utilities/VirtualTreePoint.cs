@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             return ComparerWithState.CompareTo(this, other, s_comparers);
         }
 
-        private readonly static ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
             ImmutableArray.Create<Func<VirtualTreePoint, IComparable>>(p => p.Position, prop => prop.VirtualSpaces);
 
         public bool Equals(VirtualTreePoint other)

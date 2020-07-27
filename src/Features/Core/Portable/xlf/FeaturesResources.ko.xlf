@@ -525,6 +525,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">잘못된 그룹 이름: 그룹 이름은 단어 문자로 시작해야 합니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="new">Make class 'abstract'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
         <target state="translated">정적으로 만들기</target>

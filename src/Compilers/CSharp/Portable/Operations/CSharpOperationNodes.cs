@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public ITypeSymbol InputType => _boundNode.InputType.GetITypeSymbol(NullableAnnotation.None);
 
+        public ITypeSymbol NarrowedType => _boundNode.ConvertedType.GetITypeSymbol(NullableAnnotation.None);
+
         protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
     }
 
@@ -1536,8 +1538,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _value;
 
-        internal CSharpLazyConstantPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(inputType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
+        internal CSharpLazyConstantPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         {
             _operationFactory = operationFactory;
             _value = value;
@@ -1554,8 +1556,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _value;
 
-        internal CSharpLazyRelationalPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BinaryOperatorKind operatorKind, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(operatorKind, inputType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
+        internal CSharpLazyRelationalPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, CSharpOperationFactory operationFactory, BinaryOperatorKind operatorKind, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(operatorKind, inputType, narrowedType, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         {
             _operationFactory = operationFactory;
             _value = value;
@@ -1580,6 +1582,7 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundNegatedPattern boundNegatedPattern,
             SemanticModel semanticModel)
             : base(inputType: boundNegatedPattern.InputType.GetPublicSymbol(),
+                   narrowedType: boundNegatedPattern.ConvertedType.GetPublicSymbol(),
                    semanticModel: semanticModel,
                    syntax: boundNegatedPattern.Syntax,
                    type: null,
@@ -1608,6 +1611,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel)
             : base(operatorKind: boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
                    inputType: boundBinaryPattern.InputType.GetPublicSymbol(),
+                   narrowedType: boundBinaryPattern.ConvertedType.GetPublicSymbol(),
                    semanticModel: semanticModel,
                    syntax: boundBinaryPattern.Syntax,
                    type: null,
@@ -1640,6 +1644,7 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundRecursivePattern boundRecursivePattern,
             SemanticModel semanticModel)
             : base(inputType: boundRecursivePattern.InputType.GetPublicSymbol(),
+                   narrowedType: boundRecursivePattern.ConvertedType.GetPublicSymbol(),
                    matchedType: (boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType()).GetPublicSymbol(),
                    deconstructSymbol: boundRecursivePattern.DeconstructMethod.GetPublicSymbol(),
                    declaredSymbol: boundRecursivePattern.Variable.GetPublicSymbol(),
@@ -1704,6 +1709,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public CSharpLazyITuplePatternOperation(CSharpOperationFactory operationFactory, BoundITuplePattern boundITuplePattern, SemanticModel semanticModel)
             : base(inputType: boundITuplePattern.InputType.GetPublicSymbol(),
+                   narrowedType: boundITuplePattern.ConvertedType.GetPublicSymbol(),
                    matchedType: boundITuplePattern.InputType.StrippedType().GetPublicSymbol(),
                    deconstructSymbol: boundITuplePattern.GetLengthMethod.ContainingType.GetPublicSymbol(),
                    declaredSymbol: null,
@@ -1780,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundSwitchExpression _switchExpression;
 
         public CSharpLazySwitchExpressionOperation(CSharpOperationFactory operationFactory, BoundSwitchExpression boundSwitchExpression, SemanticModel semanticModel)
-            : base(semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.Type.GetPublicSymbol(), constantValue: null, boundSwitchExpression.WasCompilerGenerated)
+            : base(semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.GetPublicTypeSymbol(), constantValue: null, boundSwitchExpression.WasCompilerGenerated)
         {
             _operationFactory = operationFactory;
             _switchExpression = boundSwitchExpression;

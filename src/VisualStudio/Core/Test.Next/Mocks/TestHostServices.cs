@@ -4,8 +4,8 @@
 
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
 
