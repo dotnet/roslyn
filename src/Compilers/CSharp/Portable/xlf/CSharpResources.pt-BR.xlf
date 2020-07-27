@@ -1260,6 +1260,11 @@
         <target state="translated">atribuição de união</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="new">constant interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
         <source>default type parameter constraints</source>
         <target state="new">default type parameter constraints</target>
