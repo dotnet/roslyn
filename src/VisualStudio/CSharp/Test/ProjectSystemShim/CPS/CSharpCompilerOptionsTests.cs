@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -12,8 +13,6 @@ using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framew
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-
-#pragma warning disable CS0618 // Testing obsolete overload
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
@@ -49,7 +48,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             var options = environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1111"]);
 
-            project.SetOptions(@"/warnaserror");
+            project.SetOptions(ImmutableArray.Create(@"/warnaserror"));
             options = environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
         }
@@ -68,19 +67,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             // Change obj output folder from command line arguments - verify that objOutputPath changes, but binOutputPath is the same.
             var newObjPath = @"C:\NewFolder\test.dll";
-            project.SetOptions($"/out:{newObjPath}");
+            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
             // Change output file name - verify that objOutputPath changes, but binOutputPath is the same.
             newObjPath = @"C:\NewFolder\test2.dll";
-            project.SetOptions($"/out:{newObjPath}");
+            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
             // Change output file name and folder - verify that objOutputPath changes, but binOutputPath is the same.
             newObjPath = @"C:\NewFolder3\test3.dll";
-            project.SetOptions($"/out:{newObjPath}");
+            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
