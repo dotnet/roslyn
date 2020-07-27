@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
         Private Class Visitor
             Inherits VisualBasicSyntaxVisitor
 
-            Public result As String = Nothing
+            Public result As String
             Private ReadOnly _span As TextSpan
             Private ReadOnly _semanticModel As SemanticModel
             Private ReadOnly _service As VisualBasicHelpContextService
@@ -30,11 +30,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 Me._cancellationToken = cancellationToken
             End Sub
 
-            Private Function Keyword(text As String) As String
+            Private Shared Function Keyword(text As String) As String
                 Return "vb." + text
             End Function
 
-            Private Function Keyword(kind As SyntaxKind) As String
+            Private Shared Function Keyword(kind As SyntaxKind) As String
                 Return Keyword(kind.GetText())
             End Function
 

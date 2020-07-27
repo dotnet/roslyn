@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         private static readonly ComposableCatalog s_catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpHelpContextService));
         private static readonly IExportProviderFactory s_exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_catalog);
 
-        private async Task TestAsync(string markup, string expectedText)
+        private static async Task TestAsync(string markup, string expectedText)
         {
             using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProviderFactory.CreateExportProvider());
             var caret = workspace.Documents.First().CursorPosition;
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             Assert.Equal(expectedText, actualText);
         }
 
-        private async Task Test_KeywordAsync(string markup, string expectedText)
+        private static async Task Test_KeywordAsync(string markup, string expectedText)
         {
             await TestAsync(markup, expectedText + "_CSharpKeyword");
         }
