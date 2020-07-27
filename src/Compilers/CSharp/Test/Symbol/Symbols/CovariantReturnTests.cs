@@ -458,14 +458,17 @@ namespace System.Runtime.CompilerServices
             CSharpCompilation comp,
             string assignments,
             MetadataReference[] references = null,
-            bool withoutCorlib = false)
+            bool withoutCorlib = false,
+            params DiagnosticDescription[] expectedDiagnostics)
         {
             var compAsImage = comp.EmitToImageReference();
             references = references?.Append(compAsImage) ?? new[] { compAsImage };
             var coreLibrary = comp.GetMetadataReference(comp.Assembly.CorLibrary);
             if (!withoutCorlib)
                 references = references.Prepend(coreLibrary).ToArray();
-            return CreateCompilation(assignments, references: references, targetFramework: TargetFramework.Empty);
+            var result = CreateCompilation(assignments, references: references, targetFramework: TargetFramework.Empty);
+            result.VerifyDiagnostics(expectedDiagnostics);
+            return result;
         }
 
         private static CSharpCompilation RetargetingView(
@@ -2828,26 +2831,18 @@ public class Program
 
             references = new[] { ref0, ref1b };
             // we do not test CompilationReferenceView because the changed reference would cause us to retarget
+
             verify2(MetadataView(comp, assignments2, references));
+            verify2(RetargetingView(comp, assignments2, references));
 
-            // The following error probably arises from the fact that Mid.M and Derived.M are unrelated (they both override Base.M directly).
-            // See https://github.com/dotnet/roslyn/issues/45798
-            verify2(RetargetingView(comp, assignments2, references, expectedDiagnostics:
-                // (8,23): error CS0121: The call is ambiguous between the following methods or properties: 'Base.M()' and 'Base.M()'
-                //         string x3 = d.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Base.M()", "Base.M()").WithLocation(8, 23)
-                ));
-
-            static void verify1(CSharpCompilation comp, bool verifyAssignments = true)
+            static void verify1(CSharpCompilation comp)
             {
-                if (verifyAssignments)
-                    VerifyAssignments(comp, 3);
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
             }
 
             static void verify2(CSharpCompilation comp)
             {
-                verify1(comp);
+                VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
                 VerifyOverride(comp, "Mid.M", "System.String Mid.M()", "System.Object Base.M()");
             }
         }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NETCOREAPP
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,13 +13,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class CovariantReturnTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference CorelibraryWithCovariantReturnSupport;
-
-        static CovariantReturnTests()
+        private static MetadataReference _corelibraryWithCovariantReturnSupport;
+        private static MetadataReference CorelibraryWithCovariantReturnSupport
         {
-            if (new CovarantReturnRuntimeOnly().ShouldSkip)
-                return;
+            get
+            {
+                if (_corelibraryWithCovariantReturnSupport == null)
+                {
+                    _corelibraryWithCovariantReturnSupport = MakeCorelibraryWithCovariantReturnSupport();
+                }
 
+                return _corelibraryWithCovariantReturnSupport;
+            }
+        }
+
+        private static MetadataReference MakeCorelibraryWithCovariantReturnSupport()
+        {
             const string corLibraryCore = @"
 namespace System
 {
@@ -219,13 +226,14 @@ namespace System.Runtime.CompilerServices
                 @"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")]"
             }, assemblyName: "mscorlib");
             compilation.VerifyDiagnostics();
-            CorelibraryWithCovariantReturnSupport = compilation.EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
+            return compilation.EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
         }
 
         private static CSharpCompilation CreateCovariantCompilation(
             string source,
             CSharpCompilationOptions options = null,
-            IEnumerable<MetadataReference> references = null)
+            IEnumerable<MetadataReference> references = null,
+            string assemblyName = null)
         {
             Assert.NotNull(CorelibraryWithCovariantReturnSupport);
             references = (references == null) ?
@@ -235,10 +243,11 @@ namespace System.Runtime.CompilerServices
                 source,
                 options: options,
                 parseOptions: TestOptions.WithCovariantReturns,
-                references: references);
+                references: references,
+                assemblyName: assemblyName);
         }
 
-        [ConditionalFact(typeof(CovarantReturnRuntimeOnly))]
+        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
         public void SimpleCovariantReturnEndToEndTest()
         {
             var source = @"
@@ -272,7 +281,7 @@ Derived.M";
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
-        [ConditionalFact(typeof(CovarantReturnRuntimeOnly))]
+        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
         public void CovariantRuntimeHasRequiredMembers()
         {
             var source = @"
@@ -304,7 +313,74 @@ class Program
             var expectedOutput = @"";
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
+
+        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
+        public void CheckPreserveBaseOverride_01()
+        {
+            var s0 = @"
+public class Base
+{
+    public virtual object M() => ""Base.M"";
+}
+";
+            var ref0 = CreateCovariantCompilation(
+                s0,
+                assemblyName: "ref0").VerifyEmitDiagnostics().EmitToImageReference();
+
+            var s1a = @"
+public class Mid : Base
+{
+}
+";
+            var ref1a = CreateCovariantCompilation(
+                s1a,
+                references: new[] { ref0 },
+                assemblyName: "ref1").VerifyEmitDiagnostics().EmitToImageReference();
+
+            var s1b = @"
+public class Mid : Base
+{
+    public override string M() => ""Mid.M"";
+}
+";
+            var ref1b = CreateCovariantCompilation(
+                s1b,
+                references: new[] { ref0 },
+                assemblyName: "ref1").VerifyEmitDiagnostics().EmitToImageReference();
+
+            var s2 = @"
+public class Derived : Mid
+{
+    public override string M() => ""Derived.M"";
+}
+";
+            var ref2 = CreateCovariantCompilation(
+                s2,
+                references: new[] { ref0, ref1a },
+                assemblyName: "ref2").VerifyEmitDiagnostics().EmitToImageReference();
+
+            var program = @"
+using System;
+public class Program
+{
+    static void Main()
+    {
+        Derived d = new Derived();
+        Mid m = d;
+        Base b = m;
+        Console.WriteLine(b.M().ToString());
+        Console.WriteLine(m.M().ToString());
+        Console.WriteLine(d.M().ToString());
     }
 }
-
-#endif
+";
+            var compilation = CreateCovariantCompilation(program, options: TestOptions.DebugExe, references: new[] { ref0, ref1b, ref2 });
+            // compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"Derived.M
+Derived.M
+Derived.M";
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+    }
+}

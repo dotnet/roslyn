@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (containingTypeMapOpt == null)
             {
-                if (MemberGroupContainsOverride(members, member))
+                if (MemberGroupContainsMoreDerivedOverride(members, member))
                 {
                     // Don't even add it to the result set.  We'll add only the most-overriding members.
                     return;
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
-                        if (MemberGroupContainsOverride(others, member))
+                        if (MemberGroupContainsMoreDerivedOverride(others, member))
                         {
                             // Don't even add it to the result set.  We'll add only the most-overriding members.
                             return;
@@ -921,45 +921,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
-        private static bool IsOverride(Symbol overridden, Symbol overrider)
+        /// <summary>
+        /// Does <paramref name="moreDerivedOverride"/> override <paramref name="member"/> or the
+        /// thing that it originally overrides, but in a more derived class?
+        /// </summary>
+        private static bool IsMoreDerivedOverride(Symbol member, Symbol moreDerivedOverride)
         {
-            if (TypeSymbol.Equals(overridden.ContainingType, overrider.ContainingType, TypeCompareKind.ConsiderEverything2) ||
-                !MemberSignatureComparer.SloppyOverrideComparer.Equals(overridden, overrider))
+            if (!moreDerivedOverride.IsOverride ||
+                !IsBaseClass(derivedType: moreDerivedOverride.ContainingType, baseType: member.ContainingType) ||
+                !MemberSignatureComparer.SloppyOverrideComparer.Equals(member, moreDerivedOverride))
             {
                 // Easy out.
                 return false;
             }
 
-            // Does overrider override overridden?
-            var current = overrider;
-            while (true)
+            // Rather than following the member.GetOverriddenMember() chain, we check to see if both
+            // methods ultimately override the same original method.  This addresses issues in binary compat
+            // scenarios where the override chain may skip some steps.
+            // See https://github.com/dotnet/roslyn/issues/45798 for an example.
+            return moreDerivedOverride.GetLeastOverriddenMember(accessingTypeOpt: null).OriginalDefinition ==
+                   member.GetLeastOverriddenMember(accessingTypeOpt: null).OriginalDefinition;
+        }
+
+        private static bool IsBaseClass(TypeSymbol derivedType, TypeSymbol baseType)
+        {
+            Debug.Assert((object)derivedType != null);
+            Debug.Assert((object)baseType != null);
+
+            // A base class has got to be a class. The derived type might be a struct, enum, or delegate.
+            if (!baseType.IsClassType())
             {
-                if (!current.IsOverride)
-                {
-                    return false;
-                }
-                current = current.GetOverriddenMember();
+                return false;
+            }
 
-                // We could be in error recovery.
-                if ((object)current == null)
-                {
-                    return false;
-                }
-
-                if (current == overridden)
+            for (TypeSymbol b = derivedType.BaseTypeNoUseSiteDiagnostics; (object)b != null; b = b.BaseTypeNoUseSiteDiagnostics)
+            {
+                if (b.Equals(baseType, TypeCompareKind.ConsiderEverything))
                 {
                     return true;
                 }
-
-                // Don't search beyond the overridden member.
-                if (TypeSymbol.Equals(current.ContainingType, overridden.ContainingType, TypeCompareKind.ConsiderEverything2))
-                {
-                    return false;
-                }
             }
+
+            return false;
         }
 
-        private static bool MemberGroupContainsOverride<TMember>(ArrayBuilder<TMember> members, TMember member)
+        /// <summary>
+        /// Does the member group <paramref name="members"/> contain an override of <paramref name="member"/> or the method it
+        /// overrides, but in a more derived type?
+        /// </summary>
+        private static bool MemberGroupContainsMoreDerivedOverride<TMember>(ArrayBuilder<TMember> members, TMember member)
             where TMember : Symbol
         {
             if (!member.IsVirtual && !member.IsAbstract && !member.IsOverride)
@@ -969,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (var i = 0; i < members.Count; ++i)
             {
-                if (IsOverride(member, members[i]))
+                if (IsMoreDerivedOverride(member: member, moreDerivedOverride: members[i]))
                 {
                     return true;
                 }

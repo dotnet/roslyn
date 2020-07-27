@@ -405,8 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="requireSameReturnType">The returned method must have the same return type.</param>
         private MethodSymbol GetLeastOverriddenMethodCore(NamedTypeSymbol accessingTypeOpt, bool requireSameReturnType)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
-
+            accessingTypeOpt = accessingTypeOpt?.OriginalDefinition;
             MethodSymbol m = this;
             while (m.IsOverride && !m.HidesBaseMethodsByName)
             {
@@ -433,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overridden = m.OverriddenMethod;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if ((object)overridden == null ||
-                    !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics) ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref useSiteDiagnostics)) ||
                     (requireSameReturnType && !this.ReturnType.Equals(overridden.ReturnType, TypeCompareKind.AllIgnoreOptions)))
                 {
                     break;
