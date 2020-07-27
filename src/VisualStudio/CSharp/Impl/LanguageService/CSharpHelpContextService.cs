@@ -115,6 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             if (TryGetTextForContextualKeyword(token, out var text) ||
+                TryGetTextForCombinationKeyword(token, out text) ||
                 TryGetTextForKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
                 TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
@@ -281,6 +282,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                         return true;
                 }
+            }
+
+            text = null;
+            return false;
+        }
+        private bool TryGetTextForCombinationKeyword(SyntaxToken token, out string text)
+        {
+            // Contextual keywords can appear in any order, and the user could initiate help from either keyword
+            // so to keep the actual checks simple we just check all 4 combinations
+            return TryGetTextForCombinationKeyword(token, token.GetPreviousToken(), out text) ||
+                TryGetTextForCombinationKeyword(token, token.GetNextToken(), out text) ||
+                TryGetTextForCombinationKeyword(token.GetPreviousToken(), token, out text) ||
+                TryGetTextForCombinationKeyword(token.GetNextToken(), token, out text);
+        }
+
+        private bool TryGetTextForCombinationKeyword(SyntaxToken token1, SyntaxToken token2, out string text)
+        {
+            if (token1.Kind() == SyntaxKind.PrivateKeyword && token2.Kind() == SyntaxKind.ProtectedKeyword)
+            {
+                text = "privateprotected_CSharpKeyword";
+                return true;
+            }
+
+            if (token1.Kind() == SyntaxKind.ProtectedKeyword && token2.Kind() == SyntaxKind.InternalKeyword)
+            {
+                text = "protectedinternal_CSharpKeyword";
+                return true;
             }
 
             text = null;

@@ -765,9 +765,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Private Function SelectModifier(list As SyntaxTokenList) As Boolean
-                Dim modifier = list.FirstOrDefault(Function(t) t.Span.IntersectsWith(_span))
-                If modifier <> Nothing Then
-                    result = Keyword(modifier.Text)
+                Dim previousToken As SyntaxToken
+                For i As Integer = 0 To list.Count - 1
+                    Dim modifier = list(i)
+                    If modifier.Span.IntersectsWith(_span) Then
+                        ' For combination tokens we check current vs previous in any order
+                        If SelectCombinationModifier(previousToken, modifier) OrElse SelectCombinationModifier(modifier, previousToken) Then
+                            Return True
+                        Else
+                            If i < list.Count - 1 Then
+                                Dim nextToken = list(i + 1)
+                                ' Now check current vs next in any order
+                                If SelectCombinationModifier(nextToken, modifier) OrElse SelectCombinationModifier(modifier, nextToken) Then
+                                    Return True
+                                End If
+                            End If
+
+                            ' Not a combination token, just normal keyword help
+                            result = Keyword(modifier.Text)
+                            Return True
+                        End If
+                    End If
+                    previousToken = modifier
+                Next
+
+                Return False
+            End Function
+
+            Private Function SelectCombinationModifier(token1 As SyntaxToken, token2 As SyntaxToken) As Boolean
+                If token1.Kind() = SyntaxKind.ProtectedKeyword AndAlso token2.Kind() = SyntaxKind.FriendKeyword Then
+                    result = HelpKeywords.ProtectedFriend
+                    Return True
+                ElseIf token1.Kind() = SyntaxKind.PrivateKeyword AndAlso token2.Kind() = SyntaxKind.ProtectedKeyword Then
+                    result = HelpKeywords.PrivateProtected
                     Return True
                 End If
 

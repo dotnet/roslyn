@@ -40,6 +40,85 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInternal()
+        {
+            await Test_KeywordAsync(
+@"intern[||]al class C
+{
+}", "internal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtected()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted void goo();
+}", "protected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    internal protec[||]ted void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted internal void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    private protec[||]ted void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    priv[||]ate protected void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected3()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protected priv[||]ate void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected4()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    prot[||]ected private void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestVoid()
         {
             await Test_KeywordAsync(
