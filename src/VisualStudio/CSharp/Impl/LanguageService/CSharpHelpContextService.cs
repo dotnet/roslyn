@@ -291,10 +291,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             // Contextual keywords can appear in any order, and the user could initiate help from either keyword
             // so to keep the actual checks simple we just check all 4 combinations
-            return TryGetTextForCombinationKeyword(token, token.GetPreviousToken(), out text) ||
-                TryGetTextForCombinationKeyword(token, token.GetNextToken(), out text) ||
-                TryGetTextForCombinationKeyword(token.GetPreviousToken(), token, out text) ||
-                TryGetTextForCombinationKeyword(token.GetNextToken(), token, out text);
+            var previousToken = token.GetPreviousToken();
+            var nextToken = token.GetNextToken();
+            return TryGetTextForCombinationKeyword(token, previousToken, out text) ||
+                TryGetTextForCombinationKeyword(token, nextToken, out text) ||
+                TryGetTextForCombinationKeyword(previousToken, token, out text) ||
+                TryGetTextForCombinationKeyword(nextToken, token, out text);
         }
 
         private static bool TryGetTextForCombinationKeyword(SyntaxToken token1, SyntaxToken token2, out string text)

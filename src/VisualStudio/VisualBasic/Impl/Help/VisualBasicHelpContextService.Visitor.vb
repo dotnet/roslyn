@@ -765,29 +765,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Private Function SelectModifier(list As SyntaxTokenList) As Boolean
-                Dim previousToken As SyntaxToken
                 For i As Integer = 0 To list.Count - 1
                     Dim modifier = list(i)
                     If modifier.Span.IntersectsWith(_span) Then
-                        ' For combination tokens we check current vs previous in any order
-                        If SelectCombinationModifier(previousToken, modifier) OrElse SelectCombinationModifier(modifier, previousToken) Then
-                            Return True
-                        Else
-                            If i < list.Count - 1 Then
-                                Dim nextToken = list(i + 1)
-                                ' Now check current vs next in any order
-                                If SelectCombinationModifier(nextToken, modifier) OrElse SelectCombinationModifier(modifier, nextToken) Then
-                                    Return True
-                                End If
-                            End If
 
-                            ' Not a combination token, just normal keyword help
-                            result = Keyword(modifier.Text)
+                        If SelectCombinationModifier(modifier, i, list) Then
                             Return True
                         End If
+
+                        ' Not a combination token, just normal keyword help
+                        result = Keyword(modifier.Text)
+                        Return True
                     End If
-                    previousToken = modifier
                 Next
+
+                Return False
+            End Function
+
+            Private Function SelectCombinationModifier(token As SyntaxToken, index As Integer, list As SyntaxTokenList) As Boolean
+                Dim previousToken As SyntaxToken
+                Dim nextToken As SyntaxToken
+
+                If index > 0 Then
+                    previousToken = list(index - 1)
+                End If
+
+                If index < list.Count - 1 Then
+                    nextToken = list(index + 1)
+                End If
+
+                ' For combination tokens we check current vs previous in any order
+                If SelectCombinationModifier(previousToken, token) OrElse
+                    SelectCombinationModifier(token, previousToken) OrElse
+                    SelectCombinationModifier(nextToken, token) OrElse
+                    SelectCombinationModifier(token, nextToken) Then
+                    Return True
+                End If
 
                 Return False
             End Function
