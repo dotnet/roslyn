@@ -546,9 +546,9 @@ class C
 @"
 using System;
 struct S { 
-    public ref S Slice(int start, int length) => throw null; 
-    public int Length { get; } 
-    public S this[int r] { get => default; } 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[int r] { get => default; }
 }
 
 class C
@@ -591,16 +591,16 @@ class C
 @"
 using System;
 struct S { 
-    public ref S Slice(int start, int length) => throw null; 
-    public int Length { get; } 
-    public S this[System.Range r] { get => default; set { } } 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[System.Range r] { get => default; set { } }
 }
 
 class C
 {
     void Goo(S s)
     {
-        s.Slice(1, s.Length - 2) = default;
+        s.Slice([|1, s.Length - 2|]) = default;
     }
 }";
             var fixedSource =

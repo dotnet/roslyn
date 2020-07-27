@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
             // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property, 
             // or the syntax allows for the slice method to be run
-            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && indexer.ReturnsByRef != invocation.TargetMethod.ReturnsByRef)
+            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && isWriteableIndexer(invocation, indexer))
             {
                 return null;
             }
@@ -197,5 +198,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         private static bool IsConstantInt32(IOperation operation)
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
+
+        private static bool isWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)
+        {
+            var refReturnMismatch = indexer.ReturnsByRef != invocation.TargetMethod.ReturnsByRef;
+            var indexerIsReadWrite = indexer.IsWriteableFieldOrProperty();
+            return refReturnMismatch && !indexerIsReadWrite;
+        }
     }
 }
