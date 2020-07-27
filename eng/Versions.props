@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>8</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -23,14 +23,14 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.8.0-1.20353.1</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.8.0-1.20361.1</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.3.0-beta1.20352.4</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>3.3.0-beta1.20352.4</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <CodeStyleLayerCodeAnalysisVersion>3.6.0-2.final</CodeStyleLayerCodeAnalysisVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20358.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20374.2</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.7.0-3.20271.4</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
@@ -64,7 +64,7 @@
     <MicrosoftCodeAnalysisCSharpCodeRefactoringTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeRefactoringTestingXUnitVersion>
     <MicrosoftCodeAnalysisCSharpCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisCSharpCodeStyleVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.36</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.41</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
@@ -175,7 +175,7 @@
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>16.3.43</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>4.7.0</MicrosoftWin32RegistryVersion>
-    <MSBuildStructuredLoggerVersion>2.0.61</MSBuildStructuredLoggerVersion>
+    <MSBuildStructuredLoggerVersion>2.1.133</MSBuildStructuredLoggerVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
@@ -185,7 +185,7 @@
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
-    <RichCodeNavEnvVarDumpVersion>0.1.1407-alpha</RichCodeNavEnvVarDumpVersion>
+    <RichCodeNavEnvVarDumpVersion>0.1.1643-alpha</RichCodeNavEnvVarDumpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesOptimizationDataVersion>3.0.0-beta2-19053-01</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>

@@ -21,6 +21,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Public Sub New()
         End Sub
 
+        Protected Overrides Function GetPropertyDeclaration(node As SyntaxNode) As PropertyBlockSyntax
+            If TypeOf node Is PropertyStatementSyntax Then
+                node = node.Parent
+            End If
+
+            Return DirectCast(node, PropertyBlockSyntax)
+        End Function
+
         Protected Overrides Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return Utilities.GetNodeToRemove(identifier)
         End Function

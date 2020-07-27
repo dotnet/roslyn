@@ -10,8 +10,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     public abstract class BasicSquigglesCommon : AbstractEditorTest
     {
-        public BasicSquigglesCommon(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
-            : base(instanceFactory, testOutputHelper, nameof(BasicSquigglesCommon), projectTemplate)
+        public BasicSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
+            : base(instanceFactory, nameof(BasicSquigglesCommon), projectTemplate)
         {
         }
 

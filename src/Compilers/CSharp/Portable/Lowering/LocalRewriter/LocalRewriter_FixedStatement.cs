@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!pinnedTemp.Type.IsManagedType);
+                    Debug.Assert(!pinnedTemp.Type.IsManagedTypeNoUseSiteDiagnostics);
 
                     // temp = ref *default(T*);
                     cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), new BoundPointerIndirectionOperator(
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //(((temp = array) != null && temp.Length != 0) ? loc = &temp[0] : loc = null)
             BoundStatement localInit = factory.ExpressionStatement(
-                new BoundConditionalOperator(factory.Syntax, false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
+                new BoundConditionalOperator(factory.Syntax, false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType, wasTargetTyped: false, localType));
 
             return InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, localInit);
         }

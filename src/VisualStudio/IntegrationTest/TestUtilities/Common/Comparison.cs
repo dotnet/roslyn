@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
                 return false;
             }
 
-            for (int i = 0; i < array1.Length; i++)
+            for (var i = 0; i < array1.Length; i++)
             {
                 if (!EqualityComparer<T>.Default.Equals(array1[i], array2[i]))
                 {

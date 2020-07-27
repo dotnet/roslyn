@@ -884,13 +884,13 @@ class C4
 }
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,41): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (5,41): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //    public void F1<T>() where T : class, struct, I {}   // CS0449
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(5, 41),
-                // (6,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (6,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //    public void F2<T>() where T : I, struct {}   // CS0449
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(6, 37),
-                // (7,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (7,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //    public void F3<T>() where T : I, class {}   // CS0449
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(7, 37));
         }

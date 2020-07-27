@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // If a Visual Studio debugger is attached to the test process, attach it to the instance running
                 // integration tests as well.
                 var debuggerHostDte = GetDebuggerHostDte();
-                int targetProcessId = Process.GetCurrentProcess().Id;
+                var targetProcessId = Process.GetCurrentProcess().Id;
                 var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
                 if (localProcess != null)
                 {

@@ -2230,6 +2230,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
                     goto default;
 
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExpressionBody != null)
+                    {
+                        return method.ExpressionBody.Expression;
+                    }
+                    goto default;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var local = (LocalFunctionStatementSyntax)declaration;
+                    if (local.ExpressionBody != null)
+                    {
+                        return local.ExpressionBody.Expression;
+                    }
+                    goto default;
+
                 default:
                     return GetEqualsValue(declaration)?.Value;
             }
@@ -2263,6 +2279,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (id.ExpressionBody != null)
                     {
                         return ReplaceWithTrivia(id, id.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(method, method.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var local = (LocalFunctionStatementSyntax)declaration;
+                    if (local.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(local, local.ExpressionBody.Expression, expr);
                     }
                     goto default;
 

@@ -22,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFormatting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpFormatting))
+        public CSharpFormatting(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpFormatting))
         {
         }
 
@@ -307,7 +307,7 @@ class C
             // Switch back to the main document we'll be editing
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
 
-            MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out ImmutableArray<TextSpan> _);
             SetUpEditor(markup);
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
 

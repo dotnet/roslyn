@@ -23,7 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             };
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - 'text' is used for API consistency with other extension methods in this file.
         public static VsTextSpan GetVsTextSpanForLineOffset(this SourceText text, int lineNumber, int offset)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return new VsTextSpan
             {

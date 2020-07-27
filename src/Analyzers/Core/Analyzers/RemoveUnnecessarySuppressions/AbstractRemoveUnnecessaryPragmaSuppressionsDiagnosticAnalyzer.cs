@@ -117,6 +117,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 return;
             }
 
+            // Bail out for generated code.
+            if (tree.IsGeneratedCode(compilationWithAnalyzers.AnalysisOptions.Options, SyntaxFacts, cancellationToken))
+            {
+                return;
+            }
+
             var root = tree.GetRoot(cancellationToken);
 
             // Bail out if tree has syntax errors.
@@ -190,9 +196,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Remove entries for unhandled diagnostic ids.
             foreach (var id in unhandledIds)
             {
-                foreach (var (pragma, _) in idToPragmasMap[id])
+                if (idToPragmasMap.TryGetValue(id, out var pragmas))
                 {
-                    pragmasToIsUsedMap.Remove(pragma);
+                    foreach (var (pragma, _) in pragmas)
+                    {
+                        pragmasToIsUsedMap.Remove(pragma);
+                    }
                 }
 
                 if (idToSuppressMessageAttributesMap.TryGetValue(id, out var attributeNodes))
