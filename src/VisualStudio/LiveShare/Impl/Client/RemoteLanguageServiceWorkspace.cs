@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             if (fileExtension == ".cs")
             {
-                return StringConstants.CSharpLspLanguageName;
+                return LanguageNames.CSharp;
             }
             else if (fileExtension == ".ts" || fileExtension == ".js")
             {
@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
             else if (fileExtension == ".vb")
             {
-                return StringConstants.VBLspLanguageName;
+                return LanguageNames.VisualBasic;
             }
 
             return null;

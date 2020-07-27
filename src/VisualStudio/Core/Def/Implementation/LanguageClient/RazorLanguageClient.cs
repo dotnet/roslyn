@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     /// TODO - This can be removed once C# is using LSP for diagnostics.
     /// https://github.com/dotnet/roslyn/issues/42630
     /// </summary>
-    [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
     internal class RazorLanguageClient : AbstractLanguageServerClient

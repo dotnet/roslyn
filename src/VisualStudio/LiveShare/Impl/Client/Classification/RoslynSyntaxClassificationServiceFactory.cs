@@ -5,7 +5,6 @@
 using System;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -25,10 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             _threadingContext = threadingContext ?? throw new ArgumentNullException(nameof(threadingContext));
         }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new RoslynSyntaxClassificationService(_roslynLspClientServiceFactory,
-                languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
+            return new RoslynSyntaxClassificationService(_roslynLspClientServiceFactory, GetOriginalSyntaxClassificationService(languageServices), _classificationTypeMap, _threadingContext);
         }
+
+        protected abstract ISyntaxClassificationService GetOriginalSyntaxClassificationService(HostLanguageServices languageServices);
     }
 }
