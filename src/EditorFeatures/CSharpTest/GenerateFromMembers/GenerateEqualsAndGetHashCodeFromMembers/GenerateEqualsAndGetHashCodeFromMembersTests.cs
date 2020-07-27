@@ -283,7 +283,7 @@ parameters: CSharp6Explicit);
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -293,7 +293,7 @@ class Program
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -306,12 +306,7 @@ class Program
                EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }",
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,11): error CS0535: 'S' does not implement interface member 'IEquatable<S>.Equals(S)'
-    DiagnosticResult.CompilerError("CS0535").WithSpan(5, 11, 5, 24).WithArguments("S", "System.IEquatable<S>.Equals(S)"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -323,7 +318,7 @@ expectedDiagnostics: new List<DiagnosticResult>
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -334,7 +329,7 @@ class Program
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -350,12 +345,7 @@ class Program
     {
         return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
     }
-}", index: 1, options: PreferImplicitTypeWithInfo(),
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(6,11): error CS0535: 'S' does not implement interface member 'IEquatable<S>.Equals(S)'
-    DiagnosticResult.CompilerError("CS0535").WithSpan(6, 11, 6, 24).WithArguments("S", "System.IEquatable<S>.Equals(S)"),
-});
+}", index: 1, options: PreferImplicitTypeWithInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -366,7 +356,7 @@ expectedDiagnostics: new List<DiagnosticResult>
 using System;
 using System.Collections.Generic;
 
-struct S : IEquatable<S> { }
+struct S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -376,7 +366,7 @@ class Program
 using System;
 using System.Collections.Generic;
 
-struct S : IEquatable<S> { }
+struct S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -389,12 +379,7 @@ class Program
                a.Equals(program.a);
     }
 }",
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,12): error CS0535: 'S' does not implement interface member 'IEquatable<S>.Equals(S)'
-    DiagnosticResult.CompilerError("CS0535").WithSpan(5, 12, 5, 25).WithArguments("S", "System.IEquatable<S>.Equals(S)"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -710,7 +695,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     [|int i;
 
@@ -719,7 +704,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     int i;
 
@@ -741,12 +726,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
     {
         return !(left == right);
     }
-}",
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(4,25): error CS0535: 'ReallyLongName' does not implement interface member 'IEquatable<ReallyLongName>.Equals(ReallyLongName)'
-    DiagnosticResult.CompilerError("CS0535").WithSpan(4, 25, 4, 51).WithArguments("ReallyLongName", "System.IEquatable<ReallyLongName>.Equals(ReallyLongName)"),
-});
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -797,7 +777,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     [|int i;
 
@@ -809,7 +789,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     int i;
 
@@ -824,11 +804,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 
     public static bool operator ==(ReallyLongName left, ReallyLongName right) => false;
     public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
-}", expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(4,25): error CS0535: 'ReallyLongName' does not implement interface member 'IEquatable<ReallyLongName>.Equals(ReallyLongName)'
-    DiagnosticResult.CompilerError("CS0535").WithSpan(4, 25, 4, 51).WithArguments("ReallyLongName", "System.IEquatable<ReallyLongName>.Equals(ReallyLongName)"),
-});
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1243,13 +1219,13 @@ index: 1);
 
 class C
 {
-    [|(int, string) a;|]
+    [|{|CS8059:(int, string)|} a;|]
 }",
 @"using System.Collections.Generic;
 
 class C
 {
-    (int, string) a;
+    {|CS8059:(int, string)|} a;
 
     public override bool Equals(object obj)
     {
@@ -1259,12 +1235,7 @@ class C
     }
 }",
 index: 0,
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 18).WithArguments("tuples", "7.0"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1275,13 +1246,13 @@ expectedDiagnostics: new List<DiagnosticResult>
 
 class C
 {
-    [|(int, string) a;|]
+    [|{|CS8059:(int, string)|} a;|]
 }",
 @"using System.Collections.Generic;
 
 class C
 {
-    (int, string) a;
+    {|CS8059:(int, string)|} a;
 
     public override bool Equals(object obj)
     {
@@ -1290,12 +1261,7 @@ class C
                a.Equals(c.a);
     }
 }",
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 18).WithArguments("tuples", "7.0"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1306,13 +1272,13 @@ expectedDiagnostics: new List<DiagnosticResult>
 
 class C
 {
-    [|(int x, string y) a;|]
+    [|{|CS8059:(int x, string y)|} a;|]
 }",
 @"using System.Collections.Generic;
 
 class C
 {
-    (int x, string y) a;
+    {|CS8059:(int x, string y)|} a;
 
     public override bool Equals(object obj)
     {
@@ -1321,12 +1287,7 @@ class C
                a.Equals(c.a);
     }
 }",
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 22).WithArguments("tuples", "7.0"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1337,13 +1298,13 @@ expectedDiagnostics: new List<DiagnosticResult>
 
 class Program
 {
-    [|(int, string) i;|]
+    [|{|CS8059:(int, string)|} i;|]
 }",
 @"using System.Collections.Generic;
 
 class Program
 {
-    (int, string) i;
+    {|CS8059:(int, string)|} i;
 
     public override bool Equals(object obj)
     {
@@ -1358,12 +1319,7 @@ class Program
     }
 }",
 index: 1,
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 18).WithArguments("tuples", "7.0"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1374,13 +1330,13 @@ expectedDiagnostics: new List<DiagnosticResult>
 
 class Program
 {
-    [|(int x, string y) i;|]
+    [|{|CS8059:(int x, string y)|} i;|]
 }",
 @"using System.Collections.Generic;
 
 class Program
 {
-    (int x, string y) i;
+    {|CS8059:(int x, string y)|} i;
 
     public override bool Equals(object obj)
     {
@@ -1395,12 +1351,7 @@ class Program
     }
 }",
 index: 1,
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-    DiagnosticResult.CompilerError("CS8059").WithSpan(5, 5, 5, 22).WithArguments("tuples", "7.0"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1976,7 +1927,7 @@ class Program
     public string s;
     [||]
 
-    public static bool operator ==(Program left, Program right) => true;
+    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
 }",
 @"
 using System.Collections.Generic;
@@ -1992,21 +1943,11 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program left, Program right) => true;
+    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
 }",
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
-parameters: CSharp6Implicit,
-testExpectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(9,33): error CS0216: The operator 'Program.operator ==(Program, Program)' requires a matching operator '!=' to also be defined
-    DiagnosticResult.CompilerError("CS0216").WithSpan(9, 33, 9, 35).WithArguments("Program.operator ==(Program, Program)", "!="),
-},
-fixedExpectedDiagnostics: new List<DiagnosticResult>
-{
-        // /0/Test0.cs(15,33): error CS0216: The operator 'Program.operator ==(Program, Program)' requires a matching operator '!=' to also be defined
-    DiagnosticResult.CompilerError("CS0216").WithSpan(15, 33, 15, 35).WithArguments("Program.operator ==(Program, Program)", "!="),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2450,7 +2391,7 @@ parameters: new TestParameters(TestOptions.Regular8, retainNonFixableDiagnostics
 @"
 using System.Collections.Generic;
 
-class Program : System.IEquatable<Program>
+class Program : {|CS0535:System.IEquatable<Program>|}
 {
     public string s;
     [||]
@@ -2458,7 +2399,7 @@ class Program : System.IEquatable<Program>
 @"
 using System.Collections.Generic;
 
-class Program : System.IEquatable<Program>
+class Program : {|CS0535:System.IEquatable<Program>|}
 {
     public string s;
 
@@ -2471,12 +2412,7 @@ class Program : System.IEquatable<Program>
 }",
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
-parameters: CSharp6Implicit,
-expectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(4,17): error CS0535: 'Program' does not implement interface member 'IEquatable<Program>.Equals(Program)'
-    DiagnosticResult.CompilerError("CS0535").WithSpan(4, 17, 4, 43).WithArguments("Program", "System.IEquatable<Program>.Equals(Program)"),
-});
+parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -3480,11 +3416,11 @@ index: 1);
 
 abstract class Base
 {
-    public abstract override bool Equals(object? obj);
+    public abstract override bool Equals(object{|CS8632:?|} obj);
     public abstract override int GetHashCode();
 }
 
-class Derived : Base
+class {|CS0534:{|CS0534:Derived|}|} : Base
 {
     [|public int P { get; }|]
 }",
@@ -3494,7 +3430,7 @@ namespace System { public struct HashCode { } }
 
 abstract class Base
 {
-    public abstract override bool Equals(object? obj);
+    public abstract override bool Equals(object{|CS8632:?|} obj);
     public abstract override int GetHashCode();
 }
 
@@ -3515,19 +3451,8 @@ class Derived : Base
 }",
 index: 1,
 parameters: CSharpLatest,
-testExpectedDiagnostics: new List<DiagnosticResult>
-{
-    // /0/Test0.cs(5,48): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-    DiagnosticResult.CompilerError("CS8632").WithSpan(5, 48, 5, 49),
-    // /0/Test0.cs(9,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Equals(object?)'
-    DiagnosticResult.CompilerError("CS0534").WithSpan(9, 7, 9, 14).WithArguments("Derived", "Base.Equals(object?)"),
-    // /0/Test0.cs(9,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.GetHashCode()'
-    DiagnosticResult.CompilerError("CS0534").WithSpan(9, 7, 9, 14).WithArguments("Derived", "Base.GetHashCode()"),
-},
 fixedExpectedDiagnostics: new List<DiagnosticResult>
 {
-    // /0/Test0.cs(7,48): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-    DiagnosticResult.CompilerError("CS8632").WithSpan(7, 48, 7, 49),
     // /0/Test0.cs(23,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
     DiagnosticResult.CompilerError("CS0117").WithSpan(23, 25, 23, 32).WithArguments("System.HashCode", "Combine"),
 });
