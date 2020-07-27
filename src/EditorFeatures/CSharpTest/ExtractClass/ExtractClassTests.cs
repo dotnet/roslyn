@@ -76,6 +76,67 @@ class Test : MyBase
             await TestAsync(input, expected);
         }
 
+
+        [Fact]
+        public async Task TestPartialClass()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+partial class Test
+{
+    int [||]Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+        <Document FilePath=""Test.Other.cs"">
+partial class Test
+{
+    int Method2()
+    {
+        return 5;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+partial class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""Test.Other.cs"">
+partial class Test
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+    int Method2()
+    {
+        return 5;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestAsync(
+                input, 
+                expected,
+                dialogSelection: MakeSelection("Method", "Method2"));
+        }
+
         [Fact]
         public async Task TestInNamespace()
         {

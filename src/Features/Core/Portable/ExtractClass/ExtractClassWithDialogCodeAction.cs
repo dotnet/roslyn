@@ -173,10 +173,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                var typeDeclaration = root.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).SingleOrDefault();
-                Contract.ThrowIfNull(typeDeclaration);
-
                 using var _2 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(remainingResults.Count, out var resultsToRemove);
 
                 // Out of the remaining members that we need to move, does this
@@ -186,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 {
                     var annotation = symbolMapping.SymbolToDeclarationAnnotationMap[memberAnalysis.Member];
 
-                    var nodeOrToken = typeDeclaration.GetAnnotatedNodesAndTokens(annotation).SingleOrDefault();
+                    var nodeOrToken = root.GetAnnotatedNodesAndTokens(annotation).SingleOrDefault();
                     var node = nodeOrToken.IsNode
                         ? nodeOrToken.AsNode()
                         : nodeOrToken.AsToken().Parent;
@@ -203,7 +199,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                     }
 
                     pullMembersBuilder.Add((currentSymbol, memberAnalysis.MakeAbstract));
-                    resultsToRemove.Remove(memberAnalysis);
+                    resultsToRemove.Add(memberAnalysis);
                 }
 
                 // Remove the symbols we found in this document from the list 
