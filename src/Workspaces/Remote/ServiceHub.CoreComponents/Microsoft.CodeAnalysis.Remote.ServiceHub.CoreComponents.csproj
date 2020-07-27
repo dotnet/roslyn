@@ -12,9 +12,8 @@
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
-      <_PublishedFiles Include="$(PublishDir)**\*.*" />
+      <_PublishedFiles Include="$(PublishDir)**\*.*" Exclude="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*"/>
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(FileName)' == 'Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents'" />
 
       <!-- Set TargetPath -->
       <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
