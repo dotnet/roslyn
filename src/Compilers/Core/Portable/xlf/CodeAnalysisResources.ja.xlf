@@ -31,12 +31,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName contains an invalid character '{0}' at position {1}.</source>
-        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <target state="translated">hintName の位置 {1} に無効な文字 '{0}' が含まれています。</target>
         <note>{0}: the invalid character, {1} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName of the added source file must be unique within a generator.</target>
+        <target state="translated">追加されたソース ファイルの hintName は、ジェネレーター内で一意である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -111,7 +111,7 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="needs-review-translation">ジェネレーターごとに登録できるのは 1 つの {0} のみです。</target>
+        <target state="translated">ジェネレーターごとに登録できるのは 1 つの {0} のみです。</target>
         <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -571,12 +571,12 @@
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
         <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
-        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <target state="translated">複数のグローバル アナライザー構成ファイルで、セクション '{1}' に同じキー '{0}' が設定されています。設定は解除されました。キーは次のファイルによって設定されました: '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
         <source>Multiple global analyzer config files set the same key. It has been unset.</source>
-        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <target state="translated">複数のグローバル アナライザー構成ファイルで同じキーが設定されている。設定が解除された。</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
