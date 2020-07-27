@@ -5,9 +5,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -73,8 +75,8 @@ namespace Analyzer.Utilities
         /// suggests the TypeNames collection can be checked to avoid expensive operations. But realizing TypeNames seems to be
         /// as memory intensive as unnecessary calls GetTypeByMetadataName() in some cases. So we'll go with namespace names.
         /// </remarks>
-        private static readonly ConcurrentDictionary<string, string[]> _fullTypeNameToNamespaceNames =
-            new ConcurrentDictionary<string, string[]>(StringComparer.Ordinal);
+        private static readonly ConcurrentDictionary<string, ImmutableArray<string>> _fullTypeNameToNamespaceNames =
+            new ConcurrentDictionary<string, ImmutableArray<string>>(StringComparer.Ordinal);
 #endif
 
         /// <summary>
@@ -99,7 +101,7 @@ namespace Analyzer.Utilities
 
                     INamedTypeSymbol? type = null;
 
-                    string[]? namespaceNames = null;
+                    ImmutableArray<string> namespaceNames;
 #if NETSTANDARD1_3 // Probably in 2.9.x branch; just don't cache.
                     namespaceNames = GetNamespaceNamesFromFullTypeName(fullTypeName);
 #else // Assuming we're on .NET Standard 2.0 or later, cache the type names that are probably compile time constants.
@@ -192,55 +194,101 @@ namespace Analyzer.Utilities
                 && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);
         }
 
-        private static string[] GetNamespaceNamesFromFullTypeName(string fullTypeName)
+        private static ImmutableArray<string> GetNamespaceNamesFromFullTypeName(string fullTypeName)
         {
-            int dotCount = 0;
-            int lastDotIndex = -1;
-            for (int i = 0; i < fullTypeName.Length; i++)
-            {
-                switch (fullTypeName[i])
-                {
-                    case '.':
-                        lastDotIndex = i;
-                        dotCount++;
-                        break;
+            using ArrayBuilder<string> namespaceNamesBuilder = ArrayBuilder<string>.GetInstance();
+            RoslynDebug.Assert(namespaceNamesBuilder != null);
 
-                    // Dunno if Compilation.GetTypeByMetadataName() or IAssemblySymbol.GetTypeByMetadataName() will ever 
-                    // support something like "System.Collections.Generic.List<System.String>", but if they do, we'll be ready.
-                    case '`':
-                    case '+':
-                    case '<':
-                    case '>':
-                    case '[':
-                    case ']':
-                    case '*':
-                    case ',':
-                        goto ExitLoop;
-                }
-            }
-
-            ExitLoop:
-            if (dotCount == 0)
-            {
-                return Array.Empty<string>();
-            }
-
-            string[] namespaceNames = new string[dotCount];
-            int namespaceIndex = 0;
             int prevStartIndex = 0;
-            for (int i = 0; i <= lastDotIndex; i++)
+            for (int i = 0; i < fullTypeName.Length; i++)
             {
                 if (fullTypeName[i] == '.')
                 {
-                    namespaceNames[namespaceIndex++] = fullTypeName[prevStartIndex..i];
+                    namespaceNamesBuilder.Add(fullTypeName[prevStartIndex..i]);
                     prevStartIndex = i + 1;
+                }
+                else if (!IsIdentifierPartCharacter(fullTypeName[i]))
+                {
+                    break;
                 }
             }
 
-            return namespaceNames;
+            return namespaceNamesBuilder.ToImmutable();
         }
 
-        private static bool IsSubsetOfCollection<T>(T[] set1, ICollection<T> set2)
+        /// <summary>
+        /// Returns true if the Unicode character can be a part of an identifier.
+        /// </summary>
+        /// <param name="ch">The Unicode character.</param>
+        private static bool IsIdentifierPartCharacter(char ch)
+        {
+            // identifier-part-character:
+            //   letter-character
+            //   decimal-digit-character
+            //   connecting-character
+            //   combining-character
+            //   formatting-character
+
+            if (ch < 'a') // '\u0061'
+            {
+                if (ch < 'A') // '\u0041'
+                {
+                    return ch >= '0'  // '\u0030'
+                        && ch <= '9'; // '\u0039'
+                }
+
+                return ch <= 'Z'  // '\u005A'
+                    || ch == '_'; // '\u005F'
+            }
+
+            if (ch <= 'z') // '\u007A'
+            {
+                return true;
+            }
+
+            if (ch <= '\u007F') // max ASCII
+            {
+                return false;
+            }
+
+            UnicodeCategory cat = CharUnicodeInfo.GetUnicodeCategory(ch);
+
+            ////return IsLetterChar(cat)
+            ////    || IsDecimalDigitChar(cat)
+            ////    || IsConnectingChar(cat)
+            ////    || IsCombiningChar(cat)
+            ////    || IsFormattingChar(cat);
+
+            switch (cat)
+            {
+                // Letter
+                case UnicodeCategory.UppercaseLetter:
+                case UnicodeCategory.LowercaseLetter:
+                case UnicodeCategory.TitlecaseLetter:
+                case UnicodeCategory.ModifierLetter:
+                case UnicodeCategory.OtherLetter:
+                case UnicodeCategory.LetterNumber:
+
+                // DecimalDigit
+                case UnicodeCategory.DecimalDigitNumber:
+
+                // ConnectingChar
+                case UnicodeCategory.ConnectorPunctuation:
+
+                // CombiningChar
+                case UnicodeCategory.NonSpacingMark:
+                case UnicodeCategory.SpacingCombiningMark:
+
+                // FormattingChar
+                case UnicodeCategory.Format:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsSubsetOfCollection<T>(ImmutableArray<T> set1, ICollection<T> set2)
         {
             if (set1.Length > set2.Count)
             {
