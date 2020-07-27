@@ -31,12 +31,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName contains an invalid character '{0}' at position {1}.</source>
-        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <target state="translated">Parametr hintName obsahuje neplatný znak {0} na pozici {1}.</target>
         <note>{0}: the invalid character, {1} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName of the added source file must be unique within a generator.</target>
+        <target state="translated">Parametr hintName přidaného zdrojového souboru musí být jedinečný v rámci generátoru.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -111,7 +111,7 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="needs-review-translation">Na jeden generátor je možné zaregistrovat jen jedno {0}.</target>
+        <target state="translated">Na jeden generátor je možné zaregistrovat jen jedno {0}.</target>
         <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -571,12 +571,12 @@
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
         <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
-        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <target state="translated">Několik konfiguračních souborů globálního analyzátoru nastavuje v části {1} stejný klíč {0}. Jeho nastavení se zrušilo. Klíč se nastavil v následujících souborech: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
         <source>Multiple global analyzer config files set the same key. It has been unset.</source>
-        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <target state="translated">Několik konfiguračních souborů globálního analyzátoru nastavuje stejný klíč. Jeho nastavení se zrušilo</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">

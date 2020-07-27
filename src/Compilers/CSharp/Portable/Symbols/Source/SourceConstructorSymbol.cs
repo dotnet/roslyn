@@ -158,6 +158,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected override bool AllowRefOrOut
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {
             ConstructorDeclarationSyntax ctorSyntax = GetSyntax();

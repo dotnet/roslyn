@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureSubscription()
         {
             // make sure we have file notification subscribed
-            var unused = _fileChangeCookie.GetValue(CancellationToken.None);
+            _ = _fileChangeCookie.GetValue(CancellationToken.None);
         }
 
         public Task StartFileChangeListeningAsync()

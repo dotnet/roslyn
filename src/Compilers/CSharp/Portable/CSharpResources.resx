@@ -1366,7 +1366,7 @@
     <value>The return type for ++ or -- operator must match the parameter type or be derived from the parameter type</value>
   </data>
   <data name="ERR_TypeConstraintsMustBeUniqueAndFirst" xml:space="preserve">
-    <value>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</value>
+    <value>The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</value>
   </data>
   <data name="ERR_RefValBoundWithClass" xml:space="preserve">
     <value>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</value>
@@ -3236,7 +3236,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Embedded interop method '{0}' contains a body.</value>
   </data>
   <data name="ERR_BadWarningLevel" xml:space="preserve">
-    <value>Warning level must be in the range 0-4</value>
+    <value>Warning level must be zero or greater</value>
   </data>
   <data name="ERR_BadDebugType" xml:space="preserve">
     <value>Invalid option '{0}' for /debug; must be 'portable', 'embedded', 'full' or 'pdbonly'</value>
@@ -3899,8 +3899,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="WRN_MainIgnored_Title" xml:space="preserve">
     <value>The entry point of the program is global code; ignoring entry point</value>
   </data>
-  <data name="ERR_StaticInAsOrIs" xml:space="preserve">
+  <data name="WRN_StaticInAsOrIs" xml:space="preserve">
     <value>The second operand of an 'is' or 'as' operator may not be static type '{0}'</value>
+  </data>
+  <data name="WRN_StaticInAsOrIs_Title" xml:space="preserve">
+    <value>The second operand of an 'is' or 'as' operator may not be a static type</value>
   </data>
   <data name="ERR_BadVisEventType" xml:space="preserve">
     <value>Inconsistent accessibility: event type '{1}' is less accessible than event '{0}'</value>
@@ -4620,7 +4623,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -5606,7 +5609,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
   </data>
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
-    <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
+    <value>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</value>
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</value>
@@ -5733,6 +5736,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureNullPointerConstantPattern" xml:space="preserve">
     <value>null pointer constant pattern</value>
+  </data>
+  <data name="IDS_FeatureDefaultTypeParameterConstraint" xml:space="preserve">
+    <value>default type parameter constraints</value>
   </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
@@ -6019,6 +6025,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OverrideValConstraintNotSatisfied" xml:space="preserve">
     <value>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</value>
   </data>
+  <data name="ERR_OverrideDefaultConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</value>
+  </data>
+  <data name="ERR_DefaultConstraintOverrideOnly" xml:space="preserve">
+    <value>The 'default' constraint is valid on override and explicit interface implementation methods only.</value>
+  </data>
   <data name="IDS_OverrideWithConstraints" xml:space="preserve">
     <value>constraints for override and explicit interface implementation methods</value>
   </data>
@@ -6169,9 +6181,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadRecordDeclaration" xml:space="preserve">
     <value>A positional record must have both a 'data' modifier and non-empty parameter list</value>
   </data>
-  <data name="ERR_DuplicateRecordConstructor" xml:space="preserve">
-    <value>There cannot be a primary constructor and a member constructor with the same parameter types.</value>
-  </data>
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
@@ -6313,6 +6322,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CopyConstructorMustInvokeBaseCopyConstructor" xml:space="preserve">
     <value>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</value>
   </data>
+  <data name="IDS_FeatureTargetTypedConditional" xml:space="preserve">
+    <value>target-typed conditional expression</value>
+  </data>
   <data name="ERR_DoesNotOverrideMethodFromObject" xml:space="preserve">
     <value>'{0}' does not override expected method from 'object'.</value>
   </data>
@@ -6345,5 +6357,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DoesNotOverrideBaseEqualityContract" xml:space="preserve">
     <value>'{0}' does not override expected property from '{1}'.</value>
+  </data>
+  <data name="ERR_StaticAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' may not be static.</value>
+  </data>
+  <data name="ERR_CopyConstructorWrongAccessibility" xml:space="preserve">
+    <value>A copy constructor '{0}' must be public or protected because the record is not sealed.</value>
+  </data>
+  <data name="ERR_NonPrivateAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be private.</value>
+  </data>
+  <data name="IDS_FeatureModuleInitializers" xml:space="preserve">
+    <value>module initializers</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType" xml:space="preserve">
+    <value>Module initializer method '{0}' must be accessible at the module level</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
+    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
+    <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
+    <value>A module initializer must be an ordinary member method</value>
   </data>
 </root>

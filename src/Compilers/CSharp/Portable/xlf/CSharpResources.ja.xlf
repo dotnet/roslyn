@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
         <source>'&amp;' on method groups cannot be used in expression trees</source>
-        <target state="new">'&amp;' on method groups cannot be used in expression trees</target>
+        <target state="translated">メソッド グループの '&amp;' を式ツリーで使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddressOfToNonFunctionPointer">
         <source>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</source>
-        <target state="new">Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</target>
+        <target state="translated">&amp;method グループ '{0}' を関数以外のポインター型 '{1}' に変換することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
         <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
-        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
+        <target state="translated">'{1}' および '{2}' のオペランドの演算子 '{0}' があいまいです</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</source>
-        <target state="new">Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</target>
+        <target state="translated">init 専用プロパティまたはインデクサー '{0}' を割り当てることができるのは、オブジェクト初期化子の中か、インスタンス コンストラクターまたは 'init' アクセサーの 'this' か 'base' 上のみです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
@@ -94,22 +94,22 @@
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
-        <target state="new">Function pointer '{0}' does not take {1} arguments</target>
+        <target state="translated">関数ポインター '{0}' には {1} 個の引数を指定できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerParamModifier">
         <source>'{0}' cannot be used as a modifier on a function pointer parameter.</source>
-        <target state="new">'{0}' cannot be used as a modifier on a function pointer parameter.</target>
+        <target state="translated">関数ポインター パラメーターでは、'{0}' を修飾子として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
         <source>Only records may inherit from records.</source>
-        <target state="new">Only records may inherit from records.</target>
+        <target state="translated">レコードから継承できるのはレコードだけです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInitAccessor">
         <source>The 'init' accessor is not valid on static members</source>
-        <target state="new">The 'init' accessor is not valid on static members</target>
+        <target state="translated">静的メンバー上で 'init' アクセサーは有効ではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadOpOnNullOrDefaultOrNew">
         <source>Operator '{0}' cannot be applied to operand '{1}'</source>
-        <target state="new">Operator '{0}' cannot be applied to operand '{1}'</target>
+        <target state="translated">演算子 '{0}' はオペランド '{1}' に適用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -134,17 +134,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordBase">
         <source>Records may only inherit from object or another record</source>
-        <target state="new">Records may only inherit from object or another record</target>
+        <target state="translated">レコードの継承元にできるのは、オブジェクトか別のレコードだけです</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordDeclaration">
         <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="new">A positional record must have both a 'data' modifier and non-empty parameter list</target>
+        <target state="translated">位置指定レコードには、'data' 修飾子と空でないパラメーター リストの両方が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="new">Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</target>
+        <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -154,22 +154,22 @@
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
-        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
+        <target state="translated">メソッド グループ '{0}' をデリゲート型 '{0}' に変換することはできません。(&amp;M)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
         <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
-        <target state="new">The type of a local declared in a fixed statement cannot be a function pointer type.</target>
+        <target state="translated">fixed ステートメントで宣言されたローカルの型を関数ポインター型にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
-        <target state="new">Cannot use an extension method with a receiver as the target of a '&amp;' operator.</target>
+        <target state="translated">レシーバーが '&amp;' 演算子の対象となっている拡張メソッドを使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
         <source>'{0}' must match by init-only of overridden member '{1}'</source>
-        <target state="new">'{0}' must match by init-only of overridden member '{1}'</target>
+        <target state="translated">'{0}' は、オーバーライドされたメンバー '{1}' と同じく、初期化専用である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</target>
+        <target state="translated">'{0}' は、インターフェイス メンバー '{1}' を実装していません。'{2}' は '{1}' を実装できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
-        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <target state="translated">ローカル関数 '{0}' は、条件付き属性を使用するには、'static' である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
@@ -204,12 +204,22 @@
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
-        <target state="new">A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</target>
+        <target state="translated">レコード内のコピー コンストラクターは、ベースのコピー コンストラクターまたはパラメーターなしのオブジェクト コンストラクター (レコードがオブジェクトから継承している場合) を呼び出す必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CopyConstructorWrongAccessibility">
+        <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
+        <target state="new">A copy constructor '{0}' must be public or protected because the record is not sealed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名前 '{0}' は対応する 'Deconstruct' パラメーター '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultConstraintOverrideOnly">
+        <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
+        <target state="new">The 'default' constraint is valid on override and explicit interface implementation methods only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -229,7 +239,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
+        <target state="translated">'not' または 'or' パターンの中で変数を宣言することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -254,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
         <source>A return type can only have one '{0}' modifier.</source>
-        <target state="new">A return type can only have one '{0}' modifier.</target>
+        <target state="translated">戻り値の型には '{0}' 修飾子を 1 つだけ指定できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateExplicitImpl">
@@ -272,11 +282,6 @@
         <target state="translated">プロパティまたはインデクサー '{0}' の両方のアクセサーで 'readonly' 修飾子を指定することはできません。代わりに、プロパティ自体に 'readonly' 修飾子を指定してください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DuplicateRecordConstructor">
-        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
-        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' でステートメントを開始することはできません。</target>
@@ -289,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
-        <target state="new">Accessors '{0}' and '{1}' should both be init-only or neither</target>
+        <target state="translated">アクセサー '{0}' と '{1}' は、両方 init 専用か、両方そうでないかのいずれかでなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -309,17 +314,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
-        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <target state="translated">式ツリーに、from-end インデックス ('^') 式を含めることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">式ツリーに、System.Index または System.Range インデクサー アクセスのパターンを含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
         <source>An expression tree may not contain a range ('..') expression.</source>
-        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <target state="translated">式ツリーに範囲 ('..') 式を含めることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -334,7 +339,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
-        <target state="new">An expression tree may not contain a with-expression.</target>
+        <target state="translated">式ツリーは、with 式を含むことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -364,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion9">
         <source>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</target>
+        <target state="translated">機能 '{0}' は C# 9.0 では使用できません。言語バージョン {1} 以上を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
@@ -379,12 +384,12 @@
       </trans-unit>
       <trans-unit id="ERR_FuncPtrMethMustBeStatic">
         <source>Cannot create a function pointer for '{0}' because it is not a static method</source>
-        <target state="new">Cannot create a function pointer for '{0}' because it is not a static method</target>
+        <target state="translated">'{0}' は静的メソッドではないため、関数ポインターを作成できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FuncPtrRefMismatch">
         <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
-        <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
+        <target state="translated">'{0}' と関数ポインター '{1}' で参照が一致しません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -419,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
-        <target state="new">Instance properties in interfaces cannot have initializers.</target>
+        <target state="translated">インターフェイス内のインスタンス プロパティは初期化子を持つことができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -434,12 +439,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
-        <target state="new">'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</target>
+        <target state="translated">'{0}' は有効な関数ポインターの戻り値の型修飾子ではありません。有効な修飾子は 'ref ' および 'ref readonly' です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFunctionPointerCallingConvention">
         <source>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</source>
-        <target state="new">'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</target>
+        <target state="translated">'{0}' は関数ポインターの有効な呼び出し規則ではありません。有効な規則は 'cdecl'、'managed'、'thiscall'、および 'stdcall' です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -464,7 +469,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidWithReceiverType">
         <source>The receiver of a `with` expression must have a non-void type.</source>
-        <target state="new">The receiver of a `with` expression must have a non-void type.</target>
+        <target state="translated">'with' 式のレシーバーは、void でない型でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">
@@ -484,17 +489,37 @@
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
-        <target state="new">No overload for '{0}' matches function pointer '{1}'</target>
+        <target state="translated">関数ポインター '{1}' に一致する '{0}' のオーバーロードはありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
         <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
-        <target state="new">Cannot convert method group to function pointer (Are you missing a '&amp;'?)</target>
+        <target state="translated">メソッド グループを関数ポインターに変換できません ('&amp;' が抜けていないか確認してください)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">パターンがありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
+        <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
+        <target state="new">Module initializer method '{0}' must not be generic and must not be contained in a generic type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType">
+        <source>Module initializer method '{0}' must be accessible at the module level</source>
+        <target state="new">Module initializer method '{0}' must be accessible at the module level</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeOrdinary">
+        <source>A module initializer must be an ordinary member method</source>
+        <target state="new">A module initializer must be an ordinary member method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
+        <source>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</source>
+        <target state="new">Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -509,7 +534,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
-        <target state="new">Only a single record partial declaration may have a parameter list</target>
+        <target state="translated">1 つのレコードの部分宣言のみがパラメーター リストを持つことができます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustNullCheckInImplementation">
@@ -539,17 +564,22 @@
       </trans-unit>
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
         <source>No accessible copy constructor found in base type '{0}'.</source>
-        <target state="new">No accessible copy constructor found in base type '{0}'.</target>
+        <target state="translated">基本型 '{0}' にアクセス可能なコピー コンストラクターが見つかりませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
-        <target state="new">Output directory could not be determined</target>
+        <target state="translated">出力ディレクトリを特定できませんでした</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSingleCloneMethod">
         <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="new">The receiver type '{0}' is not a valid record type.</target>
+        <target state="translated">レシーバーの種類 '{0}' は有効なレコードの種類ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonPrivateAPIInRecord">
+        <source>Record member '{0}' must be private.</source>
+        <target state="new">Record member '{0}' must be private.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
@@ -593,18 +623,23 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
-        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">Null 許容型パラメーターは、値の型または Null 非許容参照型として既知である必要があります。'class'、'struct'、型制約を追加することをご検討ください。</target>
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</source>
+        <target state="new">A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedTypeArgument">
         <source>Omitting the type argument is not allowed in the current context</source>
-        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <target state="translated">型引数を省略することは、現在のコンテキストでは許可されません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">out 変数を ref ローカルと宣言することはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
+        <target state="new">Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
@@ -619,12 +654,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="new">Both partial method declarations must have identical accessibility modifiers.</target>
+        <target state="translated">両方の部分メソッド宣言には、同じアクセシビリティ修飾子を指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtendedModDifference">
         <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="new">Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
+        <target state="translated">両方の部分メソッド宣言には、'virtual'、'override'、'sealed'、'new' 修飾子の同じ組み合わせを指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
@@ -634,32 +669,32 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodRefReturnDifference">
         <source>Partial method declarations must have matching ref return values.</source>
-        <target state="new">Partial method declarations must have matching ref return values.</target>
+        <target state="translated">部分メソッドの宣言には、一致する ref 戻り値が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
         <source>Both partial method declarations must have the same return type.</source>
-        <target state="new">Both partial method declarations must have the same return type.</target>
+        <target state="translated">部分メソッドの両方の宣言には、同じ戻り値の型を指定しなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
         <source>Partial method '{0}' must have an implementation part because it has accessibility modifiers.</source>
-        <target state="new">Partial method '{0}' must have an implementation part because it has accessibility modifiers.</target>
+        <target state="translated">部分メソッド '{0}' にはアクセシビリティ修飾子が指定されているため、実装部分が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithExtendedModMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</source>
-        <target state="new">Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</target>
+        <target state="translated">部分メソッド '{0}' には、'virtual'、'override'、'sealed'、'new'、または 'extern' 修飾子が指定されているため、アクセシビリティ修飾子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</source>
-        <target state="new">Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</target>
+        <target state="translated">部分メソッド '{0}' には、void 以外の戻り値の型が指定されているため、アクセシビリティ修飾子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
-        <target state="new">Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</target>
+        <target state="translated">部分メソッド '{0}' には、'out' パラメーターが指定されているため、アクセシビリティ修飾子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -704,7 +739,7 @@
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
-        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <target state="translated">リレーショナル パターンは、浮動小数点の NaN に使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
@@ -724,27 +759,32 @@
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
         <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
+        <target state="translated">トップレベルのステートメントを含むコンパイル ユニットがある場合、/main を指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
-        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <target state="translated">このコンテキストでは、トップレベルのステートメントで宣言されたローカル変数またはローカル関数 '{0}' を使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
         <source>Only one compilation unit can have top-level statements.</source>
-        <target state="new">Only one compilation unit can have top-level statements.</target>
+        <target state="translated">トップレベルのステートメントを持つことができるのは、1 つのコンパイル ユニットのみです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
-        <target state="new">Program using top-level statements must be an executable.</target>
+        <target state="translated">トップレベルのステートメントを使用するプログラムは、実行可能ファイルである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">単一要素の分解パターンには、あいまいさを排除するための他の構文が必要です。破棄指定子 '_' を閉じかっこ ')' の後に追加することをお勧めします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAPIInRecord">
+        <source>Record member '{0}' may not be static.</source>
+        <target state="new">Record member '{0}' may not be static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
@@ -774,17 +814,17 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">stdin 引数 '-' が指定されていますが、入力が標準入力ストリームからリダイレクトされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
-        <target state="needs-review-translation">このパターンは、switch 式の前の arm で既に処理されています。</target>
+        <target state="translated">このパターンには到達できません。これは、switch 式の以前のアームによって既に処理されたか、一致させることができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchCaseSubsumed">
         <source>The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.</source>
-        <target state="needs-review-translation">switch case は既に以前のケースで処理されています。</target>
+        <target state="translated">switch ケースに到達できません。以前のケースで既に処理されたか、一致させることができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">
@@ -799,7 +839,7 @@
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
-        <target state="new">Top-level statements must precede namespace and type declarations.</target>
+        <target state="translated">トップレベルのステートメントは、名前空間および型の宣言の前にある必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -818,33 +858,33 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeConstraintsMustBeUniqueAndFirst">
-        <source>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
-        <target state="new">The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</target>
+        <source>The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
+        <target state="new">The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypelessNewIllegalTargetType">
         <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <target state="translated">型 '{0}' は new() のターゲット型として使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypelessNewNoTargetType">
         <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
+        <target state="translated">'{0}' のターゲット型がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypelessNewNotValid">
         <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
+        <target state="translated">new() はこのコンテキストでは使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
         <source>Unexpected argument list.</source>
-        <target state="new">Unexpected argument list.</target>
+        <target state="translated">予期しない引数リストです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
         <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
+        <target state="translated">パラメーターを含むレコード内で宣言されたコンストラクターには、'this' コンストラクター初期化子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -859,12 +899,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCallingConvention">
         <source>The calling convention of '{0}' is not supported by the language.</source>
-        <target state="new">The calling convention of '{0}' is not supported by the language.</target>
+        <target state="translated">'{0}' の呼び出し規則は、この言語ではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
         <source>Relational patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">リレーショナル パターンは、'{0}' 型の値に使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -884,7 +924,7 @@
       </trans-unit>
       <trans-unit id="ERR_WrongFuncPtrCallingConvention">
         <source>Calling convention of '{0}' is not compatible with '{1}'.</source>
-        <target state="new">Calling convention of '{0}' is not compatible with '{1}'.</target>
+        <target state="translated">'{0}' の呼び出し規則は '{1}' と互換性がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
@@ -899,7 +939,7 @@
       </trans-unit>
       <trans-unit id="IDS_AddressOfMethodGroup">
         <source>&amp;method group</source>
-        <target state="new">&amp;method group</target>
+        <target state="translated">メソッド グループ(&amp;M)</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_CSCHelp">
@@ -974,7 +1014,7 @@
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -1057,7 +1097,7 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
         <target state="needs-review-translation">
-                             Visual C# コンパイラのオプション
+                             Visual C# Compiler のオプション
 
                        - 出力ファイル -
 -out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラスを含むファイル
@@ -1126,8 +1166,10 @@
                        - エラーと警告 -
 -warnaserror[+|-]             すべての警告をエラーとして報告します
 -warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
+                              (Null 値の許容の警告をすべて含めるには "nullable" を使用します)
 -warn:&lt;n&gt;                     警告レベル (0-4) を設定します (短い形式: -w)
 -nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
+                              (Null 許容性の警告をすべて含めるには "nullable" を使用します)
 -ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
                               指定します。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
@@ -1176,7 +1218,7 @@
 -checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイルのチェックサム
                               を計算するアルゴリズムを指定します。サポートされる値:
                               SHA1 または SHA256 (既定)。
--codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコード ページを
+-codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコードページを
                               指定します
 -utf8output                   コンパイラ メッセージを UTF-8 エンコードで出力します
 -main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
@@ -1192,14 +1234,14 @@
                               .pdb 拡張子の付いた出力ファイル名)
 -errorendlocation             各エラーの終了位置の出力行と
                               出力列
--preferreduilang              出力用の言語名を指定します。
+-preferreduilang              出力用の優先する言語名を指定します。
 -nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
 -nostdlib[+|-]                標準ライブラリ (mscorlib.dll) は参照しません
 -subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
 -lib:&lt;file list&gt;              参照を検索する追加ディレクトリを
                               指定します
 -errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法:
-                              (prompt、send、queue、none) を指定します。既定値は 
+                              (prompt、send、queue、none) を指定します。既定値は
                               queue です。
 -appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
                               アプリケーション構成ファイルを指定します
@@ -1226,7 +1268,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAndPattern">
         <source>and pattern</source>
-        <target state="new">and pattern</target>
+        <target state="translated">and パターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
@@ -1237,6 +1279,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">合体代入</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
+        <source>default type parameter constraints</source>
+        <target state="new">default type parameter constraints</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
@@ -1256,7 +1303,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPartialMethods">
         <source>extended partial methods</source>
-        <target state="new">extended partial methods</target>
+        <target state="translated">拡張部分メソッド</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
@@ -1266,12 +1313,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
-        <target state="new">extern local functions</target>
+        <target state="translated">extern ローカル関数</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFunctionPointers">
         <source>function pointers</source>
-        <target state="new">function pointers</target>
+        <target state="translated">関数ポインター</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -1286,12 +1333,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInitOnlySetters">
         <source>init-only setters</source>
-        <target state="new">init-only setters</target>
+        <target state="translated">init 専用セッター</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
         <source>local function attributes</source>
-        <target state="new">local function attributes</target>
+        <target state="translated">ローカル関数の属性</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -1301,7 +1348,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
-        <target state="new">MemberNotNull attribute</target>
+        <target state="translated">MemberNotNull 属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureModuleInitializers">
+        <source>module initializers</source>
+        <target state="new">module initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1311,7 +1363,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNativeInt">
         <source>native-sized integers</source>
-        <target state="new">native-sized integers</target>
+        <target state="translated">ネイティブサイズの整数</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
@@ -1326,12 +1378,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNotPattern">
         <source>not pattern</source>
-        <target state="new">not pattern</target>
+        <target state="translated">not パターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullPointerConstantPattern">
         <source>null pointer constant pattern</source>
-        <target state="new">null pointer constant pattern</target>
+        <target state="translated">null ポインター定数パターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -1346,12 +1398,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureOrPattern">
         <source>or pattern</source>
-        <target state="new">or pattern</target>
+        <target state="translated">or パターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParenthesizedPattern">
         <source>parenthesized pattern</source>
-        <target state="new">parenthesized pattern</target>
+        <target state="translated">かっこで囲まれたパターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
@@ -1371,7 +1423,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRecords">
         <source>records</source>
-        <target state="new">records</target>
+        <target state="translated">レコード</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
@@ -1401,7 +1453,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRelationalPattern">
         <source>relational pattern</source>
-        <target state="new">relational pattern</target>
+        <target state="translated">リレーショナル パターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -1424,9 +1476,14 @@
         <target state="translated">&lt;switch 式&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTargetTypedConditional">
+        <source>target-typed conditional expression</source>
+        <target state="new">target-typed conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
         <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
+        <target state="translated">target-typed オブジェクトの作成</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1436,7 +1493,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypePattern">
         <source>type pattern</source>
-        <target state="new">type pattern</target>
+        <target state="translated">種類のパターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
@@ -1491,7 +1548,7 @@
       </trans-unit>
       <trans-unit id="IDS_TopLevelStatements">
         <source>top-level statements</source>
-        <target state="new">top-level statements</target>
+        <target state="translated">トップレベルのステートメント</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
@@ -1846,12 +1903,12 @@
       </trans-unit>
       <trans-unit id="NotSameNumberParameterTypesAndRefKinds">
         <source>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</source>
-        <target state="new">Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</target>
+        <target state="translated">指定されたパラメーター型 {0} と {1} パラメーター参照の種類。これらの配列は同じ長さである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="OutIsNotValidForReturn">
         <source>'RefKind.Out' is not a valid ref kind for a return type.</source>
-        <target state="new">'RefKind.Out' is not a valid ref kind for a return type.</target>
+        <target state="translated">'RefKind.Out' は、戻り値の型に対して有効な参照の種類ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
@@ -1906,12 +1963,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
         <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">メソッド '{0}' には、実装された、またはオーバーライドされたメンバーと一致する '[DoesNotReturn]' 注釈がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch_Title">
         <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">メソッドには、実装された、またはオーバーライドされたメンバーと一致する '[DoesNotReturn]' 注釈がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1926,22 +1983,22 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">ジェネレーター '{0}' がソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">ジェネレーターはソースを生成できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">ジェネレーターを初期化できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1956,12 +2013,12 @@
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern">
         <source>The given expression always matches the provided pattern.</source>
-        <target state="new">The given expression always matches the provided pattern.</target>
+        <target state="translated">指定された式は指定されたパターンと常に一致します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern_Title">
         <source>The given expression always matches the provided pattern.</source>
-        <target state="new">The given expression always matches the provided pattern.</target>
+        <target state="translated">指定された式は指定されたパターンと常に一致します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
@@ -1986,12 +2043,12 @@
       </trans-unit>
       <trans-unit id="WRN_IsPatternAlways">
         <source>An expression of type '{0}' always matches the provided pattern.</source>
-        <target state="new">An expression of type '{0}' always matches the provided pattern.</target>
+        <target state="translated">型 '{0}' の式は指定されたパターンと常に一致します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsPatternAlways_Title">
         <source>The input always matches the provided pattern.</source>
-        <target state="new">The input always matches the provided pattern.</target>
+        <target state="translated">入力は、指定されたパターンと常に一致します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -2006,32 +2063,32 @@
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
         <source>Member '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">終了時にメンバー '{0}' には null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
         <source>Member '{0}' cannot be used in this attribute.</source>
-        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <target state="translated">メンバー '{0}' をこの属性で使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember_Title">
         <source>Member cannot be used in this attribute.</source>
-        <target state="new">Member cannot be used in this attribute.</target>
+        <target state="translated">メンバーをこの属性で使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
+        <target state="translated">'{1}' で終了する場合、メンバー '{0}' には null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
         <source>Member must have a non-null value when exiting in some condition.</source>
-        <target state="new">Member must have a non-null value when exiting in some condition.</target>
+        <target state="translated">一部の条件で終了するとき、メンバーには null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
         <source>Member must have a non-null value when exiting.</source>
-        <target state="new">Member must have a non-null value when exiting.</target>
+        <target state="translated">終了時にメンバーには null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -2296,12 +2353,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <target state="translated">戻り値の型における参照型の Null 値の許容が、部分メソッド宣言と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <target state="translated">戻り値の型における参照型の Null 値の許容が、部分メソッド宣言と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -2376,22 +2433,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="needs-review-translation">'{1}' で終了する場合、パラメーター '{0}' の値を null にすることはできません。</target>
+        <target state="translated">'{1}' で終了する場合、パラメーター '{0}' には null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting in some condition.</source>
-        <target state="needs-review-translation">一部の条件で終了するときに、パラメーターの値を null にすることはできません。</target>
+        <target state="translated">一部の条件で終了するとき、パラメーターには null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">終了時にパラメーター '{0}' には null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
-        <target state="new">Parameter must have a non-null value when exiting.</target>
+        <target state="translated">終了時にパラメーターには null 以外の値が含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -2404,14 +2461,24 @@
         <target state="translated">[DoesNotReturn] とマークされたメソッドの返却禁止。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs">
+        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
+        <target state="new">The second operand of an 'is' or 'as' operator may not be static type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs_Title">
+        <source>The second operand of an 'is' or 'as' operator may not be a static type</source>
+        <target state="new">The second operand of an 'is' or 'as' operator may not be a static type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered.</source>
-        <target state="new">The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered.</target>
+        <target state="translated">この switch 式では入力型の可能な値がすべて扱われるわけではありません (すべてが網羅されているわけではありません)。たとえば、パターン '{0}' がカバーされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
         <source>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered.</source>
-        <target state="new">The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered.</target>
+        <target state="translated">この switch 式では一部の null 入力が処理されません (すべてが網羅されているわけではありません)。たとえば、パターン '{0}' がカバーされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
@@ -2436,62 +2503,62 @@
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">パラメーター '{0}' の型における参照型の NULL 値の許容が、実装されるメンバー '{1}' と一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">パラメーターの型における参照型の NULL 値の許容が、実装されるメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{1}' のパラメーター '{0}' の型における参照型の NULL 値の許容が、暗黙的に実装されるメンバー '{2}' と一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">パラメーターの型における参照型の NULL 値の許容が、暗黙的に実装されるメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">パラメーター '{0}' の型の NULL 値の許容が、オーバーライドされたメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
         <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">パラメーターの型の NULL 値の許容が、オーバーライドされたメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
         <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <target state="translated">戻り値の型における参照型の NULL 値の許容が、実装されるメンバー '{0}' と一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">戻り値の型における参照型の NULL 値の許容が、実装されるメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}' の戻り値の型における参照型の NULL 値の許容が、暗黙的に実装されるメンバー '{1}' と一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">戻り値の型における参照型の NULL 値の許容が、暗黙的に実装されるメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">戻り値の型の NULL 値の許容が、オーバーライドされたメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">戻り値の型の NULL 値の許容が、オーバーライドされたメンバーと一致しません。おそらく、NULL 値の許容の属性が原因です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -3721,7 +3788,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="needs-review-translation">{0}' の partial 宣言は、すべてのクラス、すべての構造体、またはすべてのインターフェイスにする必要があります。</target>
+        <target state="translated">'{0}' の partial 宣言は、すべてのクラス、すべてのレコード、すべての構造体、またはすべてのインターフェイスにする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -4231,7 +4298,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
         <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="needs-review-translation">'in' パラメーターがあるため、属性のコンストラクター '{0}' を使用できません。</target>
+        <target state="translated">'in' パラメーターがあるため、属性のコンストラクター '{0}' を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -4765,7 +4832,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
-        <target state="needs-review-translation">DllImport 属性は、ジェネリックであるメソッド、またはジェネリック型に含まれるメソッドには適用できません。</target>
+        <target state="translated">DllImport 属性は、ジェネリックであるメソッドに適用することも、ジェネリック メソッドまたは型に含めることもできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -5400,7 +5467,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInvalidModifier">
         <source>A partial method cannot have the 'abstract' modifier</source>
-        <target state="needs-review-translation">部分メソッドには、アクセス修飾子、あるいは virtual、abstract、override、new、sealed、または extern 修飾子を指定できません</target>
+        <target state="translated">部分メソッドに 'abstract' 修飾子を指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
@@ -6064,7 +6131,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_BadNewExpr">
         <source>A new expression requires an argument list or (), [], or {} after type</source>
-        <target state="needs-review-translation">new 式は型の後に丸かっこ ()、角かっこ []、または 波かっこ {} を必要とします。</target>
+        <target state="translated">new 式は、型の後に引数リストか、丸かっこ ()、角かっこ []、または波かっこ {} を必要とします</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNamespacePrivate">
@@ -6389,7 +6456,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
         <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
-        <target state="needs-review-translation">メソッドまたはデリゲートは、型 '{0}' を返すことができません。</target>
+        <target state="translated">メソッド、デリゲート、または関数ポインターの戻り値の型を '{0}' にすることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompileCancelled">
@@ -6629,7 +6696,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="needs-review-translation">読み取り専用フィールドを割り当てることはできません (フィールドが定義されているクラスのコンストラクターまたは変数初期化子では可)</target>
+        <target state="translated">読み取り専用フィールドに割り当てることはできません (フィールドが定義されているクラスのコンストラクターか init 専用セッター、または変数初期化子では可)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6794,7 +6861,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
         <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
-        <target state="needs-review-translation">構造体内部の匿名メソッド、ラムダ式、またはクエリ式は、'this' のインスタンス メンバーにアクセスできません。'this' を匿名メソッド、ラムダ式、またはクエリ式の外部のローカル変数にコピーして、そのローカルを使用してください。</target>
+        <target state="translated">構造体内部の匿名メソッド、ラムダ式、クエリ式、またはローカル関数は、'this' のインスタンス メンバーにアクセスできません。匿名メソッド、ラムダ式、クエリ式、またはローカル関数の外部のローカル変数に 'this' をコピーして、そのローカルをご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
@@ -7173,8 +7240,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWarningLevel">
-        <source>Warning level must be in the range 0-4</source>
-        <target state="translated">警告レベルの範囲は 0-4 です。</target>
+        <source>Warning level must be zero or greater</source>
+        <target state="needs-review-translation">警告レベルの範囲は 0-4 です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDebugType">
@@ -8269,17 +8336,12 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
         <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
-        <target state="needs-review-translation">プログラムのエントリ ポイントは、グローバル スクリプト コードです。エントリ ポイント '{0}' を無視します。</target>
+        <target state="translated">プログラムのエントリ ポイントは、グローバル コードです。エントリ ポイント '{0}' を無視します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
         <source>The entry point of the program is global code; ignoring entry point</source>
-        <target state="needs-review-translation">プログラムのエントリ ポイントは、グローバル スクリプト コードです。エントリ ポイントを無視します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StaticInAsOrIs">
-        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
-        <target state="translated">is' または 'as' 演算子の 2 番目のオペランドはスタティック型 '{0}' にすることはできません。</target>
+        <target state="translated">プログラムのエントリ ポイントがグローバル コード、エントリ ポイントを無視</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisEventType">
@@ -9902,7 +9964,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
         <source>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</target>
+        <target state="translated">パターンで Null 許容型 '{0}?' を使用することはできません。代わりに基になる型 '{0}' をご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PeWritingFailure">
@@ -10252,7 +10314,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
         <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
-        <target state="needs-review-translation">'{0}' はローカル関数であるため、常に本体が必要です。</target>
+        <target state="translated">ローカル関数 '{0}' は、'static extern' とマークされていないため、本体を宣言しなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

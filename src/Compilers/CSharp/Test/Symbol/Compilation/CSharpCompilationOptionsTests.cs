@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var defaultWarnings = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
             Assert.Equal(ReportDiagnostic.Default, defaultWarnings.GeneralDiagnosticOption);
-            Assert.Equal(4, defaultWarnings.WarningLevel);
+            Assert.Equal(CodeAnalysis.Diagnostic.DefaultWarningLevel, defaultWarnings.WarningLevel);
 
             Assert.Equal(ReportDiagnostic.Error, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithGeneralDiagnosticOption(ReportDiagnostic.Error).GeneralDiagnosticOption);
             Assert.Equal(ReportDiagnostic.Default, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithGeneralDiagnosticOption(ReportDiagnostic.Default).GeneralDiagnosticOption);
@@ -239,9 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'WarningLevel' value: '-1'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "-1"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithWarningLevel(5).VerifyErrors(
-                // error CS7088: Invalid 'WarningLevel' value: '5'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "5"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithWarningLevel(5).VerifyErrors();
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithWarningLevel(int.MaxValue).VerifyErrors();
         }
 
         [Fact]
@@ -338,9 +337,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'WarningLevel' value: '-1'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "-1"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, warningLevel: 5).VerifyErrors(
-                // error CS7088: Invalid 'WarningLevel' value: '5'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "5"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, warningLevel: 5).VerifyErrors();
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, warningLevel: int.MaxValue).VerifyErrors();
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, platform: Platform.AnyCpu32BitPreferred).VerifyErrors();
 

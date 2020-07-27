@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     [UseExportProvider]
     public class RemoteHostClientServiceFactoryTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46255"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
             var exportProvider = ExportProviderCache

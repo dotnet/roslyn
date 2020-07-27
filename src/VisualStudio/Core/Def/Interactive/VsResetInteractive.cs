@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             var taskSource = new TaskCompletionSource<bool>();
 
-            var updateSolutionEvents = new VsUpdateSolutionEvents(_buildManager, taskSource);
+            _ = new VsUpdateSolutionEvents(_buildManager, taskSource);
 
             // Build the project.  When project build is done, set the task source as being done.
             // (Either succeeded, cancelled, or failed).
