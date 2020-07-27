@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     [Trait(Traits.Feature, Traits.Features.NavigateTo)]
     public class InteractiveNavigateToTests : AbstractNavigateToTests
     {
-        protected override string Language => LanguageNames.CSharp;
+        protected override string Language => "csharp";
 
         protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
             => TestWorkspace.CreateCSharp(content, parseOptions: Options.Script, exportProvider: exportProvider);

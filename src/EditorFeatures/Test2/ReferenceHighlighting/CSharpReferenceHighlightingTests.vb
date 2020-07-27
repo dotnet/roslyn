@@ -419,8 +419,8 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
+        <WpfTheory(Skip:="604466"), CombinatorialData>
         <WorkItem(604466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604466")>
-        <WpfFact(Skip:="604466")>
         Public Async Function TestThisShouldNotHighlightTypeName(testHost As TestHost) As Task
             Dim input =
 <Workspace>

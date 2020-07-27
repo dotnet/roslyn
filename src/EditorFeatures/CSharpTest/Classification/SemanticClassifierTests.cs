@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -31,7 +32,7 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     [Trait(Traits.Feature, Traits.Features.Classification)]
-    public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
+    public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
         protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
@@ -2607,7 +2608,7 @@ struct Type<T>
             await waiter.ExpeditedWaitAsync();
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
@@ -2664,9 +2665,9 @@ struct Type<T>
                 Keyword("var"), Local("a"), Local("a"));
         }
 
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
         [Theory]
         [CombinatorialData]
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenTypeOnlyIsSpecified_ItIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2683,9 +2684,9 @@ class MyClass
     Class("MyClass"));
         }
 
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
         [Theory]
         [CombinatorialData]
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenConstructorOnlyIsSpecified_NothingIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2701,9 +2702,9 @@ class MyClass
  Class("MyClass"));
         }
 
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
         [Theory]
         [CombinatorialData]
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenTypeAndConstructorSpecified_OnlyTypeIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2721,9 +2722,9 @@ class MyClass
     Class("MyClass"));
         }
 
-        [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
         [Theory]
         [CombinatorialData]
+        [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
         public async Task TestMemberBindingThatLooksGeneric(TestHost testHost)
         {
             await TestAsync(
@@ -2755,8 +2756,9 @@ namespace ConsoleApplication1
     Property("Length"));
         }
 
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
+        [CombinatorialData]
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
         public async Task TestVarInPattern1(TestHost testHost)
         {
             await TestAsync(
@@ -2773,8 +2775,9 @@ class Program
  Parameter("s"), Keyword("var"));
         }
 
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
+        [CombinatorialData]
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
         public async Task TestVarInPattern2(TestHost testHost)
         {
             await TestAsync(
@@ -2792,9 +2795,9 @@ class Program
  Parameter("s"), Keyword("var"));
         }
 
-        [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
         [Theory]
         [CombinatorialData]
+        [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
         public async Task TestAliasQualifiedClass(TestHost testHost)
         {
             await TestAsync(
@@ -2979,7 +2982,8 @@ class Program
         var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
     }
 }",
-testHost, Namespace("System"),
+testHost,
+Namespace("System"),
 Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),
@@ -3063,7 +3067,8 @@ class Program
         var r = @""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
     }
 }",
-testHost, Namespace("System"),
+testHost,
+Namespace("System"),
 Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),

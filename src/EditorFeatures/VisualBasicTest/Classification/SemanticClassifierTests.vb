@@ -291,8 +291,8 @@ Dim q = From"
                 Local("From"))
         End Function
 
-        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         <Theory, CombinatorialData>
+        <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
         Public Async Function TestDontColorFromWhenBoundInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
@@ -305,7 +305,8 @@ q = From"
                 Local("From"))
         End Function
 
-        <Fact, WorkItem(10507, "DevDiv_Projects/Roslyn")>
+        <Theory, CombinatorialData>
+        <WorkItem(10507, "DevDiv_Projects/Roslyn")>
         Public Async Function TestArraysInGetType(testHost As TestHost) As Task
             Await TestInMethodAsync("GetType(System.Exception()",
                 testHost,
@@ -568,8 +569,8 @@ end sub"
                 Method("Await"))
         End Function
 
-        <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
         <Theory, CombinatorialData>
+        <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
         Public Async Function TestAttribute(testHost As TestHost) As Task
             Dim code =
 "Imports System
@@ -583,7 +584,7 @@ End Class"
                 [Namespace]("System"), [Class]("AttributeUsage"))
         End Function
 
-        <WpfFact>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegex1(testHost As TestHost) As Task
             Await TestAsync(
 "
