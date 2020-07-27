@@ -39,6 +39,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         }
 
         [Fact]
+        public async Task OnAutoInsert_ParametersAndReturns()
+        {
+            var markup =
+@"class A
+{
+    ///{|type:|}
+    string M(int foo, bool bar)
+    {
+    }
+}";
+            var expected =
+@"class A
+{
+    /// <summary>
+    /// $0
+    /// </summary>
+    /// <param name=""foo""></param>
+    /// <param name=""bar""></param>
+    /// <returns></returns>
+    string M(int foo, bool bar)
+    {
+    }
+}";
+            await VerifyMarkupAndExpected("/", markup, expected);
+        }
+
+        [Fact]
         public async Task OnAutoInsert_CommentCharacterInsideMethod_Ignored()
         {
             var markup =
@@ -116,6 +143,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     /// $0
     /// </summary>
     void M()
+    {
+    }
+}";
+            await VerifyMarkupAndExpected("\n", markup, expected);
+        }
+
+        [Fact]
+        public async Task OnAutoInsert_EnterKey3()
+        {
+            var markup =
+@"class A
+{
+    ///
+{|type:|}
+    string M(int foo, bool bar)
+    {
+    }
+}";
+            var expected =
+@"class A
+{
+    /// <summary>
+    /// $0
+    /// </summary>
+    /// <param name=""foo""></param>
+    /// <param name=""bar""></param>
+    /// <returns></returns>
+    string M(int foo, bool bar)
     {
     }
 }";
