@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // available
 
-        IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
         IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
         IDS_FeatureExpressionBodiedProperty = MessageBase + 12692,
@@ -337,7 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureTargetTypedConditional:  // semantic check
                 case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
-                case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

@@ -391,11 +391,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        internal static MetadataReference AsReference(Compilation comp, bool useCompilationReference)
-        {
-            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
-        }
-
         public static string WithWindowsLineBreaks(string source)
             => source.Replace(Environment.NewLine, "\r\n");
 
