@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public ITypeSymbol InputType => _boundNode.InputType.GetITypeSymbol(NullableAnnotation.None);
 
-        public ITypeSymbol NarrowedType => _boundNode.ConvertedType.GetITypeSymbol(NullableAnnotation.None);
+        public ITypeSymbol NarrowedType => _boundNode.NarrowedType.GetITypeSymbol(NullableAnnotation.None);
 
         protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
     }
@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundNegatedPattern boundNegatedPattern,
             SemanticModel semanticModel)
             : base(inputType: boundNegatedPattern.InputType.GetPublicSymbol(),
-                   narrowedType: boundNegatedPattern.ConvertedType.GetPublicSymbol(),
+                   narrowedType: boundNegatedPattern.NarrowedType.GetPublicSymbol(),
                    semanticModel: semanticModel,
                    syntax: boundNegatedPattern.Syntax,
                    type: null,
@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel)
             : base(operatorKind: boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
                    inputType: boundBinaryPattern.InputType.GetPublicSymbol(),
-                   narrowedType: boundBinaryPattern.ConvertedType.GetPublicSymbol(),
+                   narrowedType: boundBinaryPattern.NarrowedType.GetPublicSymbol(),
                    semanticModel: semanticModel,
                    syntax: boundBinaryPattern.Syntax,
                    type: null,
@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundRecursivePattern boundRecursivePattern,
             SemanticModel semanticModel)
             : base(inputType: boundRecursivePattern.InputType.GetPublicSymbol(),
-                   narrowedType: boundRecursivePattern.ConvertedType.GetPublicSymbol(),
+                   narrowedType: boundRecursivePattern.NarrowedType.GetPublicSymbol(),
                    matchedType: (boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType()).GetPublicSymbol(),
                    deconstructSymbol: boundRecursivePattern.DeconstructMethod.GetPublicSymbol(),
                    declaredSymbol: boundRecursivePattern.Variable.GetPublicSymbol(),
@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public CSharpLazyITuplePatternOperation(CSharpOperationFactory operationFactory, BoundITuplePattern boundITuplePattern, SemanticModel semanticModel)
             : base(inputType: boundITuplePattern.InputType.GetPublicSymbol(),
-                   narrowedType: boundITuplePattern.ConvertedType.GetPublicSymbol(),
+                   narrowedType: boundITuplePattern.NarrowedType.GetPublicSymbol(),
                    matchedType: boundITuplePattern.InputType.StrippedType().GetPublicSymbol(),
                    deconstructSymbol: boundITuplePattern.GetLengthMethod.ContainingType.GetPublicSymbol(),
                    declaredSymbol: null,

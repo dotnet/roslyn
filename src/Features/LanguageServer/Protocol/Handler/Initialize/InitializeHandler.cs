@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -44,6 +45,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DefinitionProvider = true,
                     RenameProvider = true,
                     ImplementationProvider = true,
+                    CodeActionProvider = new LSP.CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor } },
+                    CodeActionsResolveProvider = true,
                     CompletionProvider = new LSP.CompletionOptions { ResolveProvider = true, TriggerCharacters = triggerCharacters },
                     SignatureHelpProvider = new LSP.SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                     DocumentSymbolProvider = true,
@@ -54,6 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentHighlightProvider = true,
                     ReferencesProvider = true,
                     ProjectContextProvider = true,
+                    ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
                         Change = LSP.TextDocumentSyncKind.None

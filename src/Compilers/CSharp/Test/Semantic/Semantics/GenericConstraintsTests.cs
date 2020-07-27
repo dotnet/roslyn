@@ -3547,8 +3547,8 @@ public unsafe struct YourStruct<T> where T : unmanaged
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3567,8 +3567,8 @@ public unsafe struct YourStruct
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
 
         }
 
@@ -3592,8 +3592,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3622,8 +3622,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public MyStruct<T> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("YourStruct<T>.field", "MyStruct<T>").WithLocation(9, 24));
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3647,8 +3647,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3675,8 +3675,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3703,8 +3703,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3786,8 +3786,8 @@ public struct Z
             var compilation = CreateCompilation(code);
             compilation.VerifyDiagnostics();
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -4172,46 +4172,46 @@ class C3<T1> where T1 : class, class
 ");
 
             comp.VerifyDiagnostics(
-                // (2,32): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (2,32): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C1<T1> where T1 : class, struct, unmanaged, notnull
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(2, 32),
-                // (2,40): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (2,40): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C1<T1> where T1 : class, struct, unmanaged, notnull
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(2, 40),
-                // (2,51): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (2,51): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C1<T1> where T1 : class, struct, unmanaged, notnull
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(2, 51),
-                // (4,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (4,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(4, 37),
-                // (4,45): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (4,45): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(4, 45),
-                // (4,56): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (4,56): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(4, 56),
-                // (6,33): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (6,33): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C2<T1> where T1 : struct, class, unmanaged, notnull
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(6, 33),
-                // (6,40): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (6,40): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C2<T1> where T1 : struct, class, unmanaged, notnull
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(6, 40),
-                // (6,51): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (6,51): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C2<T1> where T1 : struct, class, unmanaged, notnull
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(6, 51),
-                // (8,38): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (8,38): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(8, 38),
-                // (8,45): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (8,45): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(8, 45),
-                // (8,56): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (8,56): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(8, 56),
-                // (10,32): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (10,32): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C3<T1> where T1 : class, class
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(10, 32),
-                // (12,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // (12,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M3<T2>() where T2 : class, class {}
                 Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(12, 37)
             );

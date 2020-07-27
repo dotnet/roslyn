@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SymbolCompletionState state;
 
         private Flags _flags;
+        private ImmutableArray<DiagnosticInfo> _managedKindUseSiteDiagnostics;
 
         private readonly DeclarationModifiers _declModifiers;
         private readonly NamespaceOrTypeSymbol _containingSymbol;
@@ -684,19 +685,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind ManagedKind
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            get
+            var managedKind = _flags.ManagedKind;
+            if (managedKind == ManagedKind.Unknown || _managedKindUseSiteDiagnostics.IsDefault)
             {
-                var managedKind = _flags.ManagedKind;
-                if (managedKind == ManagedKind.Unknown)
-                {
-                    var baseKind = base.ManagedKind;
-                    _flags.SetManagedKind(baseKind);
-                    return baseKind;
-                }
-                return managedKind;
+                HashSet<DiagnosticInfo>? managedKindUseSiteDiagnostics = null;
+                managedKind = base.GetManagedKind(ref managedKindUseSiteDiagnostics);
+                ImmutableInterlocked.InterlockedExchange(ref _managedKindUseSiteDiagnostics, managedKindUseSiteDiagnostics.ToImmutableArrayOrEmpty());
+                _flags.SetManagedKind(managedKind);
             }
+
+            if (!_managedKindUseSiteDiagnostics.IsEmpty)
+            {
+                useSiteDiagnostics ??= new HashSet<DiagnosticInfo>();
+                useSiteDiagnostics.AddAll(_managedKindUseSiteDiagnostics);
+            }
+
+            return managedKind;
         }
 
         public override bool IsStatic => _declModifiers.HasFlag(DeclarationModifiers.Static);
