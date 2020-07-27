@@ -76,7 +76,6 @@ class Test : MyBase
             await TestAsync(input, expected);
         }
 
-
         [Fact]
         public async Task TestPartialClass()
         {
@@ -132,7 +131,7 @@ partial class Test
 </Workspace>";
 
             await TestAsync(
-                input, 
+                input,
                 expected,
                 dialogSelection: MakeSelection("Method", "Method2"));
         }
