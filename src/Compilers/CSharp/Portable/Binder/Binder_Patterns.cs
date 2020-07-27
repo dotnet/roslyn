@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
-                        var declType = TypeWithState.ForType(inputType).ToTypeWithAnnotations();
+                        var declType = TypeWithState.ForType(inputType).ToTypeWithAnnotations(Compilation);
                         BindPatternDesignation(
                             designation: node, declType: declType, inputValEscape: inputValEscape, permitDesignations: permitDesignations,
                             typeSyntax: null, diagnostics: diagnostics, hasErrors: ref hasErrors,
