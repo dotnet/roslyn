@@ -103,10 +103,10 @@ class P
 }";
             var whenWave5 = new[]
             {
-                // (15,26): warning CS8848: Operator cannot be used here due to precedence. Use parentheses to disambiguate.
+                // (15,26): warning CS8848: Operator 'from' cannot be used here due to precedence. Use parentheses to disambiguate.
                 //         var b = false && from x in src select x;
                 Diagnostic(ErrorCode.WRN_PrecedenceInversion, "from x in src").WithArguments("from").WithLocation(15, 26),
-                // (20,24): warning CS8848: Operator cannot be used here due to precedence. Use parentheses to disambiguate.
+                // (20,24): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
                 //         var i = ()=>{} + x;
                 Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(20, 24)
             };

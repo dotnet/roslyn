@@ -9924,7 +9924,7 @@ switch (e)
         public void PrecedenceInversionWithBlockLambda()
         {
             UsingExpression("() => {} + d",
-                // (1,10): warning CS8848: Operator cannot be used here due to precedence. Use parentheses to disambiguate.
+                // (1,10): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
                 // () => {} + d
                 Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 10)
                 );
@@ -9957,7 +9957,7 @@ switch (e)
         public void PrecedenceInversionWithAnonymousMethod()
         {
             UsingExpression("delegate {} + d",
-                // (1,13): warning CS8848: Operator cannot be used here due to precedence. Use parentheses to disambiguate.
+                // (1,13): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
                 // delegate {} + d
                 Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 13)
                 );

@@ -6341,7 +6341,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Record member '{0}' must be private.</value>
   </data>
   <data name="WRN_PrecedenceInversion" xml:space="preserve">
-    <value>Operator cannot be used here due to precedence. Use parentheses to disambiguate.</value>
+    <value>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</value>
   </data>
   <data name="WRN_PrecedenceInversion_Title" xml:space="preserve">
     <value>Operator cannot be used here due to precedence.</value>
