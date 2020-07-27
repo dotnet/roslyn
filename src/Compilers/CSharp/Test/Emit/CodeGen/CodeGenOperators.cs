@@ -5252,7 +5252,8 @@ class Test
             const int step = 4096;
             const int limit = start * 4;
 
-            for (int count = start; count <= limit && diagnostics.IsEmpty; count += step)
+            int count;
+            for (count = start; count <= limit && diagnostics.IsEmpty; count += step)
             {
                 var source =
     @"
@@ -5389,7 +5390,7 @@ class Test
 5180801");
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428", AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46361")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
