@@ -2374,6 +2374,52 @@ public class C
         }
 
         [Fact]
+        public void ReadonlyFields_TypesDifferingNullability()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write(C1<int>.F1.content);
+        System.Console.Write("" "");
+        System.Console.Write(C2<int>.F1.content);
+    }
+}
+
+public struct Container
+{
+    public int content;
+}
+
+class C1<T>
+{
+    public static readonly Container F1;
+
+    static C1()
+    {
+        C1<T>.F1.content = 2;
+    }
+}
+
+#nullable enable
+
+class C2<T>
+{
+    public static readonly Container F1;
+
+    static C2()
+    {
+        C2<T>.F1.content = 3;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2 3", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
         public void StaticReadonlyFieldInitializedByAnother()
         {
             string source = @"
