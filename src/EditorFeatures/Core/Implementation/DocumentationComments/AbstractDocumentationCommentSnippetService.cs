@@ -62,25 +62,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return null;
             }
 
-            var documentationComment = token.GetAncestor<TDocumentationComment>();
-            if (documentationComment == null)
+            var lines = GetDocumentationCommentLines(token, text, options, out var indentText);
+            if (lines == null)
             {
                 return null;
             }
 
-            if (!IsSingleExteriorTrivia(documentationComment))
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+
+            var lastLine = lines[^1];
+            lines[^1] = lastLine.Substring(0, lastLine.Length - newLine.Length);
+
+            var comments = string.Join(string.Empty, lines);
+            var offset = lines[0].Length + lines[1].Length - newLine.Length;
+
+            // When typing we don't replace a token, but insert before it
+            var replaceSpan = new TextSpan(token.Span.Start, 0);
+
+            return new DocumentationCommentSnippet(replaceSpan, comments, offset);
+        }
+
+        private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, DocumentOptionSet options, out string? indentText)
+        {
+            indentText = null;
+            var documentationComment = token.GetAncestor<TDocumentationComment>();
+
+            if (documentationComment == null || !IsSingleExteriorTrivia(documentationComment))
             {
                 return null;
             }
 
             var targetMember = GetTargetMember(documentationComment);
-            if (targetMember == null)
-            {
-                return null;
-            }
 
             // Ensure that the target member is only preceded by a single documentation comment (i.e. our ///).
-            if (GetPrecedingDocumentationCommentCount(targetMember) != 1)
+            if (targetMember == null || GetPrecedingDocumentationCommentCount(targetMember) != 1)
             {
                 return null;
             }
@@ -102,23 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (var i = 1; i < lines.Count - 1; i++)
-            {
-                lines[i] = indentText + lines[i];
-            }
+            indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
 
-            var lastLine = lines[^1];
-            lastLine = indentText + lastLine.Substring(0, lastLine.Length - newLine.Length);
-            lines[^1] = lastLine;
-
-            var comments = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - newLine.Length;
-
-            // When typing we don't replace a token, but insert before it
-            var replaceSpan = new TextSpan(token.Span.Start, 0);
-
-            return new DocumentationCommentSnippet(replaceSpan, comments, offset);
+            IndentLines(lines, indentText);
+            return lines;
         }
 
         public bool IsValidTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
@@ -151,12 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         private TMemberNode? GetTargetMember(TDocumentationComment documentationComment)
         {
             var targetMember = documentationComment.ParentTrivia.Token.GetAncestor<TMemberNode>();
-            if (targetMember == null)
-            {
-                return null;
-            }
 
-            if (!IsMemberDeclaration(targetMember))
+            if (targetMember == null || !IsMemberDeclaration(targetMember))
             {
                 return null;
             }
@@ -174,6 +172,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             for (var i = 0; i < lines.Count; i++)
             {
                 lines[i] = lines[i] + newLine;
+            }
+        }
+
+        private static void IndentLines(List<string> lines, string? indentText)
+        {
+            for (var i = 1; i < lines.Count; i++)
+            {
+                lines[i] = indentText + lines[i];
             }
         }
 
@@ -204,50 +210,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return null;
             }
 
-            var documentationComment = token.GetAncestor<TDocumentationComment>();
-            if (documentationComment == null)
-            {
-                return null;
-            }
-
-            if (!IsSingleExteriorTrivia(documentationComment))
-            {
-                return null;
-            }
-
-            var targetMember = GetTargetMember(documentationComment);
-            if (targetMember == null)
-            {
-                return null;
-            }
-
-            // Ensure that the target member is only preceded by a single documentation comment (our ///).
-            if (GetPrecedingDocumentationCommentCount(targetMember) != 1)
-            {
-                return null;
-            }
-
-            var line = text.Lines.GetLineFromPosition(documentationComment.FullSpan.Start);
-            if (line.IsEmptyOrWhitespace())
-            {
-                return null;
-            }
-
-            var lines = GetDocumentationCommentStubLines(targetMember);
-            Debug.Assert(lines.Count > 2);
-
             var newLine = options.GetOption(FormattingOptions.NewLine);
-            AddLineBreaks(lines, newLine);
-
-            // Shave off initial exterior trivia
-            lines[0] = lines[0].Substring(3);
-
-            // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (var i = 1; i < lines.Count; i++)
+            var lines = GetDocumentationCommentLines(token, text, options, out var indentText);
+            if (lines == null)
             {
-                lines[i] = indentText + lines[i];
+                return null;
             }
 
             var newText = string.Join(string.Empty, lines);
@@ -300,10 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             Debug.Assert(line.Start + lineOffset == startPosition);
 
             var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
-            for (var i = 1; i < lines.Count; i++)
-            {
-                lines[i] = indentText + lines[i];
-            }
+            IndentLines(lines, indentText);
 
             lines[^1] = lines[^1] + indentText;
 
