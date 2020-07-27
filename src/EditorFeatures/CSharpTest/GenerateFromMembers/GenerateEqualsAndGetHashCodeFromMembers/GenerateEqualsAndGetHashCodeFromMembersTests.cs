@@ -1141,7 +1141,9 @@ class Program
 FeaturesResources.Generate_Equals_object);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         private Task TestSmartTagTextAsync(string x, string y, int index = 0)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             throw new NotImplementedException();
         }
