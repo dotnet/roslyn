@@ -3387,11 +3387,14 @@ index: 1);
         public async Task TestAbstractBase()
         {
             await TestInRegularAndScript1Async(
-@"namespace System { public struct HashCode { } }
+@"
+#nullable enable
+
+namespace System { public struct HashCode { } }
 
 abstract class Base
 {
-    public abstract override bool Equals(object{|CS8632:?|} obj);
+    public abstract override bool Equals(object? obj);
     public abstract override int GetHashCode();
 }
 
@@ -3399,13 +3402,16 @@ class {|CS0534:{|CS0534:Derived|}|} : Base
 {
     [|public int P { get; }|]
 }",
-@"using System;
+@"
+#nullable enable
+
+using System;
 
 namespace System { public struct HashCode { } }
 
 abstract class Base
 {
-    public abstract override bool Equals(object{|CS8632:?|} obj);
+    public abstract override bool Equals(object? obj);
     public abstract override int GetHashCode();
 }
 
@@ -3413,7 +3419,7 @@ class Derived : Base
 {
     public int P { get; }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is Derived derived &&
                P == derived.P;
@@ -3429,7 +3435,7 @@ parameters: CSharpLatest,
 fixedExpectedDiagnostics: new List<DiagnosticResult>
 {
     // /0/Test0.cs(23,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
-    DiagnosticResult.CompilerError("CS0117").WithSpan(23, 25, 23, 32).WithArguments("System.HashCode", "Combine"),
+    DiagnosticResult.CompilerError("CS0117").WithSpan(26, 25, 26, 32).WithArguments("System.HashCode", "Combine"),
 });
         }
     }
