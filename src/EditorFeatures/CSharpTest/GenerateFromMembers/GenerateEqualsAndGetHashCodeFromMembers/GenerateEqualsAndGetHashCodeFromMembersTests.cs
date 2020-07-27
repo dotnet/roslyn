@@ -96,12 +96,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             string expectedMarkup,
             int index = 0,
             OptionsCollection options = null,
-            List<DiagnosticResult> expectedDiagnostics = null,
             List<DiagnosticResult> fixedExpectedDiagnostics = null)
         {
             return TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, new TestParameters(options: options),
-                expectedDiagnostics, fixedExpectedDiagnostics);
+                initialMarkup, expectedMarkup, index, new TestParameters(options: options), fixedExpectedDiagnostics);
         }
 
         private static Task TestInRegularAndScript1Async(
@@ -109,12 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             string expectedMarkup,
             int index = 0,
             TestParameters? parameters = null,
-            List<DiagnosticResult> expectedDiagnostics = null,
             List<DiagnosticResult> fixedExpectedDiagnostics = null)
         {
             return TestInRegularAndScript1Async(
-                new[] { initialMarkup }, new[] { expectedMarkup }, index, parameters,
-                expectedDiagnostics, fixedExpectedDiagnostics);
+                new[] { initialMarkup }, new[] { expectedMarkup }, index, parameters, fixedExpectedDiagnostics);
         }
 
         private static Task TestWithPickMembersDialogAsync(
@@ -124,7 +120,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
             TestParameters parameters = default,
-            List<DiagnosticResult> expectedDiagnostics = null,
             List<DiagnosticResult> fixedExpectedDiagnostics = null)
         {
             return TestWithPickMembersDialogAsync(
@@ -134,7 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                 optionsCallback,
                 index,
                 parameters,
-                expectedDiagnostics,
                 fixedExpectedDiagnostics);
         }
 
@@ -145,7 +139,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
             TestParameters parameters = default,
-            List<DiagnosticResult> expectedDiagnostics = null,
             List<DiagnosticResult> fixedExpectedDiagnostics = null)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
@@ -153,7 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                 initialMarkup, expectedMarkup,
                 index,
                 parameters.WithFixProviderData(pickMembersService),
-                expectedDiagnostics,
                 fixedExpectedDiagnostics);
         }
 
@@ -171,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             string[] expectedMarkup,
             int index = 0,
             TestParameters? parameters = null,
-            List<DiagnosticResult> expectedDiagnostics = null,
             List<DiagnosticResult> fixedExpectedDiagnostics = null)
         {
             var test = new Test
@@ -199,12 +190,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             }
 
             test.CompilationOptions = parameters?.compilationOptions;
-
-            foreach (var diagnostic in expectedDiagnostics ?? new List<DiagnosticResult>())
-            {
-                test.TestState.ExpectedDiagnostics.Add(diagnostic);
-                test.FixedState.ExpectedDiagnostics.Add(diagnostic);
-            }
 
             foreach (var diagnostic in fixedExpectedDiagnostics ?? new List<DiagnosticResult>())
                 test.FixedState.ExpectedDiagnostics.Add(diagnostic);
