@@ -19278,6 +19278,8 @@ record C
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(1, analyzer.FireCount4);
             Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
         }
 
         private class AnalyzerActions_02_Analyzer : DiagnosticAnalyzer
@@ -19287,6 +19289,8 @@ record C
             public int FireCount3;
             public int FireCount4;
             public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -19299,6 +19303,7 @@ record C
                 context.RegisterSymbolAction(Handle, SymbolKind.Method);
                 context.RegisterSymbolAction(Handle, SymbolKind.Property);
                 context.RegisterSymbolAction(Handle, SymbolKind.Parameter);
+                context.RegisterSymbolAction(Handle, SymbolKind.NamedType);
             }
 
             private void Handle(SymbolAnalysisContext context)
@@ -19319,6 +19324,21 @@ record C
                         break;
                     case "[System.Int32 Z = 4]":
                         Interlocked.Increment(ref FireCount5);
+                        break;
+                    case "A":
+                        Interlocked.Increment(ref FireCount6);
+
+                        Assert.Equal(0, FireCount1);
+                        Assert.Equal(0, FireCount2);
+                        Assert.Equal(0, FireCount3);
+                        break;
+                    case "C":
+                        Interlocked.Increment(ref FireCount7);
+
+                        Assert.Equal(0, FireCount4);
+                        Assert.Equal(0, FireCount5);
+                        break;
+                    case "System.Runtime.CompilerServices.IsExternalInit":
                         break;
                     default:
                         Assert.True(false);
@@ -19353,6 +19373,10 @@ record C
             Assert.Equal(1, analyzer.FireCount6);
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
         }
 
         private class AnalyzerActions_03_Analyzer : DiagnosticAnalyzer
@@ -19365,6 +19389,10 @@ record C
             public int FireCount6;
             public int FireCount7;
             public int FireCount8;
+            public int FireCount9;
+            public int FireCount10;
+            public int FireCount11;
+            public int FireCount12;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -19377,6 +19405,7 @@ record C
                 context.RegisterSymbolStartAction(Handle1, SymbolKind.Method);
                 context.RegisterSymbolStartAction(Handle1, SymbolKind.Property);
                 context.RegisterSymbolStartAction(Handle1, SymbolKind.Parameter);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.NamedType);
             }
 
             private void Handle1(SymbolStartAnalysisContext context)
@@ -19401,6 +19430,26 @@ record C
                     case "[System.Int32 Z = 4]":
                         Interlocked.Increment(ref FireCount5);
                         break;
+                    case "A":
+                        Interlocked.Increment(ref FireCount9);
+
+                        Assert.Equal(0, FireCount1);
+                        Assert.Equal(0, FireCount2);
+                        Assert.Equal(0, FireCount6);
+                        Assert.Equal(0, FireCount7);
+
+                        context.RegisterSymbolEndAction(Handle5);
+                        break;
+                    case "C":
+                        Interlocked.Increment(ref FireCount10);
+
+                        Assert.Equal(0, FireCount4);
+                        Assert.Equal(0, FireCount8);
+
+                        context.RegisterSymbolEndAction(Handle6);
+                        break;
+                    case "System.Runtime.CompilerServices.IsExternalInit":
+                        break;
                     default:
                         Assert.True(false);
                         break;
@@ -19423,6 +19472,26 @@ record C
             {
                 Assert.Equal("C..ctor([System.Int32 Z = 4])", context.Symbol.ToTestDisplayString());
                 Interlocked.Increment(ref FireCount8);
+            }
+
+            private void Handle5(SymbolAnalysisContext context)
+            {
+                Assert.Equal("A", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount11);
+
+                Assert.Equal(1, FireCount1);
+                Assert.Equal(1, FireCount2);
+                Assert.Equal(1, FireCount6);
+                Assert.Equal(1, FireCount7);
+            }
+
+            private void Handle6(SymbolAnalysisContext context)
+            {
+                Assert.Equal("C", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount12);
+
+                Assert.Equal(1, FireCount4);
+                Assert.Equal(1, FireCount8);
             }
         }
 

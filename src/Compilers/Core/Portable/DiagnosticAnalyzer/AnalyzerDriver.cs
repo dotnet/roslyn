@@ -2767,6 +2767,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             case OperationKind.MethodBody:
                             case OperationKind.ConstructorBody:
+                                Debug.Assert(!operationBlock.Parent.IsImplicit);
                                 operationsToAnalyze.Add(operationBlock.Parent);
                                 break;
 
@@ -2776,6 +2777,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);
+                                Debug.Assert(!operationBlock.Parent.Parent.IsImplicit);
 
                                 operationsToAnalyze.Add(operationBlock.Parent.Parent);
 
