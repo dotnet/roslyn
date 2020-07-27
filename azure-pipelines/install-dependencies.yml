@@ -12,3 +12,4 @@ steps:
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
   displayName: Set pipeline variables based on source
+  name: SetPipelineVariables
