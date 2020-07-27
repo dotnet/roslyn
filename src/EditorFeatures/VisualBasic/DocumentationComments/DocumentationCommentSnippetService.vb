@@ -13,6 +13,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     Friend Class DocumentationCommentSnippetService
         Inherits AbstractDocumentationCommentSnippetService(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
 
+        Public Overrides ReadOnly Property DocumentationCommentCharacter As String
+            Get
+                Return "'"
+            End Get
+        End Property
+
         Protected Overrides ReadOnly Property ExteriorTriviaText As String
             Get
                 Return "'''"

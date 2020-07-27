@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
     internal class DocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
-        protected override bool AddIndent => true;
+        public override string DocumentationCommentCharacter => "/";
 
+        protected override bool AddIndent => true;
         protected override string ExteriorTriviaText => "///";
 
         [ImportingConstructor]

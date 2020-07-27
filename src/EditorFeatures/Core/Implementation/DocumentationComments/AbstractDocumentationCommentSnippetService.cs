@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         protected abstract bool IsMultilineDocComment(TDocumentationComment? documentationComment);
         protected abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
 
+        public abstract string DocumentationCommentCharacter { get; }
+
         protected abstract string ExteriorTriviaText { get; }
         protected abstract bool AddIndent { get; }
 

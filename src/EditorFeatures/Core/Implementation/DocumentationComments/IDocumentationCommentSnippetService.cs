@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IDocumentationCommentSnippetService : ILanguageService
     {
+        /// <summary>
+        /// A single character string indicating what the comment character is for the documentation comments
+        /// </summary>
+        string DocumentationCommentCharacter { get; }
+
         DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
             SyntaxTree syntaxTree,
             SourceText text,

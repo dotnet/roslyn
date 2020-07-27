@@ -32,46 +32,50 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task<LSP.DocumentOnAutoInsertResponseItem[]> OnAutoInsertAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, string? clientName, CancellationToken cancellationToken)
         {
-            var response = new ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>();
+            using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
             var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, clientName);
 
-            if (document != null)
+            if (document == null)
             {
-                var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-
-                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-                var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
-                var position = sourceText.Lines.GetPosition(linePosition);
-
-                var result = autoInsertParams.Character == "\n"
-                    ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
-                    : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
-
-                if (result != null)
-                {
-                    response.Add(new LSP.DocumentOnAutoInsertResponseItem
-                    {
-                        TextEditFormat = LSP.InsertTextFormat.Snippet,
-                        TextEdit = new LSP.TextEdit
-                        {
-                            NewText = result.SnippetText.Insert(result.CaretOffset, "$0"),
-                            Range = new LSP.Range
-                            {
-                                // GetDocumentationCommentOnCharacterTyped returns the text to insert _after_ the triple-slash so we
-                                // can just insert it at the current position
-                                Start = autoInsertParams.Position,
-                                End = autoInsertParams.Position
-                            }
-                        }
-                    });
-                }
+                return response.ToArray();
             }
 
-            return response.ToArrayAndFree();
+            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
+
+            // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
+            if (autoInsertParams.Character != "\n" && autoInsertParams.Character != service.DocumentationCommentCharacter)
+            {
+                return response.ToArray();
+            }
+
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
+            var position = sourceText.Lines.GetPosition(linePosition);
+
+            var result = autoInsertParams.Character == "\n"
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
+
+            if (result == null)
+            {
+                return response.ToArray();
+            }
+
+            response.Add(new LSP.DocumentOnAutoInsertResponseItem
+            {
+                TextEditFormat = LSP.InsertTextFormat.Snippet,
+                TextEdit = new LSP.TextEdit
+                {
+                    NewText = result.SnippetText.Insert(result.CaretOffset, "$0"),
+                    Range = ProtocolConversions.TextSpanToRange(result.SpanToReplace, sourceText)
+                }
+            });
+
+            return response.ToArray();
         }
     }
 }
