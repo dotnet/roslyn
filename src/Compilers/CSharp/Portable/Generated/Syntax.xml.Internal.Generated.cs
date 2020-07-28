@@ -22733,7 +22733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    /// <summary>Base type for class or struct constraint syntax.</summary>
+    /// <summary>Class or struct constraint syntax.</summary>
     internal sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstraintSyntax
     {
         internal readonly SyntaxToken classOrStructKeyword;
@@ -22930,6 +22930,91 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         static TypeConstraintSyntax()
         {
             ObjectBinder.RegisterTypeReader(typeof(TypeConstraintSyntax), r => new TypeConstraintSyntax(r));
+        }
+    }
+
+    /// <summary>Default constraint syntax.</summary>
+    internal sealed partial class DefaultConstraintSyntax : TypeParameterConstraintSyntax
+    {
+        internal readonly SyntaxToken defaultKeyword;
+
+        internal DefaultConstraintSyntax(SyntaxKind kind, SyntaxToken defaultKeyword, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        internal DefaultConstraintSyntax(SyntaxKind kind, SyntaxToken defaultKeyword, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        internal DefaultConstraintSyntax(SyntaxKind kind, SyntaxToken defaultKeyword)
+          : base(kind)
+        {
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        /// <summary>Gets the "default" keyword.</summary>
+        public SyntaxToken DefaultKeyword => this.defaultKeyword;
+
+        internal override GreenNode? GetSlot(int index)
+            => index == 0 ? this.defaultKeyword : null;
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DefaultConstraintSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultConstraint(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultConstraint(this);
+
+        public DefaultConstraintSyntax Update(SyntaxToken defaultKeyword)
+        {
+            if (defaultKeyword != this.DefaultKeyword)
+            {
+                var newNode = SyntaxFactory.DefaultConstraint(defaultKeyword);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new DefaultConstraintSyntax(this.Kind, this.defaultKeyword, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new DefaultConstraintSyntax(this.Kind, this.defaultKeyword, GetDiagnostics(), annotations);
+
+        internal DefaultConstraintSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 1;
+            var defaultKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.defaultKeyword);
+        }
+
+        static DefaultConstraintSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(DefaultConstraintSyntax), r => new DefaultConstraintSyntax(r));
         }
     }
 
@@ -32473,6 +32558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
@@ -32702,6 +32788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
         public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
         public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
@@ -33258,6 +33345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitTypeConstraint(TypeConstraintSyntax node)
             => node.Update((TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitDefaultConstraint(DefaultConstraintSyntax node)
+            => node.Update((SyntaxToken)Visit(node.DefaultKeyword));
 
         public override CSharpSyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration), (SyntaxToken)Visit(node.SemicolonToken));
@@ -36933,6 +37023,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (TypeConstraintSyntax)cached;
 
             var result = new TypeConstraintSyntax(SyntaxKind.TypeConstraint, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
+        {
+#if DEBUG
+            if (defaultKeyword == null) throw new ArgumentNullException(nameof(defaultKeyword));
+            if (defaultKeyword.Kind != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.DefaultConstraint, defaultKeyword, this.context, out hash);
+            if (cached != null) return (DefaultConstraintSyntax)cached;
+
+            var result = new DefaultConstraintSyntax(SyntaxKind.DefaultConstraint, defaultKeyword, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -41693,6 +41803,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
+        {
+#if DEBUG
+            if (defaultKeyword == null) throw new ArgumentNullException(nameof(defaultKeyword));
+            if (defaultKeyword.Kind != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DefaultConstraint, defaultKeyword, out hash);
+            if (cached != null) return (DefaultConstraintSyntax)cached;
+
+            var result = new DefaultConstraintSyntax(SyntaxKind.DefaultConstraint, defaultKeyword);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public static FieldDeclarationSyntax FieldDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
 #if DEBUG
@@ -43118,6 +43248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(ConstructorConstraintSyntax),
                 typeof(ClassOrStructConstraintSyntax),
                 typeof(TypeConstraintSyntax),
+                typeof(DefaultConstraintSyntax),
                 typeof(FieldDeclarationSyntax),
                 typeof(EventFieldDeclarationSyntax),
                 typeof(ExplicitInterfaceSpecifierSyntax),

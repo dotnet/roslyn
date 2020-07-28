@@ -74,12 +74,16 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (2,9): error CS8851: There cannot be a primary constructor and a member constructor with the same parameter types.
-                // record C(int x, string y)
-                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 9)
-            );
+                // (4,12): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
+                //     public C(int a, string b)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 12),
+                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                //     public C(int a, string b)
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
+                );
+
             var c = comp.GlobalNamespace.GetTypeMember("C");
-            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[2];
             Assert.Equal(2, ctor.ParameterCount);
 
             var a = ctor.Parameters[0];
@@ -262,7 +266,7 @@ record C(int X, int Y)
         Console.WriteLine(c.Equals(c));
     }
     public virtual bool Equals(C c) => false;
-}", expectedOutput: "False");
+}", expectedOutput: "False").VerifyDiagnostics();
         }
 
         [Fact]
@@ -280,7 +284,7 @@ record C(int X, int Y)
         Console.WriteLine(c.Equals(c2));
     }
 }", expectedOutput: @"True
-True");
+True").VerifyDiagnostics();
         }
 
         [Fact]
@@ -300,7 +304,8 @@ sealed record C(int X, int Y)
     }
     public bool Equals(C c) => X == c.X && Y == c.Y;
 }", expectedOutput: @"True
-False");
+False").VerifyDiagnostics();
+
             verifier.VerifyIL("C.Equals(object)", @"
 {
   // Code size       13 (0xd)
@@ -347,7 +352,8 @@ record C(int X, int Y)
         Console.WriteLine(c.Equals(c3));
     }
 }", expectedOutput: @"True
-False");
+False").VerifyDiagnostics();
+
             verifier.VerifyIL("C.Equals(object)", @"
 {
   // Code size       13 (0xd)
@@ -405,7 +411,7 @@ record C(int X, int Y)
         Console.WriteLine(c.Equals(c3));
     }
 }", expectedOutput: @"False
-False");
+False").VerifyDiagnostics();
         }
 
         [Fact]
@@ -425,7 +431,7 @@ record C(int[] X, string Y)
         Console.WriteLine(c.Equals(c3));
     }
 }", expectedOutput: @"False
-True");
+True").VerifyDiagnostics();
         }
 
         [Fact]
@@ -451,7 +457,8 @@ record C(int X, int Y)
 }", expectedOutput: @"False
 False
 True
-True");
+True").VerifyDiagnostics();
+
             verifier.VerifyIL("C.Equals(C)", @"
 {
   // Code size       95 (0x5f)
@@ -513,7 +520,7 @@ record C(int X, int Y)
 }", expectedOutput: @"False
 False
 True
-True");
+True").VerifyDiagnostics();
         }
 
         [Fact]
@@ -539,7 +546,8 @@ record C(int X, int Y)
 }", expectedOutput: @"True
 True
 True
-True");
+True").VerifyDiagnostics();
+
             verifier.VerifyIL("C.Equals(C)", @"
 {
   // Code size       71 (0x47)
@@ -633,7 +641,6 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-using System.Collections.Generic;
 record C(int X, int Y)
 {
     private event Action E;
@@ -652,7 +659,8 @@ record C(int X, int Y)
 }", expectedOutput: @"False
 False
 True
-True");
+True").VerifyDiagnostics();
+
             verifier.VerifyIL("C.Equals(C)", @"
 {
   // Code size       95 (0x5f)
@@ -707,7 +715,7 @@ True");
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -759,7 +767,7 @@ record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -851,7 +859,7 @@ public record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -973,7 +981,8 @@ record C
 }", expectedOutput: @"False
 False
 True
-True");
+True").VerifyDiagnostics();
+
             verifier.VerifyIL("C.Equals(object)", @"
 {
   // Code size       13 (0xd)
@@ -1031,7 +1040,7 @@ record C(int X, string Y)
 {
     public event Action E;
 }
-");
+").VerifyDiagnostics();
             var v2 = CompileAndVerify(@"
 using System;
 record C
@@ -1039,7 +1048,8 @@ record C
     public int X { get; }
     public string Y { get; }
     public event Action E;
-}");
+}").VerifyDiagnostics();
+
             Assert.Equal(v1.VisualizeIL("C.Equals(C)"), v2.VisualizeIL("C.Equals(C)"));
             Assert.Equal(v1.VisualizeIL("C.Equals(object)"), v2.VisualizeIL("C.Equals(object)"));
         }
@@ -1056,7 +1066,6 @@ record C
 }");
             var members = comp.GlobalNamespace.GetTypeMember("C").GetMembers();
             AssertEx.Equal(new[] {
-                "C! C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type! C.EqualityContract.get",
                 "System.Type! C.EqualityContract { get; }",
                 "System.Int32 C.<X>k__BackingField",
@@ -1069,8 +1078,9 @@ record C
                 "void C.Y.init",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C.C(C! )",
+                "System.Boolean C.Equals(C? other)",
+                "C! C." + WellKnownMemberNames.CloneMethodName + "()",
+                "C.C(C! original)",
                 "C.C()",
             }, members.Select(m => m.ToTestDisplayString(includeNonNullable: true)));
         }
@@ -1101,7 +1111,7 @@ partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
@@ -1130,14 +1140,13 @@ partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );
 
-            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
         public void PartialTypes_03()
         {
             var src = @"
-using System;
 partial record C
 {
     public int X = 1;
@@ -1147,7 +1156,7 @@ partial record C
 {
     public int Z { get; } = 2;
 }";
-            var verifier = CompileAndVerify(src);
+            var verifier = CompileAndVerify(src).VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(int)", @"
 {
   // Code size       28 (0x1c)
@@ -1369,7 +1378,7 @@ class P
 1 2
 3 4
 6 5
-8 7");
+8 7").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1430,6 +1439,7 @@ class C
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(0, clone.Arity);
             Assert.Equal("R R." + WellKnownMemberNames.CloneMethodName + "()", clone.ToTestDisplayString());
+            Assert.True(clone.IsImplicitlyDeclared);
 
             var r2 = comp.GlobalNamespace.GetTypeMember("R2");
             var clone2 = (MethodSymbol)r2.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1440,6 +1450,7 @@ class C
             Assert.Equal(0, clone2.Arity);
             Assert.True(clone2.OverriddenMethod.Equals(clone, TypeCompareKind.ConsiderEverything));
             Assert.Equal("R R2." + WellKnownMemberNames.CloneMethodName + "()", clone2.ToTestDisplayString());
+            Assert.True(clone2.IsImplicitlyDeclared);
 
             var r3 = comp.GlobalNamespace.GetTypeMember("R3");
             var clone3 = (MethodSymbol)r3.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1450,6 +1461,7 @@ class C
             Assert.Equal(0, clone3.Arity);
             Assert.True(clone3.OverriddenMethod.Equals(clone2, TypeCompareKind.ConsiderEverything));
             Assert.Equal("R R3." + WellKnownMemberNames.CloneMethodName + "()", clone3.ToTestDisplayString());
+            Assert.True(clone3.IsImplicitlyDeclared);
 
             var r4 = comp.GlobalNamespace.GetTypeMember("R4");
             var clone4 = (MethodSymbol)r4.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1460,6 +1472,7 @@ class C
             Assert.Equal(0, clone4.Arity);
             Assert.True(clone4.OverriddenMethod.Equals(clone3, TypeCompareKind.ConsiderEverything));
             Assert.Equal("R R4." + WellKnownMemberNames.CloneMethodName + "()", clone4.ToTestDisplayString());
+            Assert.True(clone4.IsImplicitlyDeclared);
 
             var r5 = comp.GlobalNamespace.GetTypeMember("R5");
             var clone5 = (MethodSymbol)r5.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1470,8 +1483,9 @@ class C
             Assert.Equal(0, clone5.Arity);
             Assert.True(clone5.OverriddenMethod.Equals(clone4, TypeCompareKind.ConsiderEverything));
             Assert.Equal("R R5." + WellKnownMemberNames.CloneMethodName + "()", clone5.ToTestDisplayString());
+            Assert.True(clone5.IsImplicitlyDeclared);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
+            var verifier = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes).VerifyDiagnostics();
             verifier.VerifyIL("C.Main", @"
 {
   // Code size       28 (0x1c)

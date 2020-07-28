@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 var methodInfo = compilerAnalyzerType.GetMethod("GetSupportedErrorCodes", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 var compilerAnalyzerInstance = Activator.CreateInstance(compilerAnalyzerType);
                 var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, Array.Empty<object>()) as IEnumerable<int>;
-                return supportedCodes.ToImmutableHashSet();
+                return supportedCodes?.ToImmutableHashSet() ?? ImmutableHashSet<int>.Empty;
             }
             catch (Exception ex)
             {
@@ -113,6 +113,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, tree, cancellationToken).Trim();
             var (userExclusions, analyzerDisabled) = ParseUserExclusions(option);
             if (analyzerDisabled)
+            {
+                return;
+            }
+
+            // Bail out for generated code.
+            if (tree.IsGeneratedCode(compilationWithAnalyzers.AnalysisOptions.Options, SyntaxFacts, cancellationToken))
             {
                 return;
             }
@@ -190,9 +196,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Remove entries for unhandled diagnostic ids.
             foreach (var id in unhandledIds)
             {
-                foreach (var (pragma, _) in idToPragmasMap[id])
+                if (idToPragmasMap.TryGetValue(id, out var pragmas))
                 {
-                    pragmasToIsUsedMap.Remove(pragma);
+                    foreach (var (pragma, _) in pragmas)
+                    {
+                        pragmasToIsUsedMap.Remove(pragma);
+                    }
                 }
 
                 if (idToSuppressMessageAttributesMap.TryGetValue(id, out var attributeNodes))

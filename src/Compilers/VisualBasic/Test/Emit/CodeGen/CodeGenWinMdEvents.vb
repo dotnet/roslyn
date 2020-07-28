@@ -455,7 +455,7 @@ End Class
         ''' I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
         ''' </remarks>
         <WorkItem(1003209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003209")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub FieldLikeEventSerialization()
 
             Dim source1 =

@@ -57,6 +57,7 @@ public abstract class AbstractTestAnalyzer : DiagnosticAnalyzer
                    new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerDependencySource) },
                    new MetadataReference[]
                    {
+                    TestMetadata.NetStandard20.mscorlib,
                     TestMetadata.NetStandard20.netstandard,
                     TestMetadata.NetStandard20.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
@@ -83,6 +84,7 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
                    new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerMainSource) },
                    new MetadataReference[]
                    {
+                        TestMetadata.NetStandard20.mscorlib,
                         TestMetadata.NetStandard20.netstandard,
                         TestMetadata.NetStandard20.SystemRuntime,
                         MetadataReference.CreateFromFile(immutable.Path),

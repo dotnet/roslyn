@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Net;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
@@ -22,6 +23,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
         {
+            static Test()
+            {
+                // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
+                // reasonable TLS protocol version for outgoing connections.
+#pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+            }
+
             public Test()
             {
                 SolutionTransforms.Add((solution, projectId) =>

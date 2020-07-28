@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
             }
 
-            public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
+            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 var componentModel = (IComponentModel)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
             }
 
-            private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)
+            private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy hierarchy)
+            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 

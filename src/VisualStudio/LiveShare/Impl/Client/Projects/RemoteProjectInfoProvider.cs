@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
             var projectId = ProjectId.CreateNewId();
             var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
 
-            foreach (string file in files)
+            foreach (var file in files)
             {
                 var fileName = Path.GetFileNameWithoutExtension(file);
                 var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),

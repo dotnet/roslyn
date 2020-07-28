@@ -1459,7 +1459,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             Dim flags = member.GetModifierFlags()
 
-            Dim access As EnvDTE.vsCMAccess = 0
+            Dim access As EnvDTE.vsCMAccess
 
             If (flags And ModifierFlags.Public) <> 0 Then
                 access = EnvDTE.vsCMAccess.vsCMAccessPublic
@@ -2138,8 +2138,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Function GetClassKind(typeNode As SyntaxNode, typeSymbol As INamedTypeSymbol) As EnvDTE80.vsCMClassKind
             Debug.Assert(TypeOf typeNode Is ClassBlockSyntax OrElse
                          TypeOf typeNode Is ModuleBlockSyntax)
-
-            Dim result As EnvDTE80.vsCMClassKind = 0
 
             Dim typeBlock = DirectCast(typeNode, TypeBlockSyntax)
             If TypeOf typeBlock Is ModuleBlockSyntax Then
@@ -3767,46 +3765,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEFail()
         End Function
 
-        Private Shared Function GetMember(container As SyntaxNode, index As Integer) As StatementSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Return DirectCast(container, CompilationUnitSyntax).Members(index)
-            ElseIf TypeOf container Is NamespaceBlockSyntax Then
-                Return DirectCast(container, NamespaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ClassBlockSyntax Then
-                Return DirectCast(container, ClassBlockSyntax).Members(index)
-            ElseIf TypeOf container Is InterfaceBlockSyntax Then
-                Return DirectCast(container, InterfaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is StructureBlockSyntax Then
-                Return DirectCast(container, StructureBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ModuleBlockSyntax Then
-                Return DirectCast(container, ModuleBlockSyntax).Members(index)
-            ElseIf TypeOf container Is EnumBlockSyntax Then
-                Return DirectCast(container, EnumBlockSyntax).Members(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
-        Private Shared Function GetAttribute(container As SyntaxNode, index As Integer) As AttributeListSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Dim compilationUnit = DirectCast(container, CompilationUnitSyntax).Attributes(index).AttributeLists(0)
-            ElseIf TypeOf container Is TypeBlockSyntax Then
-                Return DirectCast(container, TypeBlockSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is EnumMemberDeclarationSyntax Then
-                Return DirectCast(container, EnumMemberDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is MethodBlockBaseSyntax Then
-                Return DirectCast(container, MethodBlockBaseSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is PropertyBlockSyntax Then
-                Return DirectCast(container, PropertyBlockSyntax).PropertyStatement.AttributeLists(index)
-            ElseIf TypeOf container Is FieldDeclarationSyntax Then
-                Return DirectCast(container, FieldDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is ParameterSyntax Then
-                Return DirectCast(container, ParameterSyntax).AttributeLists(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
         Protected Overrides Function InsertAttributeArgumentIntoContainer(index As Integer, attributeArgument As SyntaxNode, container As SyntaxNode) As SyntaxNode
             If TypeOf container Is AttributeSyntax Then
                 Dim attribute = DirectCast(container, AttributeSyntax)
@@ -4327,16 +4285,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim inheritsStatements = typeBlock.Inherits
-            Dim foundType = False
 
             For Each inheritsStatement In inheritsStatements
                 For Each inheritsType In inheritsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If inheritsStatement.Types.Count = 1 Then
                             inheritsStatements = inheritsStatements.Remove(inheritsStatement)
                         Else
@@ -4403,16 +4357,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim implementsStatements = typeBlock.Implements
-            Dim foundType = False
 
             For Each implementsStatement In implementsStatements
                 For Each inheritsType In implementsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If implementsStatement.Types.Count = 1 Then
                             implementsStatements = implementsStatements.Remove(implementsStatement)
                         Else
