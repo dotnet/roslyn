@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -658,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (symbol.TypeKind)
                     {
-                        case TypeKind.Class when !symbol.GetMembers(WellKnownMemberNames.CloneMethodName).IsEmpty:
+                        case TypeKind.Class when hasCloneMethod(symbol):
                             AddKeyword(SyntaxKind.RecordKeyword);
                             AddSpace();
                             break;
@@ -702,6 +703,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+            }
+
+            static bool hasCloneMethod(INamedTypeSymbol symbol)
+            {
+                HashSet<DiagnosticInfo> ignored = null;
+                return symbol is Symbols.PublicModel.NamedTypeSymbol namedTypeSymbol &&
+                    SynthesizedRecordClone.FindValidCloneMethod(namedTypeSymbol.UnderlyingNamedTypeSymbol, useSiteDiagnostics: ref ignored) is object;
             }
         }
 

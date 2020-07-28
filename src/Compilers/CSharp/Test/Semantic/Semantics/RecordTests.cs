@@ -1480,6 +1480,9 @@ abstract sealed record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1506,6 +1509,9 @@ sealed abstract record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1560,6 +1566,9 @@ sealed abstract record C2 : C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1654,6 +1663,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1754,6 +1766,9 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1858,6 +1873,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1968,6 +1986,9 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2072,6 +2093,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2182,6 +2206,9 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2572,6 +2599,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2666,6 +2696,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
