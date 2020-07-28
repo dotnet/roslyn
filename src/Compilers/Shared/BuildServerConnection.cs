@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    Log("Client disconnect");
+                    LogError("Client disconnect");
                     response = new RejectedBuildResponse($"Client disconnected");
                 }
 
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    Log($"Connecting to server timed out after {timeoutMs} ms");
+                    LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
                     return null;
                 }
                 Log("Named pipe '{0}' connected", pipeName);
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Verify that we own the pipe.
                 if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
-                    Log("Owner of named pipe is incorrect");
+                    LogError("Owner of named pipe is incorrect");
                     return null;
                 }
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                    LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
                 }
                 return success;
             }

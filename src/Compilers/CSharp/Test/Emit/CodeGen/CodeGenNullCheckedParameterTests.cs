@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
@@ -1206,13 +1208,13 @@ class C
 {
     // Code size       29 (0x1d)
     .maxstack  3
-    IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.s   -2
-    IL_0010:  newobj     ""C.<GetChars>d__0..ctor(int)""
+    IL_0000:  ldc.i4.s   -2
+    IL_0002:  newobj     ""C.<GetChars>d__0..ctor(int)""
+    IL_0007:  ldarg.1
+    IL_0008:  brtrue.s   IL_0015
+    IL_000a:  ldstr      ""s""
+    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0014:  throw
     IL_0015:  dup
     IL_0016:  ldarg.1
     IL_0017:  stfld      ""string C.<GetChars>d__0.<>3__s""
@@ -1245,13 +1247,13 @@ class Iterators
 {
     // Code size       29 (0x1d)
     .maxstack  3
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.s   -2
-    IL_0010:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0000:  ldc.i4.s   -2
+    IL_0002:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0007:  ldarg.0
+    IL_0008:  brtrue.s   IL_0015
+    IL_000a:  ldstr      ""s""
+    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0014:  throw
     IL_0015:  dup
     IL_0016:  ldarg.0
     IL_0017:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
@@ -1284,17 +1286,17 @@ class Iterators
 {
     // Code size       28 (0x1c)
     .maxstack  3
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.0
-    IL_000f:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0000:  ldc.i4.0
+    IL_0001:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
+    IL_0006:  ldarg.0
+    IL_0007:  brtrue.s   IL_0014
+    IL_0009:  ldstr      ""s""
+    IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0013:  throw
     IL_0014:  dup
     IL_0015:  ldarg.0
     IL_0016:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.s""
-    IL_001b:  ret
+  IL_001b:  ret
 }");
         }
 
@@ -1403,14 +1405,14 @@ class C
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
     // Code size       22 (0x16)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.s   -2
-    IL_0010:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    .maxstack  2
+    IL_0000:  ldc.i4.s   -2
+    IL_0002:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    IL_0007:  ldarg.0
+    IL_0008:  brtrue.s   IL_0015
+    IL_000a:  ldstr      ""s""
+    IL_000f:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0014:  throw
     IL_0015:  ret
 }");
         }
@@ -1431,14 +1433,14 @@ class C
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
     // Code size       21 (0x15)
-    .maxstack  1
-    IL_0000:  ldarg.0
-    IL_0001:  brtrue.s   IL_000e
-    IL_0003:  ldstr      ""s""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    IL_000e:  ldc.i4.0
-    IL_000f:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    .maxstack  2
+    IL_0000:  ldc.i4.0
+    IL_0001:  newobj     ""C.<GetChars>d__1..ctor(int)""
+    IL_0006:  ldarg.0
+    IL_0007:  brtrue.s   IL_0014
+    IL_0009:  ldstr      ""s""
+    IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
+    IL_0013:  throw
     IL_0014:  ret
 }");
         }

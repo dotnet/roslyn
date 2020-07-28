@@ -84,9 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfNameInExplicitInterface = 1 << 22,
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
+            IsEndOfRecordSignature = 1 << 25,
         }
 
-        private const int LastTerminatorState = (int)TerminatorState.IsEndOfFunctionPointerParameterListErrored;
+        private const int LastTerminatorState = (int)TerminatorState.IsEndOfRecordSignature;
 
         private bool IsTerminator()
         {
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfNameInExplicitInterface when this.IsEndOfNameInExplicitInterface():
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
+                    case TerminatorState.IsEndOfRecordSignature when this.IsEndOfRecordSignature():
                         return true;
                 }
             }
@@ -1448,8 +1450,15 @@ tryAgain:
 
             var keyword = ConvertToKeyword(this.EatToken());
 
+            var outerSaveTerm = _termState;
+            if (keyword.Kind == SyntaxKind.RecordKeyword)
+            {
+                _termState |= TerminatorState.IsEndOfRecordSignature;
+            }
+
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
+
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
@@ -1470,6 +1479,8 @@ tryAgain:
                     constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
                     this.ParseTypeParameterConstraintClauses(constraints);
                 }
+
+                _termState = outerSaveTerm;
 
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
@@ -1759,7 +1770,7 @@ tryAgain:
                 while (true)
                 {
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                        this.CurrentToken.Kind == SyntaxKind.SemicolonToken ||
+                        ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
                         this.IsCurrentTokenWhereOfConstraintClause())
                     {
                         break;
@@ -1788,7 +1799,7 @@ tryAgain:
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                p => p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
                 expected);
         }
 
@@ -1833,6 +1844,7 @@ tryAgain:
                     while (true)
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                            || ((_termState & TerminatorState.IsEndOfRecordSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                             || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                             || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                         {
@@ -1873,6 +1885,7 @@ tryAgain:
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.StructKeyword:
+                case SyntaxKind.DefaultKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
@@ -1908,6 +1921,9 @@ tryAgain:
                     questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
 
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
+                case SyntaxKind.DefaultKeyword:
+                    var defaultToken = this.EatToken();
+                    return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
@@ -3020,6 +3036,11 @@ parse_member_name:;
         }
 
         private bool IsEndOfMethodSignature()
+        {
+            return this.CurrentToken.Kind == SyntaxKind.SemicolonToken || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+        }
+
+        private bool IsEndOfRecordSignature()
         {
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
@@ -6902,7 +6923,7 @@ done:;
                 var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
                 var missingTypes = _pool.AllocateSeparated<ParameterSyntax>();
                 var missingTypeName = CreateMissingIdentifierName();
-                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), @default: null);
+                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), exclamationToken: null, @default: null);
                 missingTypes.Add(missingType);
                 // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
                 // we don't know for sure that the expression isn't a relational with something else.
@@ -6928,7 +6949,7 @@ done:;
                         ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
 
                         var parameterType = ParseTypeOrVoid();
-                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), @default: null));
+                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), exclamationToken: null, @default: null));
 
                         if (skipBadFunctionPointerParameterListTokens() == PostSkipAction.Abort)
                         {
@@ -10392,26 +10413,6 @@ tryAgain:
                 tokenIndex++;
             }
 
-            if (precedence <= Precedence.Lambda)
-            {
-                SyntaxKind token1 = this.PeekToken(1).Kind;
-                if (token1 == SyntaxKind.EqualsGreaterThanToken)
-                {
-                    return true;
-                }
-
-                if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
-                {
-                    return true;
-                }
-
-                // Broken case but error will be added in lambda function.
-                if (token1 == SyntaxKind.ExclamationEqualsToken && this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
-                {
-                    return true;
-                }
-            }
-
             return this.PeekToken(tokenIndex).Kind == SyntaxKind.DelegateKeyword;
         }
 
@@ -11238,6 +11239,22 @@ tryAgain:
             if (precedence > Precedence.Lambda)
             {
                 return false;
+            }
+
+            SyntaxKind token1 = this.PeekToken(1).Kind;
+            if (token1 == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+            if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+
+            // Broken case but error will be added in lambda function.
+            if (token1 == SyntaxKind.ExclamationEqualsToken && this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
+            {
+                return true;
             }
 
             // If we start with `static` or `async static` then just jump past those and do the

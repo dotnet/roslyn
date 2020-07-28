@@ -9790,7 +9790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ConstructorConstraintSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.NewKeyword, this.OpenParenToken, closeParenToken);
     }
 
-    /// <summary>Base type for class or struct constraint syntax.</summary>
+    /// <summary>Class or struct constraint syntax.</summary>
     public sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstraintSyntax
     {
         internal ClassOrStructConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9869,6 +9869,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public TypeConstraintSyntax WithType(TypeSyntax type) => Update(type);
+    }
+
+    /// <summary>Default constraint syntax.</summary>
+    public sealed partial class DefaultConstraintSyntax : TypeParameterConstraintSyntax
+    {
+        internal DefaultConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>Gets the "default" keyword.</summary>
+        public SyntaxToken DefaultKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultConstraintSyntax)this.Green).defaultKeyword, Position, 0);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultConstraint(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultConstraint(this);
+
+        public DefaultConstraintSyntax Update(SyntaxToken defaultKeyword)
+        {
+            if (defaultKeyword != this.DefaultKeyword)
+            {
+                var newNode = SyntaxFactory.DefaultConstraint(defaultKeyword);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public DefaultConstraintSyntax WithDefaultKeyword(SyntaxToken defaultKeyword) => Update(defaultKeyword);
     }
 
     public abstract partial class BaseFieldDeclarationSyntax : MemberDeclarationSyntax

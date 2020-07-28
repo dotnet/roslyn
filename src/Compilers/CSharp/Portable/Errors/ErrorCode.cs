@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_YieldNotAllowedInScript = 7020,
         ERR_NamespaceNotAllowedInScript = 7021,
         WRN_MainIgnored = 7022,
-        ERR_StaticInAsOrIs = 7023,
+        WRN_StaticInAsOrIs = 7023,
         ERR_InvalidDelegateType = 7024,
         ERR_BadVisEventType = 7025,
         ERR_GlobalAttributesNotAllowed = 7026,
@@ -1737,13 +1737,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultLiteralNoTargetType = 8716,
 
         ERR_ReAbstractionInNoPIAType = 8750,
-
-        ERR_NeedSpaceBetweenExclamationAndEquals = 8716,
-        ERR_MustNullCheckInImplementation = 8717,
-        ERR_NonNullableValueTypeIsNullChecked = 8718,
-        WRN_NullCheckedHasDefaultNull = 8719,
-        ERR_NullCheckingOnByRefParameter = 8720,
-        WRN_NullCheckingOnNullableValueType = 8721,
         #endregion diagnostics introduced for C# 8.0
 
         #region diagnostics introduced in C# 9.0
@@ -1826,13 +1819,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
-        ERR_8813 = 8813, // used by features/module-initializers
-
-        ERR_8814 = 8814, // used by features/module-initializers
-
-        ERR_8815 = 8815, // used by features/module-initializers
-
-        ERR_8816 = 8816, // used by features/module-initializers
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8815,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
 
         ERR_PartialMethodReturnTypeDifference = 8817,
         ERR_PartialMethodRefReturnDifference = 8818,
@@ -1840,10 +1830,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
+        ERR_OverrideDefaultConstraintNotSatisfied = 8822,
+        ERR_DefaultConstraintOverrideOnly = 8823,
 
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
-        ERR_DuplicateRecordConstructor = 8851,
+
+        // Available = 8851,
+
         ERR_AssignmentInitOnly = 8852,
         ERR_CantChangeInitOnlyOnOverride = 8853,
         ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
@@ -1869,8 +1863,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SignatureMismatchInRecord = 8874,
         ERR_NonProtectedAPIInRecord = 8875,
         ERR_DoesNotOverrideBaseEqualityContract = 8876,
+        ERR_StaticAPIInRecord = 8877,
+        ERR_CopyConstructorWrongAccessibility = 8878,
+        ERR_NonPrivateAPIInRecord = 8879,
 
         #endregion diagnostics introduced for C# 9.0
+
+        ERR_NeedSpaceBetweenExclamationAndEquals = 8890,
+        ERR_MustNullCheckInImplementation = 8891,
+        ERR_NonNullableValueTypeIsNullChecked = 8892,
+        WRN_NullCheckedHasDefaultNull = 8893,
+        ERR_NullCheckingOnByRefParameter = 8894,
+        WRN_NullCheckingOnNullableValueType = 8895,
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

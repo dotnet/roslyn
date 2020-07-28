@@ -3141,6 +3141,7 @@ public class Goo<T>
         i ^= i;
         i <<= i;
         i >>= i;
+        i ??= i;
         object s = x => x + 1;
         Point point;
         unsafe
@@ -3372,6 +3373,10 @@ public class Goo<T>
                 Punctuation.Semicolon,
                 Identifier("i"),
                 Operators.GreaterThanGreaterThanEquals,
+                Identifier("i"),
+                Punctuation.Semicolon,
+                Identifier("i"),
+                Operators.QuestionQuestionEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Keyword("object"),

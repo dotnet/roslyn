@@ -126,4 +126,7 @@
   <data name="Sort_Namespaces" xml:space="preserve">
     <value>&amp;Sort Namespaces</value>
   </data>
+  <data name="Xaml_Language_Server_Client" xml:space="preserve">
+    <value>XAML Language Server Client</value>
+  </data>
 </root>
