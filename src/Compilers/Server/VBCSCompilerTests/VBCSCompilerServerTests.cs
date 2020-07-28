@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
                 using var serverData = await ServerUtil.CreateServer(
-                    keepAlive: TimeSpan.FromSeconds(2),
+                    keepAlive: TimeSpan.FromSeconds(5),
                     compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 for (var i = 0; i < connectionCount; i++)
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 });
 
                 using var serverData = await ServerUtil.CreateServer(
-                    keepAlive: TimeSpan.FromSeconds(2),
+                    keepAlive: TimeSpan.FromSeconds(5),
                     compilerServerHost: compilerServerHost).ConfigureAwait(false);
                 var list = new List<Task>();
                 for (var i = 0; i < connectionCount; i++)
