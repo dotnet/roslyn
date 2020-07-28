@@ -502,11 +502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
                     enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
                 }
-                else
-                {
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.State);
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.State);
-                }
             }
 
             void enforceMemberNotNullWhen(SyntaxNode syntaxOpt, bool sense, LocalState state)
@@ -604,11 +599,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
-                    }
-                    else
-                    {
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.State);
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.State);
                     }
                 }
             }
