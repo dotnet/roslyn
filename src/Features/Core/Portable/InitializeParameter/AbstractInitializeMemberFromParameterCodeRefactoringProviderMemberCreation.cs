@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private static CodeGenerationOptions? GetAddOptions<TSymbol>(
+        private static CodeGenerationOptions GetAddOptions<TSymbol>(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
             SyntaxNode typeDeclaration, OptionSet options, CancellationToken cancellationToken)
             where TSymbol : ISymbol
