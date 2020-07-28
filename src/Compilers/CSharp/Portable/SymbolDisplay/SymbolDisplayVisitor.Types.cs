@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (symbol.TypeKind)
                     {
-                        case TypeKind.Class when hasCloneMethod(symbol):
+                        case TypeKind.Class when FindValidCloneMethod(symbol) is object:
                             AddKeyword(SyntaxKind.RecordKeyword);
                             AddSpace();
                             break;
@@ -703,11 +703,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
-            }
-
-            static bool hasCloneMethod(INamedTypeSymbol symbol)
-            {
-                return FindValidCloneMethod(symbol) is object;
             }
         }
 
