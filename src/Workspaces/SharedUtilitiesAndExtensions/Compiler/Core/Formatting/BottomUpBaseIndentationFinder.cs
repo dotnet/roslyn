@@ -171,19 +171,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 var baseIndentation = tokenColumnGetter(baseToken);
-                var delta = operation.IndentationDeltaOrPosition;
-                if (operation.Option.IsOn(IndentBlockOption.IndentIfConditionOfAnchorToken))
-                {
-                    if (_syntaxFacts.IsOnIfStatementHeader(root, position, out var conditionStatement)
-                        || _syntaxFacts.IsOnWhileStatementHeader(root, position, out conditionStatement))
-                    {
-                        if (conditionStatement.GetFirstToken() == baseToken)
-                        {
-                            delta++;
-                        }
-                    }
-                }
-
+                var delta = operation.GetAdjustedIndentationDelta(_syntaxFacts, root, baseToken);
                 return Math.Max(0, baseIndentation + (indentationLevel + delta) * _indentationSize);
             }
 

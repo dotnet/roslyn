@@ -205,19 +205,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
                 var relativeIndentationGetter = new Lazy<int>(() =>
                 {
-                    var baseIndentationDelta = operation.IndentationDeltaOrPosition;
-                    if (operation.Option.IsOn(IndentBlockOption.IndentIfConditionOfAnchorToken))
-                    {
-                        if (_engine.SyntaxFacts.IsOnIfStatementHeader(TreeData.Root, operation.BaseToken.SpanStart, out var conditionStatement)
-                            || _engine.SyntaxFacts.IsOnWhileStatementHeader(TreeData.Root, operation.BaseToken.SpanStart, out conditionStatement))
-                        {
-                            if (conditionStatement.GetFirstToken() == effectiveBaseToken)
-                            {
-                                baseIndentationDelta++;
-                            }
-                        }
-                    }
-
+                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.SyntaxFacts, TreeData.Root, effectiveBaseToken);
                     var indentationDelta = baseIndentationDelta * this.Options.GetOption(FormattingOptions2.IndentationSize);
 
                     // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine

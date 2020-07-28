@@ -35,8 +35,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         RelativePositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition,
 
         /// <summary>
-        /// Mask for position options
+        /// Mask for position options.
         /// </summary>
+        /// <remarks>
+        /// Each <see cref="IndentBlockOperation"/> specifies one of the position options to indicate the primary
+        /// behavior for the operation.
+        /// </remarks>
         PositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition | AbsolutePosition,
 
         /// <summary>
