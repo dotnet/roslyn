@@ -23,7 +23,7 @@
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">false</GenerateRuntimeConfigurationFiles>
 
     <!--
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
@@ -36,7 +36,7 @@
       This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
     -->
-    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
 
     <!--
       Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
