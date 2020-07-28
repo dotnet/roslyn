@@ -7791,5 +7791,270 @@ Block[B6] - Exit [UnReachable]
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchExpressionInExceptionFilter()
+        {
+            string source = @"
+using System;
+class C
+{
+    const string K1 = ""const1"";
+    const string K2 = ""const2"";
+    public void M(string msg)
+    /*<bind>*/{
+        try
+        {
+            T(msg);
+        }
+        catch (Exception e) when (e.Message switch
+            {
+                K1 => true,
+                K2 => true,
+                _ => false,
+            })
+        {
+            throw new Exception(e.Message);
+        }
+    }/*</bind>*/
+    void T(string msg)
+    {
+        throw new Exception(msg);
+    }
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'T(msg);')
+              Expression: 
+                IInvocationOperation ( void C.T(System.String msg)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'T(msg)')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'T')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: msg) (OperationKind.Argument, Type: null) (Syntax: 'msg')
+                        IParameterReferenceOperation: msg (OperationKind.ParameterReference, Type: System.String) (Syntax: 'msg')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B13]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Exception)
+{
+    Locals: [System.Exception e]
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception e)')
+                  Left: 
+                    ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Exception, IsImplicit) (Syntax: '(Exception e)')
+                  Right: 
+                    ICaughtExceptionOperation (OperationKind.CaughtException, Type: System.Exception, IsImplicit) (Syntax: '(Exception e)')
+            Next (Regular) Block[B3]
+                Entering: {R5} {R6}
+        .locals {R5}
+        {
+            CaptureIds: [0]
+            .locals {R6}
+            {
+                CaptureIds: [1]
+                Block[B3] - Block
+                    Predecessors: [B2]
+                    Statements (1)
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'e.Message')
+                          Value: 
+                            IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
+                              Instance Receiver: 
+                                ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'e')
+                    Jump if False (Regular) to Block[B5]
+                        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'K1 => true')
+                          Value: 
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'e.Message')
+                          Pattern: 
+                            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'K1') (InputType: System.String, NarrowedType: System.String)
+                              Value: 
+                                IFieldReferenceOperation: System.String C.K1 (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""const1"") (Syntax: 'K1')
+                                  Instance Receiver: 
+                                    null
+                    Next (Regular) Block[B4]
+                Block[B4] - Block
+                    Predecessors: [B3]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'true')
+                          Value: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                    Next (Regular) Block[B10]
+                        Leaving: {R6}
+                Block[B5] - Block
+                    Predecessors: [B3]
+                    Statements (0)
+                    Jump if False (Regular) to Block[B7]
+                        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'K2 => true')
+                          Value: 
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'e.Message')
+                          Pattern: 
+                            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'K2') (InputType: System.String, NarrowedType: System.String)
+                              Value: 
+                                IFieldReferenceOperation: System.String C.K2 (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""const2"") (Syntax: 'K2')
+                                  Instance Receiver: 
+                                    null
+                    Next (Regular) Block[B6]
+                Block[B6] - Block
+                    Predecessors: [B5]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'true')
+                          Value: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                    Next (Regular) Block[B10]
+                        Leaving: {R6}
+                Block[B7] - Block
+                    Predecessors: [B5]
+                    Statements (0)
+                    Jump if False (Regular) to Block[B9]
+                        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: '_ => false')
+                          Value: 
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'e.Message')
+                          Pattern: 
+                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.String, NarrowedType: System.String)
+                        Leaving: {R6}
+                    Next (Regular) Block[B8]
+                Block[B8] - Block
+                    Predecessors: [B7]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'false')
+                          Value: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                    Next (Regular) Block[B10]
+                        Leaving: {R6}
+            }
+            Block[B9] - Block
+                Predecessors: [B7]
+                Statements (0)
+                Next (Throw) Block[null]
+                    IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsImplicit) (Syntax: 'e.Message s ... }')
+                      Arguments(0)
+                      Initializer: 
+                        null
+            Block[B10] - Block
+                Predecessors: [B4] [B6] [B8]
+                Statements (0)
+                Jump if True (Regular) to Block[B12]
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'e.Message s ... }')
+                    Leaving: {R5} {R4}
+                    Entering: {R7}
+                Next (Regular) Block[B11]
+                    Leaving: {R5}
+        }
+        Block[B11] - Block
+            Predecessors: [B10]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R7}
+    {
+        Block[B12] - Block
+            Predecessors: [B10]
+            Statements (0)
+            Next (Throw) Block[null]
+                IObjectCreationOperation (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new Exception(e.Message)')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: 'e.Message')
+                        IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
+                          Instance Receiver: 
+                            ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'e')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+    }
+}
+Block[B13] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedIoperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
+    Body: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'T(msg);')
+          Expression: 
+            IInvocationOperation ( void C.T(System.String msg)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'T(msg)')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'T')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: msg) (OperationKind.Argument, Type: null) (Syntax: 'msg')
+                    IParameterReferenceOperation: msg (OperationKind.ParameterReference, Type: System.String) (Syntax: 'msg')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Catch clauses(1):
+        ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
+          Locals: Local_1: System.Exception e
+          ExceptionDeclarationOrExpression: 
+            IVariableDeclaratorOperation (Symbol: System.Exception e) (OperationKind.VariableDeclarator, Type: null) (Syntax: '(Exception e)')
+              Initializer: 
+                null
+          Filter: 
+            ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Boolean) (Syntax: 'e.Message s ... }')
+              Value: 
+                IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
+                  Instance Receiver: 
+                    ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'e')
+              Arms(3):
+                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'K1 => true')
+                    Pattern: 
+                      IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'K1') (InputType: System.String, NarrowedType: System.String)
+                        Value: 
+                          IFieldReferenceOperation: System.String C.K1 (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""const1"") (Syntax: 'K1')
+                            Instance Receiver: 
+                              null
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'K2 => true')
+                    Pattern: 
+                      IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'K2') (InputType: System.String, NarrowedType: System.String)
+                        Value: 
+                          IFieldReferenceOperation: System.String C.K2 (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""const2"") (Syntax: 'K2')
+                            Instance Receiver: 
+                              null
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => false')
+                    Pattern: 
+                      IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.String, NarrowedType: System.String)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+          Handler: 
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+              IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new E ... e.Message);')
+                IObjectCreationOperation (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new Exception(e.Message)')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: 'e.Message')
+                        IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
+                          Instance Receiver: 
+                            ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'e')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+    Finally: 
+      null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] { };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeForTest<BlockSyntax>(comp, expectedIoperationTree);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedGraph, expectedDiagnostics);
+        }
     }
 }

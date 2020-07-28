@@ -625,6 +625,19 @@ class C
         }
 
         [Fact]
+        public async Task UpgradeProjectWithUnconstrainedNullableTypeParameter()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"#nullable enable
+class C<T>
+{
+    static void F([|T?|] t) { }
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact]
         public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Type()
         {
             await TestLanguageVersionUpgradedAsync(

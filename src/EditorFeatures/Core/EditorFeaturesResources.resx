@@ -936,6 +936,9 @@ Do you want to proceed?</value>
   <data name="external" xml:space="preserve">
     <value>(external)</value>
   </data>
+  <data name="Inline_Parameter_Name_Hints" xml:space="preserve">
+    <value>Inline Parameter Name Hints</value>
+  </data>
   <data name="Downloading_index_failed" xml:space="preserve">
     <value>Downloading index failed</value>
   </data>
@@ -944,5 +947,11 @@ Do you want to proceed?</value>
   </data>
   <data name="Downloading_IntelliSense_index_for_0" xml:space="preserve">
     <value>Downloading IntelliSense index for {0}</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider '{0}'</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider</value>
   </data>
 </root>

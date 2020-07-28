@@ -502,6 +502,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.TypeConstraintSyntax GenerateTypeConstraint()
             => InternalSyntaxFactory.TypeConstraint(GenerateIdentifierName());
 
+        private static Syntax.InternalSyntax.DefaultConstraintSyntax GenerateDefaultConstraint()
+            => InternalSyntaxFactory.DefaultConstraint(InternalSyntaxFactory.Token(SyntaxKind.DefaultKeyword));
+
         private static Syntax.InternalSyntax.FieldDeclarationSyntax GenerateFieldDeclaration()
             => InternalSyntaxFactory.FieldDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
@@ -2750,6 +2753,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTypeConstraint();
 
             Assert.NotNull(node.Type);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestDefaultConstraintFactoryAndProperties()
+        {
+            var node = GenerateDefaultConstraint();
+
+            Assert.Equal(SyntaxKind.DefaultKeyword, node.DefaultKeyword.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -7845,6 +7858,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDefaultConstraintTokenDeleteRewriter()
+        {
+            var oldNode = GenerateDefaultConstraint();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDefaultConstraintIdentityRewriter()
+        {
+            var oldNode = GenerateDefaultConstraint();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestFieldDeclarationTokenDeleteRewriter()
         {
             var oldNode = GenerateFieldDeclaration();
@@ -9926,6 +9965,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static TypeConstraintSyntax GenerateTypeConstraint()
             => SyntaxFactory.TypeConstraint(GenerateIdentifierName());
+
+        private static DefaultConstraintSyntax GenerateDefaultConstraint()
+            => SyntaxFactory.DefaultConstraint(SyntaxFactory.Token(SyntaxKind.DefaultKeyword));
 
         private static FieldDeclarationSyntax GenerateFieldDeclaration()
             => SyntaxFactory.FieldDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
@@ -12176,6 +12218,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(node.Type);
             var newNode = node.WithType(node.Type);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestDefaultConstraintFactoryAndProperties()
+        {
+            var node = GenerateDefaultConstraint();
+
+            Assert.Equal(SyntaxKind.DefaultKeyword, node.DefaultKeyword.Kind());
+            var newNode = node.WithDefaultKeyword(node.DefaultKeyword);
             Assert.Equal(node, newNode);
         }
 
@@ -17263,6 +17315,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTypeConstraintIdentityRewriter()
         {
             var oldNode = GenerateTypeConstraint();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestDefaultConstraintTokenDeleteRewriter()
+        {
+            var oldNode = GenerateDefaultConstraint();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDefaultConstraintIdentityRewriter()
+        {
+            var oldNode = GenerateDefaultConstraint();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

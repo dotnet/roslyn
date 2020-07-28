@@ -7,14 +7,13 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public class CSharpErrorListCommon : AbstractEditorTest
     {
-        public CSharpErrorListCommon(VisualStudioInstanceFactory instanceFactor, ITestOutputHelper testOutputHelper, string templateName)
-            : base(instanceFactor, testOutputHelper, nameof(CSharpErrorListCommon), templateName)
+        public CSharpErrorListCommon(VisualStudioInstanceFactory instanceFactory, string templateName)
+            : base(instanceFactory, nameof(CSharpErrorListCommon), templateName)
         {
         }
 
@@ -57,7 +56,7 @@ class C
             var target = VisualStudio.ErrorList.NavigateToErrorListItem(0);
             Assert.Equal(expectedContents[0], target);
             VisualStudio.Editor.Verify.CaretPosition(25);
-            VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+            VisualStudio.SolutionExplorer.BuildSolution();
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
