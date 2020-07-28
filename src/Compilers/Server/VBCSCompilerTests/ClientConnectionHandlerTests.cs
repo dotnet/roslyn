@@ -40,12 +40,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task ThrowReadingRequest()
         {
-            var compilerServerHost = new TestableCompilerServerHost(delegate { throw new Exception(); });
+            var compilerServerHost = new TestableCompilerServerHost(delegate
+            {
+                Assert.True(false, "Should not reach compilation");
+                throw new Exception("");
+            });
             var clientConnectionHandler = new ClientConnectionHandler(compilerServerHost);
             var clientConnection = new TestableClientConnection()
             {
                 ReadBuildRequestFunc = _ => throw new Exception(),
             };
+
             var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection)).ConfigureAwait(false);
             Assert.Equal(CompletionData.RequestError, completionData);
         }
@@ -53,15 +58,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task ThrowWritingResponse()
         {
-            var compilerServerHost = new TestableCompilerServerHost(delegate { throw new Exception(); });
+            var compilerServerHost = new TestableCompilerServerHost(delegate { return ProtocolUtil.EmptyBuildResponse; });
             var clientConnectionHandler = new ClientConnectionHandler(compilerServerHost);
+            var threwException = false;
             var clientConnection = new TestableClientConnection()
             {
                 ReadBuildRequestFunc = _ => Task.FromResult(ProtocolUtil.EmptyCSharpBuildRequest),
-                WriteBuildResponseFunc = (response, cancellationToken) => throw new Exception(""),
+                WriteBuildResponseFunc = (response, cancellationToken) =>
+                {
+                    threwException = true;
+                    throw new Exception("");
+                }
             };
+
             var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection)).ConfigureAwait(false);
             Assert.Equal(CompletionData.RequestError, completionData);
+            Assert.True(threwException);
         }
 
         /// <summary>
@@ -72,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var compilerServerHost = new TestableCompilerServerHost(delegate
             {
-                Assert.True(false);
+                Assert.True(false, "Should not reach compilation when compilations are disallowed");
                 throw new Exception("");
             });
 
