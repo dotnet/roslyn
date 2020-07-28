@@ -249,10 +249,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public class KeepAliveTests : VBCSCompilerServerTests
         {
             /// <summary>
+            /// Ensure server hits keep alive when processing no conections
+            /// </summary>
+            [Fact]
+            public async Task NoConnections()
+            {
+                var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
+                using var serverData = await ServerUtil.CreateServer(
+                    keepAlive: TimeSpan.FromSeconds(3),
+                    compilerServerHost: compilerServerHost).ConfigureAwait(false);
+
+                // Don't use Complete here because we want to see the server shutdown naturally
+                var listener = await serverData.ServerTask.ConfigureAwait(false);
+                Assert.True(listener.KeepAliveHit);
+                Assert.Equal(0, listener.CompletionDataList.Count);
+            }
+
+            /// <summary>
             /// Ensure server respects keep alive and shuts down after processing a single connection.
             /// </summary>
             [Theory]
-            [InlineData(0)]
             [InlineData(1)]
             [InlineData(2)]
             [InlineData(3)]
@@ -273,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var listener = await serverData.ServerTask.ConfigureAwait(false);
                 Assert.True(listener.KeepAliveHit);
                 Assert.Equal(connectionCount, listener.CompletionDataList.Count);
-                Assert.All(listener.CompletionDataList, cd => Assert.Equal(CompletionData.RequestCompleted, cd));
+                Assert.All(listener.CompletionDataList, cd => Assert.Equal(CompletionReason.RequestCompleted, cd.Reason));
             }
 
             /// <summary>
@@ -306,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var listener = await serverData.ServerTask.ConfigureAwait(false);
                 Assert.True(listener.KeepAliveHit);
                 Assert.Equal(connectionCount + 1, listener.CompletionDataList.Count);
-                Assert.All(listener.CompletionDataList, cd => Assert.Equal(CompletionData.RequestCompleted, cd));
+                Assert.All(listener.CompletionDataList, cd => Assert.Equal(CompletionReason.RequestCompleted, cd.Reason));
             }
         }
 
