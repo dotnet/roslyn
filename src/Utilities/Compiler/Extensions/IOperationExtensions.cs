@@ -764,6 +764,24 @@ namespace Analyzer.Utilities.Extensions
                 _ => false,
             };
         }
+
+        public static IArgumentOperation GetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex)
+        {
+            Debug.Assert(parameterIndex >= 0);
+            Debug.Assert(parameterIndex < arguments.Length);
+
+            foreach (var argument in arguments)
+            {
+                if (argument.Parameter.Ordinal == parameterIndex)
+                {
+                    return argument;
+                }
+            }
+
+            throw new InvalidOperationException();
+        }
     }
 }
 
