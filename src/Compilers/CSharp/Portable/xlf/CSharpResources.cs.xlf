@@ -3752,7 +3752,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <source>Partial declarations of '{0}' must not specify different base classes</source>
         <target state="needs-review-translation">Částečné deklarace {0} nesmí určovat různé základní třídy.</target>
         <note />
       </trans-unit>
@@ -3962,7 +3962,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute type '{0}' because it is generic</source>
+        <source>Cannot apply attribute class '{0}' because it is generic</source>
         <target state="needs-review-translation">Nejde použít třídu atributů {0}, protože je obecná.</target>
         <note />
       </trans-unit>
@@ -4971,7 +4971,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
-        <source>Cannot apply attribute type '{0}' because it is abstract</source>
+        <source>Cannot apply attribute class '{0}' because it is abstract</source>
         <target state="needs-review-translation">Nejde použít třídu atributů {0}, protože je abstraktní.</target>
         <note />
       </trans-unit>
@@ -5426,7 +5426,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial record, partial struct, or partial interface</source>
+        <source>A partial method must be declared within a partial type</source>
         <target state="needs-review-translation">Částečná metoda musí být deklarovaná uvnitř částečné třídy, částečné struktury nebo částečného rozhraní.</target>
         <note />
       </trans-unit>
@@ -7135,7 +7135,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
         <target state="needs-review-translation">Třída {0} nemůže mít víc základních tříd: {1} a {2}.</target>
         <note />
       </trans-unit>

@@ -5496,7 +5496,7 @@ class Goo<T>
 
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute type 'Goo<T>' because it is generic
+                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
         }
@@ -5548,7 +5548,7 @@ class Goo<T>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute type 'Goo<T>' because it is generic
+                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
         }
@@ -7114,10 +7114,10 @@ public class Test
                 // (3,16): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
                 // class Gen2<T>: System.Attribute {}
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute"),
-                // (5,2): error CS0404: Cannot apply attribute type 'Gen<T>' because it is generic
+                // (5,2): error CS0404: Cannot apply attribute class 'Gen<T>' because it is generic
                 // [Gen]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen").WithArguments("Gen<T>"),
-                // (6,2): error CS0404: Cannot apply attribute type 'Gen2<T>' because it is generic
+                // (6,2): error CS0404: Cannot apply attribute class 'Gen2<T>' because it is generic
                 // [Gen2]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
         }
@@ -7143,10 +7143,10 @@ public class Test
             var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             comp.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute type 'Gen<T>' because it is generic
+                // (2,2): error CS0404: Cannot apply attribute class 'Gen<T>' because it is generic
                 // [Gen]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen").WithArguments("Gen<T>"),
-                // (3,2): error CS0404: Cannot apply attribute type 'Gen2<T>' because it is generic
+                // (3,2): error CS0404: Cannot apply attribute class 'Gen2<T>' because it is generic
                 // [Gen2]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
         }
@@ -7743,7 +7743,7 @@ class D
                 // (4,2): error CS0616: 'A' is not an attribute class
                 // [A]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
-                // (5,2): error CS0404: Cannot apply attribute type 'B<U>' because it is generic
+                // (5,2): error CS0404: Cannot apply attribute class 'B<U>' because it is generic
                 // [B]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B").WithArguments("B<U>").WithLocation(5, 2),
                 // (6,2): error CS0305: Using the generic type 'C<U>' requires 1 type arguments
@@ -8033,28 +8033,28 @@ public class C<T, U> : Attribute
                 // [A<int>]
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type"),
 
-                // (6,2): error CS0404: Cannot apply attribute type 'B<T>' because it is generic
+                // (6,2): error CS0404: Cannot apply attribute class 'B<T>' because it is generic
                 // [B]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B").WithArguments("B<T>"),
-                // (7,2): error CS0404: Cannot apply attribute type 'B<T>' because it is generic
+                // (7,2): error CS0404: Cannot apply attribute class 'B<T>' because it is generic
                 // [B<>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B<>").WithArguments("B<T>"),
-                // (8,2): error CS0404: Cannot apply attribute type 'B<T>' because it is generic
+                // (8,2): error CS0404: Cannot apply attribute class 'B<T>' because it is generic
                 // [B<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B<int>").WithArguments("B<T>"),
-                // (9,2): error CS0404: Cannot apply attribute type 'C<T, U>' because it is generic
+                // (9,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
                 // [C]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C").WithArguments("C<T, U>"),
-                // (10,2): error CS0404: Cannot apply attribute type 'C<T, U>' because it is generic
+                // (10,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
                 // [C<>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<>").WithArguments("C<T, U>"),
-                // (11,2): error CS0404: Cannot apply attribute type 'C<T, U>' because it is generic
+                // (11,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
                 // [C<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<int>").WithArguments("C<T, U>"),
-                // (12,2): error CS0404: Cannot apply attribute type 'C<T, U>' because it is generic
+                // (12,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
                 // [C<,>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<,>").WithArguments("C<T, U>"),
-                // (13,2): error CS0404: Cannot apply attribute type 'C<T, U>' because it is generic
+                // (13,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
                 // [C<int, int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<int, int>").WithArguments("C<T, U>"),
 
@@ -8088,13 +8088,13 @@ public class C<T> : Attribute
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,2): error CS0404: Cannot apply attribute type 'C<int>' because it is generic
+                // (5,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias").WithArguments("C<int>"),
-                // (6,2): error CS0404: Cannot apply attribute type 'C<int>' because it is generic
+                // (6,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<>").WithArguments("C<int>"),
-                // (7,2): error CS0404: Cannot apply attribute type 'C<int>' because it is generic
+                // (7,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"),
 
@@ -8136,13 +8136,13 @@ class Test
             // attribute at emit-time.
             var comp = CreateCompilationWithILAndMscorlib40(source, il);
             comp.VerifyDiagnostics(
-                // (4,2): error CS0404: Cannot apply attribute type 'C<int>' because it is generic
+                // (4,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias").WithArguments("C<int>"),
-                // (5,2): error CS0404: Cannot apply attribute type 'C<int>' because it is generic
+                // (5,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<>").WithArguments("C<int>"),
-                // (6,2): error CS0404: Cannot apply attribute type 'C<int>' because it is generic
+                // (6,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"));
         }
@@ -8175,10 +8175,10 @@ public class Outer<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-            // (5,2): error CS0404: Cannot apply attribute type 'Outer<int>.Inner' because it is generic
+            // (5,2): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
             // [InnerAlias]
             Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "InnerAlias").WithArguments("Outer<int>.Inner"),
-            // (8,17): error CS0404: Cannot apply attribute type 'Outer<int>.Inner' because it is generic
+            // (8,17): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
             //     [OuterAlias.Inner]
             Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Inner").WithArguments("Outer<int>.Inner"));
         }

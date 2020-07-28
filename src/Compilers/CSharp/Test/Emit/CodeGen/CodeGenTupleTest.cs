@@ -20555,10 +20555,10 @@ public partial class C3 : Base<(int a, int b)> { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,22): error CS0263: Partial declarations of 'C2' must not specify different base types
+                // (5,22): error CS0263: Partial declarations of 'C2' must not specify different base classes
                 // public partial class C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 22),
-                // (3,22): error CS0263: Partial declarations of 'C1' must not specify different base types
+                // (3,22): error CS0263: Partial declarations of 'C1' must not specify different base classes
                 // public partial class C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 22)
                 );

@@ -3752,7 +3752,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <source>Partial declarations of '{0}' must not specify different base classes</source>
         <target state="needs-review-translation">Les déclarations partielles de '{0}' ne doivent pas spécifier des classes de base différentes</target>
         <note />
       </trans-unit>
@@ -3962,7 +3962,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute type '{0}' because it is generic</source>
+        <source>Cannot apply attribute class '{0}' because it is generic</source>
         <target state="needs-review-translation">Impossible d'appliquer la classe d'attributs '{0}', car elle est générique</target>
         <note />
       </trans-unit>
@@ -4971,7 +4971,7 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
-        <source>Cannot apply attribute type '{0}' because it is abstract</source>
+        <source>Cannot apply attribute class '{0}' because it is abstract</source>
         <target state="needs-review-translation">Impossible d'appliquer la classe d'attributs '{0}', car elle est abstract</target>
         <note />
       </trans-unit>
@@ -5426,7 +5426,7 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial record, partial struct, or partial interface</source>
+        <source>A partial method must be declared within a partial type</source>
         <target state="needs-review-translation">Une méthode partielle doit être déclarée dans une classe partielle, un struct partiel ou une interface partielle</target>
         <note />
       </trans-unit>
@@ -7135,7 +7135,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
         <target state="needs-review-translation">La classe '{0}' ne peut pas avoir plusieurs classes de base : '{1}' et '{2}'</target>
         <note />
       </trans-unit>

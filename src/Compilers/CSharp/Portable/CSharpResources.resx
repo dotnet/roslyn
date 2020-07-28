@@ -1096,7 +1096,7 @@
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
   </data>
   <data name="ERR_PartialMultipleBases" xml:space="preserve">
-    <value>Partial declarations of '{0}' must not specify different base types</value>
+    <value>Partial declarations of '{0}' must not specify different base classes</value>
   </data>
   <data name="ERR_PartialWrongTypeParams" xml:space="preserve">
     <value>Partial declarations of '{0}' must have the same type parameter names in the same order</value>
@@ -1222,7 +1222,7 @@
     <value>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</value>
   </data>
   <data name="ERR_AttributeCantBeGeneric" xml:space="preserve">
-    <value>Cannot apply attribute type '{0}' because it is generic</value>
+    <value>Cannot apply attribute class '{0}' because it is generic</value>
   </data>
   <data name="ERR_DuplicateBound" xml:space="preserve">
     <value>Duplicate constraint '{0}' for type parameter '{1}'</value>
@@ -1845,7 +1845,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Comparison to integral constant is useless; the constant is outside the range of the type</value>
   </data>
   <data name="ERR_AbstractAttributeClass" xml:space="preserve">
-    <value>Cannot apply attribute type '{0}' because it is abstract</value>
+    <value>Cannot apply attribute class '{0}' because it is abstract</value>
   </data>
   <data name="ERR_BadNamedAttributeArgumentType" xml:space="preserve">
     <value>'{0}' is not a valid named attribute argument because it is not a valid attribute parameter type</value>
@@ -2124,7 +2124,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>A partial method cannot have the 'abstract' modifier</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial class, partial record, partial struct, or partial interface</value>
+    <value>A partial method must be declared within a partial type</value>
   </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
@@ -3197,7 +3197,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Expression will always cause a System.NullReferenceException because the type's default value is null</value>
   </data>
   <data name="ERR_NoMultipleInheritance" xml:space="preserve">
-    <value>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</value>
+    <value>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</value>
   </data>
   <data name="ERR_BaseClassMustBeFirst" xml:space="preserve">
     <value>Base type '{0}' must come before any interfaces</value>

@@ -3752,7 +3752,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <source>Partial declarations of '{0}' must not specify different base classes</source>
         <target state="needs-review-translation">{0}'의 partial 선언에는 서로 다른 기본 클래스를 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
@@ -3962,7 +3962,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute type '{0}' because it is generic</source>
+        <source>Cannot apply attribute class '{0}' because it is generic</source>
         <target state="needs-review-translation">제네릭이므로 '{0}' 특성 클래스를 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
@@ -4971,7 +4971,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
-        <source>Cannot apply attribute type '{0}' because it is abstract</source>
+        <source>Cannot apply attribute class '{0}' because it is abstract</source>
         <target state="needs-review-translation">{0}' 특성 클래스는 abstract이므로 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
@@ -5426,7 +5426,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial record, partial struct, or partial interface</source>
+        <source>A partial method must be declared within a partial type</source>
         <target state="needs-review-translation">부분 메서드(Partial method)는 partial 클래스, partial 구조체 또는 partial 인터페이스 내에 선언해야 합니다.</target>
         <note />
       </trans-unit>
@@ -7135,7 +7135,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
         <target state="needs-review-translation">{0}' 클래스는 기본 클래스('{1}', '{2}')를 여러 개 포함할 수 없습니다.</target>
         <note />
       </trans-unit>

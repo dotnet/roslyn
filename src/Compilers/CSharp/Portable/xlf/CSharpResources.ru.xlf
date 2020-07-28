@@ -3752,7 +3752,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <source>Partial declarations of '{0}' must not specify different base classes</source>
         <target state="needs-review-translation">Разделяемые объявления "{0}" не должны указывать различные базовые классы.</target>
         <note />
       </trans-unit>
@@ -3962,7 +3962,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute type '{0}' because it is generic</source>
+        <source>Cannot apply attribute class '{0}' because it is generic</source>
         <target state="needs-review-translation">Класс атрибута "{0}" не может использоваться, так как он является универсальным.</target>
         <note />
       </trans-unit>
@@ -4971,7 +4971,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
-        <source>Cannot apply attribute type '{0}' because it is abstract</source>
+        <source>Cannot apply attribute class '{0}' because it is abstract</source>
         <target state="needs-review-translation">Не удается использовать класс атрибута "{0}", так как он является абстрактным.</target>
         <note />
       </trans-unit>
@@ -5426,7 +5426,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial record, partial struct, or partial interface</source>
+        <source>A partial method must be declared within a partial type</source>
         <target state="needs-review-translation">Разделяемый метод должен быть объявлен в разделяемом классе, разделяемой структуре или разделяемом интерфейсе</target>
         <note />
       </trans-unit>
@@ -7135,7 +7135,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
-        <source>Class '{0}' cannot have multiple base types: '{1}' and '{2}'</source>
+        <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
         <target state="needs-review-translation">Класс "{0}" не может иметь несколько базовых классов: '{1}" и "{2}"</target>
         <note />
       </trans-unit>

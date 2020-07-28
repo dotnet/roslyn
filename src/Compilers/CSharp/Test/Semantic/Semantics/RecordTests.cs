@@ -18766,10 +18766,10 @@ public partial record C3 : Base<(int a, int b)> { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base types
+                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base classes
                 // public partial record C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23),
-                // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base types
+                // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base classes
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 23),
                 // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
@@ -18823,7 +18823,7 @@ record Goo<T>
 
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute type 'Goo<T>' because it is generic
+                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2)
                 );
@@ -19098,7 +19098,7 @@ static record R(int I)
     partial void M();
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,18): error CS0751: A partial method must be declared within a partial class, partial record, partial struct, or partial interface
+                // (3,18): error CS0751: A partial method must be declared within a partial type
                 //     partial void M();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 18)
                 );
@@ -19114,7 +19114,7 @@ record R : Base1, Base2
 {
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,19): error CS1721: Class 'R' cannot have multiple base types: 'Base1' and 'Base2'
+                // (4,19): error CS1721: Class 'R' cannot have multiple base classes: 'Base1' and 'Base2'
                 // record R : Base1, Base2
                 Diagnostic(ErrorCode.ERR_NoMultipleInheritance, "Base2").WithArguments("R", "Base1", "Base2").WithLocation(4, 19)
                 );

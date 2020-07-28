@@ -9396,7 +9396,7 @@ interface I2
                 // (19,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),
-                // (25,18): error CS0751: A partial method must be declared within a partial class, partial record, partial struct, or partial interface
+                // (25,18): error CS0751: A partial method must be declared within a partial type
                 //     partial void M8();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M8").WithLocation(25, 18)
                 );
