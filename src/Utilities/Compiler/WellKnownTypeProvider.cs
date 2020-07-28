@@ -128,7 +128,7 @@ namespace Analyzer.Utilities
 
                         foreach (IAssemblySymbol? referencedAssembly in _referencedAssemblies.Value)
                         {
-                            if (!IsSubsetOfCollection(namespaceNames, referencedAssembly.NamespaceNames!))
+                            if (!IsSubsetOfCollection(namespaceNames, referencedAssembly.NamespaceNames))
                             {
                                 continue;
                             }
