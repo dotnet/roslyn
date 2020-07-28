@@ -7140,7 +7140,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base type '{0}' must come before any interfaces</source>
+        <source>Base class '{0}' must come before any interfaces</source>
         <target state="needs-review-translation">La clase base '{0}' debe ir antes que cualquier interfaz</target>
         <note />
       </trans-unit>

@@ -7140,7 +7140,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base type '{0}' must come before any interfaces</source>
+        <source>Base class '{0}' must come before any interfaces</source>
         <target state="needs-review-translation">기본 클래스 '{0}'은(는) 다른 모든 인터페이스보다 앞에 와야 합니다.</target>
         <note />
       </trans-unit>

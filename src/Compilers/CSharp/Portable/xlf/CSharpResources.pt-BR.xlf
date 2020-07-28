@@ -7139,7 +7139,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base type '{0}' must come before any interfaces</source>
+        <source>Base class '{0}' must come before any interfaces</source>
         <target state="needs-review-translation">Classe base "{0}" deve vir antes de quaisquer interfaces</target>
         <note />
       </trans-unit>

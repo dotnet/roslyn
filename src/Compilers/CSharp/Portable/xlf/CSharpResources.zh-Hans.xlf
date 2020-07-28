@@ -7140,7 +7140,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base type '{0}' must come before any interfaces</source>
+        <source>Base class '{0}' must come before any interfaces</source>
         <target state="needs-review-translation">基类“{0}”必须在任何接口之前</target>
         <note />
       </trans-unit>

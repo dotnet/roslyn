@@ -7140,7 +7140,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
-        <source>Base type '{0}' must come before any interfaces</source>
+        <source>Base class '{0}' must come before any interfaces</source>
         <target state="needs-review-translation">Die Basisklasse "{0}" muss vor den Schnittstellen angegeben werden.</target>
         <note />
       </trans-unit>

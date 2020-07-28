@@ -19129,7 +19129,7 @@ interface I { }
 record R : I, Base;
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,15): error CS1722: Base type 'Base' must come before any interfaces
+                // (4,15): error CS1722: Base class 'Base' must come before any interfaces
                 // record R : I, Base;
                 Diagnostic(ErrorCode.ERR_BaseClassMustBeFirst, "Base").WithArguments("Base").WithLocation(4, 15)
                 );
