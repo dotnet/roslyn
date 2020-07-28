@@ -144,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 else
                 {
                     var request = BuildRequest.Create(language,
-                                                      buildPaths.WorkingDirectory,
-                                                      buildPaths.TempDirectory,
-                                                      BuildProtocolConstants.GetCommitHash() ?? "",
                                                       arguments,
-                                                      keepAlive,
-                                                      libEnvVariable);
+                                                      workingDirectory: buildPaths.WorkingDirectory,
+                                                      tempDirectory: buildPaths.TempDirectory,
+                                                      compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                                                      keepAlive: keepAlive,
+                                                      libDirectory: libEnvVariable);
 
                     return await TryCompileAsync(pipe, request, cancellationToken).ConfigureAwait(false);
                 }

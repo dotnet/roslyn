@@ -184,7 +184,7 @@ class Hello
         {
             using var temp = new TempRoot();
             using var serverData = await ServerUtil.CreateServer().ConfigureAwait(false);
-            var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
+            var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
             var response = await serverData.SendAsync(request).ConfigureAwait(false);
             Assert.Equal(ResponseType.Rejected, response.Type);
         }

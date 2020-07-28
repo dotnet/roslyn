@@ -259,13 +259,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task SimpleCases(int connectionCount)
             {
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
-                using var serverData = await ServerUtil.CreateServer(
-                    keepAlive: TimeSpan.FromSeconds(5),
-                    compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 for (var i = 0; i < connectionCount; i++)
                 {
-                    await serverData.SendAsync(ProtocolUtil.EmptyCSharpBuildRequest).ConfigureAwait(false);
+                    var request = i + 1 >= connectionCount
+                        ? ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3))
+                        : ProtocolUtil.EmptyCSharpBuildRequest;
+                    await serverData.SendAsync(request).ConfigureAwait(false);
                 }
 
                 // Don't use Complete here because we want to see the server shutdown naturally
@@ -290,9 +291,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return ProtocolUtil.EmptyBuildResponse;
                 });
 
-                using var serverData = await ServerUtil.CreateServer(
-                    keepAlive: TimeSpan.FromSeconds(5),
-                    compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
                 var list = new List<Task>();
                 for (var i = 0; i < connectionCount; i++)
                 {
@@ -301,10 +300,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 readyMre.Set();
 
+                await serverData.SendAsync(ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3))).ConfigureAwait(false);
+
                 // Don't use Complete here because we want to see the server shutdown naturally
                 var listener = await serverData.ServerTask.ConfigureAwait(false);
                 Assert.True(listener.KeepAliveHit);
-                Assert.Equal(connectionCount, listener.CompletionDataList.Count);
+                Assert.Equal(connectionCount + 1, listener.CompletionDataList.Count);
                 Assert.All(listener.CompletionDataList, cd => Assert.Equal(CompletionData.RequestCompleted, cd));
             }
         }

@@ -37,6 +37,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             returnCode: 0,
             utf8output: false,
             output: string.Empty);
+
+        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive) => BuildRequest.Create(
+            RequestLanguage.CSharpCompile,
+            Array.Empty<string>(),
+            compilerHash: BuildProtocolConstants.GetCommitHash(),
+            keepAlive: keepAlive.TotalSeconds.ToString());
+
     }
 
     internal sealed class ServerData : IDisposable
