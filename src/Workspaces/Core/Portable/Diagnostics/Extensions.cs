@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var filterSpan = documentAnalysisScope.Span;
                     var kind = documentAnalysisScope.Kind;
 
-                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzerMap;
+                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>? diagnosticsByAnalyzerMap;
                     switch (kind)
                     {
                         case AnalysisKind.Syntax:
