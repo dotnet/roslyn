@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.VisualBasic.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification
 {
@@ -42,6 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         protected override ISyntaxClassificationService GetOriginalSyntaxClassificationService(HostLanguageServices languageServices)
-            => new CSharpSyntaxClassificationService(languageServices);
+            => new VisualBasicSyntaxClassificationService(languageServices);
     }
 }

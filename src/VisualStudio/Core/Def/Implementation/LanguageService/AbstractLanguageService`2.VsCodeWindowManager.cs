@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -130,8 +131,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // Temporary solution until the editor provides a proper way to resolve the correct navbar.
                 // Tracked in https://github.com/dotnet/roslyn/issues/40989
-                var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer)?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-                if (document?.GetLanguageService<INavigationBarItemService>() == null)
+                var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+                if (textBuffer != null && textBuffer.TryGetWorkspace(out var workspace) && workspace.Kind == WorkspaceKind.AnyCodeRoslynWorkspace)
                 {
                     // Remove the existing dropdown bar if it is ours.
                     if (IsOurDropdownBar(dropdownManager, out var _))

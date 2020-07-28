@@ -4,6 +4,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
@@ -23,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public ItemManagerProvider(RecentItemsManager recentItemsManager)
             => _instance = new ItemManager(recentItemsManager);
 
-        public IAsyncCompletionItemManager GetOrCreate(ITextView textView) => _instance;
+        public IAsyncCompletionItemManager GetOrCreate(ITextView textView)
+        {
+            if (textView.TextBuffer.TryGetWorkspace(out var workspace) && workspace.Kind == WorkspaceKind.AnyCodeRoslynWorkspace)
+            {
+                return null;
+            }
+
+            return _instance;
+        }
     }
 }

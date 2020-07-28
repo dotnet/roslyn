@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             return new RoslynSyntaxClassificationService(_roslynLspClientServiceFactory, GetOriginalSyntaxClassificationService(languageServices), _classificationTypeMap, _threadingContext);
         }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         protected abstract ISyntaxClassificationService GetOriginalSyntaxClassificationService(HostLanguageServices languageServices);
     }
 }
