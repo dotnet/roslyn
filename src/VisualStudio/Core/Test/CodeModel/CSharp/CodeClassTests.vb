@@ -2187,11 +2187,7 @@ class C
 {
     string Name
     {
-        get
-        {
-            return default;
-        }
-
+        get =&gt; default;
         set
         {
         }
@@ -2241,13 +2237,7 @@ class C$$
 <Code>
 class C
 {
-    string Name
-    {
-        get
-        {
-            return default;
-        }
-    }
+    string Name =&gt; default;
 }
 </Code>
 
