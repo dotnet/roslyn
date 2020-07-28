@@ -435,7 +435,7 @@ class C : IComparable<C>
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-sdk/pull/572"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
         public async Task TestMultipleInterfaces()
         {
             await TestInRegularAndScript1Async(
