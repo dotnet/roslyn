@@ -18,6 +18,7 @@ using System.Data.SqlClient;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
+    /*
     public class NamedPipeClientConnectionTests
     {
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
@@ -162,4 +163,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
     }
+    */
 }
