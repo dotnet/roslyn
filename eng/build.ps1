@@ -212,7 +212,7 @@ function BuildSolution() {
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { 'netcoreapp3.1;net5.0' } else { "" }
+  $testTargetFrameworks = if ($testCoreClr) { 'net5.0' } else { "" }
   
   $ibcDropName = GetIbcDropName
 
@@ -251,7 +251,7 @@ function BuildSolution() {
       /p:OfficialBuildId=$officialBuildId `
       /p:UseRoslynAnalyzers=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
-      /p:TestTargetFrameworks='$testTargetFrameworks' `
+      /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `

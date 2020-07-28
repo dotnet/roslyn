@@ -266,7 +266,7 @@ function BuildSolution {
     test_runtime_args="--debug"
   elif [[ "$test_core_clr" == true ]]; then
     test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.1;net5.0"
+    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=net5.0"
     mono_tool=""
   fi
 
