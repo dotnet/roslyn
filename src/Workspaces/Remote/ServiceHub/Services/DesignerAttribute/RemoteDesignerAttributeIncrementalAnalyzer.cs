@@ -93,23 +93,26 @@ namespace Microsoft.CodeAnalysis.Remote
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
-            var changedData = await ComputeLatestChangedInfoAsync(
+            var latestData = await ComputeLatestDataAsync(
                 project, specificDocument, projectVersion, cancellationToken).ConfigureAwait(false);
+
+            var changedData = latestData.WhereAsArray(
+                d => !_documentToLastReportedInformation.TryGetValue(d.document.Id, out var existingInfo) || existingInfo.category != d.data.Category);
 
             if (!changedData.IsEmpty)
             {
                 await _endPoint.InvokeAsync(
                     nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
-                    new object[] { changedData.SelectAsArray(d => d.data).ToArray() },
+                    new object[] { changedData.Select(d => d.data).ToArray() },
                     cancellationToken).ConfigureAwait(false);
             }
 
             // Now, keep track of what we've reported to the host so we won't report unchanged files in the future.
-            foreach (var (document, info) in changedData)
+            foreach (var (document, info) in latestData)
                 _documentToLastReportedInformation[document.Id] = (info.Category, projectVersion);
         }
 
-        private async Task<ImmutableArray<(Document document, DesignerAttributeData data)>> ComputeLatestChangedInfoAsync(
+        private async Task<ImmutableArray<(Document document, DesignerAttributeData data)>> ComputeLatestDataAsync(
             Project project, Document? specificDocument, VersionStamp projectVersion, CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -142,22 +145,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // If nothing has changed at the top level between the last time we analyzed this document and now, then
                 // no need to analyze again.
-                var hasExistingInfo = _documentToLastReportedInformation.TryGetValue(document.Id, out var existingInfo);
-                if (hasExistingInfo && existingInfo.projectVersion == projectVersion)
+                if (_documentToLastReportedInformation.TryGetValue(document.Id, out var existingInfo) &&
+                    existingInfo.projectVersion == projectVersion)
+                {
                     return default;
+                }
 
                 // We either haven't computed the designer info, or our data was out of date.  We need
                 // So recompute here.  Figure out what the current category is, and if that's different
                 // from what we previously stored.
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
                     designerCategoryType, document, cancellationToken).ConfigureAwait(false);
-
-                if (hasExistingInfo &&
-                    existingInfo.category == category)
-                {
-                    // category hasn't changed.  no need to report this.
-                    return default;
-                }
 
                 var data = new DesignerAttributeData
                 {
