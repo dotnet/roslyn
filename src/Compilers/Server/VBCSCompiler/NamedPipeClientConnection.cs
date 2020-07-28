@@ -76,6 +76,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     await BuildServerConnection.MonitorDisconnectAsync(Stream, LoggingIdentifier, DisconnectCancellationTokenSource.Token).ConfigureAwait(false);
                 }
+                catch (Exception ex)
+                {
+                    CompilerServerLogger.LogException(ex, $"Error monitoring disconnect {LoggingIdentifier}");
+                }
                 finally
                 {
                     DisconnectTaskCompletionSource.TrySetResult(this);

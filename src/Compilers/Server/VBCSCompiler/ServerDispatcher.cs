@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             _diagnosticListener.ConnectionReceived();
             var allowCompilationRequests = _state == State.Running;
-            var connectionTask = ProcessClientConnectionAsync(_compilerServerHost, _listenTask,  allowCompilationRequests, cancellationToken);
+            var connectionTask = ProcessClientConnectionAsync(_compilerServerHost, _listenTask, allowCompilationRequests, cancellationToken);
             _connectionList.Add(connectionTask);
 
             // Timeout and GC are only done when there are no active connections.  Now that we have a new

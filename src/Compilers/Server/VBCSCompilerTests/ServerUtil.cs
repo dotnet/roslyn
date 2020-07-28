@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal async Task<int> SendShutdownAsync(CancellationToken cancellationToken = default)
         {
-            var response = await SendAsync(BuildRequest.CreateShutdown(), cancellationToken).ConfigureAwait(false); 
+            var response = await SendAsync(BuildRequest.CreateShutdown(), cancellationToken).ConfigureAwait(false);
             return ((ShutdownBuildResponse)response).ServerProcessId;
         }
 
