@@ -616,7 +616,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
         FunctionPointerType = 9056,
-        DefaultConstraint = 9057,
 
         InitAccessorDeclaration = 9060,
 

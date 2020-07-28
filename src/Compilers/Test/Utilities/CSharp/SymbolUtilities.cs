@@ -102,15 +102,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return format;
         }
 
-        public static string ToTestDisplayString(this TypeWithAnnotations type, bool includeNonNullable = false)
+        public static string ToTestDisplayString(this TypeWithAnnotations symbol, bool includeNonNullable = false)
         {
             SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
-            return type.ToDisplayString(format);
+            return symbol.ToDisplayString(format);
         }
 
-        public static string[] ToTestDisplayStrings(this IEnumerable<TypeWithAnnotations> types)
+        public static string[] ToTestDisplayStrings(this IEnumerable<TypeWithAnnotations> symbols)
         {
-            return types.Select(t => t.ToTestDisplayString()).ToArray();
+            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
         }
 
         public static string[] ToTestDisplayStrings(this IEnumerable<ISymbol> symbols)
