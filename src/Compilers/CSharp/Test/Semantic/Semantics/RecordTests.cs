@@ -17014,7 +17014,7 @@ record C;
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44988")]
+        [Fact]
         [WorkItem(44988, "https://github.com/dotnet/roslyn/issues/44988")]
         public void Equality_22()
         {
@@ -17028,6 +17028,18 @@ record C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
+                // record C
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record C
+{
+    int x = 0;
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
+                // record C
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record C
+{
+    int x = 0;
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1)
                 );
         }
 
