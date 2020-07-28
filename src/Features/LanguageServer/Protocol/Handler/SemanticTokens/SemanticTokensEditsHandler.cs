@@ -5,51 +5,58 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
+    /// <summary>
+    /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
+    /// or every time an edit is made by the user.
+    /// </summary>
     [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName), Shared]
-    internal class SemanticTokensEditsHandler : AbstractRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
+    internal class SemanticTokensEditsHandler : AbstractSemanticTokensRequestHandler<LSP.SemanticTokensEditsParams, SemanticTokensEditsResult>
     {
-        private IProgress<SumType<LSP.SemanticTokens, SemanticTokensEdits>>? _progress;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensEditsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public override async Task<SumType<LSP.SemanticTokens, SemanticTokensEdits>> HandleRequestAsync(
+        public override async Task<SemanticTokensEditsResult> HandleRequestAsync(
             SemanticTokensEditsParams request,
+            SemanticTokensCache tokensCache,
             ClientCapabilities clientCapabilities,
             string? clientName,
             CancellationToken cancellationToken)
         {
-            _progress = request.PartialResultToken;
+            // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
+            // both for caching purposes and in order to have a baseline comparison when computing the edits.
+            var previousResultId = tokensCache.Tokens.ResultId == null ? 0 : int.Parse(tokensCache.Tokens.ResultId);
+            var updatedTokens = await SemanticTokensHelpers.ComputeSemanticTokensAsync(
+                request.TextDocument, previousResultId, clientName, SolutionProvider,
+                range: null, cancellationToken).ConfigureAwait(false);
 
-            if (request.PreviousResultId == null)
+            // If any of the following is true, we do not return any edits and instead only return the fully
+            // computed semantic tokens:
+            // - Previous resultId does not match the cached resultId, or either is null
+            // - Previous document's URI does not match the current document's URI, or either is null
+            // - Previous tokens data or updated tokens data is null
+            if (request.PreviousResultId == null || tokensCache.Tokens.ResultId == null ||
+                request.PreviousResultId != tokensCache.Tokens.ResultId ||
+                request.TextDocument == null || tokensCache.Document == null ||
+                request.TextDocument.Uri != tokensCache.Document.Uri ||
+                tokensCache.Tokens.Data == null || updatedTokens.Data == null)
             {
-                return await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                    request.TextDocument, clientName, useStreaming: request.PartialResultToken != null,
-                    ReportTokensAsync, SolutionProvider, cancellationToken).ConfigureAwait(false);
+                return new SemanticTokensEditsResult(updatedTokens);
             }
 
-            return new SemanticTokensEdits();
-        }
-
-        private Task ReportTokensAsync(ImmutableArray<int> tokensToReport, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_progress);
-            SemanticTokensHelpers.ReportTokens(_progress, tokensToReport);
-            return Task.CompletedTask;
+            var edits = SemanticTokensHelpers.ComputeSemanticTokensEdits(previousResultId, tokensCache.Tokens.Data, updatedTokens.Data);
+            return new SemanticTokensEditsResult(updatedTokens, edits);
         }
     }
 }

@@ -22,14 +22,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
+        /// <summary>
+        /// Returns the semantic tokens for a given document with an optional range.
+        /// </summary>
         internal static async Task<LSP.SemanticTokens> ComputeSemanticTokensAsync(
             TextDocumentIdentifier? textDocument,
+            int previousResultId,
             string? clientName,
-            bool useStreaming,
-            Func<ImmutableArray<int>, CancellationToken, Task> reportTokensAsync,
             ILspSolutionProvider solutionProvider,
-            CancellationToken cancellationToken,
-            LSP.Range? range = null)
+            LSP.Range? range,
+            CancellationToken cancellationToken)
         {
             if (textDocument == null)
             {
@@ -70,52 +72,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var lastStartCharacter = 0;
 
             var groupedSpans = classifiedSpans.GroupBy(s => s.TextSpan);
-            if (useStreaming)
-            {
-                var workQueue = new AsyncBatchingWorkQueue<int>(
-                    TimeSpan.FromMilliseconds(500), reportTokensAsync, cancellationToken);
 
-                ComputeTokensStreaming(ref lastLineNumber, ref lastStartCharacter, workQueue, text.Lines, groupedSpans);
-                return new LSP.SemanticTokens();
-            }
-            else
-            {
-                var tokens = ComputeTokensNonStreaming(
-                    ref lastLineNumber, ref lastStartCharacter, text.Lines, groupedSpans);
-                return new LSP.SemanticTokens { ResultId = "0", Data = tokens };
-            }
-        }
-
-        internal static void ComputeTokensStreaming(
-            ref int lastLineNumber,
-            ref int lastStartCharacter,
-            AsyncBatchingWorkQueue<int> workQueue,
-            TextLineCollection lines,
-            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans)
-        {
-            foreach (var span in groupedSpans)
-            {
-                using var _ = ArrayBuilder<int>.GetInstance(out var data);
-                ComputeNextToken(data, lines, ref lastLineNumber, ref lastStartCharacter, span);
-                workQueue.AddWork(data.ToArray());
-            }
-        }
-
-        internal static void ReportTokens(
-            IProgress<SumType<LSP.SemanticTokens, SemanticTokensEdits>> progress,
-            ImmutableArray<int> tokensToReport)
-        {
-            var semanticTokens = new LSP.SemanticTokens { ResultId = "0", Data = tokensToReport.ToArray() };
-            progress.Report(semanticTokens);
-        }
-
-        internal static int[] ComputeTokensNonStreaming(
-            ref int lastLineNumber,
-            ref int lastStartCharacter,
-            TextLineCollection lines,
-            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans)
-        {
             using var _ = ArrayBuilder<int>.GetInstance(out var data);
+
+            // TO-DO: We should implement support for streaming once this LSP bug is fixed:
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1132601
+            var tokens = ComputeTokens(
+                data, ref lastLineNumber, ref lastStartCharacter, text.Lines, groupedSpans);
+
+            return new LSP.SemanticTokens { ResultId = (previousResultId + 1).ToString(), Data = tokens };
+        }
+
+        private static int[] ComputeTokens(
+            ArrayBuilder<int> data,
+            ref int lastLineNumber,
+            ref int lastStartCharacter,
+            TextLineCollection lines,
+            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans)
+        {
             foreach (var span in groupedSpans)
             {
                 ComputeNextToken(data, lines, ref lastLineNumber, ref lastStartCharacter, span);
@@ -131,6 +105,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ref int lastStartCharacter,
             IGrouping<TextSpan, ClassifiedSpan> span)
         {
+            // Each semantic token is represented in LSP by five numbers:
+            //     1. Token line number, relative to the previous token
+            //     2. Token start character, relative to the previous token
+            //     3. Token length
+            //     4. Token type (index) - looked up in SemanticTokensLegend.tokenTypes
+            //     5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+
             var textSpan = span.Key;
             var linePosition = lines.GetLinePositionSpan(textSpan).Start;
             var lineNumber = linePosition.Line;
@@ -199,6 +180,72 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             lastStartCharacter = startCharacter;
         }
 
+        /// <summary>
+        /// Compares two sets of SemanticTokens and returns the edits between them.
+        /// </summary>
+        internal static LSP.SemanticTokensEdits ComputeSemanticTokensEdits(
+            int previousResultId,
+            int[] cachedSemanticTokens,
+            int[] updatedSemanticTokens)
+        {
+            using var _1 = ArrayBuilder<SemanticTokensEdit>.GetInstance(out var edits);
+
+            using var _2 = ArrayBuilder<int>.GetInstance(out var data);
+            SemanticTokensEdit? edit = null;
+
+            var index = 0;
+            foreach (var token in cachedSemanticTokens)
+            {
+                // If we find an edit, we check the following tokens to see if they've also changed,
+                // since edits are reported as ranges.
+                if (token != updatedSemanticTokens[index])
+                {
+                    // Start an edit if there isn't one in progress already.
+                    if (edit == null)
+                    {
+                        edit = new SemanticTokensEdit
+                        {
+                            Start = index
+                        };
+                    }
+
+                    data.Add(updatedSemanticTokens[index]);
+                }
+                else
+                {
+                    // New token matches old token - if we're currently processing an edit,
+                    // close it out and add it to our results.
+                    if (edit != null)
+                    {
+                        AddEdit(edits, data, edit);
+                        edit = null;
+                        data.Clear();
+                    }
+                }
+
+                index++;
+            }
+
+            if (edit != null)
+            {
+                AddEdit(edits, data, edit);
+            }
+
+            return new SemanticTokensEdits { Edits = edits.ToArray(), ResultId = (previousResultId + 1).ToString() };
+
+            // Local functions
+            static void AddEdit(
+                ArrayBuilder<SemanticTokensEdit> edits,
+                ArrayBuilder<int> data,
+                SemanticTokensEdit edit)
+            {
+                edit.DeleteCount = data.Count;
+                edit.Data = data.ToArray();
+
+                edits.Add(edit);
+            }
+        }
+
         internal static readonly string[] TokenTypes =
             {
                 SemanticTokenTypes.Class,
@@ -230,71 +277,73 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 SemanticTokenModifiers.Static
             };
 
+        // TO-DO: Change this mapping once support for custom token types is added:
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
         private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
             new Dictionary<string, string>
             {
                 [ClassificationTypeNames.ClassName] = SemanticTokenTypes.Class,
                 [ClassificationTypeNames.Comment] = SemanticTokenTypes.Comment,
-                [ClassificationTypeNames.ConstantName] = SemanticTokenTypes.Variable, // TO-DO: Change to custom type
-                [ClassificationTypeNames.ControlKeyword] = SemanticTokenTypes.Keyword, // TO-DO: Change to custom type
-                [ClassificationTypeNames.DelegateName] = SemanticTokenTypes.Member, // TO-DO: Change to custom type
+                [ClassificationTypeNames.ConstantName] = SemanticTokenTypes.Variable, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.ControlKeyword] = SemanticTokenTypes.Keyword, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.DelegateName] = SemanticTokenTypes.Member, // TO-DO: Potentially change to custom type
                 [ClassificationTypeNames.EnumMemberName] = SemanticTokenTypes.EnumMember,
                 [ClassificationTypeNames.EnumName] = SemanticTokenTypes.Enum,
                 [ClassificationTypeNames.EventName] = SemanticTokenTypes.Event,
-                [ClassificationTypeNames.ExcludedCode] = SemanticTokenTypes.String, // TO-DO: Change to custom type
-                [ClassificationTypeNames.ExtensionMethodName] = SemanticTokenTypes.Member, // TO-DO: Change to custom type
-                [ClassificationTypeNames.FieldName] = SemanticTokenTypes.Property, // TO-DO: Change to custom type
-                [ClassificationTypeNames.Identifier] = SemanticTokenTypes.Variable, // TO-DO: Change to custom type
+                [ClassificationTypeNames.ExcludedCode] = SemanticTokenTypes.String, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.ExtensionMethodName] = SemanticTokenTypes.Member, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.FieldName] = SemanticTokenTypes.Property, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.Identifier] = SemanticTokenTypes.Variable, // TO-DO: Potentially change to custom type
                 [ClassificationTypeNames.InterfaceName] = SemanticTokenTypes.Interface,
                 [ClassificationTypeNames.Keyword] = SemanticTokenTypes.Keyword,
-                [ClassificationTypeNames.LabelName] = SemanticTokenTypes.Variable, // TO-DO: Change to custom type
-                [ClassificationTypeNames.LocalName] = SemanticTokenTypes.Member, // TO-DO: Change to custom type
-                [ClassificationTypeNames.MethodName] = SemanticTokenTypes.Member, // TO-DO: Change to custom type ?
-                [ClassificationTypeNames.ModuleName] = SemanticTokenTypes.Member, // TO-DO: Change to custom type
+                [ClassificationTypeNames.LabelName] = SemanticTokenTypes.Variable, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.LocalName] = SemanticTokenTypes.Member, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.MethodName] = SemanticTokenTypes.Member, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.ModuleName] = SemanticTokenTypes.Member, // TO-DO: Potentially change to custom type
                 [ClassificationTypeNames.NamespaceName] = SemanticTokenTypes.Namespace,
                 [ClassificationTypeNames.NumericLiteral] = SemanticTokenTypes.Number,
                 [ClassificationTypeNames.Operator] = SemanticTokenTypes.Operator,
-                [ClassificationTypeNames.OperatorOverloaded] = SemanticTokenTypes.Operator, // TO-DO: Change to custom type
+                [ClassificationTypeNames.OperatorOverloaded] = SemanticTokenTypes.Operator, // TO-DO: Potentially change to custom type
                 [ClassificationTypeNames.ParameterName] = SemanticTokenTypes.Parameter,
-                [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Keyword, // TO-DO: Change to custom type
-                [ClassificationTypeNames.PreprocessorText] = SemanticTokenTypes.String, // TO-DO: Change to custom type
+                [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Keyword, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.PreprocessorText] = SemanticTokenTypes.String, // TO-DO: Potentially change to custom type
                 [ClassificationTypeNames.PropertyName] = SemanticTokenTypes.Property,
-                [ClassificationTypeNames.Punctuation] = SemanticTokenTypes.Operator, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexAlternation] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexAnchor] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexCharacterClass] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexComment] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexGrouping] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexOtherEscape] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexQuantifier] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexSelfEscapedCharacter] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
-                [ClassificationTypeNames.RegexText] = SemanticTokenTypes.Regexp, // TO-DO: Change to custom type
+                [ClassificationTypeNames.Punctuation] = SemanticTokenTypes.Operator, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexAlternation] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexAnchor] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexCharacterClass] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexComment] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexGrouping] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexOtherEscape] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexQuantifier] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexSelfEscapedCharacter] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.RegexText] = SemanticTokenTypes.Regexp, // TO-DO: Potentially change to custom type
                 [ClassificationTypeNames.StructName] = SemanticTokenTypes.Struct,
-                [ClassificationTypeNames.Text] = SemanticTokenTypes.String, // TO-DO: Change to custom type
+                [ClassificationTypeNames.Text] = SemanticTokenTypes.Variable, // TO-DO: Potentially change to custom type
                 [ClassificationTypeNames.TypeParameterName] = SemanticTokenTypes.TypeParameter,
-                [ClassificationTypeNames.VerbatimStringLiteral] = SemanticTokenTypes.String, // TO-DO: Change to custom type
-                [ClassificationTypeNames.WhiteSpace] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentAttributeName] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentAttributeQuotes] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentAttributeValue] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentCDataSection] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentComment] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentDelimiter] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentEntityReference] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentName] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentProcessingInstruction] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlDocCommentText] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralAttributeName] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralAttributeQuotes] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralAttributeValue] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralCDataSection] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralComment] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralDelimiter] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralEmbeddedExpression] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralEntityReference] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralName] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralProcessingInstruction] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
-                [ClassificationTypeNames.XmlLiteralText] = SemanticTokenTypes.Comment, // TO-DO: Change to custom type
+                [ClassificationTypeNames.VerbatimStringLiteral] = SemanticTokenTypes.String, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.WhiteSpace] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentAttributeName] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentAttributeQuotes] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentAttributeValue] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentCDataSection] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentComment] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentDelimiter] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentEntityReference] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentName] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentProcessingInstruction] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlDocCommentText] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralAttributeName] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralAttributeQuotes] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralAttributeValue] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralCDataSection] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralComment] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralDelimiter] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralEmbeddedExpression] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralEntityReference] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralName] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralProcessingInstruction] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
+                [ClassificationTypeNames.XmlLiteralText] = SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
             };
 
         private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenModifierMap =

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -37,10 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly LanguageServerProtocol _protocol;
-        private readonly CodeAnalysis.Workspace _workspace;
+        private readonly Workspace _workspace;
 
         private VSClientCapabilities _clientCapabilities;
         private bool _shuttingDown;
+
+        private SemanticTokensCache _tokensCache;
 
         public InProcLanguageServer(Stream inputStream,
             Stream outputStream,
@@ -65,6 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
             _clientCapabilities = new VSClientCapabilities();
+            _tokensCache = new SemanticTokensCache();
         }
 
         public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
@@ -212,15 +216,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 textDocumentWithContextParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> GetTextDocumentSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
-            => _protocol.ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(SemanticTokensMethods.TextDocumentSemanticTokensName,
-                semanticTokensParams, _clientCapabilities, _clientName, cancellationToken);
+        public async Task<SemanticTokens> GetTextDocumentSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
+        {
+            var tokens = await _protocol.ExecuteSemanticTokensRequestAsync<SemanticTokensParams, SemanticTokens>(
+                SemanticTokensMethods.TextDocumentSemanticTokensName, semanticTokensParams, _tokensCache, _clientCapabilities,
+                _clientName, cancellationToken).ConfigureAwait(false);
+
+            _tokensCache.UpdateCache(semanticTokensParams.TextDocument, tokens);
+            return tokens;
+        }
 
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensEditsName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SumType<SemanticTokens, SemanticTokensEdits>> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
-            => _protocol.ExecuteRequestAsync<SemanticTokensEditsParams, SumType<SemanticTokens, SemanticTokensEdits>>(SemanticTokensMethods.TextDocumentSemanticTokensName,
-                semanticTokensEditsParams, _clientCapabilities, _clientName, cancellationToken);
+        public async Task<SumType<SemanticTokens, SemanticTokensEdits>> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
+        {
+            var tokens = await _protocol.ExecuteSemanticTokensRequestAsync<SemanticTokensEditsParams, SemanticTokensEditsResult>(
+                SemanticTokensMethods.TextDocumentSemanticTokensEditsName, semanticTokensEditsParams, _tokensCache, _clientCapabilities,
+                _clientName, cancellationToken).ConfigureAwait(false);
 
+            _tokensCache.UpdateCache(semanticTokensEditsParams.TextDocument, tokens.SemanticTokens);
+            return tokens.SemanticTokensEdits ?? (SumType<SemanticTokens, SemanticTokensEdits>)tokens.SemanticTokens;
+        }
+
+        // Note: Since a range request is always received in conjunction with a whole document request, we don't need to cache range results.
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensRangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<SemanticTokens> GetTextDocumentSemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensRangeParams, CancellationToken cancellationToken)
             => _protocol.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(SemanticTokensMethods.TextDocumentSemanticTokensRangeName,

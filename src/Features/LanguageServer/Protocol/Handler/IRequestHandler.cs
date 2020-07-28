@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -27,6 +28,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="clientName">the lsp client making the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the LSP response.</returns>
-        Task<ResponseType> HandleRequestAsync(RequestType request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken);
+        Task<ResponseType> HandleRequestAsync(
+            RequestType request,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken);
+    }
+
+    internal interface ISemanticTokensRequestHandler<RequestType, ResponseType> : IRequestHandler
+    {
+        /// <summary>
+        /// Handles a semantic tokens LSP request.
+        /// </summary>
+        /// <param name="request">the lsp request.</param>
+        /// <param name="tokensCache">the cached results from the previous semantic tokens request.</param>
+        /// <param name="clientCapabilities">the client capabilities for the request.</param>
+        /// <param name="clientName">the lsp client making the request.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the LSP response and updated cache.</returns>
+        Task<ResponseType> HandleRequestAsync(
+            RequestType request,
+            SemanticTokensCache tokensCache,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken);
     }
 }
