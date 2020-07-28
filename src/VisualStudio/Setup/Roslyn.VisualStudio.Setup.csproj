@@ -295,8 +295,11 @@
     <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost32.csproj">
       <Name>InteractiveHost.Desktop32</Name>
 
-      <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <!--
+        Note: do not set TargetFramework=net472 for InteractiveHost32. The project is not multi-targeted.
+        Setting the property would create a build configuration that's different from the one the solution uses
+        and thus would result in building the project twice.
+      -->
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 
       <Private>false</Private>

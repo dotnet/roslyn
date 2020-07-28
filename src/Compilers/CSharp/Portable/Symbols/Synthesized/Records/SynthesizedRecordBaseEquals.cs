@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordBaseEquals : SynthesizedRecordOrdinaryMethod
     {
         public SynthesizedRecordBaseEquals(SourceMemberContainerTypeSymbol containingType, int memberOffset, DiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, hasBody: true, memberOffset, diagnostics)
         {
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType.BaseTypeNoUseSiteDiagnostics, NullableAnnotation.Annotated),
-                                                                    ordinal: 0, RefKind.None, "", isDiscard: false, Locations)),
+                                                                    ordinal: 0, RefKind.None, "other", isDiscard: false, Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
@@ -64,10 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
+                ParameterSymbol parameter = Parameters[0];
+
+                if (parameter.Type.IsErrorType())
+                {
+                    F.CloseMethod(F.ThrowNull());
+                    return;
+                }
+
                 var retExpr = F.Call(
                     F.This(),
                     ContainingType.GetMembersUnordered().OfType<SynthesizedRecordObjEquals>().Single(),
-                    F.Convert(F.SpecialType(SpecialType.System_Object), F.Parameter(Parameters[0])));
+                    F.Convert(F.SpecialType(SpecialType.System_Object), F.Parameter(parameter)));
 
                 F.CloseMethod(F.Block(F.Return(retExpr)));
             }

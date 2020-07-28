@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Apply_using_directive_placement_preferences">
         <source>Apply preferred 'using' placement preferences</source>
-        <target state="new">Apply preferred 'using' placement preferences</target>
+        <target state="translated">应用首选的 "using" 放置首选项</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
@@ -74,17 +74,17 @@
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="new">Assign to '{0}'</target>
+        <target state="translated">分配给 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
-        <target state="new">Autoselect disabled due to potential pattern variable declaration.</target>
+        <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
-        <target state="new">Compare to '{0}'</target>
+        <target state="translated">与 "{0}" 比较</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -144,12 +144,12 @@
       </trans-unit>
       <trans-unit id="Remove_in_keyword">
         <source>Remove 'in' keyword</source>
-        <target state="new">Remove 'in' keyword</target>
+        <target state="translated">删除 "in" 关键字</target>
         <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
-        <target state="new">Remove 'new' modifier</target>
+        <target state="translated">删除 "new" 修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
-        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
+        <target state="translated">警告: 内联临时变量可能会更改代码含义。</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
-        <target state="new">&lt;pattern variable&gt;</target>
+        <target state="translated">&lt;模式变量&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

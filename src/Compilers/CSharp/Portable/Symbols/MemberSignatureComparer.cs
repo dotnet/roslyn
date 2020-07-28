@@ -102,6 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
+        /// This instance is used to determine if some API specific to records is explicitly declared.
+        /// It is the same as <see cref="DuplicateSourceComparer"/> except it considers ref kinds as well.
+        /// </summary>
+        public static readonly MemberSignatureComparer RecordAPISignatureComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: false,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition.
         /// It is the same as <see cref="DuplicateSourceComparer"/> except it considers ref kinds as well.
         /// </summary>

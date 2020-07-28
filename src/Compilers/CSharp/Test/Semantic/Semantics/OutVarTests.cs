@@ -5452,9 +5452,6 @@ class Y
                 // (8,43): error CS0165: Use of unassigned local variable 'x3'
                 //     bool Test3 = TakeOutParam(out int x3, x3);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(8, 43),
-                // (10,43): error CS0165: Use of unassigned local variable 'x4'
-                //     bool Test4 = TakeOutParam(out var x4, x4);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x4").WithArguments("x4").WithLocation(10, 43),
                 // (10,43): error CS8196: Reference to an implicitly-typed out variable 'x4' is not permitted in the same argument list.
                 //     bool Test4 = TakeOutParam(out var x4, x4);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x4").WithArguments("x4").WithLocation(10, 43),
@@ -7480,9 +7477,6 @@ public class X
                 // (13,54): error CS0841: Cannot use local variable 'x1' before it is declared
                 //              Dummy(TakeOutParam(true, out var x1) && x1)
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 54),
-                // (13,54): error CS0165: Use of unassigned local variable 'x1'
-                //              Dummy(TakeOutParam(true, out var x1) && x1)
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 54),
                 // (21,47): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x2) && x2)
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(21, 47),
@@ -9465,9 +9459,6 @@ public class X
                 // (13,56): error CS0841: Cannot use local variable 'x1' before it is declared
                 //                  Dummy(TakeOutParam(true, out var x1), x1);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 56),
-                // (13,56): error CS0165: Use of unassigned local variable 'x1'
-                //                  Dummy(TakeOutParam(true, out var x1), x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 56),
                 // (20,54): error CS0128: A local variable named 'x2' is already defined in this scope
                 //                     Dummy(TakeOutParam(true, out var x2), x2);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 54),
@@ -10028,9 +10019,6 @@ public class X
                 // (13,56): error CS0841: Cannot use local variable 'x1' before it is declared
                 //                       (TakeOutParam(true, out var x1), x1);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 56),
-                // (13,56): error CS0165: Use of unassigned local variable 'x1'
-                //                       (TakeOutParam(true, out var x1), x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 56),
                 // (20,54): error CS0128: A local variable named 'x2' is already defined in this scope
                 //                          (TakeOutParam(true, out var x2), x2);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 54),
@@ -12731,10 +12719,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(33, 50),
                 // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in the same argument list.
                 //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50),
-                // (40,50): error CS0165: Use of unassigned local variable 'y4'
-                //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y4").WithArguments("y4").WithLocation(40, 50)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50)
                 );
 
             compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
@@ -12750,10 +12735,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(33, 50),
                 // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in the same argument list.
                 //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50),
-                // (40,50): error CS0165: Use of unassigned local variable 'y4'
-                //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y4").WithArguments("y4").WithLocation(40, 50)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -16042,9 +16024,6 @@ public class X
                 // (12,63): error CS0841: Cannot use local variable 'x1' before it is declared
                 //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 63),
-                // (12,63): error CS0165: Use of unassigned local variable 'x1'
-                //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 63),
                 // (20,73): error CS0128: A local variable named 'x2' is already defined in this scope
                 //         using (System.IDisposable x2 = Dummy(TakeOutParam(true, out var x2), x2))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73),

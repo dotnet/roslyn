@@ -208,6 +208,7 @@ type_parameter_constraint_clause
 type_parameter_constraint
   : class_or_struct_constraint
   | constructor_constraint
+  | default_constraint
   | type_constraint
   ;
 
@@ -218,6 +219,10 @@ class_or_struct_constraint
 
 constructor_constraint
   : 'new' '(' ')'
+  ;
+
+default_constraint
+  : 'default'
   ;
 
 type_constraint

@@ -152,11 +152,6 @@
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadWarningVersion">
-        <source>Warning version must be greater than or equal to '0'.</source>
-        <target state="new">Warning version must be greater than or equal to '0'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
@@ -217,9 +212,19 @@
         <target state="new">A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CopyConstructorWrongAccessibility">
+        <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
+        <target state="new">A copy constructor '{0}' must be public or protected because the record is not sealed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">'{0}' 이름이 해당 'Deconstruct' 매개 변수 '{1}'과(와) 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultConstraintOverrideOnly">
+        <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
+        <target state="new">The 'default' constraint is valid on override and explicit interface implementation methods only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -280,11 +285,6 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">'{0}' 속성 또는 인덱서의 두 접근자에 'readonly' 한정자를 지정할 수 없습니다. 대신 속성 자체에 'readonly' 한정자를 지정하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DuplicateRecordConstructor">
-        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
-        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -572,6 +572,11 @@
         <target state="new">The receiver type '{0}' is not a valid record type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPrivateAPIInRecord">
+        <source>Record member '{0}' must be private.</source>
+        <target state="new">Record member '{0}' must be private.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonProtectedAPIInRecord">
         <source>Record member '{0}' must be protected.</source>
         <target state="new">Record member '{0}' must be protected.</target>
@@ -603,8 +608,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
-        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">값 형식 또는 null을 허용하지 않는 참조 형식이 되려면 nullable 형식 매개 변수를 알려야 합니다. 'class', 'struct' 또는 형식 제약 조건 추가를 고려하세요.</target>
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</source>
+        <target state="new">A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedTypeArgument">
@@ -615,6 +620,11 @@
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">출력 변수는 참조 로컬로 선언할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
+        <target state="new">Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
@@ -762,6 +772,11 @@
         <target state="translated">단일 요소 분해 패턴은 명확성을 위해 다른 구문이 필요합니다. 닫는 괄호 ')' 뒤에 무시 항목 지정자 '_'을 추가하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StaticAPIInRecord">
+        <source>Record member '{0}' may not be static.</source>
+        <target state="new">Record member '{0}' may not be static.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
         <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
         <target state="new">A static anonymous function cannot contain a reference to 'this' or 'base'.</target>
@@ -833,8 +848,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeConstraintsMustBeUniqueAndFirst">
-        <source>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
-        <target state="new">The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</target>
+        <source>The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
+        <target state="new">The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeMustBePublic">
@@ -999,9 +1014,7 @@
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warnversion:&lt;n&gt;        Enable recently introduced warnings. Default '0'.
-                              To enable warnings introduced through this version, use '5'.
-                              Use '9999' to enable all current and future warning waves.
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -1266,6 +1279,11 @@
         <target state="translated">병합 할당</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
+        <source>default type parameter constraints</source>
+        <target state="new">default type parameter constraints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">대리자 제네릭 형식 제약 조건</target>
@@ -1454,6 +1472,11 @@
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
         <target state="translated">&lt;switch 식&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTargetTypedConditional">
+        <source>target-typed conditional expression</source>
+        <target state="new">target-typed conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
@@ -2409,6 +2432,16 @@
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">[DoesNotReturn]으로 표시된 메서드는 반환하지 않아야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs">
+        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
+        <target state="new">The second operand of an 'is' or 'as' operator may not be static type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs_Title">
+        <source>The second operand of an 'is' or 'as' operator may not be a static type</source>
+        <target state="new">The second operand of an 'is' or 'as' operator may not be a static type</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -7180,8 +7213,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWarningLevel">
-        <source>Warning level must be in the range 0-4</source>
-        <target state="translated">경고 수준은 0부터 4까지의 범위에 있어야 합니다.</target>
+        <source>Warning level must be zero or greater</source>
+        <target state="needs-review-translation">경고 수준은 0부터 4까지의 범위에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDebugType">
@@ -8282,11 +8315,6 @@ You should consider suppressing the warning only if you're sure that you don't w
       <trans-unit id="WRN_MainIgnored_Title">
         <source>The entry point of the program is global code; ignoring entry point</source>
         <target state="needs-review-translation">프로그램의 진입점이 전역 스크립트 코드이며 진입점을 무시함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StaticInAsOrIs">
-        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
-        <target state="translated">is' 또는 'as' 연산자의 두 번째 피연산자는 '{0}' 정적 형식일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisEventType">
