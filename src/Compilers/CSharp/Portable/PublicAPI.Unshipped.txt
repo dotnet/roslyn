@@ -64,7 +64,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithMod
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultConstraint = 9057 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultConstraint = 9064 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerCallingConvention = 9059 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerParameter = 9057 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerParameterList = 9058 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
