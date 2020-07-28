@@ -2,12 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Notification
+Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.UnitTests.Fakes
 Imports Microsoft.VisualStudio.LanguageServices.CSharp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Remote
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
@@ -20,14 +22,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(ServicesVSResources).Assembly,
                 GetType(CSharpVSResources).Assembly,
                 GetType(BasicVSResources).Assembly).
-            RemoveParts(
-                GetType(StubStreamingFindUsagesPresenter)).
             AddParts(
-                GetType(MockWorkspaceEventListenerProvider), ' avoid running Solution Crawler
+                GetType(MockWorkspaceEventListenerProvider),         ' avoid running Solution Crawler
                 GetType(StubVsEditorAdaptersFactoryService)).
             AddExcludedPartTypes(
+                GetType(ServiceHubRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
+                GetType(IStreamingFindUsagesPresenter),              ' TODO: should we be using the actual implementation?
                 GetType(HACK_ThemeColorFixer),
-                GetType(INotificationService),      ' EditorNotificationServiceFactory is used 
-                GetType(VisualStudioWaitIndicator)) ' TestWaitIndicator is used instead
+                GetType(INotificationService),                       ' EditorNotificationServiceFactory is used 
+                GetType(VisualStudioWaitIndicator))                  ' TestWaitIndicator is used instead
     End Class
 End Namespace

@@ -3,18 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Notification
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
-Imports Microsoft.CodeAnalysis.SymbolMapping
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests
 Imports Microsoft.VisualStudio.Text
@@ -24,6 +18,8 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     Public Class CallHierarchyTestState
+        Implements IDisposable
+
         Private ReadOnly _commandHandler As CallHierarchyCommandHandler
         Private ReadOnly _presenter As MockCallHierarchyPresenter
         Friend ReadOnly Workspace As TestWorkspace
@@ -82,11 +78,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             End Sub
         End Class
 
-        Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim workspace = TestWorkspace.Create(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
-
-            Return New CallHierarchyTestState(workspace)
-        End Function
 
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
@@ -104,6 +95,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             _presenter = New MockCallHierarchyPresenter()
             _commandHandler = New CallHierarchyCommandHandler(threadingContext, {_presenter}, provider)
         End Sub
+
+        Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
+            Dim workspace = TestWorkspace.Create(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
+            Return New CallHierarchyTestState(workspace)
+        End Function
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
             Dim workspace = TestWorkspace.CreateCSharp(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
@@ -206,6 +202,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                     item.NavigateTo()
                 End If
             End If
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Workspace.Dispose()
         End Sub
     End Class
 End Namespace

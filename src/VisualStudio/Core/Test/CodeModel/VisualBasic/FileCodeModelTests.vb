@@ -61,7 +61,7 @@ Delegate Sub D()
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
