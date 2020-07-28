@@ -2717,19 +2717,29 @@ moreArguments:
                     }
                     return true;
 
-                case BoundKind.ConditionalOperator:
-                    var conditional = (BoundConditionalOperator)expr;
-
-                    var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
-
-                    if (!consValid || conditional.IsRef)
+                case BoundKind.UnconvertedConditionalOperator:
                     {
-                        // ref conditional defers to one operand. 
-                        // the other one is the same or we will be reporting errors anyways.
-                        return consValid;
+                        var conditional = (BoundUnconvertedConditionalOperator)expr;
+                        return
+                            CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                            CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                     }
 
-                    return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                case BoundKind.ConditionalOperator:
+                    {
+                        var conditional = (BoundConditionalOperator)expr;
+
+                        var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                        if (!consValid || conditional.IsRef)
+                        {
+                            // ref conditional defers to one operand. 
+                            // the other one is the same or we will be reporting errors anyways.
+                            return consValid;
+                        }
+
+                        return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    }
 
                 case BoundKind.NullCoalescingOperator:
                     var coalescingOp = (BoundNullCoalescingOperator)expr;

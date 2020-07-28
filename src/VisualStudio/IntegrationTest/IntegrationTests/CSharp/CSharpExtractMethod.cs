@@ -36,8 +36,8 @@ public class Program
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpExtractMethod(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpExtractMethod))
+        public CSharpExtractMethod(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpExtractMethod))
         {
         }
 

@@ -14,17 +14,17 @@
       </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
-        <target state="new">A type and name must be provided.</target>
+        <target state="translated">必须提供类型和名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add">
         <source>_Add</source>
-        <target state="new">_Add</target>
+        <target state="translated">添加(_A)</target>
         <note>Adding an element to a list</note>
       </trans-unit>
       <trans-unit id="Add_Parameter">
         <source>Add Parameter</source>
-        <target state="new">Add Parameter</target>
+        <target state="translated">添加参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Added_Parameter">
         <source>Added parameter.</source>
-        <target state="new">Added parameter.</target>
+        <target state="translated">添加了参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="All_sources">
         <source>All sources</source>
-        <target state="new">All sources</target>
+        <target state="translated">所有源</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_colon">
@@ -119,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
-        <target state="new">Call site value:</target>
+        <target state="translated">调用站点值:</target>
         <note />
       </trans-unit>
       <trans-unit id="Callsite">
         <source>Call site</source>
-        <target state="new">Call site</target>
+        <target state="translated">调用站点</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Code_analysis_terminated_before_completion_for_0">
         <source>Code analysis terminated before completion for '{0}'.</source>
-        <target state="new">Code analysis terminated before completion for '{0}'.</target>
+        <target state="translated">“{0}”的代码分析在完成之前终止。</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
         <source>Code analysis terminated before completion for Solution.</source>
-        <target state="new">Code analysis terminated before completion for Solution.</target>
+        <target state="translated">解决方案的代码分析在完成之前终止。</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -172,14 +172,19 @@
         <target state="new">Current parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints (experimental)</source>
+        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
-        <target state="new">_Edit</target>
+        <target state="translated">编辑(_E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_0">
         <source>Edit {0}</source>
-        <target state="new">Edit {0}</target>
+        <target state="translated">编辑 {0}</target>
         <note>{0} is a parameter description</note>
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
@@ -199,12 +204,12 @@
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
-        <target state="new">Enter a call site value or choose a different value injection kind</target>
+        <target state="translated">输入调用站点值或选择其他值注入类型</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_repository">
         <source>Entire repository</source>
-        <target state="new">Entire repository</target>
+        <target state="translated">整个存储库</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_solution">
@@ -239,27 +244,27 @@
       </trans-unit>
       <trans-unit id="Index">
         <source>Index</source>
-        <target state="new">Index</target>
+        <target state="translated">索引</target>
         <note>Index of parameter in original signature</note>
       </trans-unit>
       <trans-unit id="Infer_from_context">
         <source>Infer from context</source>
-        <target state="new">Infer from context</target>
+        <target state="translated">从上下文推断</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexed_in_organization">
         <source>Indexed in organization</source>
-        <target state="new">Indexed in organization</target>
+        <target state="translated">已在组织中编入索引</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
-        <target state="new">Indexed in repo</target>
+        <target state="translated">已在存储库中编入索引</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
-        <target state="new">Inserting call site value '{0}'</target>
+        <target state="translated">正在插入调用站点值 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
@@ -274,12 +279,12 @@
       </trans-unit>
       <trans-unit id="IntroduceUndefinedTodoVariables">
         <source>Introduce undefined TODO variables</source>
-        <target state="new">Introduce undefined TODO variables</target>
+        <target state="translated">引入未定义的 TODO 变量</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
-        <target state="new">Item origin</target>
+        <target state="translated">项来源</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -304,22 +309,22 @@
       </trans-unit>
       <trans-unit id="Loaded_items">
         <source>Loaded items</source>
-        <target state="new">Loaded items</target>
+        <target state="translated">加载的项</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_solution">
         <source>Loaded solution</source>
-        <target state="new">Loaded solution</target>
+        <target state="translated">加载的解决方案</target>
         <note />
       </trans-unit>
       <trans-unit id="Local">
         <source>Local</source>
-        <target state="new">Local</target>
+        <target state="translated">本地</target>
         <note />
       </trans-unit>
       <trans-unit id="Local_metadata">
         <source>Local metadata</source>
-        <target state="new">Local metadata</target>
+        <target state="translated">本地元数据</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -514,12 +519,12 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="new">None</target>
+        <target state="translated">无</target>
         <note />
       </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
-        <target state="new">Omit (only for optional parameters)</target>
+        <target state="translated">省略(仅对于可选参数)</target>
         <note />
       </trans-unit>
       <trans-unit id="Open_documents">
@@ -529,42 +534,42 @@
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
         <source>Optional parameters must provide a default value</source>
-        <target state="new">Optional parameters must provide a default value</target>
+        <target state="translated">可选参数必须提供默认值</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_with_default_value_colon">
         <source>Optional with default value:</source>
-        <target state="new">Optional with default value:</target>
+        <target state="translated">默认值可选:</target>
         <note />
       </trans-unit>
       <trans-unit id="Other">
         <source>Others</source>
-        <target state="new">Others</target>
+        <target state="translated">其他</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
         <source>Parameter Details</source>
-        <target state="new">Parameter Details</target>
+        <target state="translated">参数详细信息</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
-        <target state="new">Parameter name:</target>
+        <target state="translated">参数名称:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_information">
         <source>Parameter information</source>
-        <target state="new">Parameter information</target>
+        <target state="translated">参数信息</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_kind">
         <source>Parameter kind</source>
-        <target state="new">Parameter kind</target>
+        <target state="translated">参数种类</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_name_contains_invalid_characters">
         <source>Parameter name contains invalid character(s).</source>
-        <target state="new">Parameter name contains invalid character(s).</target>
+        <target state="translated">参数名包含无效的字符。</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -574,7 +579,7 @@
       </trans-unit>
       <trans-unit id="Parameter_type_contains_invalid_characters">
         <source>Parameter type contains invalid character(s).</source>
-        <target state="new">Parameter type contains invalid character(s).</target>
+        <target state="translated">参数类型包含无效的字符。</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -589,7 +594,7 @@
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
-        <target state="new">Please enter a type name</target>
+        <target state="translated">请输入一个类型名称</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
@@ -659,12 +664,12 @@
       </trans-unit>
       <trans-unit id="Repository">
         <source>Repository</source>
-        <target state="new">Repository</target>
+        <target state="translated">存储库</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
         <source>Required</source>
-        <target state="new">Required</target>
+        <target state="translated">必需</target>
         <note />
       </trans-unit>
       <trans-unit id="Requires_System_HashCode_be_present_in_project">
@@ -684,7 +689,7 @@
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
-        <target state="translated">对 {0} 运行代码分析</target>
+        <target state="translated">对 {0} 运行 Code Analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -764,22 +769,22 @@
       </trans-unit>
       <trans-unit id="Type_Name">
         <source>Type name:</source>
-        <target state="new">Type name:</target>
+        <target state="translated">类型名称:</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_name_has_a_syntax_error">
         <source>Type name has a syntax error</source>
-        <target state="new">Type name has a syntax error</target>
+        <target state="translated">类型名称有语法错误</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Type_name_is_not_recognized">
         <source>Type name is not recognized</source>
-        <target state="new">Type name is not recognized</target>
+        <target state="translated">无法识别类型名称</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Type_name_is_recognized">
         <source>Type name is recognized</source>
-        <target state="new">Type name is recognized</target>
+        <target state="translated">已识别类型名称</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -814,7 +819,7 @@
       </trans-unit>
       <trans-unit id="Use_named_argument">
         <source>Use named argument</source>
-        <target state="new">Use named argument</target>
+        <target state="translated">使用命名参数</target>
         <note>"argument" is a programming term for a value passed to a function</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
@@ -834,7 +839,7 @@
       </trans-unit>
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
-        <target state="new">Value to inject at call sites</target>
+        <target state="translated">要在调用站点插入的值</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">
@@ -849,12 +854,12 @@
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>
-        <target state="new">Warning: duplicate parameter name</target>
+        <target state="translated">警告: 参数名重复</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_type_does_not_bind">
         <source>Warning: type does not bind</source>
-        <target state="new">Warning: type does not bind</target>
+        <target state="translated">警告: 类型未绑定</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
@@ -869,7 +874,7 @@
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
         <source>You must change the signature</source>
-        <target state="new">You must change the signature</target>
+        <target state="translated">必须更改签名</target>
         <note>"signature" here means the definition of a method</note>
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1172,16 +1177,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">项目: {0}
 
 使用下拉列表可查看和切换到此文件所属的其他项目。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">读取规则集文件 {0} 时出错 - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -1576,27 +1571,27 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="all_lower">
         <source>all lower</source>
-        <target state="translated">全部小写</target>
+        <target state="translated">全部小写(all lower)</target>
         <note />
       </trans-unit>
       <trans-unit id="ALL_UPPER">
         <source>ALL UPPER</source>
-        <target state="translated">全部大写</target>
+        <target state="translated">全部大写(ALL UPPER)</target>
         <note />
       </trans-unit>
       <trans-unit id="camel_Case_Name">
         <source>camel Case Name</source>
-        <target state="translated">camel 事例名称</target>
+        <target state="translated">驼峰式大小写命名</target>
         <note />
       </trans-unit>
       <trans-unit id="First_word_upper">
         <source>First word upper</source>
-        <target state="translated">第一个单词大写</target>
+        <target state="translated">第一个单词大写(First word upper)</target>
         <note />
       </trans-unit>
       <trans-unit id="Pascal_Case_Name">
         <source>Pascal Case Name</source>
-        <target state="translated">Pascal 事例名称</target>
+        <target state="translated">帕斯卡式大小写命名</target>
         <note />
       </trans-unit>
       <trans-unit id="Severity_colon">

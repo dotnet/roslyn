@@ -144,9 +144,6 @@
   <data name="Regex_OtherEscape" xml:space="preserve">
     <value>Regex - Other Escape</value>
   </data>
-  <data name="Suppress_or_Configure_issues" xml:space="preserve">
-    <value>Suppress or Configure issues</value>
-  </data>
   <data name="Gathering_Suggestions_0" xml:space="preserve">
     <value>Gathering Suggestions - '{0}'</value>
   </data>

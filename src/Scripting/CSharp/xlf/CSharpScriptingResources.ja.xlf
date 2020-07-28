@@ -36,21 +36,28 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">使用法: csi [option] ... [script-file.csx] [script-argument] ...
+        <target state="translated">使用法: csi [option] ... [script-file.csx] [script-argument] ...
 
 指定すると、script-file.csx が実行されます。指定しないと、対話型 REPL (Read Eval Print Loop) が起動されます。
 
 オプション:
   /help                          使用法に関するこのメッセージを表示します (代替形式: /?)
   /version                       バージョンを表示して、終了します
-  /i                             指定のスクリプトを実行した後、REPL にドロップします。
+  /i                             指定されたスクリプトを実行した後、REPL にドロップします。
   /r:&lt;file&gt;                      指定したアセンブリ ファイルのメタデータを参照します (代替形式: /reference)
-  /r:&lt;file list&gt;                 指定のアセンブリ ファイルのメタデータを参照します (代替形式: /reference)
-  /lib:&lt;path list&gt;               #r ディレクティブによって指定したライブラリを検索するディレクトリの一覧。
+  /r:&lt;file list&gt;                 指定されたアセンブリ ファイルのメタデータを参照します (代替形式: /reference)
+  /lib:&lt;path list&gt;               #r ディレクティブによって指定されたライブラリを検索するディレクトリの一覧。
                                  (代替形式: /libPath /libPaths)
-  /u:&lt;namespace&gt;                 グローバル名前空間の使用を定義します (代替形式: /using, /usings, /import, /imports)
-  @&lt;file&gt;                        応答ファイルからさらにオプションを読み取ります
-  --                             残りの引数はオプションとして扱わないことを示します。
+  /u:&lt;namespace&gt;                 グローバル名前空間 using を定義します (代替形式: /using、/usings、/import、/imports)
+  /langversion:?                 言語バージョンで許可されている値を表示し、終了します
+  /langversion:&lt;string&gt;          以下のような言語バージョンを指定します:
+                                 `latest` (マイナー バージョンを含む、最新バージョン)、
+                                 `default` (`latest` と同じ)、
+                                 `latestmajor` (マイナー バージョンを含まない、最新バージョン)、
+                                 `preview` (サポートされていないプレビューでの機能を含む、最新バージョン)、
+                                 `6` や `7.1` などの特定のバージョン
+  @&lt;file&gt;                        他のオプションの応答ファイルを読み取ります
+  --                             残りの引数はオプションとして扱われる必要があることを示します。
 </target>
         <note />
       </trans-unit>

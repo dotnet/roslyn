@@ -31,12 +31,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName contains an invalid character '{0}' at position {1}.</source>
-        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <target state="translated">HintName 包含位置 {1} 处的无效字符 "{0}"。</target>
         <note>{0}: the invalid character, {1} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName of the added source file must be unique within a generator.</target>
+        <target state="translated">添加的源文件的 hintName 在生成器中必须唯一。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -111,7 +111,7 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="needs-review-translation">每个生成器仅可注册一个 {0}。</target>
+        <target state="translated">每个生成器仅可注册一个 {0}。</target>
         <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -571,12 +571,12 @@
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
         <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
-        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <target state="translated">多个全局分析器配置文件在“{1}”部分中设置了相同的密钥“{0}”。它已取消设置。密钥由以下文件设置:“{2}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
         <source>Multiple global analyzer config files set the same key. It has been unset.</source>
-        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <target state="translated">多个全局分析器配置文件设置了相同的密钥。它已取消设置。</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
