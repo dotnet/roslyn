@@ -218,7 +218,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     await codeRefactoringProvider.ComputeRefactoringsAsync(context).ConfigureAwait(false);
                 }
 
-                var actionToApply = TryGetCodeActionToApply(actions.ToImmutable(), codeActionIndex, codeActionEquivalenceKey, verifier);
+                var filteredActions = FilterCodeActions(actions.ToImmutable());
+                var actionToApply = TryGetCodeActionToApply(filteredActions, codeActionIndex, codeActionEquivalenceKey, verifier);
                 if (actionToApply != null)
                 {
                     anyActions = true;
