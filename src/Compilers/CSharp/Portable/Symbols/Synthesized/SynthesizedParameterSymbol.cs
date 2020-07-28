@@ -271,8 +271,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            SourceComplexParameterSymbol? baseParameterForAttributes)
-            : base(container, type, ordinal, refKind, name)
+            SourceComplexParameterSymbol? baseParameterForAttributes,
+            bool isNullChecked)
+            : base(container, type, ordinal, refKind, name, isNullChecked)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
             Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);

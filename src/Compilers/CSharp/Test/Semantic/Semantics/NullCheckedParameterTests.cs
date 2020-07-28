@@ -339,8 +339,8 @@ class C
                                                                     .DescendantNodes()
                                                                     .OfType<SimpleLambdaExpressionSyntax>()
                                                                     .Single();
-            var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -366,9 +366,9 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
-            Assert.False(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
+            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -394,8 +394,8 @@ class C
                                                                                   .DescendantNodes()
                                                                                   .OfType<Syntax.ParenthesizedLambdaExpressionSyntax>()
                                                                                   .Single();
-            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -439,8 +439,8 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -466,9 +466,9 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
-            Assert.False(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
+            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -494,9 +494,9 @@ class C
                                                            .DescendantNodes()
                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                            .Single();
-            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
+            Assert.True(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -522,8 +522,8 @@ class C
                                                                            .DescendantNodes()
                                                                            .OfType<ParenthesizedLambdaExpressionSyntax>()
                                                                            .Single();
-            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]

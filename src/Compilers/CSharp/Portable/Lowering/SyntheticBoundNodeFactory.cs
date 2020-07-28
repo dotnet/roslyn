@@ -1487,6 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
+#nullable disable
         internal BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
         {
             Debug.Assert((operatorKind == BinaryOperatorKind.Equal) || (operatorKind == BinaryOperatorKind.NotEqual) ||
@@ -1615,5 +1616,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
+#nullable enable
     }
 }

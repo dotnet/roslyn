@@ -194,18 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                var parameter = parameterCreationFunc(
-                    binder,
-                    owner,
-                    parameterType,
-                    parameterSyntax,
-                    refKind,
-                    parameterSyntax.Identifier,
-                    parameterIndex,
-                    (paramsKeyword.Kind() != SyntaxKind.None),
-                    parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    addRefReadOnlyModifier,
-                    diagnostics);
+                TParameterSymbol parameter = parameterCreationFunc(binder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
@@ -739,7 +728,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-<<<<<<< HEAD
         internal static void AddNullCheckingErrorsToParameter(DiagnosticBag diagnostics, ParameterSymbol parameter)
         {
             if (!parameter.IsNullChecked)
@@ -763,7 +751,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-=======
         internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (addRefReadOnlyModifier && refKind == RefKind.In)
@@ -791,6 +778,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var modifierType = binder.GetWellKnownType(modifier, diagnostics, syntax);
             return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
         }
->>>>>>> origin/master
     }
 }
