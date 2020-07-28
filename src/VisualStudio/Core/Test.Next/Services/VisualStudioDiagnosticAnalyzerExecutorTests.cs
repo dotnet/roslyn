@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -132,29 +131,6 @@ End Class";
                         Assert.True(ex is OperationCanceledException, $"cancellationToken : {source.Token.IsCancellationRequested}/r/n{ex.ToString()}");
                     }
                 }
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        [WorkItem(26178, "https://github.com/dotnet/roslyn/pull/26178")]
-        [Obsolete("Razor only")]
-        public async Task TestCancellationOnSessionWithSolution()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
-            {
-                var solution = workspace.CurrentSolution;
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-                var service = solution.Workspace.Services.GetService<IRemotableDataService>();
-
-                var source = new CancellationTokenSource();
-                using var session = new InvokeThrowsCancellationConnection(source);
-                var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(session, solution, source.Token));
-                Assert.Equal(exception.CancellationToken, source.Token);
-
-                // make sure things that should have been cleaned up are cleaned up
-                Assert.Null(await ((RemotableDataService)service).TestOnly_GetRemotableDataAsync(solutionChecksum, CancellationToken.None).ConfigureAwait(false));
             }
         }
 
