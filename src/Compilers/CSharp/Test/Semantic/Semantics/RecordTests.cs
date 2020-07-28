@@ -146,6 +146,243 @@ record Point(int x, int y);
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord()
+        {
+            string source = @"
+public record A(int i,) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,23): error CS1031: Type expected
+                // public record A(int i,) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(2, 23),
+                // (2,23): error CS1001: Identifier expected
+                // public record A(int i,) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 23)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A.i { get; init; }",
+                "? A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, ? )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+
+            var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
+            Assert.Equal("A..ctor(System.Int32 i, ? )", primaryCtor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTrivia()
+        {
+            string source = @"
+public record A(int i, // A
+    // B
+    , /* C */ ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,23): error CS1031: Type expected
+                // public record A(int i, // A
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(2, 23),
+                // (2,23): error CS1001: Identifier expected
+                // public record A(int i, // A
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 23),
+                // (4,15): error CS1031: Type expected
+                //     , /* C */ ) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(4, 15),
+                // (4,15): error CS1001: Identifier expected
+                //     , /* C */ ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 15),
+                // (4,15): error CS0102: The type 'A' already contains a definition for ''
+                //     , /* C */ ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 15)
+                );
+
+            var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
+            Assert.Equal("A..ctor(System.Int32 i, ? , ? )", primaryCtor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[0].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[2].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompleteConstructor()
+        {
+            string source = @"
+public class C
+{
+    C(int i, ) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,14): error CS1031: Type expected
+                //     C(int i, ) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(4, 14),
+                // (4,14): error CS1001: Identifier expected
+                //     C(int i, ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 14)
+                );
+
+            var ctor = comp.GetMember<NamedTypeSymbol>("C").Constructors.Single();
+            Assert.Equal("C..ctor(System.Int32 i, ? )", ctor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithType()
+        {
+            string source = @"
+public record A(int i, int ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,28): error CS1001: Identifier expected
+                // public record A(int i, int ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 28)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A.i { get; init; }",
+                "System.Int32 A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
+            Assert.Equal("A..ctor(System.Int32 i, System.Int32 )", ctor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTwoTypes()
+        {
+            string source = @"
+public record A(int, string ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // public record A(int, string ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
+                // (2,29): error CS1001: Identifier expected
+                // public record A(int, string ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29),
+                // (2,29): error CS0102: The type 'A' already contains a definition for ''
+                // public record A(int, string ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 29)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A. { get; init; }",
+                "System.String A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.String )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+
+            Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTwoTypes_SameType()
+        {
+            string source = @"
+public record A(int, int ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // public record A(int, int ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
+                // (2,26): error CS1001: Identifier expected
+                // public record A(int, int ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26),
+                // (2,26): error CS0102: The type 'A' already contains a definition for ''
+                // public record A(int, int ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 26)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A. { get; init; }",
+                "System.Int32 A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.Int32 )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+
+            Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTwoTypes_WithTrivia()
+        {
+            string source = @"
+public record A(int // A
+    // B
+    , int /* C */) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // public record A(int // A
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 20),
+                // (4,18): error CS1001: Identifier expected
+                //     , int /* C */) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18),
+                // (4,18): error CS0102: The type 'A' already contains a definition for ''
+                //     , int /* C */) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 18)
+                );
+
+            var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[0].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46083, "https://github.com/dotnet/roslyn/issues/46083")]
+        public void IncompletePositionalRecord_SingleParameter()
+        {
+            string source = @"
+record A(x)
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(2, 10),
+                // (2,11): error CS1001: Identifier expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 11),
+                // (2,12): error CS1514: { expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 12),
+                // (2,12): error CS1513: } expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 12)
+                );
+        }
+
         [Fact]
         public void TestInExpressionTree()
         {
@@ -310,6 +547,15 @@ record C(int X, int X)
                 // record C(int X, int X)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 21)
             );
+
+            var expectedMembers = new[]
+            {
+                "System.Type C.EqualityContract { get; }",
+                "System.Int32 C.X { get; init; }",
+                "System.Int32 C.X { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
         }
 
         [Fact]
