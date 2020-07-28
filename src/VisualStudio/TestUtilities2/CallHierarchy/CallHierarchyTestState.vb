@@ -78,7 +78,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             End Sub
         End Class
 
-
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
             Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
