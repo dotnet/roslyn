@@ -26,12 +26,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpCodeActions(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpCodeActions))
+        public CSharpCodeActions(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpCodeActions))
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/26204"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -130,8 +130,7 @@ class C
         }
     }
 }";
-
-            MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
 
             SetUpEditor(markup);
             VisualStudio.Editor.InvokeCodeActionList();
@@ -197,7 +196,7 @@ class C
              * applied, and the result is verified against the expected outcome for the .editorconfig style.
              */
 
-            MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
             SetUpEditor(markup);
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(

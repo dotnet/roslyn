@@ -631,6 +631,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WithInitializerExpression = 9062,
         RecordDeclaration = 9063,
 
+        DefaultConstraint = 9064,
+
         PrimaryConstructorBaseType = 9065,
 
         FunctionPointerUnmanagedCallingConventionList = 9066,

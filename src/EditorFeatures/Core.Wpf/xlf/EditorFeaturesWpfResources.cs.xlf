@@ -57,11 +57,6 @@
         <target state="translated">Regulární výrazy – ostatní řídicí znaky</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">Potlačit nebo konfigurovat problémy</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

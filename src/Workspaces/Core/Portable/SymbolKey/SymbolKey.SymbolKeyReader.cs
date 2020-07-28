@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
                         var reason = $"element {i} failed {elementFailureReason}";
                         totalFailureReason = totalFailureReason == null
                             ? $"({reason})"
-                            : $"(totalFailureReason -> {reason})";
+                            : $"({totalFailureReason} -> {reason})";
                     }
                 }
 
@@ -538,20 +538,26 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var kind = (LocationKind)ReadInteger();
-                if (kind == LocationKind.SourceFile)
+                if (kind == LocationKind.None)
+                {
+                    failureReason = null;
+                    return Location.None;
+                }
+                else if (kind == LocationKind.SourceFile)
                 {
                     var filePath = ReadString();
                     var start = ReadInteger();
                     var length = ReadInteger();
 
-                    // The syntax tree can be null if we're resolving this location in a compilation
-                    // that does not contain this file.  In this case, just map this location to None.
                     var syntaxTree = GetSyntaxTree(filePath);
-                    if (syntaxTree != null)
+                    if (syntaxTree == null)
                     {
-                        failureReason = null;
-                        return Location.Create(syntaxTree, new TextSpan(start, length));
+                        failureReason = $"({nameof(ReadLocation)} failed -> '{filePath}' not in compilation)";
+                        return null;
                     }
+
+                    failureReason = null;
+                    return Location.Create(syntaxTree, new TextSpan(start, length));
                 }
                 else if (kind == LocationKind.MetadataFile)
                 {
@@ -579,10 +585,14 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
                     }
-                }
 
-                failureReason = null;
-                return Location.None;
+                    failureReason = null;
+                    return Location.None;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+                }
             }
 
             public SymbolKeyResolution? ResolveLocation(Location location)

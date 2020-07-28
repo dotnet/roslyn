@@ -225,7 +225,7 @@ dotnet_diagnostic.RS0037.severity = none
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
 
-[src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures}/**/*.{cs,vb}]
+[src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures, VisualStudio}/**/*.{cs,vb}]
 
 # IDE0011: Add braces
 csharp_prefer_braces = when_multiline:warning
@@ -268,3 +268,9 @@ dotnet_diagnostic.IDE0007.severity = warning
 csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = true:warning
+
+[src/{VisualStudio}/**/*.{cs,vb}]
+# CA1822: Make member static
+# Not enforced as a build 'warning' for 'VisualStudio' layer due to large number of false positives from https://github.com/dotnet/roslyn-analyzers/issues/3857 and https://github.com/dotnet/roslyn-analyzers/issues/3858
+# Additionally, there is a risk of accidentally breaking an internal API that partners rely on though IVT.
+dotnet_diagnostic.CA1822.severity = suggestion

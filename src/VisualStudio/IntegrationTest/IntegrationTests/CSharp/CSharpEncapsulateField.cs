@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpEncapsulateField : AbstractEditorTest
     {
-        public CSharpEncapsulateField(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpEncapsulateField))
+        public CSharpEncapsulateField(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpEncapsulateField))
         {
         }
 

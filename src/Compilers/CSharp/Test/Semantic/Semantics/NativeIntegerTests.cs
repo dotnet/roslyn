@@ -4714,11 +4714,6 @@ class A
 }");
         }
 
-        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
-        {
-            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
-        }
-
         [Theory]
         [InlineData("")]
         [InlineData("unchecked")]

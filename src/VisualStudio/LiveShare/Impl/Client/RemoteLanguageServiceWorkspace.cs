@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private Document AddDocumentToProject(string filePath, string language, string projectName)
         {
-            Project? project = CurrentSolution.Projects.FirstOrDefault(p => p.Name == projectName && p.Language == language);
+            var project = CurrentSolution.Projects.FirstOrDefault(p => p.Name == projectName && p.Language == language);
             if (project == null)
             {
                 var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), projectName, projectName, language);
@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public void NotifyOnDocumentClosing(string moniker)
         {
-            if (_openedDocs.TryGetValue(moniker, out DocumentId id))
+            if (_openedDocs.TryGetValue(moniker, out var id))
             {
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
@@ -393,13 +393,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     await _session.DownloadFileAsync(_session.ConvertLocalPathToSharedUri(doc.FilePath), CancellationToken.None).ConfigureAwait(true);
                 });
 
-                Guid logicalView = Guid.Empty;
+                var logicalView = Guid.Empty;
                 if (ErrorHandler.Succeeded(svc.OpenDocumentViaProject(doc.FilePath,
                                                                       ref logicalView,
                                                                       out var sp,
-                                                                      out IVsUIHierarchy hier,
-                                                                      out uint itemid,
-                                                                      out IVsWindowFrame frame))
+                                                                      out var hier,
+                                                                      out var itemid,
+                                                                      out var frame))
                     && frame != null)
                 {
                     if (activate)
@@ -491,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     // The edits would get sent by the co-authoring service to the owner.
                     // The invisible editor saves the file on being disposed, which should get reflected  on the owner's side.
-                    using (var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath, hierarchyOpt: null,
+                    using (var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath!, hierarchy: null,
                                                  needsSave: true, needsUndoDisabled: false))
                     {
                         UpdateText(invisibleEditor.TextBuffer, text);

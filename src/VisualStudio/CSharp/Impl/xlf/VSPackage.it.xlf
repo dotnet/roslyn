@@ -287,9 +287,10 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente elenco di completamento;Elenchi di completamento;
+        <target state="translated">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente elenco di completamento;Elenchi di completamento;
 Mostra elenco di completamento dopo la digitazione di un carattere;
 Mostra elenco di completamento dopo l'eliminazione di un carattere;
+Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale);
 Evidenzia le parti corrispondenti di voci dell'elenco di completamento;
 Mostra i filtri per le voci di completamento;
 Comportamento dei frammenti;
@@ -300,7 +301,8 @@ Comportamento del tasto INVIO;
 Non aggiungere mai una nuova riga dopo INVIO;
 Aggiungi una nuova riga dopo INVIO alla fine della parola digitata;
 Aggiungi sempre una nuova riga dopo INVIO;
-Mostra suggerimenti per nomi;</target>
+Mostra suggerimenti per nomi;
+Mostra elementi da spazi dei nomi non importati (sperimentale);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

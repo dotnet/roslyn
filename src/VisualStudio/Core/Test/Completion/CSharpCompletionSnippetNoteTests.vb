@@ -13,8 +13,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     <[UseExportProvider]>
     Public Class CSharpCompletionSnippetNoteTests
-        Private _markup As XElement = <document>
-                                          <![CDATA[using System;
+        Private ReadOnly _markup As XElement = <document>
+                                                   <![CDATA[using System;
 class C
 {
     $$
