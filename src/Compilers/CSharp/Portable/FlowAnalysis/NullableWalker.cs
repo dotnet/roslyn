@@ -502,11 +502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
                     enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
                 }
-                else
-                {
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.State);
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.State);
-                }
             }
 
             void enforceMemberNotNullWhen(SyntaxNode syntaxOpt, bool sense, LocalState state)
@@ -604,11 +599,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
-                    }
-                    else
-                    {
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.State);
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.State);
                     }
                 }
             }
@@ -4955,7 +4945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // learn from post-conditions [Maybe/NotNull, Maybe/NotNullWhen] without using an assignment
-                        learnFromPostConditions(argument, parameterAnnotations);
+                        learnFromPostConditions(argument, parameterType, parameterAnnotations);
                     }
                     break;
                 case RefKind.Ref:
@@ -5139,11 +5129,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return typeWithState;
             }
 
-            void learnFromPostConditions(BoundExpression argument, FlowAnalysisAnnotations parameterAnnotations)
+            void learnFromPostConditions(BoundExpression argument, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
             {
                 // Note: NotNull = NotNullWhen(true) + NotNullWhen(false)
                 bool notNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
                 bool notNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                bool disallowNull = (parameterAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0;
+                bool setNotNullFromParameterType = !argument.IsSuppressed
+                    && !parameterType.Type.IsPossiblyNullableReferenceTypeTypeParameter()
+                    && parameterType.NullableAnnotation.IsNotAnnotated();
 
                 // Note: MaybeNull = MaybeNullWhen(true) + MaybeNullWhen(false)
                 bool maybeNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
@@ -5153,7 +5147,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     LearnFromNullTest(argument, ref State);
                 }
-                else if (notNullWhenTrue && notNullWhenFalse && !IsConditionalState && !(maybeNullWhenTrue && maybeNullWhenFalse))
+                else if (((notNullWhenTrue && notNullWhenFalse) || disallowNull || setNotNullFromParameterType)
+                    && !IsConditionalState
+                    && !(maybeNullWhenTrue || maybeNullWhenFalse))
                 {
                     LearnFromNonNullTest(argument, ref State);
                 }

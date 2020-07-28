@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             if ((locations.Length == 0) && document.SupportsSemanticModel && this._metadataAsSourceService != null)
             {
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol?.Locations.FirstOrDefault().IsInMetadata == true)
+                if (symbol?.Locations.FirstOrDefault()?.IsInMetadata == true)
                 {
                     var declarationFile = await this._metadataAsSourceService.GetGeneratedFileAsync(document.Project, symbol, false, cancellationToken).ConfigureAwait(false);
 
