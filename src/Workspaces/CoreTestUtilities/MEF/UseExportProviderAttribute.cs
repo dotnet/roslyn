@@ -128,9 +128,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     foregroundNotificationService?.ReleaseCancelledItems();
                 }
 
+                // Verify the synchronization context was not used incorrectly
+                var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
+                var denyExecutionSynchronizationContext = testExportJoinableTaskContext?.SynchronizationContext as TestExportJoinableTaskContext.DenyExecutionSynchronizationContext;
+
                 // Join remaining operations with a timeout
                 using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
                 {
+                    if (denyExecutionSynchronizationContext is object)
+                    {
+                        // Immediately cancel the test if the synchronization context is improperly used
+                        denyExecutionSynchronizationContext.InvalidSwitch += delegate { timeoutTokenSource.CancelAfter(0); };
+                        denyExecutionSynchronizationContext.ThrowIfSwitchOccurred();
+                    }
+
                     try
                     {
                         var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
@@ -138,6 +149,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
                     {
+                        // If the failure was caused by an invalid thread change, throw that exception
+                        denyExecutionSynchronizationContext?.ThrowIfSwitchOccurred();
+
                         var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
                         foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
                         {
@@ -148,12 +162,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
 
-                // Verify the synchronization context was not used incorrectly
-                var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
-                if (testExportJoinableTaskContext?.SynchronizationContext is TestExportJoinableTaskContext.DenyExecutionSynchronizationContext synchronizationContext)
-                {
-                    synchronizationContext.ThrowIfSwitchOccurred();
-                }
+                denyExecutionSynchronizationContext?.ThrowIfSwitchOccurred();
 
                 foreach (var testErrorHandler in exportProvider.GetExportedValues<ITestErrorHandler>())
                 {
