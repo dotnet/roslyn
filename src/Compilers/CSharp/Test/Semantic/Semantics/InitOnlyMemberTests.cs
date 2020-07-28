@@ -2414,9 +2414,31 @@ class C2<T>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "2 3", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "2 3", verify: Verification.Skipped);
+
+            // PEVerify bug
+            // [ : C::Main][mdToken=0x6000004][offset 0x00000001] Cannot change initonly field outside its .ctor.
+            v.VerifyIL("C.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""Container C1<int>.F1""
+  IL_0006:  ldfld      ""int Container.content""
+  IL_000b:  call       ""void System.Console.Write(int)""
+  IL_0010:  nop
+  IL_0011:  ldstr      "" ""
+  IL_0016:  call       ""void System.Console.Write(string)""
+  IL_001b:  nop
+  IL_001c:  ldsflda    ""Container C2<int>.F1""
+  IL_0021:  ldfld      ""int Container.content""
+  IL_0026:  call       ""void System.Console.Write(int)""
+  IL_002b:  nop
+  IL_002c:  ret
+}
+");
         }
 
         [Fact]
