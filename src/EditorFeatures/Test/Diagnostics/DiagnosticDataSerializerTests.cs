@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HelpLink, item2.HelpLink);
         }
 
-        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), WorkspaceKind.Host), PartNotDiscoverable, Shared]
+        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Test), Shared, PartNotDiscoverable]
         public class TestPersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]

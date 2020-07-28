@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     ' mock default workspace event listener so that we don't try to enable solution crawler and etc implicitly
-    <ExportWorkspaceServiceFactory(GetType(IWorkspaceEventListenerService), ServiceLayer.Host), [Shared], PartNotDiscoverable>
+    <ExportWorkspaceServiceFactory(GetType(IWorkspaceEventListenerService), ServiceLayer.Test), [Shared], PartNotDiscoverable>
     Friend Class MockWorkspaceEventListenerProvider
         Implements IWorkspaceServiceFactory
 
