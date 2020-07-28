@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 new object[] { projectId },
                 cancellationToken).ConfigureAwait(false);
 
-            foreach (var docId in _documentToLastReportedInformation.Keys.ToArray())
+            foreach (var docId in _documentToLastReportedInformation.Keys)
             {
                 if (projectId == docId.ProjectId)
                     _documentToLastReportedInformation.TryRemove(docId, out _);
