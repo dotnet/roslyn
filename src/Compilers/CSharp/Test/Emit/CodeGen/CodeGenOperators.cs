@@ -5252,8 +5252,7 @@ class Test
             const int step = 4096;
             const int limit = start * 4;
 
-            int count;
-            for (count = start; count <= limit && diagnostics.IsEmpty; count += step)
+            for (int count = start; count <= limit && diagnostics.IsEmpty; count += step)
             {
                 var source =
     @"

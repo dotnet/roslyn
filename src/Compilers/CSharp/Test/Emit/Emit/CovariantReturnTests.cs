@@ -375,7 +375,7 @@ public class Program
 }
 ";
             var compilation = CreateCovariantCompilation(program, options: TestOptions.DebugExe, references: new[] { ref0, ref1b, ref2 });
-            // compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
             var expectedOutput =
 @"Derived.M
 Derived.M
