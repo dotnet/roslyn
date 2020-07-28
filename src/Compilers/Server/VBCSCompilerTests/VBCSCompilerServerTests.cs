@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 readyMre.Set();
 
                 await serverData.SendAsync(ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3))).ConfigureAwait(false);
+                await Task.WhenAll(list).ConfigureAwait(false);
 
                 // Don't use Complete here because we want to see the server shutdown naturally
                 var listener = await serverData.ServerTask.ConfigureAwait(false);
