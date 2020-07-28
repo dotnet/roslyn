@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal const string DefineDescriptorArgumentCorrectlyFixValue = nameof(DefineDescriptorArgumentCorrectlyFixValue);
         private const string DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo = nameof(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo);
+        private const string AdditionalDocumentLocationInfoSeparator = ";;";
 
         private static readonly ImmutableHashSet<string> CADiagnosticIdAllowedAssemblies = ImmutableHashSet.Create(
             StringComparer.Ordinal,
@@ -523,12 +524,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             Action<Diagnostic> reportDiagnostic)
         {
             // Additional location in an additional document does not seem to be preserved
-            // from analyzer to code fix due to a Roslyn bug.
+            // from analyzer to code fix due to a Roslyn bug: https://github.com/dotnet/roslyn/issues/46377
             // We workaround this bug by passing additional document file path and location span as strings.
-            // TODO: File a Roslyn bug.
 
             var additionalLocations = ImmutableArray<Location>.Empty;
-            var properties = ImmutableDictionary<string, string>.Empty.Add(DefineDescriptorArgumentCorrectlyFixValue, fixValue);
+            var properties = ImmutableDictionary<string, string?>.Empty.Add(DefineDescriptorArgumentCorrectlyFixValue, fixValue);
             if (fixLocation.IsInSource)
             {
                 additionalLocations = additionalLocations.Add(fixLocation);
@@ -536,13 +536,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             else
             {
                 var span = fixLocation.SourceSpan;
-                var locationInfo = $"{span.Start};{span.Length};{fixLocation.GetLineSpan().Path}";
+                var locationInfo = $"{span.Start}{AdditionalDocumentLocationInfoSeparator}{span.Length}{AdditionalDocumentLocationInfoSeparator}{fixLocation.GetLineSpan().Path}";
                 properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, locationInfo);
             }
 
-            var location = argumentOperation.Syntax.GetLocation();
-            var diagnostic = Diagnostic.Create(descriptor, location, additionalLocations: additionalLocations, properties: properties);
-            reportDiagnostic(diagnostic);
+            reportDiagnostic(argumentOperation.CreateDiagnostic(descriptor, additionalLocations, properties));
         }
 
         internal static bool TryGetAdditionalDocumentLocationInfo(Diagnostic diagnostic,
@@ -553,27 +551,24 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 diagnostic.Id == DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId ||
                 diagnostic.Id == DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
 
-            if (diagnostic.Properties.TryGetValue(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, out var locationInfo))
-            {
-                var index = locationInfo.IndexOf(';');
-                if (index > 0 &&
-                    int.TryParse(locationInfo.Substring(0, index), out var spanSpart))
-                {
-                    locationInfo = locationInfo.Substring(index + 1);
-                    index = locationInfo.IndexOf(';');
-                    if (index > 0 &&
-                        int.TryParse(locationInfo.Substring(0, index), out var spanLength))
-                    {
-                        fileSpan = new TextSpan(spanSpart, spanLength);
-                        filePath = locationInfo.Substring(index + 1);
-                        return !string.IsNullOrEmpty(filePath);
-                    }
-                }
-            }
-
             filePath = null;
             fileSpan = null;
-            return false;
+            if (!diagnostic.Properties.TryGetValue(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, out var locationInfo))
+            {
+                return false;
+            }
+
+            var parts = locationInfo.Split(new[] { AdditionalDocumentLocationInfoSeparator }, StringSplitOptions.None);
+            if (parts.Length != 3 ||
+                !int.TryParse(parts[0], out var spanSpart) ||
+                !int.TryParse(parts[1], out var spanLength))
+            {
+                return false;
+            }
+
+            fileSpan = new TextSpan(spanSpart, spanLength);
+            filePath = parts[2];
+            return !string.IsNullOrEmpty(filePath);
         }
 
         private static void AnalyzeMessage(

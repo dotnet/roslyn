@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId => CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyTitle,
                     DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId => CodeAnalysisDiagnosticsResources.DefineDiagnosticMessageCorrectlyTitle,
                     DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId => CodeAnalysisDiagnosticsResources.DefineDiagnosticDescriptionCorrectlyTitle,
-                    _ => throw new NotImplementedException()
+                    _ => throw new InvalidOperationException()
                 };
 
                 var equivalenceKeySuffix = fixInfo.Value.AdditionalDocumentToFix != null ? AdditionalDocumentEquivalenceKeySuffix : SourceDocumentEquivalenceKeySuffix;

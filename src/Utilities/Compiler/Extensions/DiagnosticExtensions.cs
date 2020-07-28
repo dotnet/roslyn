@@ -23,10 +23,19 @@ namespace Analyzer.Utilities.Extensions
             DiagnosticDescriptor rule,
             ImmutableDictionary<string, string?>? properties,
             params object[] args)
+            => node.CreateDiagnostic(rule, additionalLocations: ImmutableArray<Location>.Empty, properties, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this SyntaxNode node,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
             => node
                 .GetLocation()
                 .CreateDiagnostic(
                     rule: rule,
+                    additionalLocations: additionalLocations,
                     properties: properties,
                     args: args);
 
@@ -43,6 +52,16 @@ namespace Analyzer.Utilities.Extensions
             params object[] args)
         {
             return operation.Syntax.CreateDiagnostic(rule, properties, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
+            this IOperation operation,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return operation.Syntax.CreateDiagnostic(rule, additionalLocations, properties, args);
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -76,6 +95,14 @@ namespace Analyzer.Utilities.Extensions
             DiagnosticDescriptor rule,
             ImmutableDictionary<string, string?>? properties,
             params object[] args)
+            => location.CreateDiagnostic(rule, ImmutableArray<Location>.Empty, properties, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this Location location,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
         {
             if (!location.IsInSource)
             {
@@ -85,6 +112,7 @@ namespace Analyzer.Utilities.Extensions
             return Diagnostic.Create(
                 descriptor: rule,
                 location: location,
+                additionalLocations: additionalLocations,
                 properties: properties,
                 messageArgs: args);
         }

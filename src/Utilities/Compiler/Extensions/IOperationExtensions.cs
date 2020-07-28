@@ -780,7 +780,7 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
 
-            throw new NotImplementedException();
+            throw new InvalidOperationException();
         }
     }
 }

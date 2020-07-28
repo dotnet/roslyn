@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             CancellationToken cancellationToken)
         {
             Debug.Assert(HasResxAdditionalFiles(options));
+            Debug.Assert(!resourceFileName.EndsWith(".resx", StringComparison.OrdinalIgnoreCase));
 
             resourceFileName += ".resx";
             if (resourceMap.TryGetValue(resourceFileName, out var map))
@@ -71,30 +72,33 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var parsedDocument = XDocument.Parse(sourceTextStr, LoadOptions.PreserveWhitespace);
                 foreach (var dataElement in parsedDocument.Descendants("data"))
                 {
-                    if (dataElement.Attribute("name")?.Value is { } name &&
-                        dataElement.Elements("value").FirstOrDefault() is { } valueElement)
+                    if (!(dataElement.Attribute("name")?.Value is { } name) ||
+                        !(dataElement.Elements("value").FirstOrDefault() is { } valueElement))
                     {
-                        var dataElementStr = dataElement.ToString();
-                        var valueElementStr = valueElement.ToString();
-                        var indexOfDataElement = sourceTextStr.IndexOf(dataElementStr, StringComparison.Ordinal);
-                        if (indexOfDataElement < 0 ||
-                            !valueElementStr.StartsWith(valueTagPrefix, StringComparison.OrdinalIgnoreCase) ||
-                            !valueElementStr.EndsWith(valueTagSuffix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        var indexOfValue = indexOfDataElement +
-                                dataElementStr.IndexOf(valueElementStr, StringComparison.Ordinal) +
-                                valueTagPrefix.Length;
-                        var valueLength = valueElementStr.Length - (valueTagPrefix.Length + valueTagSuffix.Length);
-                        var span = new TextSpan(indexOfValue, valueLength);
-                        var linePositionSpan = sourceText.Lines.GetLinePositionSpan(span);
-                        var location = Location.Create(file.Path, span, linePositionSpan);
-
-                        var value = valueElementStr.Substring(valueTagPrefix.Length, valueLength);
-                        builder[name] = (value, location);
+                        continue;
                     }
+
+                    var dataElementStr = dataElement.ToString();
+                    var valueElementStr = valueElement.ToString();
+
+                    var indexOfDataElement = sourceTextStr.IndexOf(dataElementStr, StringComparison.Ordinal);
+                    if (indexOfDataElement < 0 ||
+                        !valueElementStr.StartsWith(valueTagPrefix, StringComparison.OrdinalIgnoreCase) ||
+                        !valueElementStr.EndsWith(valueTagSuffix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var indexOfValue = indexOfDataElement +
+                        dataElementStr.IndexOf(valueElementStr, StringComparison.Ordinal) +
+                        valueTagPrefix.Length;
+                    var valueLength = valueElementStr.Length - (valueTagPrefix.Length + valueTagSuffix.Length);
+                    var span = new TextSpan(indexOfValue, valueLength);
+                    var linePositionSpan = sourceText.Lines.GetLinePositionSpan(span);
+                    var location = Location.Create(file.Path, span, linePositionSpan);
+
+                    var value = valueElementStr.Substring(valueTagPrefix.Length, valueLength);
+                    builder[name] = (value, location);
                 }
 
                 return builder.ToImmutable();
