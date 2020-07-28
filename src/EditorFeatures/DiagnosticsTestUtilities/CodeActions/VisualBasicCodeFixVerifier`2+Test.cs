@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,6 +28,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
+            static Test()
+            {
+                // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
+                // reasonable TLS protocol version for outgoing connections.
+#pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+            }
+
             public Test()
             {
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;

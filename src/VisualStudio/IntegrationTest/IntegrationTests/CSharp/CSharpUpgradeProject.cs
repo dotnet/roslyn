@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpgradeProject : AbstractUpdateProjectTest
     {
-        public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

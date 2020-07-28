@@ -12887,9 +12887,10 @@ static class C
         [Fact]
         public void CS7023ERR_StaticInIsAsOrIs()
         {
-            // BREAKING CHANGE: The C# specification states that it is always illegal
-            // BREAKING CHANGE: to use a static type with "is" and "as". The native
-            // BREAKING CHANGE: compiler allows it in some cases; Roslyn does not.
+            // The C# specification states that it is always illegal
+            // to use a static type with "is" and "as". The native
+            // compiler allows it in some cases; Roslyn gives a warning
+            // at level '/warn:5' or higher.
 
             var text = @"
 static class C
@@ -12910,55 +12911,63 @@ static class C
     }
 }
 ";
-            var regularComp = CreateCompilation(text);
-
-            // these diagnostics correspond to those produced by the native compiler.
-            regularComp.VerifyDiagnostics(
+            var strictDiagnostics = new[]
+            {
+                // (6,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(o as C);            // legal in native
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o as C").WithArguments("C").WithLocation(6, 11),
+                // (7,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(new object() as C); // legal in native
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "new object() as C").WithArguments("C").WithLocation(7, 11),
+                // (8,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(null as C);         // legal in native
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "null as C").WithArguments("C").WithLocation(8, 11),
+                // (9,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(1 as C);
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "1 as C").WithArguments("C").WithLocation(9, 11),
                 // (9,11): error CS0039: Cannot convert type 'int' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         M(1 as C);
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "1 as C").WithArguments("int", "C").WithLocation(9, 11),
+                // (10,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M("a" as C);
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, @"""a"" as C").WithArguments("C").WithLocation(10, 11),
                 // (10,11): error CS0039: Cannot convert type 'string' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         M("a" as C);
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"""a"" as C").WithArguments("string", "C").WithLocation(10, 11),
+                // (12,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(o is C);            // legal in native, no warning
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o is C").WithArguments("C").WithLocation(12, 11),
+                // (13,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(new object() is C); // legal in native, no warning
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "new object() is C").WithArguments("C").WithLocation(13, 11),
+                // (14,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(null is C);         // legal in native, warns
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "null is C").WithArguments("C").WithLocation(14, 11),
                 // (14,11): warning CS0184: The given expression is never of the provided ('C') type
                 //         M(null is C);         // legal in native, warns
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null is C").WithArguments("C").WithLocation(14, 11),
+                // (15,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(1 is C);            // legal in native, warns
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "1 is C").WithArguments("C").WithLocation(15, 11),
                 // (15,11): warning CS0184: The given expression is never of the provided ('C') type
                 //         M(1 is C);            // legal in native, warns
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is C").WithArguments("C").WithLocation(15, 11),
+                // (16,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M("a" is C);        // legal in native, warns
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, @"""a"" is C").WithArguments("C").WithLocation(16, 11),
                 // (16,11): warning CS0184: The given expression is never of the provided ('C') type
                 //         M("a" is C);        // legal in native, warns
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, @"""a"" is C").WithArguments("C").WithLocation(16, 11)
-                );
+            };
 
-            // in strict mode we also diagnose "is" and "as" operators with a static type.
-            var strictComp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithStrictFeature());
-            strictComp.VerifyDiagnostics(
-                // In the native compiler these three produce no errors.
+            // in /warn:5 we diagnose "is" and "as" operators with a static type.
+            var strictComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            strictComp.VerifyDiagnostics(strictDiagnostics);
 
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "o as C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "new object() as C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "null as C").WithArguments("C"),
-
-                // In the native compiler these two produce:
-                // error CS0039: Cannot convert type 'int' to 'C' via a reference conversion, boxing conversion, 
-                // unboxing conversion, wrapping conversion, or null type conversion
-
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "1 as C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" as C").WithArguments("C"),
-
-                // In the native compiler these two produce no errors:
-
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "o is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "new object() is C").WithArguments("C"),
-
-                // In the native compiler these three produce:
-                // warning CS0184: The given expression is never of the provided ('C') type
-
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "null is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "1 is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" is C").WithArguments("C")
-                );
+            // these rest of the diagnostics correspond to those produced by the native compiler.
+            var regularDiagnostics = strictDiagnostics.Where(d => !d.Code.Equals((int)ErrorCode.WRN_StaticInAsOrIs)).ToArray();
+            var regularComp = CreateCompilation(text);
+            regularComp.VerifyDiagnostics(regularDiagnostics);
         }
 
         [Fact]

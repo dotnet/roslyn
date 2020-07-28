@@ -6010,9 +6010,6 @@ public class X
                 // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
                 //         using (var x1 = Dummy(true is var x1, x1))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
-                // (12,47): error CS0165: Use of unassigned local variable 'x1'
-                //         using (var x1 = Dummy(true is var x1, x1))
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 47),
                 // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
                 //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58),
@@ -6338,9 +6335,6 @@ public class X
     // (13,40): error CS0841: Cannot use local variable 'x1' before it is declared
     //                  Dummy(true is var x1, x1);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 40),
-    // (13,40): error CS0165: Use of unassigned local variable 'x1'
-    //                  Dummy(true is var x1, x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 40),
     // (20,39): error CS0128: A local variable named 'x2' is already defined in this scope
     //                     Dummy(true is var x2, x2);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 39),
@@ -6746,9 +6740,6 @@ public class X
                 // (13,42): error CS0841: Cannot use local variable 'x1' before it is declared
                 //                       ((true is var x1), x1);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 42),
-                // (13,42): error CS0165: Use of unassigned local variable 'x1'
-                //                       ((true is var x1), x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 42),
                 // (20,40): error CS0128: A local variable named 'x2' is already defined in this scope
                 //                          ((true is var x2), x2);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 40),
@@ -8886,9 +8877,6 @@ public class X
     // (13,38): error CS0841: Cannot use local variable 'x1' before it is declared
     //              Dummy(true is var x1 && x1)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 38),
-    // (13,38): error CS0165: Use of unassigned local variable 'x1'
-    //              Dummy(true is var x1 && x1)
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 38),
     // (21,32): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //              Dummy(true is var x2 && x2)
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(21, 32),

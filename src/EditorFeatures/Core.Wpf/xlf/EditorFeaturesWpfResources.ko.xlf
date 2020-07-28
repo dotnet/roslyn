@@ -57,11 +57,6 @@
         <target state="translated">Regex - 기타 이스케이프</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">문제 표시 안 함 또는 구성</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

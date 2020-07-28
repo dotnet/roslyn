@@ -138,6 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// <returns>Either the unique id of the method if it already exists, or the unique id of
         /// the to be generated method, the text of the to be generated method, and the position in
         /// <paramref name="itemidInsertionPoint"/> where the text should be inserted.</returns>
+#pragma warning disable IDE0060 // Remove unused parameter - API used by partner (Venus), avoid build break.
         public static Tuple<string, string, VsTextSpan> EnsureEventHandler(
             Document thisDocument,
             Document targetDocument,
@@ -150,6 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             bool useHandlesClause,
             AbstractFormattingRule additionalFormattingRule,
             CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var thisCompilation = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var type = thisCompilation.GetTypeByMetadataName(className);

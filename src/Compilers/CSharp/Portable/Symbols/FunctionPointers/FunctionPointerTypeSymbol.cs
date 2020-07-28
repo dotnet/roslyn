@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         // Pointers do not support boxing, so they really have no base type.
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
-        internal override ManagedKind ManagedKind => ManagedKind.Unmanaged;
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Unmanaged;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitFunctionPointerType(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
