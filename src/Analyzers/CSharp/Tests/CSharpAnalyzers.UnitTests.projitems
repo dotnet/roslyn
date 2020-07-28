@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersCompilerErrorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\RemoveConfusingSuppressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpressions\SimplifyLinqExpressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryAttributeSuppressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\RemoveUnnecessaryPatternParenthesesTests.cs" />
