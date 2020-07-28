@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             if (TryGetTextForContextualKeyword(token, out var text) ||
-                TryGetTextForCombinationKeyword(token, out text) ||
+                TryGetTextForCombinationKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
                 TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
@@ -287,34 +287,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             text = null;
             return false;
         }
-        private static bool TryGetTextForCombinationKeyword(SyntaxToken token, out string text)
+        private static bool TryGetTextForCombinationKeyword(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)
         {
-            // Contextual keywords can appear in any order, and the user could initiate help from either keyword
-            // so to keep the actual checks simple we just check all 4 combinations
-            var previousToken = token.GetPreviousToken();
-            var nextToken = token.GetNextToken();
-            return TryGetTextForCombinationKeyword(token, previousToken, out text) ||
-                TryGetTextForCombinationKeyword(token, nextToken, out text) ||
-                TryGetTextForCombinationKeyword(previousToken, token, out text) ||
-                TryGetTextForCombinationKeyword(nextToken, token, out text);
-        }
-
-        private static bool TryGetTextForCombinationKeyword(SyntaxToken token1, SyntaxToken token2, out string text)
-        {
-            if (token1.Kind() == SyntaxKind.PrivateKeyword && token2.Kind() == SyntaxKind.ProtectedKeyword)
+            switch (token.Kind())
             {
-                text = "privateprotected_CSharpKeyword";
-                return true;
-            }
+                case SyntaxKind.PrivateKeyword when ModifiersContains(token, syntaxFacts, SyntaxKind.ProtectedKeyword):
+                case SyntaxKind.ProtectedKeyword when ModifiersContains(token, syntaxFacts, SyntaxKind.PrivateKeyword):
+                    text = "privateprotected_CSharpKeyword";
+                    return true;
 
-            if (token1.Kind() == SyntaxKind.ProtectedKeyword && token2.Kind() == SyntaxKind.InternalKeyword)
-            {
-                text = "protectedinternal_CSharpKeyword";
-                return true;
+                case SyntaxKind.ProtectedKeyword when ModifiersContains(token, syntaxFacts, SyntaxKind.InternalKeyword):
+                case SyntaxKind.InternalKeyword when ModifiersContains(token, syntaxFacts, SyntaxKind.ProtectedKeyword):
+                    text = "protectedinternal_CSharpKeyword";
+                    return true;
             }
 
             text = null;
             return false;
+
+            static bool ModifiersContains(SyntaxToken token, ISyntaxFactsService syntaxFacts, SyntaxKind kind)
+            {
+                return syntaxFacts.GetModifiers(token.Parent).Any(t => t.IsKind(kind));
+            }
         }
 
         private static bool TryGetTextForKeyword(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)

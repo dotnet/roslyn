@@ -108,6 +108,27 @@ End Class</a>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestModifierSoup() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Async Shared Private Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestModifierSoupField() As Task
+            Dim text = <a>
+Public Class G
+    Private Shadows Shared Prot[||]ected foo as Boolean
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestAddHandler1() As Task
             Dim text = <a>
 Class G

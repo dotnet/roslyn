@@ -245,11 +245,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitFieldDeclaration(node As FieldDeclarationSyntax)
-                Dim modifier = node.Modifiers.FirstOrDefault(Function(m) m.Span.IntersectsWith(_span))
-
-                If modifier <> Nothing Then
-                    result = Keyword(modifier.Text)
-                End If
+                SelectModifier(node.Modifiers)
             End Sub
 
             Public Overrides Sub VisitForEachStatement(node As ForEachStatementSyntax)
@@ -769,7 +765,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     Dim modifier = list(i)
                     If modifier.Span.IntersectsWith(_span) Then
 
-                        If SelectCombinationModifier(modifier, i, list) Then
+                        If SelectCombinationModifier(modifier, list) Then
                             Return True
                         End If
 
@@ -782,41 +778,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 Return False
             End Function
 
-            Private Function SelectCombinationModifier(token As SyntaxToken, index As Integer, list As SyntaxTokenList) As Boolean
-                Dim previousToken As SyntaxToken
-                Dim nextToken As SyntaxToken
-
-                If index > 0 Then
-                    previousToken = list(index - 1)
+            Private Function SelectCombinationModifier(token As SyntaxToken, list As SyntaxTokenList) As Boolean
+                If SelectCombinationModifier(token, list, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, HelpKeywords.PrivateProtected) Then
+                    Return True
                 End If
 
-                If index < list.Count - 1 Then
-                    nextToken = list(index + 1)
-                End If
-
-                ' For combination tokens we check current vs previous in any order
-                If SelectCombinationModifier(previousToken, token) OrElse
-                    SelectCombinationModifier(token, previousToken) OrElse
-                    SelectCombinationModifier(nextToken, token) OrElse
-                    SelectCombinationModifier(token, nextToken) Then
+                If SelectCombinationModifier(token, list, SyntaxKind.ProtectedKeyword, SyntaxKind.FriendKeyword, HelpKeywords.ProtectedFriend) Then
                     Return True
                 End If
 
                 Return False
             End Function
 
-            Private Function SelectCombinationModifier(token1 As SyntaxToken, token2 As SyntaxToken) As Boolean
-                If token1.Kind() = SyntaxKind.ProtectedKeyword AndAlso token2.Kind() = SyntaxKind.FriendKeyword Then
-                    result = HelpKeywords.ProtectedFriend
+            Private Function SelectCombinationModifier(token As SyntaxToken, list As SyntaxTokenList, kind1 As SyntaxKind, kind2 As SyntaxKind, helpKeyword As String) As Boolean
+                If token.IsKind(kind1) AndAlso list.Any(Function(t) t.IsKind(kind2)) Then
+                    result = helpKeyword
                     Return True
-                ElseIf token1.Kind() = SyntaxKind.PrivateKeyword AndAlso token2.Kind() = SyntaxKind.ProtectedKeyword Then
-                    result = HelpKeywords.PrivateProtected
+                End If
+
+                If token.IsKind(kind2) AndAlso list.Any(Function(t) t.IsKind(kind1)) Then
+                    result = helpKeyword
                     Return True
                 End If
 
                 Return False
             End Function
-
             Public Overrides Sub VisitVariableDeclarator(node As VariableDeclaratorSyntax)
                 Dim bestName = node.Names.FirstOrDefault(Function(n) n.Span.IntersectsWith(_span))
                 If bestName Is Nothing Then

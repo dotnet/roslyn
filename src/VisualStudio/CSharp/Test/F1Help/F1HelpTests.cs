@@ -119,6 +119,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoup()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    private new prot[||]ected static unsafe void foo()
+    {
+    }
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoupField()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    new prot[||]ected static unsafe private goo;
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestVoid()
         {
             await Test_KeywordAsync(
