@@ -96,8 +96,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var latestData = await ComputeLatestDataAsync(
                 project, specificDocument, projectVersion, cancellationToken).ConfigureAwait(false);
 
-            var changedData = latestData.WhereAsArray(
-                d => !_documentToLastReportedInformation.TryGetValue(d.document.Id, out var existingInfo) || existingInfo.category != d.data.Category);
+            var changedData =
+                latestData.Where(d => !_documentToLastReportedInformation.TryGetValue(d.document.Id, out var existingInfo) || existingInfo.category != d.data.Category)
+                          .ToImmutableArray();
 
             if (!changedData.IsEmpty)
             {
@@ -112,44 +113,44 @@ namespace Microsoft.CodeAnalysis.Remote
                 _documentToLastReportedInformation[document.Id] = (info.Category, projectVersion);
         }
 
-        private async Task<ImmutableArray<(Document document, DesignerAttributeData data)>> ComputeLatestDataAsync(
+        private async Task<(Document document, DesignerAttributeData data)[]> ComputeLatestDataAsync(
             Project project, Document? specificDocument, VersionStamp projectVersion, CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
-            using var _ = ArrayBuilder<Task<(Document document, DesignerAttributeData? data)>>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<Task<(Document document, DesignerAttributeData data)>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
                 if (specificDocument != null && document != specificDocument)
                     continue;
 
-                tasks.Add(ComputeDesignerAttributeDataAsync(
-                    projectVersion, designerCategoryType, document, cancellationToken));
-            }
-
-            var docsAndData = await Task.WhenAll(tasks).ConfigureAwait(false);
-            return docsAndData.Where(d => d.data != null).SelectAsArray(d => (d.document, d.data!.Value));
-        }
-
-        private async Task<(Document document, DesignerAttributeData? data)> ComputeDesignerAttributeDataAsync(
-            VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType, Document document, CancellationToken cancellationToken)
-        {
-            try
-            {
                 // If we don't have a path for this document, we cant proceed with it.
                 // We need that path to inform the project system which file we're referring to.
                 if (document.FilePath == null)
-                    return default;
+                    continue;
 
                 // If nothing has changed at the top level between the last time we analyzed this document and now, then
                 // no need to analyze again.
                 if (_documentToLastReportedInformation.TryGetValue(document.Id, out var existingInfo) &&
                     existingInfo.projectVersion == projectVersion)
                 {
-                    return default;
+                    continue;
                 }
+
+                tasks.Add(ComputeDesignerAttributeDataAsync(designerCategoryType, document, cancellationToken));
+            }
+
+            return await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private static async Task<(Document document, DesignerAttributeData data)> ComputeDesignerAttributeDataAsync(
+            INamedTypeSymbol? designerCategoryType, Document document, CancellationToken cancellationToken)
+        {
+            try
+            {
+                Contract.ThrowIfNull(document.FilePath);
 
                 // We either haven't computed the designer info, or our data was out of date.  We need
                 // So recompute here.  Figure out what the current category is, and if that's different
