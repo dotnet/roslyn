@@ -212,7 +212,7 @@ function BuildSolution() {
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1" } else { "" }
+  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1;net5.0" } else { "" }
   
   $ibcDropName = GetIbcDropName
 
@@ -406,6 +406,7 @@ function TestUsingOptimizedRunner() {
 
   # Exclude out the multi-targetted netcore app projects
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
+  $dlls = $dlls | ?{ -not ($_.FullName -match ".*net5.0.*") }
 
   # Exclude out the ref assemblies
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
