@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -87,6 +88,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             id: DiagnosticIds.PublicApiFilesInvalid,
             title: PublicApiAnalyzerResources.PublicApiFilesInvalidTitle,
             messageFormat: PublicApiAnalyzerResources.PublicApiFilesInvalidMessage,
+            category: "ApiDesign",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static readonly DiagnosticDescriptor PublicApiFileMissing = new DiagnosticDescriptor(
+            id: DiagnosticIds.PublicApiFileMissing,
+            title: PublicApiAnalyzerResources.PublicApiFileMissingTitle,
+            messageFormat: PublicApiAnalyzerResources.PublicApiFileMissingMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -179,7 +190,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(DeclareNewApiRule, AnnotateApiRule, ObliviousApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
-                PublicApiFilesInvalid, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
+                PublicApiFilesInvalid, PublicApiFileMissing, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
                 OverloadWithOptionalParametersShouldHaveMostParameters, ShouldAnnotateApiFilesRule);
 
         public override void Initialize(AnalysisContext context)
@@ -195,13 +206,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
             var additionalFiles = compilationContext.Options.AdditionalFiles;
+            var errors = new List<Diagnostic>();
 
-            if (!TryGetApiData(additionalFiles, compilationContext.CancellationToken, out ApiData shippedData, out ApiData unshippedData))
-            {
-                return;
-            }
-
-            if (!ValidateApiFiles(shippedData, unshippedData, out List<Diagnostic> errors))
+            // TODO: Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics.
+            if (!TryGetApiData(additionalFiles, errors, compilationContext.CancellationToken, out ApiData shippedData, out ApiData unshippedData) ||
+                !ValidateApiFiles(shippedData, unshippedData, errors))
             {
                 compilationContext.RegisterCompilationEndAction(context =>
                 {
@@ -213,6 +222,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 return;
             }
+
+            Debug.Assert(errors.Count == 0);
 
             var impl = new Impl(compilationContext.Compilation, shippedData, unshippedData);
             compilationContext.RegisterSymbolAction(
@@ -265,10 +276,19 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable(), maxNullableRank);
         }
 
-        private static bool TryGetApiData(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
+        private static bool TryGetApiData(ImmutableArray<AdditionalText> additionalTexts, List<Diagnostic> errors, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
         {
             if (!TryGetApiText(additionalTexts, cancellationToken, out var shippedText, out var unshippedText))
             {
+                if (shippedText == null && unshippedText == null)
+                {
+                    // Bootstrapping public API files.
+                    (shippedData, unshippedData) = (ApiData.Empty, ApiData.Empty);
+                    return true;
+                }
+
+                var missingFileName = shippedText == null ? ShippedFileName : UnshippedFileName;
+                errors.Add(Diagnostic.Create(PublicApiFileMissing, Location.None, missingFileName));
                 shippedData = default;
                 unshippedData = default;
                 return false;
@@ -310,9 +330,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return shippedText != null && unshippedText != null;
         }
 
-        private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, out List<Diagnostic> errors)
+        private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, List<Diagnostic> errors)
         {
-            errors = new List<Diagnostic>();
             if (!shippedData.RemovedApiList.IsEmpty)
             {
                 errors.Add(Diagnostic.Create(PublicApiFilesInvalid, Location.None, InvalidReasonShippedCantHaveRemoved));
