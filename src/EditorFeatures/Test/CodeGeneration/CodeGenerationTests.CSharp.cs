@@ -951,10 +951,46 @@ class C
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
                     isIndexer: true,
-                    options: new Dictionary<OptionKey2, object> {
-                        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                    });
+                    codeGenerationOptions: new CodeGenerationOptions(
+                        options: new TestOptionSet(new Dictionary<OptionKey2, object> {
+                            { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                            { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                    })));
+            }
+
+            internal class TestOptionSet : OptionSet
+            {
+                private readonly IDictionary<OptionKey2, object> _values;
+
+                public TestOptionSet(Dictionary<OptionKey2, object> values)
+                {
+                    _values = values;
+                }
+
+                private protected override object GetOptionCore(OptionKey optionKey)
+                {
+                    Contract.ThrowIfFalse(_values.TryGetValue(
+                        new OptionKey2((IOption2)optionKey.Option, optionKey.Language), out var value));
+
+                    return value;
+                }
+
+                public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+                {
+                    throw new NotImplementedException();
+                }
+
+                internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+                {
+                    foreach (var kvp in _values)
+                    {
+                        var currentValue = optionSet.GetOption(kvp.Key);
+                        if (!object.Equals(currentValue, kvp.Value))
+                        {
+                            yield return new OptionKey(kvp.Key.Option, kvp.Key.Language);
+                        }
+                    }
+                }
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

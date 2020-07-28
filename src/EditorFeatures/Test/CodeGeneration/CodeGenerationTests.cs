@@ -420,6 +420,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 getAccessor,
                 setAccessor,
                 isIndexer);
+
+            var docOptions = await context.Document.GetOptionsAsync();
+            codeGenerationOptions ??= new CodeGenerationOptions();
+            codeGenerationOptions = codeGenerationOptions.With(options: codeGenerationOptions.Options ?? docOptions);
             context.Result = await context.Service.AddPropertyAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), property, codeGenerationOptions);
         }
 
@@ -545,6 +549,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 .AddDocument(documentId, "Source.cs", symbolSource)
                 .GetDocument(documentId)
                 .GetSemanticModelAsync();
+
+            var docOptions = await context.Document.GetOptionsAsync();
+            codeGenerationOptions ??= new CodeGenerationOptions();
+            codeGenerationOptions = codeGenerationOptions.With(options: codeGenerationOptions.Options ?? docOptions);
 
             var symbol = TestContext.GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, semanticModel);
             var destination = context.GetDestination();
