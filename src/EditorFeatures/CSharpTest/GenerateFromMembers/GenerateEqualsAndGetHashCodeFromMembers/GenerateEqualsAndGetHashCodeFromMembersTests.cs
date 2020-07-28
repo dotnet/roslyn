@@ -11,14 +11,11 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,9 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
     {
         private class Test : VerifyCS.Test
         {
-            // Our own cached export factory, where we can mixin the TestPickMembersService type.
-            private static readonly IExportProviderFactory s_factory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestPickMembersService)));
+            private static readonly TestComposition s_composition =
+                FeaturesTestCompositions.Features.AddParts(typeof(TestPickMembersService));
 
             public bool UseDialog;
             public ImmutableArray<string> MemberNames;
@@ -48,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                     return base.CreateWorkspace();
 
                 // If we're a dialog test, then mixin our mock and initialize its values to the ones the test asked for.
-                var exportProvider = s_factory.CreateExportProvider();
-                var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(exportProvider));
+                var workspace = new AdhocWorkspace(s_composition.GetHostServices());
 
                 var service = (TestPickMembersService)workspace.Services.GetService<IPickMembersService>();
                 service.MemberNames = MemberNames;
