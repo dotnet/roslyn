@@ -1572,7 +1572,7 @@ sealed abstract record C2 : C1;
         }
 
         [Fact]
-        public void Clone_05()
+        public void Clone_IntReturnType_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1669,7 +1669,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_06()
+        public void Clone_IntReturnType_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1772,7 +1772,7 @@ public class Program
         }
 
         [Fact]
-        public void Clone_07()
+        public void Clone_Ambiguous_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1879,7 +1879,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_08()
+        public void Clone_Ambiguous_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1992,13 +1992,12 @@ public class Program
         }
 
         [Fact]
-        public void Clone_09()
+        public void Clone_AmbiguousReverseOrder_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
     extends System.Object
 {
-    // Methods
     // Methods
     .method public hidebysig specialname newslot virtual 
         instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
@@ -2099,7 +2098,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_10()
+        public void Clone_AmbiguousReverseOrder_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2508,7 +2507,7 @@ record D(int X) : C(X)
         }
 
         [Fact]
-        public void Clone_17()
+        public void Clone_NonOverridable_01()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2605,7 +2604,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_18()
+        public void Clone_NonOverridable_02()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -18661,6 +18660,19 @@ public class C
                 //         _ = new R2<int>(2);
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("R2<T>", "T", "int").WithLocation(10, 20)
                 );
+        }
+
+        [Fact]
+        public void RecordLoadedInVisualBasicDisplaysAsRecord()
+        {
+            var src = @"
+public record A;
+";
+            var compRef = CreateCompilation(src).EmitToImageReference();
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: new[] { compRef });
+            var symbol = vbComp.GlobalNamespace.GetTypeMember("A");
+            Assert.Equal("record A",
+                SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
     }
 }

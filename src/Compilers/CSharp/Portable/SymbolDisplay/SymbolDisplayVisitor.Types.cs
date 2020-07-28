@@ -707,9 +707,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasCloneMethod(INamedTypeSymbol symbol)
             {
-                HashSet<DiagnosticInfo> ignored = null;
-                return symbol is Symbols.PublicModel.NamedTypeSymbol namedTypeSymbol &&
-                    SynthesizedRecordClone.FindValidCloneMethod(namedTypeSymbol.UnderlyingNamedTypeSymbol, useSiteDiagnostics: ref ignored) is object;
+                return FindValidCloneMethod(symbol) is object;
+            }
+        }
+
+        /// <summary>
+        /// Copy of <see cref="SynthesizedRecordClone.FindValidCloneMethod(TypeSymbol, ref HashSet{DiagnosticInfo}?)"/>
+        /// </summary>
+        internal static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
+        {
+            IMethodSymbol candidate = null;
+
+            foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
+            {
+                if (member is IMethodSymbol
+                {
+                    DeclaredAccessibility: Accessibility.Public,
+                    IsStatic: false,
+                    Parameters: { Length: 0 },
+                    Arity: 0
+                } method)
+                {
+                    if (candidate is object)
+                    {
+                        // An ammbiguity case, can come from metadata, treat as an error for simplicity.
+                        return null;
+                    }
+
+                    candidate = method;
+                }
+            }
+
+            if (candidate is null ||
+                !(containingType.IsSealed || candidate.IsOverride || candidate.IsVirtual || candidate.IsAbstract) ||
+                !IsEqualToOrDerivedFrom(
+                    containingType,
+                    candidate.ReturnType,
+                    SymbolEqualityComparer.IgnoreAll))
+            {
+                return null;
+            }
+
+            return candidate;
+
+            bool IsEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other, SymbolEqualityComparer comparison)
+            {
+                if (one.Equals(other, comparison))
+                {
+                    return true;
+                }
+
+                var t = one.BaseType;
+                while (t is object)
+                {
+                    if (other.Equals(t, comparison))
+                    {
+                        return true;
+                    }
+
+                    t = t.BaseType;
+                }
+
+                return false;
             }
         }
 
