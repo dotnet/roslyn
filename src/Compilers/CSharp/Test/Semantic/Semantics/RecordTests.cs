@@ -19327,16 +19327,9 @@ record C
                         break;
                     case "A":
                         Interlocked.Increment(ref FireCount6);
-
-                        Assert.Equal(0, FireCount1);
-                        Assert.Equal(0, FireCount2);
-                        Assert.Equal(0, FireCount3);
                         break;
                     case "C":
                         Interlocked.Increment(ref FireCount7);
-
-                        Assert.Equal(0, FireCount4);
-                        Assert.Equal(0, FireCount5);
                         break;
                     case "System.Runtime.CompilerServices.IsExternalInit":
                         break;
