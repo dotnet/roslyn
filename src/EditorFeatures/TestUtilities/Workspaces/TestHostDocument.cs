@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             PredefinedTextViewRoles.Interactive,
             PredefinedTextViewRoles.Zoomable);
 
-        private readonly ExportProvider _exportProvider;
+        private readonly ExportProvider? _exportProvider;
         private HostLanguageServices? _languageServiceProvider;
         private readonly string _initialText;
         private IWpfTextView? _textView;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IReadOnlyList<string>? folders = null,
             ExportProvider? exportProvider = null)
         {
-            _exportProvider = exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            _exportProvider = exportProvider;
             _id = id;
             _initialText = text;
             Name = displayName;
@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (_textView == null)
             {
+                Contract.ThrowIfNull(_exportProvider, $"Can only create text view for {nameof(TestHostDocument)} created with {nameof(ExportProvider)}");
                 WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
                 var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();

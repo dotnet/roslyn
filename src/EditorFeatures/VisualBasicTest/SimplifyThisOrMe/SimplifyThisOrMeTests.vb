@@ -33,7 +33,7 @@ End Module
 </Code>
 
             Dim parameters3 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters3)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters3)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using

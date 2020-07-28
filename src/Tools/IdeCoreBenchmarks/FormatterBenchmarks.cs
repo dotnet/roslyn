@@ -45,7 +45,7 @@ namespace IdeCoreBenchmarks
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
 
-            var solution = new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies)).CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp)
                 .AddDocument(documentId, "DocumentName", text);
 
