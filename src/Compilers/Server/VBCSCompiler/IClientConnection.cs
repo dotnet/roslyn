@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         Task DisconnectTask { get; }
 
         /// <summary>
-        /// Read a build request from the client
+        /// Read a <see cref="BuildRequest" /> from the client
         /// </summary>
         Task<BuildRequest> ReadBuildRequestAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Server the connection and return the result.
+        /// Write a <see cref="BuildResponse" /> to the client
         /// </summary>
         Task WriteBuildResponseAsync(BuildResponse response, CancellationToken cancellationToken);
     }

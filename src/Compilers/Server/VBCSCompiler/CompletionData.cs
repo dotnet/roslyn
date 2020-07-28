@@ -19,12 +19,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal enum CompletionReason
     {
         /// <summary>
-        /// The request completed and results were provided to the client
+        /// The request completed and results were provided to the client. This value is used even for such
+        /// actions as a failed compilation because it was successfully executed and returned to the client.
         /// </summary>
         RequestCompleted,
 
         /// <summary>
-        /// There was an error processing the request
+        /// The request contained an error that should cause the server to shutdown. This can happen for cases
+        /// like:
+        ///    - server state is invalid because of a collision between analyzer assemblies
+        ///    - client disconnected during build which is a treated as Ctrl-C event that should bring down 
+        ///      the server.
         /// </summary>
         RequestError,
     }
@@ -35,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal TimeSpan? NewKeepAlive { get; }
         internal bool ShutdownRequest { get; }
 
-        internal CompletionData(CompletionReason reason, TimeSpan? newKeepAlive = null, bool shutdownRequsted = false)
+        internal CompletionData(CompletionReason reason, TimeSpan? newKeepAlive = null, bool shutdownRequested = false)
         {
             Reason = reason;
             NewKeepAlive = newKeepAlive;
-            ShutdownRequest = shutdownRequsted;
+            ShutdownRequest = shutdownRequested;
         }
 
         internal static CompletionData RequestCompleted { get; } = new CompletionData(CompletionReason.RequestCompleted);

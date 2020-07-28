@@ -51,6 +51,86 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        public async Task ThrowWritingResponse()
+        {
+            var compilerServerHost = new TestableCompilerServerHost(delegate { throw new Exception(); });
+            var clientConnectionHandler = new ClientConnectionHandler(compilerServerHost);
+            var clientConnection = new TestableClientConnection()
+            {
+                ReadBuildRequestFunc = _ => Task.FromResult(ProtocolUtil.EmptyCSharpBuildRequest),
+                WriteBuildResponseFunc = (response, cancellationToken) => throw new Exception(""),
+            };
+            var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection)).ConfigureAwait(false);
+            Assert.Equal(CompletionData.RequestError, completionData);
+        }
+
+        /// <summary>
+        /// Make sure that when compilation requests are disallowed we don't actually process them
+        /// </summary>
+        [Fact]
+        public async Task CompilationsDisallowed()
+        {
+            var compilerServerHost = new TestableCompilerServerHost(delegate
+            {
+                Assert.True(false);
+                throw new Exception("");
+            });
+
+            var clientConnectionHandler = new ClientConnectionHandler(compilerServerHost);
+
+            BuildResponse? response = null;
+            var clientConnection = new TestableClientConnection()
+            {
+                ReadBuildRequestFunc = _ => Task.FromResult(ProtocolUtil.EmptyCSharpBuildRequest),
+                WriteBuildResponseFunc = (r, _) =>
+                {
+                    response = r;
+                    return Task.CompletedTask;
+                }
+            };
+
+            var completionData = await clientConnectionHandler.ProcessAsync(
+                Task.FromResult<IClientConnection>(clientConnection),
+                allowCompilationRequests: false).ConfigureAwait(false);
+
+            Assert.Equal(CompletionData.RequestCompleted, completionData);
+            Assert.True(response is RejectedBuildResponse);
+        }
+
+        /// <summary>
+        /// If a client requests a shutdown nothing else about the request should be processed
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public async Task ShutdownRequest(bool allowCompilationRequests)
+        {
+            var compilerServerHost = new TestableCompilerServerHost(delegate
+            {
+                Assert.True(false);
+                throw new Exception("");
+            });
+
+            BuildResponse? response = null;
+            var clientConnectionHandler = new ClientConnectionHandler(compilerServerHost);
+            var clientConnection = new TestableClientConnection()
+            {
+                ReadBuildRequestFunc = _ => Task.FromResult(BuildRequest.CreateShutdown()),
+                WriteBuildResponseFunc = (r, _) =>
+                {
+                    response = r;
+                    return Task.CompletedTask;
+                }
+            };
+
+            var completionData = await clientConnectionHandler.ProcessAsync(
+                Task.FromResult<IClientConnection>(clientConnection),
+                allowCompilationRequests: allowCompilationRequests).ConfigureAwait(false);
+
+            Assert.Equal(new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true), completionData);
+            Assert.True(response is ShutdownBuildResponse);
+        }
+
+        [Fact]
         public async Task ClientDisconnectDuringBuild()
         {
             using var buildStartedMre = new ManualResetEvent(initialState: false);

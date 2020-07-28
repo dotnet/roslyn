@@ -17,6 +17,9 @@ using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
+    /// <summary>
+    /// This class is responsible for processing a request from a client of the compiler server.
+    /// </summary>
     internal sealed class ClientConnectionHandler
     {
         internal ICompilerServerHost CompilerServerHost { get; }
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     var id = Process.GetCurrentProcess().Id;
                     var response = new ShutdownBuildResponse(id);
                     await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                    return new CompletionData(CompletionReason.RequestCompleted, shutdownRequsted: true);
+                    return new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true);
                 }
 
                 if (!allowCompilationRequests)

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // Await the server task here to verify it actually shuts down vs. us shutting down the server.
                 var listener = await serverData.ServerTask.ConfigureAwait(false);
                 Assert.Equal(
-                    new CompletionData(CompletionReason.RequestCompleted, shutdownRequsted: true),
+                    new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true),
                     listener.CompletionDataList.Single());
             }
 
