@@ -4,21 +4,17 @@
 
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Public Class AddParameterViewModelTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Sub AddParameter_SubmittingRequiresTypeAndNameAndCallsiteValue()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -49,7 +45,7 @@ class MyClass
             Assert.True(viewModel.TrySubmit())
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Sub AddParameter_TypeNameTextBoxInteractions()
             Dim markup = <Text><![CDATA[
 class MyClass<T>
@@ -133,7 +129,7 @@ class MyClass<T>
             AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeIsEmptyImage), ServicesVSResources.Please_enter_a_type_name)
         End Sub
 
-        <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfTheory>
         <InlineData("int")>
         <InlineData("MyClass")>
         <InlineData("NS1.NS2.DifferentClass")>
@@ -180,7 +176,7 @@ class MyClass
             Assert.True(viewModel.TrySubmit())
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Sub AddParameter_CannotBeBothRequiredAndOmit()
             Dim markup = <Text><![CDATA[
 class MyClass<T>
@@ -210,7 +206,7 @@ class MyClass<T>
             Assert.False(viewModel.IsCallsiteOmitted)
         End Sub
 
-        <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfTheory>
         <InlineData("int")>
         <InlineData("MyClass")>
         <InlineData("NS1.NS2.DifferentClass")>
@@ -300,12 +296,7 @@ class MyClass
                 </Project>
             </Workspace>
 
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
-                    .WithParts(GetType(CSharpChangeSignatureViewModelFactoryService), GetType(VisualBasicChangeSignatureViewModelFactoryService))) _
-                .CreateExportProvider()
-
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then
@@ -318,7 +309,7 @@ class MyClass
         End Function
 
         <WorkItem(44958, "https://github.com/dotnet/roslyn/issues/44958")>
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Sub AddParameter_SubmittingTypeWithModifiersIsInvalid()
             Dim markup = <Text><![CDATA[
 class MyClass

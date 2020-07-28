@@ -317,11 +317,11 @@ namespace Microsoft.CodeAnalysis.Rename
                 newSolutionWithoutRenamedDocument,
                 ReplacementTextValid,
                 RenamedDocument,
-                DocumentIds.ToImmutableArray(),
+                DocumentIds.ToImmutableArrayOrEmpty(),
                 RelatedLocations.SelectAsArray(loc => loc.Rehydrate()),
-                DocumentToModifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2),
-                DocumentToComplexifiedSpansMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())),
-                DocumentToRelatedLocationsMap.ToImmutableDictionary(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())));
+                DocumentToModifiedSpansMap.ToImmutableDictionaryOrEmpty(t => t.Item1, t => t.Item2),
+                DocumentToComplexifiedSpansMap.ToImmutableDictionaryOrEmpty(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())),
+                DocumentToRelatedLocationsMap.ToImmutableDictionaryOrEmpty(t => t.Item1, t => t.Item2.SelectAsArray(c => c.Rehydrate())));
         }
     }
 
