@@ -260,6 +260,19 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test only supported on Windows desktop";
     }
 
+    public class CovarantReturnRuntimeOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip
+        {
+            get
+            {
+                // See if the runtime supports covariant returns.
+                return Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") == null;
+            }
+        }
+        public override string SkipReason => "Test only supported on runtimes that support covariant returns";
+    }
+
     public class UnixLikeOnly : ExecutionCondition
     {
         public override bool ShouldSkip => !PathUtilities.IsUnixLikePlatform;
