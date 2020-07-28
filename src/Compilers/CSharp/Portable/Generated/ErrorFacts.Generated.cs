@@ -248,6 +248,8 @@
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableValueType:
                     return true;
                 default:
                     return false;

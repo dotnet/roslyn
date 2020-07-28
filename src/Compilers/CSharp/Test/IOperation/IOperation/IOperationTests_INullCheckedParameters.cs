@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -34,35 +37,35 @@ public class C
       ExpressionBody: 
         null");
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... input!) { }')
-              Left: 
-                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... input!) { }')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'public void ... input!) { }')
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... input!) { }')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... input!) { }')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""input"", IsImplicit) (Syntax: 'public void ... input!) { }')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
-    Block[B3] - Exit
-        Predecessors: [B1]
-        Statements (0)");
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... input!) { }')
+          Left: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... input!) { }')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public void ... input!) { }')
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... input!) { }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... input!) { }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""input"", IsImplicit) (Syntax: 'public void ... input!) { }')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Initializer: 
+            null
+Block[B3] - Exit
+    Predecessors: [B1]
+    Statements (0)");
         }
 
         [Fact]
@@ -88,34 +91,34 @@ public class C
         null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... ing y!) { }')
-              Left: 
-                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... ing y!) { }')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'public void ... ing y!) { }')
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ing y!) { }')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ing y!) { }')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'public void ... ing y!) { }')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
-    Block[B3] - Exit
-        Predecessors: [B1]
-        Statements (0)");
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+          Left: 
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'public void ... ing y!) { }')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Initializer: 
+            null
+Block[B3] - Exit
+    Predecessors: [B1]
+    Statements (0)");
         }
 
         [Fact]
@@ -142,33 +145,33 @@ public class C
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
 Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
-              Left: 
-                IParameterReferenceOperation: name (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'public void ... ""rose"") { }')
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""name"", IsImplicit) (Syntax: 'public void ... ""rose"") { }')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
-    Block[B3] - Exit
-        Predecessors: [B1]
-        Statements (0)");
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
+          Left: 
+            IParameterReferenceOperation: name (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ""rose"") { }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""name"", IsImplicit) (Syntax: 'public void ... ""rose"") { }')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Initializer: 
+            null
+Block[B3] - Exit
+    Predecessors: [B1]
+    Statements (0)");
         }
 
         [Fact]
@@ -200,42 +203,42 @@ public class Box
         null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public stat ... }')
-              Left: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: Box, IsImplicit) (Syntax: 'public stat ... }')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: Box, Constant: ConstantValueNull(null: Null), IsImplicit) (Syntax: 'public stat ... }')
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public stat ... }')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public stat ... }')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""b"", IsImplicit) (Syntax: 'public stat ... }')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
-    Block[B3] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Return) Block[B4]
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-    Block[B4] - Exit
-        Predecessors: [B3]
-        Statements (0)");
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public stat ... }')
+          Left: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: Box, IsImplicit) (Syntax: 'public stat ... }')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: Box, Constant: null, IsImplicit) (Syntax: 'public stat ... }')
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public stat ... }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public stat ... }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""b"", IsImplicit) (Syntax: 'public stat ... }')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Initializer: 
+            null
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Return) Block[B4]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)");
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void TestIOp_NullCheckedIndexedProperty()
         {
             // PROTOTYPE 
@@ -259,10 +262,25 @@ public class C
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')");
 
-            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"");
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIndexedGetterSetter()
         {
             var source = @"
@@ -355,7 +373,7 @@ public class C
             VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIndexedGetterExpression()
         {
             var source = @"
@@ -443,7 +461,7 @@ public class C
             VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIndexedSetter()
         {
             var source = @"
@@ -495,7 +513,7 @@ public class C
             VerifyFlowGraphAndDiagnosticsForTest<AccessorDeclarationSyntax>(source, expected, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedLambda()
         {
             var source = @"
@@ -597,7 +615,7 @@ Block[B2] - Exit
     Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedInLambdaWithManyParameters()
         {
             var source = @"
@@ -699,7 +717,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedUnnamedVariableInLambda()
         {
             var source = @"
@@ -808,7 +826,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedTwoExpressionBodyLambdas()
         {
             var source = @"
@@ -920,7 +938,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedLambdaInField()
         {
             var source = @"
@@ -1004,7 +1022,7 @@ class C
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedLocalFunction()
         {
             var source = @"
@@ -1090,7 +1108,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedManyParamsInLocalFunction()
         {
             var source = @"
@@ -1203,7 +1221,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_OuterNullCheckedShadowedParameter()
         {
             var source = @"
@@ -1304,7 +1322,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_InnerNullCheckedShadowedParameter()
         {
             var source = @"
@@ -1390,7 +1408,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructor()
         {
             var source = @"
@@ -1444,7 +1462,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructorWithThisChain()
         {
             var source = @"
@@ -1514,7 +1532,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructorWithBaseChain()
         {
             var source = @"
@@ -1595,7 +1613,7 @@ class C : B
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedConstructorWithFieldInitializers()
         {
             var source = @"
@@ -1668,7 +1686,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedExpressionBodyMethod()
         {
             var source = @"
@@ -1728,7 +1746,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIterator()
         {
             var source = @"
@@ -1890,7 +1908,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedIteratorInLocalFunction()
         {
             var source = @"
@@ -2085,7 +2103,7 @@ class Iterators
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedEmptyIterator()
         {
             var source = @"
@@ -2145,7 +2163,7 @@ class C
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedEmptyIteratorReturningIEnumerator()
         {
             var source = @"
@@ -2252,62 +2270,62 @@ class Program
       ExpressionBody: 
         null");
             VerifyFlowGraph(comp, node1, expectedFlowGraph: @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-            Entering: {R1}
-    .locals {R1}
-    {
-        Locals: [System.Func<System.String, System.String> func]
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (1)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
-                  Left: 
-                    ILocalReferenceOperation: func (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
-                        {
-                            Block[B0#A0] - Entry
-                                Statements (0)
-                                Next (Regular) Block[B1#A0]
-                            Block[B1#A0] - Block
-                                Predecessors: [B0#A0]
-                                Statements (0)
-                                Jump if False (Regular) to Block[B3#A0]
-                                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                      Left: 
-                                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                      Right: 
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ConstantValueNull(null: Null), IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                Next (Regular) Block[B2#A0]
-                            Block[B2#A0] - Block
-                                Predecessors: [B1#A0]
-                                Statements (0)
-                                Next (Throw) Block[null]
-                                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                                      Children(1):
-                                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                            Block[B3#A0] - Block
-                                Predecessors: [B1#A0]
-                                Statements (0)
-                                Next (Return) Block[B4#A0]
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-                            Block[B4#A0] - Exit
-                                Predecessors: [B3#A0]
-                                Statements (0)
-                        }
-            Next (Regular) Block[B2]
-                Leaving: {R1}
-    }
-    Block[B2] - Exit
-        Predecessors: [B1]
-        Statements (0)");
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Func<System.String, System.String> func]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+              Left: 
+                ILocalReferenceOperation: func (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Jump if False (Regular) to Block[B3#A0]
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  Left: 
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  Right: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                            Next (Throw) Block[null]
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                  Children(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                        Block[B3#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                            Next (Return) Block[B4#A0]
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                        Block[B4#A0] - Exit
+                            Predecessors: [B3#A0]
+                            Statements (0)
+                    }
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedLocalFunctionWithMissingType()
         {
             var source =
@@ -2468,7 +2486,7 @@ IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedFlowGraph: output, DiagnosticDescription.None);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedBaseCallOrdering()
         {
             var source = @"
