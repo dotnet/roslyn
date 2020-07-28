@@ -5,13 +5,13 @@
 #nullable enable
 
 using System;
-using System.IO;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -28,20 +28,36 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly RemoteEndPoint _endPoint;
 
-        private readonly IPersistentStorageService _storageService;
+        /// <summary>
+        /// Keep track of the last information we reported.  We will avoid notifying the host if we recompute and these
+        /// don't change.
+        /// </summary>
+        private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation =
+            new ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)>();
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
+        public RemoteDesignerAttributeIncrementalAnalyzer(RemoteEndPoint endPoint)
         {
             _endPoint = endPoint;
-            _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
         }
 
-        public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public override async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            return _endPoint.InvokeAsync(
+            await _endPoint.InvokeAsync(
                 nameof(IDesignerAttributeListener.OnProjectRemovedAsync),
                 new object[] { projectId },
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
+
+            foreach (var docId in _documentToLastReportedInformation.Keys.ToArray())
+            {
+                if (projectId == docId.ProjectId)
+                    _documentToLastReportedInformation.TryRemove(docId, out _);
+            }
+        }
+
+        public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            _documentToLastReportedInformation.TryRemove(documentId, out _);
+            return Task.CompletedTask;
         }
 
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -74,71 +90,32 @@ namespace Microsoft.CodeAnalysis.Remote
             // in this project.
             var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            var latestInfos = await ComputeLatestInfosAsync(
-                project, projectVersion, specificDocument, cancellationToken).ConfigureAwait(false);
-
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
-            //
-            //  !  is safe here as `i.changed` implies `i.info` is non-null.
-            var changedInfos = latestInfos.Where(i => i.changed).Select(i => i.data!.Value).ToList();
-            if (changedInfos.Count > 0)
+            var changedData = await ComputeLatestChangedInfoAsync(
+                project, specificDocument, projectVersion, cancellationToken).ConfigureAwait(false);
+
+            if (!changedData.IsEmpty)
             {
                 await _endPoint.InvokeAsync(
                     nameof(IDesignerAttributeListener.ReportDesignerAttributeDataAsync),
-                    new object[] { changedInfos },
+                    new object[] { changedData.SelectAsArray(d => d.data).ToArray() },
                     cancellationToken).ConfigureAwait(false);
             }
 
-            // now that we've notified VS, persist all the infos we have (changed or otherwise) back
-            // to disk.  We want to do this even when the data is unchanged so that our version
-            // stamps will be correct for the next time we come around to analyze this project.
-            //
-            // Note: we have a potential race condition here.  Specifically, for simplicity, the VS
-            // side will return immediately, without actually notifying the project system.  That
-            // means that we could persist the data to local storage that isn't in sync with what
-            // the project system knows about.  i.e. if VS is closed or crashes before that
-            // information is persisted, then these two systems will be in disagreement.  this is
-            // believed to not be a big issue given how small a time window this would be and how
-            // easy it would be to get out of that state (just edit the file).
-
-            await PersistLatestInfosAsync(project.Solution, projectVersion, latestInfos, cancellationToken).ConfigureAwait(false);
+            // Now, keep track of what we've reported to the host so we won't report unchanged files in the future.
+            foreach (var (document, info) in changedData)
+                _documentToLastReportedInformation[document.Id] = (info.Category, projectVersion);
         }
 
-        private async Task PersistLatestInfosAsync(
-            Solution solution, VersionStamp projectVersion, (Document, DesignerAttributeData? daa, bool changed)[] latestInfos, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<(Document document, DesignerAttributeData data)>> ComputeLatestChangedInfoAsync(
+            Project project, Document? specificDocument, VersionStamp projectVersion, CancellationToken cancellationToken)
         {
-            using var storage = _storageService.GetStorage(solution);
-
-            foreach (var (doc, info, _) in latestInfos)
-            {
-                // Skip documents that didn't change contents/version at all.  No point in writing
-                // back out the exact same data as before.
-                if (info == null)
-                    continue;
-
-                using var memoryStream = new MemoryStream();
-                using var writer = new ObjectWriter(memoryStream);
-
-                PersistInfoTo(writer, info.Value, projectVersion);
-
-                memoryStream.Position = 0;
-                await storage.WriteStreamAsync(
-                    doc, DataKey, memoryStream, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async Task<(Document, DesignerAttributeData? data, bool changed)[]> ComputeLatestInfosAsync(
-            Project project, VersionStamp projectVersion,
-            Document? specificDocument, CancellationToken cancellationToken)
-        {
-            using var storage = _storageService.GetStorage(project.Solution);
-
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
-            using var _ = ArrayBuilder<Task<(Document, DesignerAttributeData?, bool changed)>>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<Task<(Document document, DesignerAttributeData? data)>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
@@ -146,15 +123,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     continue;
 
                 tasks.Add(ComputeDesignerAttributeDataAsync(
-                    storage, projectVersion, designerCategoryType, document, cancellationToken));
+                    projectVersion, designerCategoryType, document, cancellationToken));
             }
 
-            return await Task.WhenAll(tasks).ConfigureAwait(false);
+            var docsAndData = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return docsAndData.Where(d => d.data != null).SelectAsArray(d => (d.document, d.data!.Value));
         }
 
-        private static async Task<(Document, DesignerAttributeData?, bool changed)> ComputeDesignerAttributeDataAsync(
-            IPersistentStorage storage, VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType,
-            Document document, CancellationToken cancellationToken)
+        private async Task<(Document document, DesignerAttributeData? data)> ComputeDesignerAttributeDataAsync(
+            VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType, Document document, CancellationToken cancellationToken)
         {
             try
             {
@@ -163,24 +140,25 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (document.FilePath == null)
                     return default;
 
-                // First check and see if we have stored information for this doc and if that
-                // information is up to date.
-                using var stream = await storage.ReadStreamAsync(document, DataKey, cancellationToken).ConfigureAwait(false);
-                using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
-                var persisted = TryReadPersistedInfo(reader);
-                if (persisted.category != null && persisted.projectVersion == projectVersion)
-                {
-                    // We were able to read out the old data, and it matches our current project
-                    // version.  Just return back that nothing changed here.  We won't tell VS about
-                    // this, and we won't re-persist this later.
+                // If nothing has changed at the top level between the last time we analyzed this document and now, then
+                // no need to analyze again.
+                var hasExistingInfo = _documentToLastReportedInformation.TryGetValue(document.Id, out var existingInfo);
+                if (hasExistingInfo && existingInfo.projectVersion == projectVersion)
                     return default;
-                }
 
                 // We either haven't computed the designer info, or our data was out of date.  We need
                 // So recompute here.  Figure out what the current category is, and if that's different
                 // from what we previously stored.
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
                     designerCategoryType, document, cancellationToken).ConfigureAwait(false);
+
+                if (hasExistingInfo &&
+                    existingInfo.category == category)
+                {
+                    // category hasn't changed.  no need to report this.
+                    return default;
+                }
+
                 var data = new DesignerAttributeData
                 {
                     Category = category,
@@ -188,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     FilePath = document.FilePath,
                 };
 
-                return (document, data, changed: category != persisted.category);
+                return (document, data);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
