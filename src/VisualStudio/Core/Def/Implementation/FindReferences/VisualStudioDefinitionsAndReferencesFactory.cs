@@ -53,8 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private ImmutableArray<TaggedText> GetDisplayParts(
             string filePath, int lineNumber, int charOffset)
         {
-            var builder = ImmutableArray.CreateBuilder<TaggedText>();
-
             var sourceLine = GetSourceLine(filePath, lineNumber).Trim(' ', '\t');
 
             // Put the line in 1-based for the presentation of this item.
@@ -66,10 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private string GetSourceLine(string filePath, int lineNumber)
         {
             using var invisibleEditor = new InvisibleEditor(
-                _serviceProvider, filePath, hierarchyOpt: null, needsSave: false, needsUndoDisabled: false);
+                _serviceProvider, filePath, hierarchy: null, needsSave: false, needsUndoDisabled: false);
             var vsTextLines = invisibleEditor.VsTextLines;
-            if (vsTextLines != null &&
-                vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
+            if (vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
                 vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
             {
                 return lineText;
@@ -117,8 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 var shellOpenDocument = (IVsUIShellOpenDocument)_serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
                 var textViewGuid = VSConstants.LOGVIEWID.TextView_guid;
                 if (shellOpenDocument.OpenDocumentViaProject(
-                        _filePath, ref textViewGuid, out var oleServiceProvider,
-                        out var hierarchy, out var itemid, out var frame) == VSConstants.S_OK)
+                        _filePath, ref textViewGuid, out _,
+                        out _, out _, out var frame) == VSConstants.S_OK)
                 {
                     frame.Show();
                     return true;
@@ -131,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             {
                 var docTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
                 if (docTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, _filePath,
-                        out var hierarchy, out var itemid, out var bufferPtr, out var cookie) != VSConstants.S_OK)
+                        out _, out _, out var bufferPtr, out _) != VSConstants.S_OK)
                 {
                     return false;
                 }

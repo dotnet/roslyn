@@ -56,8 +56,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </returns>
         private static BitmapSource TryCaptureFullScreen()
         {
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
+            var width = Screen.PrimaryScreen.Bounds.Width;
+            var height = Screen.PrimaryScreen.Bounds.Height;
 
             if (width <= 0 || height <= 0)
             {

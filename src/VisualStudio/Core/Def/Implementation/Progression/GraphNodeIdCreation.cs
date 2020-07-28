@@ -135,15 +135,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 return await GetPartialForTypeParameterSymbolAsync(typeParameter, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is IDynamicTypeSymbol dynamicType)
+            else if (symbol is IDynamicTypeSymbol)
             {
-                return GetPartialForDynamicType(dynamicType, nodeName);
+                return GetPartialForDynamicType(nodeName);
             }
 
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static GraphNodeId GetPartialForDynamicType(IDynamicTypeSymbol dt, GraphNodeIdName nodeName)
+        private static GraphNodeId GetPartialForDynamicType(GraphNodeIdName nodeName)
         {
             // We always consider this to be the "Object" type since Progression takes a very metadata-ish view of the type
             return GraphNodeId.GetPartial(nodeName, "Object");
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     partials.Add(await GetPartialForTypeAsync(namedType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken, hasGenericArguments).ConfigureAwait(false));
                 }
 
-                return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(false, partials.ToArray()));
+                return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
             }
         }
 
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 partials.Add(await GetPartialForTypeAsync(pointerType.PointedAtType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
             }
 
-            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(false, partials.ToArray()));
+            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
         }
 
         private static async Task<GraphNodeId> GetPartialForArrayTypeAsync(IArrayTypeSymbol arrayType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.ArrayRank, arrayType.Rank.ToString()));
             partials.Add(await GetPartialForTypeAsync(arrayType.ElementType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
 
-            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(false, partials.ToArray()));
+            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
         }
 
         private static async Task<GraphNodeId> GetPartialForTypeParameterSymbolAsync(ITypeParameterSymbol typeParameterSymbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 partials.Add(GraphNodeId.GetPartial(
                             CodeGraphNodeIdName.Member,
-                            MakeCollectionIfNecessary(false, memberPartials.ToArray())));
+                            MakeCollectionIfNecessary(memberPartials.ToArray())));
             }
             else
             {
@@ -352,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return GraphNodeId.GetNested(partials.ToArray());
         }
 
-        private static object MakeCollectionIfNecessary(bool isHomogeneous, GraphNodeId[] array)
+        private static object MakeCollectionIfNecessary(GraphNodeId[] array)
         {
             // Place the array of GraphNodeId's into the collection if necessary, so to make them appear in VS Properties Panel
             if (array.Length > 1)
@@ -401,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                if (solution.Workspace is VisualStudioWorkspace workspace)
+                if (solution.Workspace is VisualStudioWorkspace)
                 {
                     // TODO: audit the OutputFilePath and whether this is bin or obj
                     if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))

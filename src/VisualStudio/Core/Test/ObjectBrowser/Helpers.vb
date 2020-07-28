@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Private ReadOnly _workspace As TestWorkspace
             Private ReadOnly _libraryManager As AbstractObjectBrowserLibraryManager
 
-            Sub New(workspace As TestWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
+            Public Sub New(workspace As TestWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
                 _workspace = workspace
                 _libraryManager = libraryManager
             End Sub

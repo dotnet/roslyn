@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         /// <exception cref="NotSupportedException">If this code action does not support changing a single document.</exception>
         protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            => throw new NotSupportedException();
+            => throw new NotSupportedException(GetType().FullName);
 
         /// <summary>
         /// used by batch fixer engine to get new solution
