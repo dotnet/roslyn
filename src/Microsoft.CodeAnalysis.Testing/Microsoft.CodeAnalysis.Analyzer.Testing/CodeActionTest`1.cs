@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     if (!nestedActions.IsEmpty)
                     {
                         builder.RemoveAt(i);
-                        for (var j = nestedActions.Length - 1; i >= 0; i--)
+                        for (var j = nestedActions.Length - 1; j >= 0; j--)
                         {
                             builder.Insert(i, nestedActions[j]);
                         }
