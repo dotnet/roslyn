@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var statementList = ConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
+            var statementList = TryConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
             if (statementList.IsDefault)
             {
                 return null;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.Block(block.Locals, statementList);
         }
 
-        internal static ImmutableArray<BoundStatement> ConstructNullCheckedStatementList(ImmutableArray<ParameterSymbol> parameters,
+        internal static ImmutableArray<BoundStatement> TryConstructNullCheckedStatementList(ImmutableArray<ParameterSymbol> parameters,
                                                                                          ImmutableArray<BoundStatement> existingStatements,
                                                                                          SyntheticBoundNodeFactory factory)
         {

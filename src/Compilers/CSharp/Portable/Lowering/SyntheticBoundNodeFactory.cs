@@ -1616,6 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
+        // PROTOTYPE(BangBang): Re-enable annotations
 #nullable enable
     }
 }

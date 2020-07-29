@@ -1482,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private ConditionalOperation GenerateNullCheckForParameter(IParameterSymbol parameter, SyntaxNode syntax, SemanticModel semanticModel)
         {
             Debug.Assert(parameter.Language == LanguageNames.CSharp);
-            ConstantValue constantValue = null;
+            ConstantValue constantValue = ConstantValue.Null;
             var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue, isImplicit: true);
             var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
