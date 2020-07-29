@@ -4,45 +4,44 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Execution;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Remote;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.Remote
+namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class RemoteHostClientServiceFactoryTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
+            typeof(InProcRemoteHostClientProvider.Factory));
+
+        private static AdhocWorkspace CreateWorkspace()
+            => new AdhocWorkspace(s_composition.GetHostServices());
+
+        [Fact]
         public async Task UpdaterService()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(ServiceTestExportProvider.CreateAssemblyCatalog()
-                    .WithParts(typeof(InProcRemoteHostClientProvider.Factory), typeof(CSharpOptionsSerializationService)))
-                .CreateExportProvider();
-
-            using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
+            var hostServices = s_composition.GetHostServices();
+            using var workspace = new AdhocWorkspace(hostServices);
 
             var options = workspace.CurrentSolution.Options
-                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
-                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
-            var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            var listenerProvider = ((IMefHostExportProvider)hostServices).GetExportedValue<AsynchronousOperationListenerProvider>();
 
             var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
@@ -69,15 +68,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             checksumUpdater.Shutdown();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestSessionWithNoSolution()
         {
-            using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
-
-            var options = workspace.CurrentSolution.Options
-                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
+            using var workspace = CreateWorkspace();
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
@@ -92,10 +86,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 CancellationToken.None);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestSessionClosed()
         {
-            using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
+            using var workspace = CreateWorkspace();
 
             var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false).ConfigureAwait(false);
             var serviceName = new RemoteServiceName("Test");

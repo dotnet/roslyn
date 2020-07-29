@@ -32,6 +32,7 @@
   <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
+  <ValueType Name="ErrorCode"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -521,6 +522,14 @@
     <Field Name="RightOperand" Type="BoundExpression" />
   </Node>
 
+  <Node Name="BoundUnconvertedConditionalOperator" Base="BoundExpression">
+    <Field Name="Condition" Type="BoundExpression"/>
+    <Field Name="Consequence" Type="BoundExpression"/>
+    <Field Name="Alternative" Type="BoundExpression"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+    <Field Name="NoCommonTypeError" Type="ErrorCode"/>
+  </Node>
+
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -530,6 +539,9 @@
     <Field Name="Alternative" Type="BoundExpression"/>
 
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
+    <Field Name="WasTargetTyped" Type="bool" />
   </Node>
 
   <Node Name="BoundArrayAccess" Base="BoundExpression">
@@ -1165,6 +1177,7 @@
 
     <Field Name="ExceptionTypeOpt" Type="TypeSymbol?"/>
     
+    <Field Name="ExceptionFilterPrologueOpt" Type="BoundStatementList?"/>
     <Field Name="ExceptionFilterOpt" Type="BoundExpression?"/>
     <Field Name="Body" Type="BoundBlock"/>
     <Field Name="IsSynthesizedAsyncCatchAll" Type="bool" />
@@ -1316,10 +1329,10 @@
   Switch expressions can convert to the target type.
   Once converted to a target type, they cannot be target-typed again. 
   The Converted switch expression is one which has been already converted to a target type.
-  Converted switch expressions always has a type.
+  Converted switch expressions always have a type.
   -->
   <Node Name="BoundConvertedSwitchExpression" Base="BoundSwitchExpression">
-    <!-- Converted switch expression must have a type, even if that's `void` for a statement. -->
+    <!-- Converted switch expression must have a type, even if that's an error type. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
@@ -2017,7 +2030,7 @@
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="ConvertedType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">

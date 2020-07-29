@@ -51,7 +51,7 @@ End Class]]></file>
             comp.AssertNoDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorProjectionTests()
             Dim source =
             <compilation>
@@ -178,7 +178,7 @@ b
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorViewProjectionTests()
 
             Dim source =
@@ -225,7 +225,7 @@ End Class]]></file>
 }]]>.Value)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorLinqQueryTest()
             Dim source =
                 <compilation>
@@ -287,7 +287,7 @@ End Class
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IMapProjectionTests()
             Dim source =
             <compilation>

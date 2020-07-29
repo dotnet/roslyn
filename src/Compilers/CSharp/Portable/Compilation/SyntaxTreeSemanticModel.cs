@@ -178,7 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
                     break;
-
+                case RecordDeclarationSyntax { ParameterList: { }, PrimaryConstructorBaseType: { } } recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
+                    model = GetOrAddModel(recordDeclaration);
+                    break;
                 default:
                     model = this.GetMemberModel(node);
                     break;
@@ -1087,10 +1089,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.RecordDeclaration:
                     {
-                        var recordType = GetDeclaredSymbol((TypeDeclarationSyntax)node).GetSymbol<NamedTypeSymbol>();
-                        var symbol = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+                        SynthesizedRecordConstructor symbol = TryGetSynthesizedRecordConstructor((RecordDeclarationSyntax)node);
 
-                        if (symbol?.GetSyntax() != node)
+                        if (symbol is null)
                         {
                             return null;
                         }
@@ -1248,6 +1249,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return MethodBodySemanticModel.Create(this, symbol, new MethodBodySemanticModel.InitialState(memberDecl, binder: binder));
             }
+        }
+
+        private SynthesizedRecordConstructor TryGetSynthesizedRecordConstructor(RecordDeclarationSyntax node)
+        {
+            NamedTypeSymbol recordType = GetDeclaredType(node);
+            var symbol = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+
+            if (symbol?.GetSyntax() != node)
+            {
+                return null;
+            }
+
+            return symbol;
         }
 
         private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel containingModel)
@@ -2006,7 +2020,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method;
 
-            method = (GetDeclaredSymbol(memberDecl, cancellationToken) as IMethodSymbol).GetSymbol();
+            if (memberDecl is RecordDeclarationSyntax recordDecl && recordDecl.ParameterList == paramList)
+            {
+                method = TryGetSynthesizedRecordConstructor(recordDecl);
+            }
+            else
+            {
+                method = (GetDeclaredSymbol(memberDecl, cancellationToken) as IMethodSymbol).GetSymbol();
+            }
 
             if ((object)method == null)
             {
@@ -2333,6 +2354,86 @@ namespace Microsoft.CodeAnalysis.CSharp
             var position = CheckAndAdjustPosition(symbol.Locations[0].SourceSpan.Start);
             var memberModel = GetMemberModel(position);
             return memberModel?.RemapSymbolIfNecessaryCore(symbol) ?? symbol;
+        }
+
+        internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        {
+            switch (declaredNode)
+            {
+                case CompilationUnitSyntax unit when SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                    switch (declaredSymbol.Kind)
+                    {
+                        case SymbolKind.Namespace:
+                            Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
+                            // Do not include top level global statements into a global namespace
+                            return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
+
+                        case SymbolKind.Method:
+                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
+                            // Include only global statements at the top level
+                            return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
+
+                        case SymbolKind.NamedType:
+                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
+                            return (node) => false;
+
+                        default:
+                            ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                            break;
+                    }
+                    break;
+
+                case RecordDeclarationSyntax recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
+                    switch (declaredSymbol.Kind)
+                    {
+                        case SymbolKind.Method:
+                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
+                            return (node) =>
+                                   {
+                                       // Accept only nodes that either match, or above/below of a 'parameter list'/'base arguments list'.
+                                       if (node.Parent == recordDeclaration)
+                                       {
+                                           return node == recordDeclaration.ParameterList || node == recordDeclaration.BaseList;
+                                       }
+                                       else if (node.Parent is BaseListSyntax baseList)
+                                       {
+                                           return node == recordDeclaration.PrimaryConstructorBaseType;
+                                       }
+                                       else if (node.Parent is PrimaryConstructorBaseTypeSyntax baseType && baseType == recordDeclaration.PrimaryConstructorBaseType)
+                                       {
+                                           return node == baseType.ArgumentList;
+                                       }
+
+                                       return true;
+                                   };
+
+                        case SymbolKind.NamedType:
+                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
+                            // Accept nodes that do not match a 'parameter list'/'base arguments list'.
+                            return (node) => node != recordDeclaration.ParameterList &&
+                                             !(node.Kind() == SyntaxKind.ArgumentList && node == recordDeclaration.PrimaryConstructorBaseType?.ArgumentList);
+
+                        default:
+                            ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                            break;
+                    }
+                    break;
+
+                case PrimaryConstructorBaseTypeSyntax { Parent: BaseListSyntax { Parent: RecordDeclarationSyntax recordDeclaration } } baseType
+                        when recordDeclaration.PrimaryConstructorBaseType == declaredNode && TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
+                    if ((object)declaredSymbol.GetSymbol() == (object)ctor)
+                    {
+                        // Only 'base arguments list' or nodes below it
+                        return (node) => node != baseType.Type;
+                    }
+                    break;
+
+                case ParameterSyntax param when declaredSymbol.Kind == SymbolKind.Property && param.Parent?.Parent is RecordDeclarationSyntax recordDeclaration && recordDeclaration.ParameterList == param.Parent:
+                    Debug.Assert(declaredSymbol.GetSymbol() is SynthesizedRecordPropertySymbol);
+                    return (node) => false;
+            }
+
+            return null;
         }
     }
 }

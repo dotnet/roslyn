@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
         {
-            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl vsWorkspace)
+            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl)
             {
                 /*
                 var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);

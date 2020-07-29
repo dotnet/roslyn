@@ -155,13 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 // Legacy baselines are indicated by comments
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 200, // 100
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 180, // 100
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 520, // 100
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 450, // 270
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 260, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 170
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
@@ -217,7 +217,7 @@ public class Test
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
                     compilation.VerifyDiagnostics();
 
                     // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
@@ -266,7 +266,7 @@ $@"        if (F({i}))
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var comp = CreateCompilation(source);
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     comp.VerifyDiagnostics();
                 });
             }
@@ -306,7 +306,7 @@ $@"        if (F({i}))
 
                 RunInThread(() =>
                 {
-                    var comp = CreateCompilation(source);
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     var type = comp.GetMember<NamedTypeSymbol>("C0");
                     var typeParameter = type.TypeParameters[0];
                     Assert.True(typeParameter.IsReferenceType);
