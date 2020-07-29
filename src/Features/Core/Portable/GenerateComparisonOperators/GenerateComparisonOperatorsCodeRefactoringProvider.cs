@@ -93,14 +93,12 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             if (missingComparableTypes.Count == 0)
                 return;
 
-            var index = 0;
             if (missingComparableTypes.Count == 1)
             {
                 var missingType = missingComparableTypes[0];
                 context.RegisterRefactoring(new MyCodeAction(
                     FeaturesResources.Generate_comparison_operators,
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
-                    nameof(GenerateComparisonOperatorsCodeRefactoringProvider) + index));
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c)));
                 return;
             }
 
@@ -112,9 +110,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 var displayString = typeArg.ToMinimalDisplayString(semanticModel, textSpan.Start);
                 nestedActions.Add(new MyCodeAction(
                     string.Format(FeaturesResources.Generate_for_0, displayString),
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
-                    nameof(GenerateComparisonOperatorsCodeRefactoringProvider) + index));
-                index++;
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c)));
             }
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
@@ -273,8 +269,8 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

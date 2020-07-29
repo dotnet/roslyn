@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOpera
             var test = new VerifyCS.Test
             {
                 CodeActionIndex = index,
-                CodeActionEquivalenceKey = nameof(GenerateComparisonOperatorsCodeRefactoringProvider) + index,
             };
 
             foreach (var source in initialMarkup)
