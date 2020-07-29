@@ -6256,7 +6256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.Boxing:
-                    resultState = getBoxingConversionResultState(operandType);
+                    resultState = getBoxingConversionResultState(targetTypeWithNullability, operandType);
                     break;
 
                 case ConversionKind.Unboxing:
@@ -6465,10 +6465,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (state)
                 {
                     case NullableFlowState.MaybeNull:
-                        if (operandType.Type?.IsTypeParameterDisallowingAnnotationInCSharp8() != true &&
-                            targetType.Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
+                        if (targetType.Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
                         {
-                            return NullableFlowState.MaybeDefault;
+                            var type = operandType.Type;
+                            if (type?.IsTypeParameterDisallowingAnnotationInCSharp8() != true)
+                            {
+                                return NullableFlowState.MaybeDefault;
+                            }
+                            else if (targetType.NullableAnnotation.IsNotAnnotated() &&
+                                type is TypeParameterSymbol typeParameter1 &&
+                                dependsOnTypeParameter(typeParameter1, (TypeParameterSymbol)targetType.Type, NullableAnnotation.NotAnnotated, out var annotation))
+                            {
+                                return (annotation == NullableAnnotation.Annotated) ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                            }
                         }
                         break;
                     case NullableFlowState.MaybeDefault:
@@ -6484,9 +6493,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Converting to a less-derived type (object, interface, type parameter).
             // If the operand is MaybeNull or MaybeDefault, the result should be
             // MaybeNull (if the target type allows) or MaybeDefault otherwise.
-            static NullableFlowState getBoxingConversionResultState(TypeWithState operandType)
+            static NullableFlowState getBoxingConversionResultState(TypeWithAnnotations targetType, TypeWithState operandType)
             {
-                return getConversionResultState(operandType);
+                var state = operandType.State;
+                if (state == NullableFlowState.MaybeNull)
+                {
+                    var type = operandType.Type;
+                    if (type is null || !type.IsTypeParameterDisallowingAnnotationInCSharp8())
+                    {
+                        return NullableFlowState.MaybeDefault;
+                    }
+                    else if (targetType.NullableAnnotation.IsNotAnnotated() &&
+                        type is TypeParameterSymbol typeParameter1 &&
+                        targetType.Type is TypeParameterSymbol typeParameter2 &&
+                        dependsOnTypeParameter(typeParameter1, typeParameter2, NullableAnnotation.NotAnnotated, out var annotation))
+                    {
+                        return (annotation == NullableAnnotation.Annotated) ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                    }
+                }
+                return state;
             }
 
             // Converting to a more-derived type (struct, class, type parameter).
@@ -6507,13 +6532,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var state = operandType.State;
                 if (state == NullableFlowState.MaybeNull)
                 {
-                    var type = operandType.Type;
-                    if (type is null || !type.IsTypeParameterDisallowingAnnotationInCSharp8())
-                    {
-                        return NullableFlowState.MaybeDefault;
-                    }
+                    return NullableFlowState.MaybeDefault;
                 }
                 return state;
+            }
+
+            // If type parameter 1 depends on type parameter 2,
+            // returns the corresponding annotation.
+            static bool dependsOnTypeParameter(TypeParameterSymbol typeParameter1, TypeParameterSymbol typeParameter2, NullableAnnotation typeParameter1Annotation, out NullableAnnotation annotation)
+            {
+                if (typeParameter1.Equals(typeParameter2, TypeCompareKind.AllIgnoreOptions))
+                {
+                    annotation = typeParameter1Annotation;
+                    return true;
+                }
+                bool dependsOn = false;
+                var combinedAnnotation = NullableAnnotation.Annotated;
+                foreach (var constraintType in typeParameter1.ConstraintTypesNoUseSiteDiagnostics)
+                {
+                    if (constraintType.Type is TypeParameterSymbol constraintTypeParameter &&
+                        dependsOnTypeParameter(constraintTypeParameter, typeParameter2, constraintType.NullableAnnotation, out var constraintAnnotation))
+                    {
+                        dependsOn = true;
+                        combinedAnnotation = combinedAnnotation.Meet(constraintAnnotation);
+                    }
+                }
+                if (dependsOn)
+                {
+                    annotation = combinedAnnotation.Join(typeParameter1Annotation);
+                    return true;
+                }
+                annotation = default;
+                return false;
             }
         }
 
