@@ -115,8 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
-
         /// <summary>
         /// The inferred type at the point of declaration of var locals and parameters.
         /// </summary>
@@ -3887,7 +3885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   var c = true ? a : b;
                 BoundExpression consequencePlaceholder = CreatePlaceholderIfNecessary(consequence, consequenceRValue.ToTypeWithAnnotations(compilation));
                 BoundExpression alternativePlaceholder = CreatePlaceholderIfNecessary(alternative, alternativeRValue.ToTypeWithAnnotations(compilation));
-                HashSet<DiagnosticInfo> useSiteDiagnostics? = null;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref useSiteDiagnostics);
             }
 
@@ -6895,7 +6893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useDelegateInvokeParameterTypes = UseDelegateInvokeParameterTypes(node, delegateInvokeMethod);
             if (useDelegateInvokeParameterTypes && _snapshotBuilderOpt is object)
             {
-                SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt);
+                SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt!);
             }
 
             var oldDisableDiagnostics = _disableDiagnostics;
@@ -6925,7 +6923,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetNotNullResult(node);
             return null;
         }
-#nullable restore
 
         public override BoundNode? VisitThisReference(BoundThisReference node)
         {
