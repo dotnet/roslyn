@@ -254,9 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = node.Symbol;
-                var visited = (BoundLambda)base.VisitLambda(node);
-
-                Debug.Assert(visited is object);
+                var visited = (BoundLambda)base.VisitLambda(node)!;
 
                 if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
                 {
@@ -317,9 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
 
-                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node);
-
-                Debug.Assert(visited is object);
+                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
 
                 if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
                 {
