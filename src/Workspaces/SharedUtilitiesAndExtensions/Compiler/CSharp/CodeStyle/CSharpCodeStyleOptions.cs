@@ -249,6 +249,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForStringCodeStyleOption("csharp_preferred_modifier_order"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredModifierOrder)}")});
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferStaticAnonymousFunction = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticAnonymousFunction),
+            defaultValue: CodeStyleOption2<bool>.Default,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_static_anonymous_function"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferStaticAnonymousFunction)}")});
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferStaticLocalFunction = CreateOption(
             CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticLocalFunction),
             defaultValue: s_trueWithSuggestionEnforcement,

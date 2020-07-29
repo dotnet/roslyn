@@ -1302,6 +1302,31 @@ class Customer2
 //]
 " };
 
+        private static readonly string s_preferStaticAnonymousFunction = $@"
+using System;
+
+class Customer
+{{
+    void M1(int x)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        Func<int, int> square = static delegate (int num) {{ return num * num; }};
+        return square(x) + x;
+//]
+    }}
+    void M2(int x)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        Func<int, int> square = delegate (int num) {{ return num * num; }};
+        return square(x) + x;
+//]
+    }}
+}}
+";
+
+
         private static readonly string s_preferStaticLocalFunction = $@"
 class Customer1
 {{
@@ -1742,6 +1767,7 @@ class C2
 
             // Modifier preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionStore, modifierGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, ServicesVSResources.Prefer_static_anonymous_functions, s_preferStaticAnonymousFunction, s_preferStaticAnonymousFunction, this, optionStore, modifierGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, s_preferStaticLocalFunction, s_preferStaticLocalFunction, this, optionStore, modifierGroupTitle));
 
             // Parameter preferences

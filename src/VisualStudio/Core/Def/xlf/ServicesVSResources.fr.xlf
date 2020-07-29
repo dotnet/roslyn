@@ -632,6 +632,11 @@
         <target state="translated">Préférer les expressions booléennes simplifiées</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_static_anonymous_functions">
+        <source>Prefer static anonymous functions</source>
+        <target state="new">Prefer static anonymous functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Préférer les fonctions locales statiques</target>

@@ -1516,6 +1516,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.LocalFunctionStatement:
                     return s_localFunctionModifiers;
 
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                    return DeclarationModifiers.Static;
+                
+                case SyntaxKind.AnonymousMethodExpression:
+                    return DeclarationModifiers.Static;
+
                 case SyntaxKind.EnumMemberDeclaration:
                 case SyntaxKind.Parameter:
                 case SyntaxKind.LocalDeclarationStatement:
@@ -1564,6 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 LocalDeclarationStatementSyntax localDecl => localDecl.WithModifiers(modifiers),
                 LocalFunctionStatementSyntax localFunc => localFunc.WithModifiers(modifiers),
                 AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
+                AnonymousFunctionExpressionSyntax anonFunc => anonFunc.WithModifiers(modifiers),
                 _ => declaration,
             };
 
