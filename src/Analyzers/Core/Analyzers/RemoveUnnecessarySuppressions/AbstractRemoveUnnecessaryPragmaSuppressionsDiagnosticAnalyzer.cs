@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 var methodInfo = compilerAnalyzerType.GetMethod("GetSupportedErrorCodes", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 var compilerAnalyzerInstance = Activator.CreateInstance(compilerAnalyzerType);
                 var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, Array.Empty<object>()) as IEnumerable<int>;
-                return supportedCodes.ToImmutableHashSet();
+                return supportedCodes?.ToImmutableHashSet() ?? ImmutableHashSet<int>.Empty;
             }
             catch (Exception ex)
             {

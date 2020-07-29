@@ -382,9 +382,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     enclosingNamespace,
                     namedType,
-                    new CodeGenerationOptions(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span)),
-                    _cancellationToken)
-                    .ConfigureAwait(false);
+                    new CodeGenerationOptions(
+                        afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span),
+                        options: await _semanticDocument.Document.GetOptionsAsync(_cancellationToken).ConfigureAwait(false)),
+                    _cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
             }
