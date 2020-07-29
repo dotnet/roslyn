@@ -927,8 +927,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool IsMoreDerivedOverride(Symbol member, Symbol moreDerivedOverride)
         {
+            // Use-site diagnostics on the inheritance hierarchy of overridable candidates were reported when the
+            // overload set was constructed; we discard them rather than gather them again.
+            HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
             if (!moreDerivedOverride.IsOverride ||
-                !IsBaseClass(derivedType: moreDerivedOverride.ContainingType, baseType: member.ContainingType) ||
+                !moreDerivedOverride.ContainingType.IsDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, ref discardedUseSiteDiagnostics) ||
                 !MemberSignatureComparer.SloppyOverrideComparer.Equals(member, moreDerivedOverride))
             {
                 // Easy out.
@@ -943,28 +946,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    member.GetLeastOverriddenMember(accessingTypeOpt: null).OriginalDefinition;
         }
 
-        private static bool IsBaseClass(TypeSymbol derivedType, TypeSymbol baseType)
-        {
-            Debug.Assert((object)derivedType != null);
-            Debug.Assert((object)baseType != null);
-
-            // A base class has got to be a class. The derived type might be a struct, enum, or delegate.
-            if (!baseType.IsClassType())
-            {
-                return false;
-            }
-
-            for (TypeSymbol b = derivedType.BaseTypeNoUseSiteDiagnostics; (object)b != null; b = b.BaseTypeNoUseSiteDiagnostics)
-            {
-                if (b.Equals(baseType, TypeCompareKind.ConsiderEverything))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Does the member group <paramref name="members"/> contain an override of <paramref name="member"/> or the method it
         /// overrides, but in a more derived type?
@@ -973,6 +954,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             where TMember : Symbol
         {
             if (!member.IsVirtual && !member.IsAbstract && !member.IsOverride)
+            {
+                return false;
+            }
+
+            if (!member.ContainingType.IsClassType())
             {
                 return false;
             }
