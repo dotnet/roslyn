@@ -284,14 +284,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 var actions = map[groupKey];
 
-                var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.CodeAction));
+                var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction));
                 AddUnifiedSuggestedActionsSet(nonSuppressionActions, groupKey, nonSuppressionSets);
 
-                var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.CodeAction) &&
-                    !IsBulkConfigurationAction(a.CodeAction));
+                var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
+                    !IsBulkConfigurationAction(a.OriginalCodeAction));
                 AddUnifiedSuggestedActionsSet(suppressionActions, groupKey, suppressionSets);
 
-                bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.CodeAction)));
+                bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
             }
 
             var sets = nonSuppressionSets.ToImmutable();
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 var actionWithNestedActions = action as UnifiedSuggestedActionWithNestedActions;
 
                 // Only inline if the underlying code action allows it.
-                if (actionWithNestedActions?.CodeAction.IsInlinable == true)
+                if (actionWithNestedActions?.OriginalCodeAction.IsInlinable == true)
                 {
                     newActions.AddRange(actionWithNestedActions.NestedActionSets.SelectMany(set => set.Actions));
                 }
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             foreach (var action in set.Actions)
             {
-                if (seenTitles.Add(action.CodeAction.Title))
+                if (seenTitles.Add(action.OriginalCodeAction.Title))
                 {
                     actions.Add(action);
                 }

@@ -252,17 +252,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
                             ThreadingContext, _owner, codeFixAction.Workspace, _subjectBuffer,
-                            codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.CodeAction,
+                            codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
                             ThreadingContext, _owner, codeRefactoringAction.Workspace, _subjectBuffer,
-                            codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.CodeAction),
+                            codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction),
                         UnifiedFixAllSuggestedAction fixAllAction => new FixAllSuggestedAction(
                             ThreadingContext, _owner, fixAllAction.Workspace, _subjectBuffer,
-                            fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.CodeAction),
+                            fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             ThreadingContext, _owner, nestedAction.Workspace, _subjectBuffer,
-                            nestedAction.Provider ?? this, nestedAction.CodeAction,
+                            nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s))),
                         _ => throw ExceptionUtilities.Unreachable
                     };

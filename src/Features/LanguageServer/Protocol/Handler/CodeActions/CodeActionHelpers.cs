@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 foreach (var suggestedAction in set.Actions)
                 {
                     // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-                    if (suggestedAction.CodeAction is CodeActionWithOptions)
+                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
                     {
                         continue;
                     }
@@ -88,13 +88,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, currentTitle));
             }
 
-            // WPF uses the first underscore to create keyboard shortcuts, so we have to insert an extra underscore
-            // wherever there's an underscore for it to be displayed properly.
-            var title = codeAction.Title.Replace("_", "__");
-
             return new VSCodeAction
             {
-                Title = title,
+                Title = codeAction.Title,
                 Kind = codeActionKind,
                 Diagnostics = request.Context.Diagnostics,
                 Children = nestedActions.ToArray(),
@@ -129,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 foreach (var suggestedAction in set.Actions)
                 {
                     // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-                    if (suggestedAction.CodeAction is CodeActionWithOptions)
+                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
                     {
                         continue;
                     }
@@ -146,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </summary>
         private static CodeAction GetNestedActionsFromActionSet(IUnifiedSuggestedAction suggestedAction)
         {
-            var codeAction = suggestedAction.CodeAction;
+            var codeAction = suggestedAction.OriginalCodeAction;
             if (!(suggestedAction is UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions))
             {
                 return codeAction;

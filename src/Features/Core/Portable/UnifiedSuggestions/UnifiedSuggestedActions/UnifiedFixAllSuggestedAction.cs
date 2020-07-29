@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Similar to FixAllSuggestedAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedFixAllSuggestedAction : UnifiedSuggestedAction
+    internal class UnifiedFixAllSuggestedAction : UnifiedSuggestedAction, IFixAllSuggestedAction
     {
         public Diagnostic Diagnostic { get; }
 

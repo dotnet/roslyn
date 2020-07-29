@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Similar to CodeRefactoringSuggestedAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedCodeRefactoringSuggestedAction : UnifiedSuggestedAction
+    internal class UnifiedCodeRefactoringSuggestedAction : UnifiedSuggestedAction, ICodeRefactoringSuggestedAction
     {
         public CodeRefactoringProvider CodeRefactoringProvider { get; }
 

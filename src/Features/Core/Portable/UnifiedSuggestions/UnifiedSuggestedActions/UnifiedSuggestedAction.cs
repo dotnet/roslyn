@@ -9,21 +9,21 @@ using Microsoft.CodeAnalysis.CodeActions;
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
     /// <summary>
-    /// Similar to UnifiedSuggestedAction, but in a location that can be used by
+    /// Similar to SuggestedAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
     internal class UnifiedSuggestedAction : IUnifiedSuggestedAction
     {
         public Workspace Workspace { get; }
 
-        public CodeAction CodeAction { get; }
+        public CodeAction OriginalCodeAction { get; }
 
         public CodeActionPriority CodeActionPriority { get; }
 
         public UnifiedSuggestedAction(Workspace workspace, CodeAction codeAction, CodeActionPriority codeActionPriority)
         {
             Workspace = workspace;
-            CodeAction = codeAction;
+            OriginalCodeAction = codeAction;
             CodeActionPriority = codeActionPriority;
         }
     }

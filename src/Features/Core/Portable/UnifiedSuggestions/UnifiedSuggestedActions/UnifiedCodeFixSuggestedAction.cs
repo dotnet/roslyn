@@ -6,14 +6,15 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
     /// <summary>
-    /// Similar to UnifiedCodeFixSuggestionAction, but in a location that can be used by
+    /// Similar to CodeFixSuggestionAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedCodeFixSuggestedAction : UnifiedSuggestedAction
+    internal class UnifiedCodeFixSuggestedAction : UnifiedSuggestedAction, ICodeFixSuggestedAction
     {
         public CodeFix CodeFix { get; }
 
