@@ -7,17 +7,15 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     [Export(typeof(ILspSolutionProvider)), Shared]
-    class VisualStudioLspSolutionProvider : ILspSolutionProvider
+    internal class VisualStudioLspSolutionProvider : ILspSolutionProvider
     {
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
@@ -43,6 +41,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 // If there's none in the VS workspace, then check the misc files workspace.
                 documents = _miscellaneousFilesWorkspace.CurrentSolution.GetDocuments(documentUri);
+            }
+
+            return documents;
+        }
+
+        public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
+        {
+            // First check the VS workspace for matching documents.
+            var documents = _visualStudioWorkspace.CurrentSolution.GetTextDocuments(documentUri);
+            if (documents.IsEmpty)
+            {
+                // If there's none in the VS workspace, then check the misc files workspace.
+                documents = _miscellaneousFilesWorkspace.CurrentSolution.GetTextDocuments(documentUri);
             }
 
             return documents;

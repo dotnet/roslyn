@@ -64,6 +64,7 @@ This document provides guidance for thinking about language interactions and tes
 - Ref structs, Readonly structs
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
+- Method override or explicit implementation with `where T : { class, struct, default }`
  
 # Code
 - Operators (see Eric's list below)
@@ -93,6 +94,8 @@ This document provides guidance for thinking about language interactions and tes
 - Patterns (constant, declaration, `var`, positional, property, and discard forms)
 - Switch expressions
 - Nullability annotations (`?`, attributes) and analysis
+- If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
+- If you add a new expression form that requires spilling, test it in the catch filter.
 
 # Misc
 - reserved keywords (sometimes contextual)

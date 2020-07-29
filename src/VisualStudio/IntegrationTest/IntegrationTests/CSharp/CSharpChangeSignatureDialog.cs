@@ -23,8 +23,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private AddParameterDialog_OutOfProc AddParameterDialog => VisualStudio.AddParameterDialog;
 
-        public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpChangeSignatureDialog))
+        public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpChangeSignatureDialog))
         {
         }
 

@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         #region "Option tests"
 

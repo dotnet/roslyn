@@ -287,20 +287,22 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">變更完成清單設定;預先選取最近使用的成員; 完成清單;
-在鍵入字元後顯示完成清單;
-在刪除字元後顯示完成清單;
-醒目提示完成清單項目的相符部分;
+        <target state="translated">變更自動完成清單設定;預先選取最近使用的成員; 自動完成清單;
+在鍵入字元後顯示自動完成清單;
+在刪除字元後顯示自動完成清單;
+自動在引數清單中顯示自動完成清單 (實驗性);
+醒目提示自動完成清單項目的相符部分;
 顯示完成項目篩選;
 程式碼片段行為;
 永不包含程式碼片段;
 永遠包含程式碼片段;
 在識別碼後鍵入 ?-Tab 時包含程式碼片段;
-輸入按鍵行為;
-永不在按下 enter 鍵時新增行;
-只在按下 enter 鍵時，於完整鍵入的文字結尾後新增行;
-永遠在按下 enter 鍵時新增行;
-顯示名稱建議;</target>
+Enter 鍵行為;
+永不在按下 enter 鍵時新增一行程式碼;
+只在按下 enter 鍵時，於完整鍵入的文字結尾後新增一行程式碼;
+永遠在按下 enter 鍵時新增一行程式碼;
+顯示名稱建議;
+顯示未匯入命名空間中的項目 (實驗性);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

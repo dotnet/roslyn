@@ -190,7 +190,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 SemanticTokenTypes.Function,
                 SemanticTokenTypes.Interface,
                 SemanticTokenTypes.Keyword,
-                SemanticTokenTypes.Macro,
                 SemanticTokenTypes.Member,
                 SemanticTokenTypes.Modifier,
                 SemanticTokenTypes.Namespace,

@@ -31,12 +31,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName contains an invalid character '{0}' at position {1}.</source>
-        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <target state="translated">hintName의 {1} 위치에 잘못된 문자 '{0}'이(가) 있습니다.</target>
         <note>{0}: the invalid character, {1} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName of the added source file must be unique within a generator.</target>
+        <target state="translated">추가된 소스 파일의 hintName은 생성기 내에서 고유해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -111,7 +111,7 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="needs-review-translation">생성기당 하나의 {0}만 등록할 수 있습니다.</target>
+        <target state="translated">생성기당 하나의 {0}만 등록할 수 있습니다.</target>
         <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -571,12 +571,12 @@
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
         <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
-        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <target state="translated">여러 전역 분석기 구성 파일이 섹션 '{1}'에 같은 키 '{0}'을(를) 설정했습니다. 해당 키 설정이 해제되었습니다. 키는 '{2}' 파일에 의해 설정되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
         <source>Multiple global analyzer config files set the same key. It has been unset.</source>
-        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <target state="translated">여러 전역 분석기 구성 파일이 같은 키를 설정했습니다. 해당 키 설정이 해제되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">

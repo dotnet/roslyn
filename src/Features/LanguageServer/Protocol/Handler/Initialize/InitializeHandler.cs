@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -47,6 +46,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DefinitionProvider = true,
                     RenameProvider = true,
                     ImplementationProvider = true,
+                    CodeActionProvider = new LSP.CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor } },
+                    CodeActionsResolveProvider = true,
                     CompletionProvider = new LSP.CompletionOptions { ResolveProvider = true, TriggerCharacters = triggerCharacters },
                     SignatureHelpProvider = new LSP.SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                     DocumentSymbolProvider = true,
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentFormattingProvider = true,
                     DocumentRangeFormattingProvider = true,
                     DocumentOnTypeFormattingProvider = new LSP.DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
+                    OnAutoInsertProvider = new LSP.DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } },
                     DocumentHighlightProvider = true,
                     ReferencesProvider = true,
                     ProjectContextProvider = true,
@@ -67,6 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             TokenModifiers = SemanticTokensHelpers.TokenModifiers
                         }
                     },
+                    ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
                         Change = LSP.TextDocumentSyncKind.None

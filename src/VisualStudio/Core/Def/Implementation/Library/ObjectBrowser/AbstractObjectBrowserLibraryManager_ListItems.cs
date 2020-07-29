@@ -38,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         internal ImmutableArray<ObjectListItem> GetNamespaceListItems(ObjectListItem parentListItem, Compilation compilation)
             => GetListItemFactory().GetNamespaceListItems(parentListItem, compilation);
 
-        internal ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags, CancellationToken cancellationToken)
-            => GetListItemFactory().GetProjectListItems(solution, languageName, listFlags, cancellationToken);
+        internal ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags)
+            => GetListItemFactory().GetProjectListItems(solution, languageName, listFlags);
 
         internal ImmutableArray<ObjectListItem> GetReferenceListItems(ObjectListItem parentListItem, Compilation compilation)
             => GetListItemFactory().GetReferenceListItems(parentListItem, compilation);

@@ -18,6 +18,10 @@ Imports Xunit.Abstractions
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <[UseExportProvider]>
     Partial Public Class FindReferencesTests
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
+            GetType(NoCompilationContentTypeDefinitions),
+            GetType(NoCompilationContentTypeLanguageService))
+
         Private Const DefinitionKey As String = "Definition"
         Private Const ValueUsageInfoKey As String = "ValueUsageInfo."
         Private Const TypeOrNamespaceUsageInfoKey As String = "TypeOrNamespaceUsageInfo."
@@ -56,10 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return
             End If
 
-            Using workspace = TestWorkspace.Create(element)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
-
+            Using workspace = TestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -253,9 +254,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
 
             options = If(options, FindReferencesSearchOptions.Default)
-            Using workspace = TestWorkspace.Create(definition)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
+            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
