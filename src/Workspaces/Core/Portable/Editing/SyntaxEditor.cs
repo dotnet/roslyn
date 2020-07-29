@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes = new List<Change>();
         }
 
+        [return: NotNullIfNotNull("node")]
         private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)
@@ -64,11 +66,6 @@ namespace Microsoft.CodeAnalysis.Editing
             foreach (var node in nodes)
             {
                 var result = ApplyTrackingToNewNode(node);
-                if (result == null)
-                {
-                    throw new ArgumentNullException(nameof(result));
-                }
-
                 yield return result;
             }
         }
@@ -182,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 return;
             }
 
-            _changes.Add(new ReplaceChange(node, (n, g) => ApplyTrackingToNewNode(newNode), this));
+            newNode = ApplyTrackingToNewNode(newNode);
+            _changes.Add(new ReplaceChange(node, (n, g) => newNode, this));
         }
 
         /// <summary>
@@ -198,13 +196,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 throw new ArgumentNullException(nameof(newNodes));
             }
 
-            var newNodesWithTracking = ApplyTrackingToNewNodes(newNodes);
-            if (newNodesWithTracking == null)
-            {
-                throw new ArgumentNullException(nameof(newNodesWithTracking));
-            }
-
-            _changes.Add(new InsertChange(node, newNodesWithTracking, isBefore: true));
+            newNodes = ApplyTrackingToNewNodes(newNodes);
+            _changes.Add(new InsertChange(node, newNodes, isBefore: true));
         }
 
         /// <summary>

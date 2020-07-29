@@ -56,12 +56,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var generator = SyntaxGenerator.GetGenerator(document);
             var methodName = generator.GetName(methodDeclaration);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return;
-            }
-
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (!(semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol) ||
                 !IsValidGetMethod(methodSymbol))
             {
@@ -256,6 +251,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     var nameToken = root.FindToken(location.SourceSpan.Start);
                     if (nameToken.Parent == null)
                     {
+                        Debug.Fail($"Parent node of {nameToken} is null.");
                         continue;
                     }
 
@@ -290,6 +286,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     var nameToken = root.FindToken(location.SourceSpan.Start);
                     if (nameToken.Parent == null)
                     {
+                        Debug.Fail($"Parent node of {nameToken} is null.");
                         continue;
                     }
 
