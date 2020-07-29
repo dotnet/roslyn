@@ -12,10 +12,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
@@ -37,6 +39,10 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract class AbstractLanguageServerProtocolTests
     {
+        // TODO: remove WPF dependency (IEditorInlineRenameService)
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
+            .AddParts(typeof(TestLspSolutionProvider));
+
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
         internal class TestLspSolutionProvider : ILspSolutionProvider
         {
@@ -65,22 +71,46 @@ namespace Roslyn.Test.Utilities
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetDocuments(documentUri);
             }
+
+            public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
+            {
+                Contract.ThrowIfNull(_currentSolution);
+                return _currentSolution.GetTextDocuments(documentUri);
+            }
         }
 
-        protected virtual ExportProvider GetExportProvider()
+        private class TestSpanMapperProvider : IDocumentServiceProvider
         {
-            var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
-            var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(LanguageServerProtocol))
-                .WithParts(requestHelperTypes)
-                .WithParts(executeCommandHandlerTypes)
-                .WithPart(typeof(TestLspSolutionProvider)));
-            return exportProviderFactory.CreateExportProvider();
+            TService IDocumentServiceProvider.GetService<TService>()
+                => (TService)(object)new TestSpanMapper();
         }
+
+        internal class TestSpanMapper : ISpanMappingService
+        {
+            private static readonly LinePositionSpan s_mappedLinePosition = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 5));
+            private static readonly string s_mappedFilePath = "c:\\MappedFile.cs";
+
+            internal static readonly string GeneratedFileName = "GeneratedFile.cs";
+
+            internal static readonly LSP.Location MappedFileLocation = new LSP.Location
+            {
+                Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
+                Uri = new Uri(s_mappedFilePath)
+            };
+
+            public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+            {
+                ImmutableArray<MappedSpanResult> mappedResult = default;
+                if (document.Name == GeneratedFileName)
+                {
+                    mappedResult = ImmutableArray.Create(new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5)));
+                }
+
+                return Task.FromResult(mappedResult);
+            }
+        }
+
+        protected virtual TestComposition Composition => s_composition;
 
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
@@ -226,7 +256,7 @@ namespace Roslyn.Test.Utilities
         /// </returns>
         protected Workspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
         {
-            var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: GetExportProvider());
+            var workspace = TestWorkspace.CreateCSharp(markups, composition: Composition);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -244,10 +274,22 @@ namespace Roslyn.Test.Utilities
 
         protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
-            var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
+            var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
             UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             return workspace;
+        }
+
+        protected static void AddMappedDocument(Workspace workspace, string markup)
+        {
+            var generatedDocumentId = DocumentId.CreateNewId(workspace.CurrentSolution.ProjectIds.First());
+            var version = VersionStamp.Create();
+            var loader = TextLoader.From(TextAndVersion.Create(SourceText.From(markup), version, TestSpanMapper.GeneratedFileName));
+            var generatedDocumentInfo = DocumentInfo.Create(generatedDocumentId, TestSpanMapper.GeneratedFileName, SpecializedCollections.EmptyReadOnlyList<string>(),
+                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", true, new TestSpanMapperProvider());
+            var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
+            workspace.TryApplyChanges(newSolution);
+            UpdateSolutionProvider((TestWorkspace)workspace, newSolution);
         }
 
         private static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
@@ -266,7 +308,7 @@ namespace Roslyn.Test.Utilities
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
                     var locationsForName = locations.GetOrValue(name, new List<LSP.Location>());
-                    locationsForName.AddRange(spans.Select(span => ProtocolConversions.TextSpanToLocation(span, text, new Uri(document.FilePath))));
+                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, new Uri(document.FilePath))));
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.
                     // Since the test output only cares about the actual file, make sure we de-dupe before returning.
@@ -275,6 +317,17 @@ namespace Roslyn.Test.Utilities
             }
 
             return locations;
+
+            static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
+            {
+                var location = new LSP.Location
+                {
+                    Uri = documentUri,
+                    Range = ProtocolConversions.TextSpanToRange(span, text),
+                };
+
+                return location;
+            }
         }
 
         // Private protected because LanguageServerProtocol is internal

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -4712,11 +4713,6 @@ class A
   IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
 }");
-        }
-
-        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
-        {
-            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
         }
 
         [Theory]

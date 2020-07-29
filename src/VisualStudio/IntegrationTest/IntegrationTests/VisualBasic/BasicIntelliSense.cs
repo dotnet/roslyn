@@ -18,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicIntelliSense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicIntelliSense))
+        public BasicIntelliSense(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicIntelliSense))
         {
         }
 

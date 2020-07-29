@@ -18,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpAutomaticBraceCompletion))
+        public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpAutomaticBraceCompletion))
         {
         }
 

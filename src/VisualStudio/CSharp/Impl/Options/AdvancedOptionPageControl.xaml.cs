@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
-        private ColorSchemeApplier _colorSchemeApplier;
+        private readonly ColorSchemeApplier _colorSchemeApplier;
 
         public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
         {
@@ -59,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
 
+            BindToOption(DisplayInlineParameterNameHints, FeatureOnOffOptions.InlineParameterNameHints, LanguageNames.CSharp);
             BindToOption(GenerateXmlDocCommentsForTripleSlash, FeatureOnOffOptions.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);

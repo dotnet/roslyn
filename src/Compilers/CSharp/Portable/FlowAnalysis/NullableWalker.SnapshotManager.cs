@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            internal bool TryGetUpdatedSymbol(BoundNode node, Symbol symbol, out Symbol updatedSymbol)
+            internal bool TryGetUpdatedSymbol(BoundNode node, Symbol symbol, [NotNullWhen(true)] out Symbol? updatedSymbol)
             {
                 return _updatedSymbolsMap.TryGetValue((node, symbol), out updatedSymbol);
             }
