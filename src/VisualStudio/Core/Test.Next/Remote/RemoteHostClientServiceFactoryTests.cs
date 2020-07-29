@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static AdhocWorkspace CreateWorkspace()
             => new AdhocWorkspace(s_composition.GetHostServices());
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46255")]
+        [Fact]
         public async Task UpdaterService()
         {
             var hostServices = s_composition.GetHostServices();
