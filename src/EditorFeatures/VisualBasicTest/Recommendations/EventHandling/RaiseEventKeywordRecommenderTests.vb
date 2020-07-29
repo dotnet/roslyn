@@ -4,6 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class RaiseEventKeywordRecommenderTests
+        <Fact>
         <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RaiseEventInCustomEventTest() As Task
@@ -17,6 +18,7 @@ End Class</File>
             Await VerifyRecommendationsContainAsync(code, "RaiseEvent")
         End Function
 
+        <Fact>
         <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function RaiseEventInSingleLineLambdaTest() As Task

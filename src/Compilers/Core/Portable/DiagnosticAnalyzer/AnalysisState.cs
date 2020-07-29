@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 using (_gate.DisposableWait(cancellationToken))
                 {
-                    OnCompilationEventsGenerated_NoLock(compilationEvents, filterTreeOpt: null);
+                    OnCompilationEventsGenerated_NoLock(compilationEvents);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void OnCompilationEventsGenerated_NoLock(ImmutableArray<CompilationEvent> compilationEvents, SyntaxTree filterTreeOpt)
+        private void OnCompilationEventsGenerated_NoLock(ImmutableArray<CompilationEvent> compilationEvents)
         {
             Debug.Assert(_lazyAnalyzerActionCountsMap != null);
 
             // Add the events to our global pending events map.
-            AddToEventsMap_NoLock(compilationEvents, filterTreeOpt);
+            AddToEventsMap_NoLock(compilationEvents);
 
             // Mark the events for analysis for each analyzer.
             ArrayBuilder<ISymbol> newPartialSymbols = null;
@@ -174,14 +174,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void AddToEventsMap_NoLock(ImmutableArray<CompilationEvent> compilationEvents, SyntaxTree filterTreeOpt)
+        private void AddToEventsMap_NoLock(ImmutableArray<CompilationEvent> compilationEvents)
         {
-            if (filterTreeOpt != null)
-            {
-                AddPendingSourceEvents_NoLock(compilationEvents, filterTreeOpt);
-                return;
-            }
-
             foreach (var compilationEvent in compilationEvents)
             {
                 UpdateEventsMap_NoLock(compilationEvent, add: true);
@@ -245,20 +239,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void AddPendingSourceEvents_NoLock(ImmutableArray<CompilationEvent> compilationEvents, SyntaxTree tree)
-        {
-            HashSet<CompilationEvent> currentEvents;
-            if (!_pendingSourceEvents.TryGetValue(tree, out currentEvents))
-            {
-                currentEvents = new HashSet<CompilationEvent>(compilationEvents);
-                _pendingSourceEvents[tree] = currentEvents;
-                _compilationData.RemoveCachedSemanticModel(tree);
-                return;
-            }
-
-            currentEvents.AddAll(compilationEvents);
-        }
-
         private void AddPendingSourceEvent_NoLock(SyntaxTree tree, CompilationEvent compilationEvent)
         {
             HashSet<CompilationEvent> currentEvents;
@@ -317,7 +297,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (compilationEvent is CompilationStartedEvent)
             {
                 return actionCounts.CompilationActionsCount > 0 ||
-                    actionCounts.SyntaxTreeActionsCount > 0;
+                    actionCounts.SyntaxTreeActionsCount > 0 ||
+                    actionCounts.AdditionalFileActionsCount > 0;
             }
             else if (compilationEvent is CompilationCompletedEvent)
             {
@@ -506,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool HasPendingSyntaxAnalysis(AnalysisScope analysisScope)
         {
-            if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
+            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
             {
                 return false;
             }
@@ -514,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 var analyzerState = GetAnalyzerState(analyzer);
-                if (analyzerState.HasPendingSyntaxAnalysis(analysisScope.FilterTreeOpt))
+                if (analyzerState.HasPendingSyntaxAnalysis(analysisScope.FilterFileOpt))
                 {
                     return true;
                 }
@@ -528,9 +509,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool HasPendingSymbolAnalysis(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
-            Debug.Assert(analysisScope.FilterTreeOpt != null);
+            RoslynDebug.Assert(analysisScope.FilterFileOpt.HasValue);
+            RoslynDebug.Assert(analysisScope.FilterFileOpt.Value.SourceTree != null);
 
-            var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterTreeOpt, cancellationToken);
+            var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterFileOpt.Value.SourceTree, cancellationToken);
             foreach (var symbolDeclaredEvent in symbolDeclaredEvents)
             {
                 if (analysisScope.ShouldAnalyze(symbolDeclaredEvent.Symbol))
@@ -597,6 +579,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Marks the given event as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkEventCompleteForUnprocessedAnalyzers(
+            CompilationEvent completedEvent,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkEventComplete, completedEvent);
+
+        /// <summary>
         /// Checks if the given event has been fully analyzed for the given analyzer.
         /// </summary>
         public bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
@@ -635,6 +626,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             GetAnalyzerState(analyzer).MarkSymbolComplete(symbol);
         }
+
+        /// <summary>
+        /// Marks the given symbol as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkSymbolCompleteForUnprocessedAnalyzers(
+            ISymbol symbol,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSymbolComplete, symbol);
 
         /// <summary>
         /// True if the given symbol is fully analyzed for the given analyzer.
@@ -744,33 +744,63 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Attempts to start processing a syntax tree for the given analyzer's syntax tree actions.
+        /// Attempts to start processing a syntax tree or additional file for the given analyzer's syntax tree or additional file actions respectively.
         /// </summary>
         /// <returns>
-        /// Returns false if the tree has already been processed for the analyzer OR is currently being processed by another task.
+        /// Returns false if the file has already been processed for the analyzer OR is currently being processed by another task.
         /// If true, then it returns a non-null <paramref name="state"/> representing partial syntax analysis state for the given tree for the given analyzer.
         /// </returns>
-        public bool TryStartSyntaxAnalysis(SyntaxTree tree, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
+        public bool TryStartSyntaxAnalysis(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
         {
-            return GetAnalyzerState(analyzer).TryStartSyntaxAnalysis(tree, out state);
+            return GetAnalyzerState(analyzer).TryStartSyntaxAnalysis(file, out state);
         }
 
         /// <summary>
-        /// Marks the given tree as fully syntactically analyzed for the given analyzer.
+        /// Marks the given file as fully syntactically analyzed for the given analyzer.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SyntaxTree tree, DiagnosticAnalyzer analyzer)
+        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
         {
-            GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(tree);
+            GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(file);
         }
 
         /// <summary>
-        /// Marks the given tree as fully syntactically analyzed for the given analyzers.
+        /// Marks the given file as fully syntactically analyzed for the given analyzers.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SyntaxTree tree, IEnumerable<DiagnosticAnalyzer> analyzers)
+        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             foreach (var analyzer in analyzers)
             {
-                GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(tree);
+                GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(file);
+            }
+        }
+
+        /// <summary>
+        /// Marks the given file as fully syntactically analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
+            SourceOrAdditionalFile file,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSyntaxAnalysisComplete, file);
+
+        private static void MarkAnalysisCompleteForUnprocessedAnalyzers<T>(
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers,
+            Action<T, DiagnosticAnalyzer> markComplete,
+            T arg)
+        {
+            Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
+            if (analysisScope.Analyzers.Length == processedAnalyzers.Count)
+            {
+                return;
+            }
+
+            foreach (var analyzer in analysisScope.Analyzers)
+            {
+                if (!processedAnalyzers.Contains(analyzer))
+                {
+                    markComplete(arg, analyzer);
+                }
             }
         }
     }

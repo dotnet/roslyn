@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>()
         {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, typeof(TMetadata).AssemblyQualifiedName);
+            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, typeof(TMetadata).AssemblyQualifiedName!);
             if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public IEnumerable<Lazy<TExtension>> GetExports<TExtension>()
         {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, "");
+            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, "");
             if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 => string.Compare(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0 &&
                    string.Compare(MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => obj is ExportKey key && Equals(key);
 
             public override int GetHashCode()

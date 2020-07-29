@@ -15,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
     Public Class SmartIndenterTests
         Inherits VisualBasicFormatterTestBase
 
-        Private Shared s_htmlMarkup As String = <text>
+        Private Shared ReadOnly s_htmlMarkup As String = <text>
 &lt;html&gt;
     &lt;body&gt;
         &lt;%{|S1:|}%&gt;
     &lt;/body&gt;
 &lt;/html&gt;
 </text>.NormalizedValue
-        Private Shared s_baseIndentationOfNugget As Integer = 8
+        Private Shared ReadOnly s_baseIndentationOfNugget As Integer = 8
 
         Public Sub New(output As ITestOutputHelper)
             MyBase.New(output)
@@ -2995,7 +2995,7 @@ end class"
                 indentStyle:=FormattingOptions.IndentStyle.Smart)
         End sub
 
-        Private Sub AssertSmartIndentIndentationInProjection(
+        Private Shared Sub AssertSmartIndentIndentationInProjection(
                 markup As String,
                 expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
@@ -3018,7 +3018,7 @@ end class"
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
-        Private Sub AssertSmartIndent(
+        Private Shared Sub AssertSmartIndent(
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
                 Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
@@ -3027,7 +3027,7 @@ end class"
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
-        Private Sub AssertSmartIndent(
+        Private Shared Sub AssertSmartIndent(
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
                 useTabs As Boolean,

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var assembly0 = assemblies[0];
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
 
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //<AString("C1")>
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var aBoolClass = assemblies[1].Modules[0].GlobalNamespace.GetMember("ABooleanAttribute") as NamedTypeSymbol;
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var aBoolClass = assemblies[1].Modules[0].GlobalNamespace.GetMember("ABooleanAttribute") as NamedTypeSymbol;
@@ -351,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //<AString("C1")>
@@ -403,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //Public Class C2(Of T1)
@@ -527,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib ,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var assemblyArgs = new AttributeArgs[] {
@@ -577,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //[assembly: ImportedFromTypeLib("InteropAttributes")]
@@ -658,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //[ComImport, Guid("ABCDEF5D-2448-447A-B786-64682CBEF123")]
@@ -723,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             // [Serializable, ComVisible(false)]
@@ -764,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop02,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             // [Guid("31230DD5-2448-447A-B786-64682CBEFEEE"), Flags]
@@ -802,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //[ComImport, TypeLibType(TypeLibTypeFlags.FAggregatable)]
@@ -902,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -937,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01 ,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01 ,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -1039,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -1167,9 +1168,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestAttributesAssemblyVersionValue()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] {
-                TestReferences.NetFx.v4_0_30319.System_Core,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemCore,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[2].GlobalNamespace.GetMember("System");
@@ -1178,24 +1179,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var asmFileAttr = (NamedTypeSymbol)refNS.GetTypeMembers("AssemblyFileVersionAttribute").Single();
             var attr1 = assemblies[0].GetAttribute(asmFileAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.1");
+            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.18408");
 
             var asmInfoAttr = (NamedTypeSymbol)refNS.GetTypeMembers("AssemblyInformationalVersionAttribute").Single();
             attr1 = assemblies[0].GetAttribute(asmInfoAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.1");
-
-            var asmTgtAttr = (NamedTypeSymbol)rtNS.GetTypeMembers("AssemblyTargetedPatchBandAttribute").Single();
-            attr1 = assemblies[0].GetAttribute(asmTgtAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "1.0.21-0");
+            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.18408");
         }
 
         [Fact]
         public void TestAttributesWithTypeOfInternalClass()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
-                TestReferences.NetFx.v4_0_30319.System_Core,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemCore,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var corsysNS = assemblies[2].GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
@@ -1223,9 +1220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
-                TestReferences.NetFx.v4_0_30319.System_Configuration,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemConfiguration,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("System");
@@ -1253,10 +1250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
             {
-                TestReferences.NetFx.v4_0_30319.System_Data,
-                TestReferences.NetFx.v4_0_30319.System_Core,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemData,
+                Net451.SystemCore,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[0].GlobalNamespace.GetMember("System");

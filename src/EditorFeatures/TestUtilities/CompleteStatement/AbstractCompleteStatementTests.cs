@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         /// delimiters or moving the caret prior to the semicolon character insertion. In other words, 
         /// statement completion does not impact typing behavior for the case.
         /// </summary>
-        protected void VerifyNoSpecialSemicolonHandling(string initialMarkup, string newLine = "\r\n")
+        protected void VerifyNoSpecialSemicolonHandling(string initialMarkup)
         {
             var expected = initialMarkup.Contains("$$") ?
                 initialMarkup.Replace("$$", ";$$") :
                 initialMarkup.Replace("|]", ";$$|]");
 
-            VerifyTypingSemicolon(initialMarkup, expected, newLine);
+            VerifyTypingSemicolon(initialMarkup, expected);
         }
 
         /// <summary>
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         /// produces the result in <paramref name="expectedMarkup"/>. The final caret location in
         /// <paramref name="expectedMarkup"/> is marked with <c>$$</c>.
         /// </summary>
-        protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup, string newLine = "\r\n")
+        protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup)
         {
-            Verify(initialMarkup, expectedMarkup, newLine: newLine,
+            Verify(initialMarkup, expectedMarkup,
                 execute: (view, workspace) =>
                 {
                     var commandHandler = GetCommandHandler(workspace);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
                 });
         }
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
         private void Verify(string initialMarkup, string expectedMarkup,
             Action<IWpfTextView, TestWorkspace> execute,
-            Action<TestWorkspace> setOptionsOpt = null, string newLine = "\r\n")
+            Action<TestWorkspace> setOptionsOpt = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {

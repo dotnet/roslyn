@@ -100,7 +100,7 @@ class A
             End Using
         End Function
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/45877")>
         Public Async Function TestDefaultDiagnosticProviderSemantic() As Task
             Dim code = <code>
 class A
@@ -177,7 +177,7 @@ class A
             End Using
         End Function
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/46230")>
         Public Async Function TestDefaultDiagnosticProviderRemove() As Task
             Dim code = <code>
 class A

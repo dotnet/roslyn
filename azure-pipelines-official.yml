@@ -267,7 +267,7 @@ stages:
   - template: /eng/common/templates/job/publish-build-assets.yml
     parameters:
       publishUsingPipelines: true
-      dependsOn:
+      dependsOn:	
         - OfficialBuild
       queue:
         name: Hosted VS2017

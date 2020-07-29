@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeWithState Create(TypeSymbol? type, NullableFlowState defaultState)
         {
             if (defaultState == NullableFlowState.MaybeDefault &&
-                (type is null || type.IsTypeParameterDisallowingAnnotation()))
+                (type is null || type.IsTypeParameterDisallowingAnnotationInCSharp8()))
             {
                 Debug.Assert(type?.IsNullableTypeOrTypeParameter() != true);
                 return new TypeWithState(type, defaultState);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeWithState(TypeSymbol? type, NullableFlowState state)
         {
             Debug.Assert(state == NullableFlowState.NotNull || type?.CanContainNull() != false);
-            Debug.Assert(state != NullableFlowState.MaybeDefault || type is null || type.IsTypeParameterDisallowingAnnotation());
+            Debug.Assert(state != NullableFlowState.MaybeDefault || type is null || type.IsTypeParameterDisallowingAnnotationInCSharp8());
             Type = type;
             State = state;
         }
@@ -82,18 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithState WithSuppression(bool suppress) => suppress ? new TypeWithState(Type, NullableFlowState.NotNull) : this;
 
-        public TypeWithAnnotations ToTypeWithAnnotations()
+        public TypeWithAnnotations ToTypeWithAnnotations(CSharpCompilation compilation, bool asAnnotatedType = false)
         {
-            NullableAnnotation annotation = this.State.IsNotNull() || Type?.CanContainNull() == false || Type?.IsTypeParameterDisallowingAnnotation() == true
-                ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+            if (Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
+            {
+                var type = TypeWithAnnotations.Create(Type, NullableAnnotation.NotAnnotated);
+                return State == NullableFlowState.MaybeDefault ? type.SetIsAnnotated(compilation) : type;
+            }
+            NullableAnnotation annotation = asAnnotatedType ?
+                (Type?.IsValueType == true ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated) :
+                (State.IsNotNull() || Type?.CanContainNull() == false ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated);
             return TypeWithAnnotations.Create(this.Type, annotation);
         }
 
-        public TypeWithAnnotations ToAnnotatedTypeWithAnnotations()
-        {
-            NullableAnnotation annotation = (Type?.IsTypeParameterDisallowingAnnotation() == true || Type?.IsValueType == true)
-                ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
-            return TypeWithAnnotations.Create(this.Type, annotation);
-        }
+        public TypeWithAnnotations ToAnnotatedTypeWithAnnotations(CSharpCompilation compilation) =>
+            ToTypeWithAnnotations(compilation, asAnnotatedType: true);
     }
 }

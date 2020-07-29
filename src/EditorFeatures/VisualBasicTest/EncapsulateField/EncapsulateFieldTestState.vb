@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Friend Class EncapsulateFieldTestState
         Implements IDisposable
 
-        Private _testDocument As TestHostDocument
+        Private ReadOnly _testDocument As TestHostDocument
         Public Workspace As TestWorkspace
         Public TargetDocument As Document
 

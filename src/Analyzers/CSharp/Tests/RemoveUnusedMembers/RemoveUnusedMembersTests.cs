@@ -4,8 +4,8 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -374,7 +374,7 @@ return 0;
                     // error CS8805: Program using top-level statements must be an executable.
                     DiagnosticResult.CompilerError("CS8805"),
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -402,7 +402,7 @@ return 0;
                     // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
                     DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test1.cs", 2, 1, 2, 7),
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -426,7 +426,7 @@ return 0;
                         return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithOutputKind(OutputKind.ConsoleApplication));
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -461,7 +461,7 @@ return 0;
                         return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithOutputKind(OutputKind.ConsoleApplication));
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -2542,7 +2542,6 @@ static class MyClass3
             {
                 TestState = { Sources = { source1, source2 } },
                 FixedState = { Sources = { fixedSource1, fixedSource2 } },
-                NumberOfFixAllInDocumentIterations = 2,
             }.RunAsync();
         }
 

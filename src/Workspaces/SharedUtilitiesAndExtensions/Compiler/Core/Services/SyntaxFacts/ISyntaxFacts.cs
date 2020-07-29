@@ -369,6 +369,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration(SyntaxNode node);
         bool IsNamespaceDeclaration(SyntaxNode node);
+        List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode root);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
