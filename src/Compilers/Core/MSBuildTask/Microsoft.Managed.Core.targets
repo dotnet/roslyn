@@ -8,7 +8,7 @@
 
   <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
           BeforeTargets="CoreCompile"
-          Condition="'@(ReferencePathWithRefAssemblies)' == ''">
+          Condition="'@(ReferencePathWithRefAssemblies->Count())' == '0'">
     <!-- 
       FindReferenceAssembliesForReferences target in Common targets populate this item 
       since dev15.3. The compiler targets may be used (via NuGet package) on earlier MSBuilds. 
