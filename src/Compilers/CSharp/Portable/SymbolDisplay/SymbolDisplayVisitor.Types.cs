@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return candidate;
 
-            bool isEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other)
+            static bool isEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other)
             {
                 do
                 {
