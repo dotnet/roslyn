@@ -1157,7 +1157,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // Must save the document first for things like Breakpoints to be preserved.
-                projectItemForDocument.Save();
+                // WORKAROUND: Check if the document needs to be saved before calling save. 
+                // Should remove the if below and just call save() once 
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163405
+                // is fixed
+                if (!projectItemForDocument.Saved)
+                {
+                    projectItemForDocument.Save();
+                }
 
                 var uniqueName = projectItemForDocument.Collection
                     .GetUniqueNameIgnoringProjectItem(
