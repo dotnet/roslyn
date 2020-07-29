@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var document = textBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
                 // TODO - Remove the TS check once they move the liveshare navbar to LSP
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
-                if (textBuffer != null && textBuffer.TryGetWorkspace(out var workspace) && workspace.Kind == WorkspaceKind.AnyCodeRoslynWorkspace && document.Project.Language != "TypeScript")
+                if (textBuffer != null && textBuffer.TryGetWorkspace(out var workspace) && workspace.Kind == WorkspaceKind.CloudEnvironmentClientWorkspace && document.Project.Language != "TypeScript")
                 {
                     // Remove the existing dropdown bar if it is ours.
                     if (IsOurDropdownBar(dropdownManager, out var _))

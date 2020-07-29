@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.TryGetWorkspace(out var workspace) && workspace.Kind == WorkspaceKind.AnyCodeRoslynWorkspace)
+            if (textView.TextBuffer.TryGetWorkspace(out var workspace) && workspace.Kind == WorkspaceKind.CloudEnvironmentClientWorkspace)
             {
                 return null;
             }

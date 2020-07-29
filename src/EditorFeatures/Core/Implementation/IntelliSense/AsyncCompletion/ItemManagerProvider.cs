@@ -27,9 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public IAsyncCompletionItemManager GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.TryGetWorkspace(out var workspace) && workspace.Kind == WorkspaceKind.AnyCodeRoslynWorkspace)
+            if (textView.TextBuffer.TryGetWorkspace(out var workspace))
             {
-                return null;
+                var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
+
+                // If we're in a cloud environment context, we want to avoid returning a completion item manager.
+                // Otherwise, we'll interfere with the LSP client manager and disrupt filtering.
+                if (workspaceContextService.IsCloudEnvironmentClient())
+                {
+                    return null;
+                }
             }
 
             return _instance;

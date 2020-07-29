@@ -216,12 +216,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var diagnosticService = new TestDiagnosticAnalyzerService();
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
             var errorLogger = logger.First().Value;
+
             var configurationFixProviders = includeConfigurationFixProviders
-                ? TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExports<IConfigurationFixProvider, CodeChangeProviderMetadata>()
+                ? workspace.ExportProvider.GetExports<IConfigurationFixProvider, CodeChangeProviderMetadata>()
                 : SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>();
+
             var fixService = new CodeFixService(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                diagnosticService, logger, fixers, configurationFixProviders);
+                diagnosticService,
+                logger,
+                fixers,
+                configurationFixProviders);
+
             return (workspace, diagnosticService, fixService, errorLogger);
         }
 

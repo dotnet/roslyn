@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.VisualBasic.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification
 {
-    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.CSharp, WorkspaceKind.AnyCodeRoslynWorkspace), Shared]
+    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.CSharp, WorkspaceKind.CloudEnvironmentClientWorkspace), Shared]
     internal class CSharpLspEditorClassificationFactory : RoslynSyntaxClassificationServiceFactory
     {
         [ImportingConstructor]
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             => new CSharpSyntaxClassificationService(languageServices);
     }
 
-    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.VisualBasic, WorkspaceKind.AnyCodeRoslynWorkspace), Shared]
+    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.VisualBasic, WorkspaceKind.CloudEnvironmentClientWorkspace), Shared]
     internal class VBLspEditorClassificationServiceFactory : RoslynSyntaxClassificationServiceFactory
     {
         [ImportingConstructor]

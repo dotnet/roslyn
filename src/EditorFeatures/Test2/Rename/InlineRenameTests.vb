@@ -1063,7 +1063,7 @@ End Class
                     </Workspace>, host)
 
                 ' Preview should not return null
-                Dim previewService = DirectCast(workspace.Services.GetService(Of IPreviewDialogService)(), MockPreviewDialogService)
+                Dim previewService = DirectCast(workspace.Services.GetRequiredService(Of IPreviewDialogService)(), MockPreviewDialogService)
                 previewService.ReturnsNull = False
 
                 Dim session = StartSession(workspace)
