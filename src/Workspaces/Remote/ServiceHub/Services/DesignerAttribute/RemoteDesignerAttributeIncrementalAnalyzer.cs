@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (specificDocument != null && document != specificDocument)
                     continue;
 
-                // If we don't have a path for this document, we cant proceed with it.
-                // We need that path to inform the project system which file we're referring to.
+                // If we don't have a path for this document, we can't proceed with it. We need that path to inform the
+                // project system which file we're referring to.
                 if (document.FilePath == null)
                     continue;
 
