@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Struct,
     }
 
-    internal struct DeclaredSymbolInfo
+    internal readonly struct DeclaredSymbolInfo : IEquatable<DeclaredSymbolInfo>
     {
         /// <summary>
         /// The name to pattern match against, and to show in a final presentation layer.
@@ -201,6 +202,35 @@ $@"Invalid span in {nameof(DeclaredSymbolInfo)}.
 
                 return null;
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is DeclaredSymbolInfo info && Equals(info);
+        }
+
+        public bool Equals(DeclaredSymbolInfo other)
+        {
+            return Name == other.Name
+                && NameSuffix == other.NameSuffix
+                && ContainerDisplayName == other.ContainerDisplayName
+                && FullyQualifiedContainerName == other.FullyQualifiedContainerName
+                && Span.Equals(other.Span)
+                && _flags == other._flags
+                && InheritanceNames.Equals(other.InheritanceNames);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 767621558;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(NameSuffix);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ContainerDisplayName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(FullyQualifiedContainerName);
+            hashCode = hashCode * -1521134295 + Span.GetHashCode();
+            hashCode = hashCode * -1521134295 + _flags.GetHashCode();
+            hashCode = hashCode * -1521134295 + InheritanceNames.GetHashCode();
+            return hashCode;
         }
     }
 }

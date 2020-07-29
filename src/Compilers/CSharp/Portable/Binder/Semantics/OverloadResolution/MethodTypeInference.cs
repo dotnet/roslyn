@@ -1542,7 +1542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
 
             // True if the type is nullable.
-            bool isNullableOnly(TypeWithAnnotations type)
+            static bool isNullableOnly(TypeWithAnnotations type)
                 => type.NullableAnnotation.IsAnnotated();
         }
 

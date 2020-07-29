@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Roslyn.Test.Utilities;
@@ -21,12 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     [UseExportProvider]
     public class F1HelpTests
     {
-        private static readonly ComposableCatalog s_catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpHelpContextService));
-        private static readonly IExportProviderFactory s_exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_catalog);
-
-        private async Task TestAsync(string markup, string expectedText)
+        private static async Task TestAsync(string markup, string expectedText)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProviderFactory.CreateExportProvider());
+            // TODO: Using VisualStudioTestComposition.LanguageServices fails with "Failed to clean up listeners in a timely manner. WorkspaceChanged TaskQueue.cs 38"
+            // https://github.com/dotnet/roslyn/issues/46250
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(CSharpHelpContextService)));
             var caret = workspace.Documents.First().CursorPosition;
 
             var service = Assert.IsType<CSharpHelpContextService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IHelpContextService>());
@@ -34,9 +32,110 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             Assert.Equal(expectedText, actualText);
         }
 
-        private async Task Test_KeywordAsync(string markup, string expectedText)
+        private static async Task Test_KeywordAsync(string markup, string expectedText)
         {
             await TestAsync(markup, expectedText + "_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInternal()
+        {
+            await Test_KeywordAsync(
+@"intern[||]al class C
+{
+}", "internal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtected()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted void goo();
+}", "protected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    internal protec[||]ted void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted internal void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    private protec[||]ted void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    priv[||]ate protected void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected3()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protected priv[||]ate void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected4()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    prot[||]ected private void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoup()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    private new prot[||]ected static unsafe void foo()
+    {
+    }
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoupField()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    new prot[||]ected static unsafe private goo;
+}", "privateprotected");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]

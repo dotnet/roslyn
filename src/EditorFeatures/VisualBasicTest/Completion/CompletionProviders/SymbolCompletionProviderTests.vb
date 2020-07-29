@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(SymbolCompletionProvider)
         End Function
 
-        Protected Overrides Function GetExportCatalog() As ComposableCatalog
-            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
+        Protected Overrides Function GetComposition() As TestComposition
+            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
