@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (candidate is object)
                     {
-                        // An ammbiguity case, can come from metadata, treat as an error for simplicity.
+                        // An ambiguity case, can come from metadata, treat as an error for simplicity.
                         return null;
                     }
 

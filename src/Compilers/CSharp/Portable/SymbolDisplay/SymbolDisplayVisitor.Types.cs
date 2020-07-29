@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Copy of <see cref="SynthesizedRecordClone.FindValidCloneMethod(TypeSymbol, ref HashSet{DiagnosticInfo}?)"/>
         /// </summary>
-        internal static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
+        private static IMethodSymbol FindValidCloneMethod(ITypeSymbol containingType)
         {
             IMethodSymbol candidate = null;
 
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (candidate is object)
                     {
-                        // An ammbiguity case, can come from metadata, treat as an error for simplicity.
+                        // An ambiguity case, can come from metadata, treat as an error for simplicity.
                         return null;
                     }
 
@@ -737,31 +737,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !(containingType.IsSealed || candidate.IsOverride || candidate.IsVirtual || candidate.IsAbstract) ||
                 !isEqualToOrDerivedFrom(
                     containingType,
-                    candidate.ReturnType,
-                    SymbolEqualityComparer.IgnoreAll))
+                    candidate.ReturnType))
             {
                 return null;
             }
 
             return candidate;
 
-            static bool isEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other, SymbolEqualityComparer comparison)
+            bool isEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other)
             {
-                if (one.Equals(other, comparison))
+                do
                 {
-                    return true;
-                }
-
-                var t = one.BaseType;
-                while (t is object)
-                {
-                    if (other.Equals(t, comparison))
+                    if (one.Equals(other, SymbolEqualityComparer.IgnoreAll))
                     {
                         return true;
                     }
 
-                    t = t.BaseType;
+                    one = one.BaseType;
                 }
+                while (one != null);
 
                 return false;
             }
