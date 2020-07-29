@@ -88,13 +88,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 index++;
             }
 
-            // Case 2: Cached tokens is longer than updated tokens - need to make deletion
+            // Case 2: Cached token set is longer than updated tokens - need to make deletion edit
             if (index < cachedSemanticTokens.Length)
             {
                 var deleteCount = cachedSemanticTokens.Length - updatedSemanticTokens.Length;
                 edits.Add(GenerateEdit(start: index, deleteCount: deleteCount, data: Array.Empty<int>()));
             }
-            // Case 3: Updated tokens set has value at index but cached tokens set does not - need to make insertion
+            // Case 3: Updated tokens set is longer than cached tokens set - need to make insertion edit
             else if (index < updatedSemanticTokens.Length)
             {
                 edits.Add(GenerateEdit(start: index, deleteCount: 0, data: updatedSemanticTokens.Skip(index).ToArray()));
