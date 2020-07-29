@@ -2404,7 +2404,7 @@ End Module
 </Code>
 
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2420,7 +2420,7 @@ End Module
 </Code>
 
             Dim parameters2 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters2)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)

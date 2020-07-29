@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub ChainingTaskStartsAsyncOperation()
-            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
+            Dim threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue(Of IThreadingContext)
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub ChainingTaskThatCompletesNotifiesController()
-            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
+            Dim threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue(Of IThreadingContext)
             Dim model = New Model()
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub ControllerIsOnlyUpdatedAfterLastTaskCompletes()
-            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
+            Dim threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue(Of IThreadingContext)
             Dim model = New Model()
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Async Function ControllerIsNotUpdatedIfComputationIsCancelled() As Task
-            Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
+            Dim threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue(Of IThreadingContext)
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             Dim token = New Mock(Of IAsyncToken)(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation(

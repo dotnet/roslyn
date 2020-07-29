@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public class AddUsingNuGetTests : AbstractAddUsingTests
     {
         private const string NugetOrgSource = "nuget.org";
@@ -31,13 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         private static readonly ValueTask<ImmutableArray<PackageSource>?> NugetPackageSources =
             new ValueTask<ImmutableArray<PackageSource>?>(ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/")));
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+        protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
-            var workspace = base.CreateWorkspaceFromFile(initialMarkup, parameters);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
                 .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true)));
-            return workspace;
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestSearchPackageSingleName()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
@@ -81,7 +80,7 @@ class C
 }", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestSearchPackageMultipleNames()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
@@ -112,7 +111,7 @@ class C
 }", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestMissingIfPackageAlreadyInstalled()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
@@ -135,7 +134,7 @@ class C
 }", new TestParameters(fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestOptionsOffered()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
@@ -180,7 +179,7 @@ FeaturesResources.Find_and_install_latest_version,
 parameters: new TestParameters(index: 2, fixProviderData: data));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestInstallGetsCalledNoVersion()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
@@ -212,7 +211,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestInstallGetsCalledWithVersion()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
@@ -246,7 +245,7 @@ class C
         }
 
         [WorkItem(14516, "https://github.com/dotnet/roslyn/pull/14516")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestFailedInstallRollsBackFile()
         {
             var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
