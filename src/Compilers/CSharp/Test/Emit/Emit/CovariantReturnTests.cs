@@ -329,6 +329,7 @@ public abstract class Derived : Base
     public override string M() => null;
     public override string P => null;
     public override string this[int i] => null;
+}
 ";
             var csharpCompilation = CreateCovariantCompilation(cSharpSource).VerifyDiagnostics();
             var csharpReference = csharpCompilation.EmitToImageReference();
@@ -426,8 +427,8 @@ End Class
             var vbCompilation = CreateVisualBasicCompilation(vbSource, compilationOptions: compilationOptions, referencedAssemblies: new[] { CorelibraryWithCovariantReturnSupport, csharpReference })
                 .VerifyDiagnostics(
                 );
-            // Suggestion: change the following test to one using ExecutionConditionUtil once it is available (it is in another pending PR).
-            var expectedOutput = new CovarantReturnRuntimeOnly().ShouldSkip ? null : @"
+
+            var expectedOutput = !ExecutionConditionUtil.RuntimeSupportsCovariantReturnsOfClasses ? null : @"
 Derived2.M
 Derived2.P
 Derived2[]
