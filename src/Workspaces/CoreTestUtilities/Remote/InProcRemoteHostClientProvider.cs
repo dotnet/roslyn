@@ -5,54 +5,15 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
-<<<<<<< HEAD:src/EditorFeatures/TestUtilities/InProcRemoteHostClientProvider.cs
-    public enum TestHost
-    {
-        /// <summary>
-        /// Features that optionally dispatch to a remote implementation service will
-        /// not do so and instead directly call their local implementation.
-        /// </summary>
-        InProcess,
-
-        /// <summary>
-        /// Features that optionally dispatch to a remote implementation service will do so.
-        /// This remote implementation will execute in the same process to simplify debugging
-        /// and avoid cost of process management.
-        /// </summary>
-        OutOfProcess,
-=======
-    internal static class RemoteTestHostOptions
-    {
-        public static readonly Option2<bool> RemoteHostTest = new Option2<bool>(
-            nameof(RemoteTestHostOptions), nameof(RemoteHostTest), defaultValue: false);
-    }
-
-    [ExportOptionProvider, Shared]
-    internal sealed class RemoteHostOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteHostOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RemoteTestHostOptions.RemoteHostTest);
->>>>>>> Move remoting infra to Rmeote.Workspaces:src/Workspaces/CoreTestUtilities/Remote/InProcRemoteHostClientProvider.cs
-    }
-
     internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider
     {
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
