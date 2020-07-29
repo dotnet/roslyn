@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">The set of nodes in topological order.</param>
         /// <param name="node">The node of interest.</param>
         /// <param name="nullPaths">Whether to permit following paths that test for null.</param>
-        /// <param name="requiresFalseWhenClause">set to true when if the path requires some when clause to evaluate to 'false'</param>
+        /// <param name="requiresFalseWhenClause">set to true if the returned path requires some when clause to evaluate to 'false'</param>
         /// <returns>The shortest path, excluding the node of interest.</returns>
         private static ImmutableArray<BoundDecisionDagNode> ShortestPathToNode(
             ImmutableArray<BoundDecisionDagNode> nodes,
