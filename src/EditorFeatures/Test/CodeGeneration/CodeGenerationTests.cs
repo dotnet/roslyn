@@ -421,9 +421,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 setAccessor,
                 isIndexer);
 
-            var docOptions = await context.Document.GetOptionsAsync();
             codeGenerationOptions ??= new CodeGenerationOptions();
-            codeGenerationOptions = codeGenerationOptions.With(options: codeGenerationOptions.Options ?? docOptions);
+            codeGenerationOptions = codeGenerationOptions.With(options: codeGenerationOptions.Options ?? workspace.Options);
             context.Result = await context.Service.AddPropertyAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), property, codeGenerationOptions);
         }
 
