@@ -94,7 +94,7 @@ stages:
       displayName: 'Install OptProf Plugin'
 
     # Required by MicroBuildBuildVSBootstrapper
-    - task: ms-vseng.MicroBuildTasks@2
+    - task: MicroBuildSwixPlugin@2
       inputs:
         dropName: $(VisualStudio.DropName) 
         feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
