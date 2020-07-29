@@ -97,7 +97,7 @@ stages:
     - task: MicroBuildSwixPlugin@2
       inputs:
         dropName: $(VisualStudio.DropName) 
-        feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
+        feedSource: 'https://devdiv.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
 
     - script: eng\cibuild.cmd
                 -configuration $(BuildConfiguration)
