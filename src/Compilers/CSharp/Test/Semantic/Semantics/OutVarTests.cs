@@ -16,6 +16,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using static Roslyn.Test.Utilities.TestMetadata;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

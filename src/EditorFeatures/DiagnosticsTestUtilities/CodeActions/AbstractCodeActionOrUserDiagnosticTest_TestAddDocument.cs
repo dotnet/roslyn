@@ -28,10 +28,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
                 WithRegularOptions(parameters));
-            await TestAddDocument(
-                initialMarkup, expectedMarkup,
-                expectedContainers, expectedDocumentName,
-                WithScriptOptions(parameters));
+
+            // VB script is not supported:
+            if (GetLanguage() == LanguageNames.CSharp)
+            {
+                await TestAddDocument(
+                    initialMarkup, expectedMarkup,
+                    expectedContainers, expectedDocumentName,
+                    WithScriptOptions(parameters));
+            }
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(

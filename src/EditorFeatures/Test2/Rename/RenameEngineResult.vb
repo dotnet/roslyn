@@ -52,11 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 host As RenameTestHost,
                 Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
                 Optional expectFailure As Boolean = False) As RenameEngineResult
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
             workspace.SetTestLogger(AddressOf helper.WriteLine)
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host <> RenameTestHost.InProcess)))
 
             Dim engineResult As RenameEngineResult = Nothing
             Try

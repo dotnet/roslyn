@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             var bufferCollection = new Collection<ITextBuffer>(SpecializedCollections.SingletonEnumerable(bufferMock.Object).ToList());
             var dummyReason = ConnectionReason.BufferGraphChange;
 
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var service = Assert.IsType<TextBufferAssociatedViewService>(exportProvider.GetExportedValue<ITextBufferAssociatedViewService>());
 
             ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);

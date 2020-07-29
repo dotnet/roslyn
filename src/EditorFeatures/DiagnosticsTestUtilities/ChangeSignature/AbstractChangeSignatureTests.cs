@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,8 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
     public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
     {
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
+            typeof(TestChangeSignatureOptionsService));
+
         protected override ParseOptions GetScriptOptions()
             => throw new NotSupportedException();
+
+        protected override TestComposition GetComposition()
+            => s_composition;
 
         internal async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
@@ -42,19 +49,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             if (expectedCodeAction)
             {
                 var testOptions = new TestParameters();
-                using (var workspace = CreateWorkspaceFromOptions(markup, testOptions))
-                {
-                    var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
-                    optionsService.UpdatedSignature = updatedSignature;
 
-                    var refactoring = await GetCodeRefactoringAsync(workspace, testOptions);
-                    await TestActionAsync(workspace, expectedCode, refactoring.CodeActions[index].action,
-                        conflictSpans: ImmutableArray<TextSpan>.Empty,
-                        renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty,
-                        navigationSpans: ImmutableArray<TextSpan>.Empty,
-                        parameters: default);
-                }
+                using var workspace = CreateWorkspaceFromOptions(markup, testOptions);
+                var optionsService = (TestChangeSignatureOptionsService)workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
+                optionsService.UpdatedSignature = updatedSignature;
+
+                var refactoring = await GetCodeRefactoringAsync(workspace, testOptions);
+                await TestActionAsync(workspace, expectedCode, refactoring.CodeActions[index].action,
+                    conflictSpans: ImmutableArray<TextSpan>.Empty,
+                    renameSpans: ImmutableArray<TextSpan>.Empty,
+                    warningSpans: ImmutableArray<TextSpan>.Empty,
+                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    parameters: default);
             }
             else
             {
