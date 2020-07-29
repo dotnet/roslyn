@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (containingTypeMapOpt == null)
             {
-                if (MemberGroupContainsMoreDerivedOverride(members, member))
+                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteDiagnostics))
                 {
                     // Don't even add it to the result set.  We'll add only the most-overriding members.
                     return;
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
-                        if (MemberGroupContainsMoreDerivedOverride(others, member))
+                        if (MemberGroupContainsMoreDerivedOverride(others, member, checkOverrideContainingType: false, ref useSiteDiagnostics))
                         {
                             // Don't even add it to the result set.  We'll add only the most-overriding members.
                             return;
@@ -925,13 +925,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Does <paramref name="moreDerivedOverride"/> override <paramref name="member"/> or the
         /// thing that it originally overrides, but in a more derived class?
         /// </summary>
-        private static bool IsMoreDerivedOverride(Symbol member, Symbol moreDerivedOverride)
+        private static bool IsMoreDerivedOverride(
+            Symbol member,
+            Symbol moreDerivedOverride,
+            bool checkOverrideContainingType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // Use-site diagnostics on the inheritance hierarchy of overridable candidates were reported when the
-            // overload set was constructed; we discard them rather than gather them again.
-            HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
             if (!moreDerivedOverride.IsOverride ||
-                !moreDerivedOverride.ContainingType.IsDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, ref discardedUseSiteDiagnostics) ||
+                checkOverrideContainingType && !moreDerivedOverride.ContainingType.IsDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) ||
                 !MemberSignatureComparer.SloppyOverrideComparer.Equals(member, moreDerivedOverride))
             {
                 // Easy out.
@@ -950,7 +951,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Does the member group <paramref name="members"/> contain an override of <paramref name="member"/> or the method it
         /// overrides, but in a more derived type?
         /// </summary>
-        private static bool MemberGroupContainsMoreDerivedOverride<TMember>(ArrayBuilder<TMember> members, TMember member)
+        private static bool MemberGroupContainsMoreDerivedOverride<TMember>(
+            ArrayBuilder<TMember> members,
+            TMember member,
+            bool checkOverrideContainingType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             if (!member.IsVirtual && !member.IsAbstract && !member.IsOverride)
@@ -965,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (var i = 0; i < members.Count; ++i)
             {
-                if (IsMoreDerivedOverride(member: member, moreDerivedOverride: members[i]))
+                if (IsMoreDerivedOverride(member: member, moreDerivedOverride: members[i], checkOverrideContainingType: checkOverrideContainingType, ref useSiteDiagnostics))
                 {
                     return true;
                 }
