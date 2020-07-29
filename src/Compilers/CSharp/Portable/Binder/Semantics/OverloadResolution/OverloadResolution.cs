@@ -925,6 +925,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Does <paramref name="moreDerivedOverride"/> override <paramref name="member"/> or the
         /// thing that it originally overrides, but in a more derived class?
         /// </summary>
+        /// <param name="checkOverrideContainingType">Set to false if the caller has already checked that
+        /// <paramref name="moreDerivedOverride"/> is in a type that derives from the type containing
+        /// <paramref name="member"/>.</param>
         private static bool IsMoreDerivedOverride(
             Symbol member,
             Symbol moreDerivedOverride,
@@ -951,6 +954,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Does the member group <paramref name="members"/> contain an override of <paramref name="member"/> or the method it
         /// overrides, but in a more derived type?
         /// </summary>
+        /// <param name="checkOverrideContainingType">Set to false if the caller has already checked that
+        /// <paramref name="members"/> are all in a type that derives from the type containing
+        /// <paramref name="member"/>.</param>
         private static bool MemberGroupContainsMoreDerivedOverride<TMember>(
             ArrayBuilder<TMember> members,
             TMember member,
