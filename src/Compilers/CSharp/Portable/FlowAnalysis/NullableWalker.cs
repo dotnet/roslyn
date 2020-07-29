@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             DiagnosticBag diagnostics)
         {
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.NullableSemanticAnalysisEnabled)
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
 #if DEBUG
                 // Always run analysis in debug builds so that we can more reliably catch

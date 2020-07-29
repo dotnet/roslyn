@@ -1668,6 +1668,8 @@ class C
 #nullable enable
 class C
 {
+    object field = null;
+
     void M()
     {
         object o = null;
@@ -1679,12 +1681,18 @@ class C
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: featureFlagOff);
             comp.VerifyDiagnostics(
-                    // (7,16): warning CS0219: The variable 'o' is assigned but its value is never used
-                    //         object o = null;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(7, 16),
-                    // (7,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                    //         object o = null;
-                    Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 20));
+                // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field").WithLocation(5, 12),
+                // (5,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 20),
+                // (9,16): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(9, 16),
+                // (9,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
             Assert.False(comp.NullableSemanticAnalysisEnabled);
         }
