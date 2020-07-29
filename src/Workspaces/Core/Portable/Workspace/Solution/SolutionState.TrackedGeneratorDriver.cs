@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis
             public bool NeedsFullGeneration { get; }
 
             // TODO: re-enable when PendingEdit is public again
+            // https://github.com/dotnet/roslyn/issues/46419
             #if false
             
             public TrackedGeneratorDriver WithPendingEdit(PendingEdit pendingEdit)

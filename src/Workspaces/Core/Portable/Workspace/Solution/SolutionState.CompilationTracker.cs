@@ -705,6 +705,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We will finalize the compilation by adding full contents here.
                     // TODO: allow finalize compilation to incrementally update a prior version
+                    // https://github.com/dotnet/roslyn/issues/46418
                     var compilationWithoutGeneratedFiles = compilation;
 
                     if (generatorDriver.GeneratorDriver != null)
