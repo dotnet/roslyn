@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">位置记录必须同时具有 "data" 修饰符和非空参数列表</target>
+        <source>A positional record must have a non-empty parameter list</source>
+        <target state="needs-review-translation">位置记录必须同时具有 "data" 修饰符和非空参数列表</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">

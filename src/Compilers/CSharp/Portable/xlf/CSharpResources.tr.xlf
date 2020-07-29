@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">Konumsal bir kaydın hem 'data' değiştiricisi hem de boş olmayan bir parametre listesi olmalıdır</target>
+        <source>A positional record must have a non-empty parameter list</source>
+        <target state="needs-review-translation">Konumsal bir kaydın hem 'data' değiştiricisi hem de boş olmayan bir parametre listesi olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">

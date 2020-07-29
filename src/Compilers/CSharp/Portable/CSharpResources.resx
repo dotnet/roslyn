@@ -6152,7 +6152,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>init-only setters</value>
   </data>
   <data name="ERR_BadRecordDeclaration" xml:space="preserve">
-    <value>A positional record must have both a 'data' modifier and non-empty parameter list</value>
+    <value>A positional record must have a non-empty parameter list</value>
   </data>
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>

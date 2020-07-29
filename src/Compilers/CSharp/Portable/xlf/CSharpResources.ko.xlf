@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">위치 레코드에는 'data' 한정자와 비어 있지 않은 매개 변수 목록이 둘 다 있어야 합니다.</target>
+        <source>A positional record must have a non-empty parameter list</source>
+        <target state="needs-review-translation">위치 레코드에는 'data' 한정자와 비어 있지 않은 매개 변수 목록이 둘 다 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
