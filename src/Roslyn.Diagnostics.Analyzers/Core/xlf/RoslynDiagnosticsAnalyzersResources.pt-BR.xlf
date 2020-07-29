@@ -22,9 +22,19 @@
         <target state="translated">Evite o sufixo 'Opt'</target>
         <note />
       </trans-unit>
+      <trans-unit id="BlankLinesDescription">
+        <source>Avoid multiple blank lines.</source>
+        <target state="new">Avoid multiple blank lines.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
-        <target state="translated">Evite várias linhas em branco</target>
+        <target state="needs-review-translation">Evite várias linhas em branco</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BlankLinesTitle">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
         <note />
       </trans-unit>
       <trans-unit id="BracePlacementMessage">
