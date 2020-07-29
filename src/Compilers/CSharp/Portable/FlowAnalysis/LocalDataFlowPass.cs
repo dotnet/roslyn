@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (TryGetReceiverAndMember(node, out BoundExpression? receiver, out Symbol? member))
                     {
-                        Debug.Assert((receiver is null) != member!.RequiresInstanceReceiver());
+                        Debug.Assert((receiver is null) != member.RequiresInstanceReceiver());
                         return MakeMemberSlot(receiver, member);
                     }
                     break;

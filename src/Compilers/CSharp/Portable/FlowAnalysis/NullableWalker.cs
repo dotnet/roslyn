@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Binder for symbol being analyzed.
+        /// Must be non-null except from BestTypeForLambdaReturns which does not rely on this field.
         /// </summary>
         private readonly Binder? _binder;
 
@@ -745,9 +746,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
+            Debug.Assert(node.SyntaxTree is object);
             var binder = method is SynthesizedSimpleProgramEntryPointSymbol entryPoint ?
                              entryPoint.GetBodyBinder(ignoreAccessibility: false) :
-                             compilation.GetBinderFactory(node.SyntaxTree!).GetBinder(node.Syntax);
+                             compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             var conversions = binder.Conversions;
             Analyze(compilation,
                 method,
@@ -992,6 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState? initialState,
             SnapshotManager.Builder? snapshotBuilderOpt)
         {
+            Debug.Assert(snapshotBuilderOpt is null || symbol is object);
             try
             {
                 bool badRegion = false;
@@ -1233,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             //   struct B { }
                                             //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
                                             int containingSlot = MakeSlot(operand);
-                                            return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType!, containingSlot, out _);
+                                            return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot, out _);
                                         }
                                     }
                                     break;
@@ -2622,7 +2625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node)
             {
                 case BoundObjectInitializerExpression objectInitializer:
-                    checkImplicitReceiver();
+                    checkImplicitReceiver(objectInitializer);
                     foreach (var initializer in objectInitializer.Initializers)
                     {
                         switch (initializer.Kind)
@@ -2638,7 +2641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetNotNullResult(objectInitializer.Placeholder);
                     break;
                 case BoundCollectionInitializerExpression collectionInitializer:
-                    checkImplicitReceiver();
+                    checkImplicitReceiver(collectionInitializer);
                     foreach (var initializer in collectionInitializer.Initializers)
                     {
                         switch (initializer.Kind)
@@ -2664,11 +2667,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            void checkImplicitReceiver()
+            void checkImplicitReceiver(BoundObjectInitializerExpressionBase node)
             {
-                if (containingSlot >= 0 && (node as BoundObjectInitializerExpressionBase)?.Initializers.Length != 0)
+                if (containingSlot >= 0 && !node.Initializers.IsEmpty)
                 {
-                    if (!node.Type!.IsValueType && State[containingSlot].MayBeNull())
+                    if (!node.Type.IsValueType && State[containingSlot].MayBeNull())
                     {
                         if (containingSymbol is null)
                         {
@@ -2722,13 +2725,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Note: we analyze even omitted calls
             (var reinferredMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
+            Debug.Assert(reinferredMethod is object);
             if (node.ImplicitReceiverOpt != null)
             {
                 Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder);
                 SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
             }
             SetUnknownResultNullability(node);
-            SetUpdatedSymbol(node, node.AddMethod, reinferredMethod!);
+            SetUpdatedSymbol(node, node.AddMethod, reinferredMethod);
         }
 
         private void SetNotNullResult(BoundExpression node)
@@ -3699,17 +3703,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var leftResultType = leftResult.Type!;
-            var rightResultType = rightResult.Type!;
+            var leftResultType = leftResult.Type;
+            var rightResultType = rightResult.Type;
 
             var resultType = node.OperatorResultKind switch
             {
-                BoundNullCoalescingOperatorResultKind.NoCommonType => node.Type!,
-                BoundNullCoalescingOperatorResultKind.LeftType => getLeftResultType(leftResultType, rightResultType),
-                BoundNullCoalescingOperatorResultKind.LeftUnwrappedType => getLeftResultType(leftResultType.StrippedType(), rightResultType),
-                BoundNullCoalescingOperatorResultKind.RightType => getRightResultType(leftResultType, rightResultType),
-                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getRightResultType(leftResultType.StrippedType(), rightResultType),
-                BoundNullCoalescingOperatorResultKind.RightDynamicType => rightResultType,
+                BoundNullCoalescingOperatorResultKind.NoCommonType => node.Type,
+                BoundNullCoalescingOperatorResultKind.LeftType => getLeftResultType(leftResultType!, rightResultType!),
+                BoundNullCoalescingOperatorResultKind.LeftUnwrappedType => getLeftResultType(leftResultType!.StrippedType(), rightResultType!),
+                BoundNullCoalescingOperatorResultKind.RightType => getRightResultType(leftResultType!, rightResultType!),
+                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getRightResultType(leftResultType!.StrippedType(), rightResultType!),
+                BoundNullCoalescingOperatorResultKind.RightDynamicType => rightResultType!,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind),
             };
 
@@ -3750,6 +3754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var receiver = node.Receiver;
+            Debug.Assert(receiver.Type is object);
             _ = VisitRvalueWithState(receiver);
             _currentConditionalReceiverVisitResult = _visitResult;
             var previousConditionalAccessSlot = _lastConditionalAccessSlot;
@@ -3767,8 +3772,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LearnFromNullTest(receiver, ref receiverState);
                 LearnFromNonNullTest(receiver, ref this.State);
                 var nextConditionalAccessSlot = MakeSlot(receiver);
-                if (nextConditionalAccessSlot > 0 && receiver.Type!.IsNullableType())
-                    nextConditionalAccessSlot = GetNullableOfTValueSlot(receiver.Type!, nextConditionalAccessSlot, out _);
+                if (nextConditionalAccessSlot > 0 && receiver.Type.IsNullableType())
+                    nextConditionalAccessSlot = GetNullableOfTValueSlot(receiver.Type, nextConditionalAccessSlot, out _);
 
                 _lastConditionalAccessSlot = nextConditionalAccessSlot;
             }
@@ -3805,6 +3810,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState consequenceRValue;
             TypeWithState alternativeRValue;
 
+            Debug.Assert(node.Kind != BoundKind.UnconvertedConditionalOperator);
+
             if (isRef)
             {
                 TypeWithAnnotations consequenceLValue;
@@ -3815,7 +3822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, originalAlternative);
                 Join(ref this.State, ref consequenceState);
 
-                TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                TypeSymbol refResultType = node.Type!.SetUnknownNullabilityForReferenceTypes();
                 if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
@@ -3892,7 +3899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState;
             if (resultType is null)
             {
-                resultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                resultType = node.Type!.SetUnknownNullabilityForReferenceTypes();
                 resultState = NullableFlowState.NotNull;
 
                 var resultTypeWithState = TypeWithState.Create(resultType, resultState);
@@ -5748,7 +5755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType;
         }
 
-        private static bool AreNullableAndUnderlyingTypes(TypeSymbol? nullableTypeOpt, TypeSymbol? underlyingTypeOpt, out TypeWithAnnotations underlyingTypeWithAnnotations)
+        private static bool AreNullableAndUnderlyingTypes([NotNullWhen(true)] TypeSymbol? nullableTypeOpt, [NotNullWhen(true)] TypeSymbol? underlyingTypeOpt, out TypeWithAnnotations underlyingTypeWithAnnotations)
         {
             if (nullableTypeOpt?.IsNullableType() == true &&
                 underlyingTypeOpt?.IsNullableType() == false)
@@ -6166,11 +6173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 VisitLocalFunctionUse(localFunc);
                             }
-                            method = CheckMethodGroupReceiverNullability(group, parameters, method!, conversion.IsExtensionMethod);
+                            method = CheckMethodGroupReceiverNullability(group, parameters, method, conversion.IsExtensionMethod);
                         }
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType, invokeSignature, method!, conversion.IsExtensionMethod);
+                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType, invokeSignature, method, conversion.IsExtensionMethod);
                         }
                     }
                     resultState = NullableFlowState.NotNull;
@@ -6187,7 +6194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.AnonymousFunction:
                     if (conversionOperand is BoundLambda lambda)
                     {
-                        var delegateType = targetType.GetDelegateType()!;
+                        var delegateType = targetType.GetDelegateType();
                         VisitLambda(lambda, delegateType, stateForLambda);
                         if (reportRemainingWarnings)
                         {
@@ -7302,11 +7309,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int valueSlot;
                     if (underlyingConversion.IsIdentity)
                     {
-                        if ((variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                        if (variable.Expression is BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithInferredType } local)
                         {
                             // when the LHS is a var declaration, we can just visit the right part to infer the type
                             valueType = operandType = VisitRvalueWithState(rightPart);
-                            _variableTypes[variable.Expression.ExpressionSymbol!] = operandType.ToAnnotatedTypeWithAnnotations(compilation);
+                            _variableTypes[local.LocalSymbol] = operandType.ToAnnotatedTypeWithAnnotations(compilation);
                         }
                         else
                         {
@@ -7644,9 +7651,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var paramType = parameter.TypeWithAnnotations;
             ReportNullableAssignmentIfNecessary(argument, paramType, argumentType, useLegacyWarnings: false, AssignmentKind.Argument, parameterOpt: parameter);
 
-            if (!argumentType.HasNullType && IsNullabilityMismatch(paramType.Type, argumentType.Type!))
+            if (argumentType.Type is { } argType && IsNullabilityMismatch(paramType.Type, argType))
             {
-                ReportNullabilityMismatchInArgument(argument.Syntax, argumentType.Type!, parameter, paramType.Type, forOutput: false);
+                ReportNullabilityMismatchInArgument(argument.Syntax, argType, parameter, paramType.Type, forOutput: false);
             }
         }
 
@@ -7979,7 +7986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var inferredCollectionType = ResultType.Type!;
+                var inferredCollectionType = ResultType.Type;
+                Debug.Assert(inferredCollectionType is object);
 
                 if (inferredCollectionType is ArrayTypeSymbol arrayType)
                 {
@@ -8302,7 +8310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
 
-            Debug.Assert(trueFalseOperator is null || (logicalOperator is object && left != null));
+            Debug.Assert(trueFalseOperator is null || logicalOperator is object);
+            Debug.Assert(logicalOperator is null || left is object);
 
             // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
             if (trueFalseOperator is object)
