@@ -347,13 +347,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 var newNodes = _modifier(current, generator).ToList();
                 for (var i = 0; i < newNodes.Count; i++)
                 {
-                    var newNodeWithTracking = _editor.ApplyTrackingToNewNode(newNodes[i]);
-                    if (newNodeWithTracking == null)
-                    {
-                        throw new ArgumentNullException(nameof(newNodeWithTracking));
-                    }
-
-                    newNodes[i] = newNodeWithTracking;
+                    newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
                 }
 
                 return SyntaxGenerator.ReplaceNode(root, current, newNodes);
