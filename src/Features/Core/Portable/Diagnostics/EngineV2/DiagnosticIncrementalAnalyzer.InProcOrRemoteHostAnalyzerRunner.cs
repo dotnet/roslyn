@@ -74,19 +74,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Contract.ThrowIfFalse(!compilationWithAnalyzers.Analyzers.IsEmpty);
 
-                var workspace = project.Solution.Workspace;
-                if (workspace.Services.GetService<IRemoteHostClientProvider>() is { } service &&
-                    await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false) is { } remoteHostClient)
+                var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (remoteHostClient != null)
                 {
                     return await AnalyzeOutOfProcAsync(documentAnalysisScope, project, compilationWithAnalyzers, remoteHostClient,
                         forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
                 }
 
-                // We need to execute InProc due to one of the following reasons:
-                //  1. The host doesn't support RemoteHostService (such as under unit test) OR
-                //  2. Remote host is not running (this can happen if remote host is disabled).
                 return await AnalyzeInProcAsync(documentAnalysisScope, project, compilationWithAnalyzers,
-                        client: null, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+                    client: null, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -115,9 +111,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(AnalyzerInfoCache);
 
             // get compiler result builder map
-            var builderMap = analysisResult.ToResultBuilderMap(
+            var builderMap = await analysisResult.ToResultBuilderMapAsync(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
-                compilationWithAnalyzers.Compilation, analyzers, skippedAnalyzersInfo, compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken);
+                compilationWithAnalyzers.Compilation, analyzers, skippedAnalyzersInfo,
+                compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
             var result = builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value));
             var telemetry = getTelemetryInfo
@@ -140,16 +137,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
+                // +1 for project itself
+                var count = documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1;
+
                 await client.RunRemoteAsync(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     solution: null,
-                    new object[]
-                    {
-                            analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache),
-                            // +1 for project itself
-                            documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1
-                    },
+                    new object[] { analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache), count },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }

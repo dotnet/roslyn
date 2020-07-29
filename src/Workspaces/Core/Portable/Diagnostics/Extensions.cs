@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(
+        public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(
             this AnalysisResult analysisResult,
             ImmutableArray<Diagnostic> additionalPragmaSuppressionDiagnostics,
             DocumentAnalysisScope? documentAnalysisScope,
@@ -144,17 +144,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool includeSuppressedDiagnostics,
             CancellationToken cancellationToken)
         {
-            SyntaxTree? filterTree = null;
-            AdditionalText? filterAdditionalFile = null;
+            SyntaxTree? treeToAnalyze = null;
+            AdditionalText? additionalFileToAnalyze = null;
             if (documentAnalysisScope != null)
             {
                 if (documentAnalysisScope.TextDocument is Document document)
                 {
-                    filterTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+                    treeToAnalyze = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    filterAdditionalFile = documentAnalysisScope.AdditionalFile;
+                    additionalFileToAnalyze = documentAnalysisScope.AdditionalFile;
                 }
             }
 
@@ -175,35 +175,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (documentAnalysisScope != null)
                 {
-                    RoslynDebug.Assert(filterTree != null || filterAdditionalFile != null);
-                    var filterSpan = documentAnalysisScope.Span;
+                    RoslynDebug.Assert(treeToAnalyze != null || additionalFileToAnalyze != null);
+                    var spanToAnalyze = documentAnalysisScope.Span;
                     var kind = documentAnalysisScope.Kind;
 
                     ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>? diagnosticsByAnalyzerMap;
                     switch (kind)
                     {
                         case AnalysisKind.Syntax:
-                            if (filterTree != null)
+                            if (treeToAnalyze != null)
                             {
-                                if (analysisResult.SyntaxDiagnostics.TryGetValue(filterTree, out diagnosticsByAnalyzerMap))
+                                if (analysisResult.SyntaxDiagnostics.TryGetValue(treeToAnalyze, out diagnosticsByAnalyzerMap))
                                 {
                                     AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                        filterTree, additionalDocumentId: null, filterSpan, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                                        treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                                 }
                             }
-                            else if (analysisResult.AdditionalFileDiagnostics.TryGetValue(filterAdditionalFile!, out diagnosticsByAnalyzerMap))
+                            else if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
                             {
                                 AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                    tree: null, documentAnalysisScope.TextDocument.Id, filterSpan, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                                    tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                             }
 
                             break;
 
                         case AnalysisKind.Semantic:
-                            if (analysisResult.SemanticDiagnostics.TryGetValue(filterTree!, out diagnosticsByAnalyzerMap))
+                            if (analysisResult.SemanticDiagnostics.TryGetValue(treeToAnalyze!, out diagnosticsByAnalyzerMap))
                             {
                                 AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                    filterTree, additionalDocumentId: null, filterSpan, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                                    treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                             }
 
                             break;
@@ -244,10 +244,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (documentAnalysisScope != null)
                     {
-                        if (filterTree != null)
+                        if (treeToAnalyze != null)
                         {
-                            var diagnostics = additionalPragmaSuppressionDiagnostics.WhereAsArray(d => d.Location.SourceTree == filterTree);
-                            AddDiagnosticsToResult(diagnostics, ref result, compilation, filterTree, additionalDocumentId: null,
+                            var diagnostics = additionalPragmaSuppressionDiagnostics.WhereAsArray(d => d.Location.SourceTree == treeToAnalyze);
+                            AddDiagnosticsToResult(diagnostics, ref result, compilation, treeToAnalyze, additionalDocumentId: null,
                                 documentAnalysisScope!.Span, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                         }
                     }

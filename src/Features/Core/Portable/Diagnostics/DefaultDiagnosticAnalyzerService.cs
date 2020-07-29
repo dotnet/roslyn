@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// 
             /// The intended audience for this API is for ones that pefer simplicity over performance such as document that belong to misc project.
             /// this doesn't cache nor use cache for anything. it will re-caculate new diagnostics every time for the given document.
-            /// it will not persist any data on disk nor use OOP to calcuate the data.
+            /// it will not persist any data on disk nor use OOP to calculate the data.
             /// 
             /// This should never be used when performance is a big concern. for such context, use much complex API from IDiagnosticAnalyzerService
             /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.

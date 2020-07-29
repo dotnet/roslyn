@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            if (document == null && !(textDocument is AdditionalDocument))
+            if (document == null && textDocument is not AdditionalDocument)
             {
                 // We currently support document analysis only for source documents and additional documents.
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (isCompilerAnalyzer)
             {
-                if (!(AnalysisScope.TextDocument is Document))
+                if (AnalysisScope.TextDocument is not Document)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
