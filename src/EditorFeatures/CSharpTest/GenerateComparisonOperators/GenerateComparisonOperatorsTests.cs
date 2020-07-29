@@ -20,17 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOpera
     [UseExportProvider]
     public class GenerateComparisonOperatorsTests
     {
-        private static Task TestInRegularAndScriptAsync(
-            string initialMarkup,
-            string expectedMarkup,
-            int index = 0,
-            OptionsCollection options = null,
-            List<DiagnosticResult> fixedExpectedDiagnostics = null)
-        {
-            return TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, new TestParameters(options: options), fixedExpectedDiagnostics);
-        }
-
         private static Task TestInRegularAndScript1Async(
             string initialMarkup,
             string expectedMarkup,

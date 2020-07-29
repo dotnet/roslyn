@@ -2198,10 +2198,11 @@ class C
             Await TestAddProperty(
                 code, expected,
                 New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
-                New Dictionary(Of OptionKey2, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement}
-                })
+editorConfig:="
+[*]
+csharp_style_expression_bodied_accessors=false:silent
+csharp_style_expression_bodied_properties=false:silent
+")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2243,10 +2244,11 @@ class C
 
             Await TestAddProperty(
                 code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
-                New Dictionary(Of OptionKey2, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement}
-                })
+editorConfig:="
+[*]
+csharp_style_expression_bodied_accessors=false:silent
+csharp_style_expression_bodied_properties=false:silent
+")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
