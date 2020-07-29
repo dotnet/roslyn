@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class IOperationTests : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void NullCheckedMethodDeclarationIOp()
         {
             var source = @"
@@ -68,7 +68,7 @@ Block[B3] - Exit
     Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_OneNullCheckedManyParams()
         {
             var source = @"
@@ -121,7 +121,7 @@ Block[B3] - Exit
     Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_OneNullCheckedParamWithStringOpt()
         {
             var source = @"
@@ -174,7 +174,7 @@ Block[B3] - Exit
     Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestIOp_NullCheckedOperator()
         {
             var source = @"
@@ -2410,7 +2410,7 @@ class Program
         Statements (0)");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedMethodWithMissingHasValue()
         {
             var source =
