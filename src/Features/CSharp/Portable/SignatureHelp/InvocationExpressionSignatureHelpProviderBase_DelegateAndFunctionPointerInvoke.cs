@@ -35,16 +35,28 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
+            return GetDelegateOrFunctionPointerInvokeItems(invocationExpression, invokeMethod, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, out selectedItem, cancellationToken);
+        }
+
+        private static IList<SignatureHelpItem> GetFunctionPointerInvokeItems(
+            InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IDocumentationCommentFormattingService documentationCommentFormattingService, IFunctionPointerTypeSymbol functionPointerType, out int? selectedItem, CancellationToken cancellationToken)
+        {
+            return GetDelegateOrFunctionPointerInvokeItems(invocationExpression, functionPointerType.Signature, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, out selectedItem, cancellationToken);
+        }
+
+        private static IList<SignatureHelpItem> GetDelegateOrFunctionPointerInvokeItems(InvocationExpressionSyntax invocationExpression, IMethodSymbol invokeMethod, SemanticModel semanticModel, IAnonymousTypeDisplayService anonymousTypeDisplayService, IDocumentationCommentFormattingService documentationCommentFormattingService, out int? selectedItem, CancellationToken cancellationToken)
+        {
             var position = invocationExpression.SpanStart;
             var item = CreateItem(
                 invokeMethod, semanticModel, position,
                 anonymousTypeDisplayService,
                 isVariadic: invokeMethod.IsParams(),
                 documentationFactory: null,
-                prefixParts: GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
+                prefixParts: GetDelegateOrFunctionPointerInvokePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
-                suffixParts: GetDelegateInvokePostambleParts(),
-                parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
+                suffixParts: GetDelegateOrFunctionPointerInvokePostambleParts(),
+                parameters: GetDelegateOrFunctionPointerInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
 
             // Since we're returning a single item, we can selected it as the "best one".
             selectedItem = 0;
@@ -52,18 +64,28 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SpecializedCollections.SingletonList(item);
         }
 
-        private static IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var displayParts = new List<SymbolDisplayPart>();
             displayParts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position));
             displayParts.Add(Space());
-            displayParts.AddRange(invokeMethod.ContainingType.ToMinimalDisplayParts(semanticModel, position));
+
+            if (invokeMethod.MethodKind == MethodKind.FunctionPointerSignature)
+            {
+                displayParts.Add(Keyword(SyntaxKind.DelegateKeyword));
+                displayParts.Add(Operator(SyntaxKind.AsteriskToken));
+            }
+            else
+            {
+                displayParts.AddRange(invokeMethod.ContainingType.ToMinimalDisplayParts(semanticModel, position));
+            }
+
             displayParts.Add(Punctuation(SyntaxKind.OpenParenToken));
 
             return displayParts;
         }
 
-        private static IList<SignatureHelpSymbolParameter> GetDelegateInvokeParameters(
+        private static IList<SignatureHelpSymbolParameter> GetDelegateOrFunctionPointerInvokeParameters(
             IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
         {
             var result = new List<SignatureHelpSymbolParameter>();
@@ -81,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private static IList<SymbolDisplayPart> GetDelegateInvokePostambleParts()
+        private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

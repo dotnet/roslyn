@@ -107,10 +107,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     selectedItem);
             }
 
-            if (semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
+            var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
+            if (invokedType is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
             {
                 var items = GetDelegateInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService,
                     documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);
+
+                return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+            }
+            else if (invokedType is IFunctionPointerTypeSymbol functionPointerType)
+            {
+                var items = GetFunctionPointerInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService,
+                    documentationCommentFormattingService, functionPointerType, out var selectedItem, cancellationToken);
 
                 return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
             }
