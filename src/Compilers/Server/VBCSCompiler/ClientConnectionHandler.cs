@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CompletionData.RequestCompleted;
                 }
 
-                return await ProcessCompliationRequestAsync(clientConnection, request, cancellationToken).ConfigureAwait(false);
+                return await ProcessCompilationRequestAsync(clientConnection, request, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<CompletionData> ProcessCompliationRequestAsync(IClientConnection clientConnection, BuildRequest request, CancellationToken cancellationToken)
+        private async Task<CompletionData> ProcessCompilationRequestAsync(IClientConnection clientConnection, BuildRequest request, CancellationToken cancellationToken)
         {
             // Need to wait for the compilation and client disconnection in parallel. If the client
             // suddenly disconnects we need to cancel the compilation that is occuring. It could be the 

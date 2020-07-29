@@ -265,9 +265,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Checks the completed connection objects.
+        /// Checks the completed connection objects and updates the server state based on their 
+        /// results.
         /// </summary>
-        /// <returns>False if the server needs to begin shutting down</returns>
         private void HandleCompletedConnections()
         {
             var shutdown = false;

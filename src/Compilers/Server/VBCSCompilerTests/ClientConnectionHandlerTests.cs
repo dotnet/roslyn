@@ -82,8 +82,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task CompilationsDisallowed()
         {
+            var hitCompliation = false;
             var compilerServerHost = new TestableCompilerServerHost(delegate
             {
+                hitCompliation = true;
                 Assert.True(false, "Should not reach compilation when compilations are disallowed");
                 throw new Exception("");
             });
@@ -107,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Assert.Equal(CompletionData.RequestCompleted, completionData);
             Assert.True(response is RejectedBuildResponse);
+            Assert.False(hitCompliation);
         }
 
         /// <summary>
