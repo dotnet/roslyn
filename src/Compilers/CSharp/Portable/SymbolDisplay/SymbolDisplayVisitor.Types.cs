@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (candidate is null ||
                 !(containingType.IsSealed || candidate.IsOverride || candidate.IsVirtual || candidate.IsAbstract) ||
-                !IsEqualToOrDerivedFrom(
+                !isEqualToOrDerivedFrom(
                     containingType,
                     candidate.ReturnType,
                     SymbolEqualityComparer.IgnoreAll))
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return candidate;
 
-            bool IsEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other, SymbolEqualityComparer comparison)
+            static bool isEqualToOrDerivedFrom(ITypeSymbol one, ITypeSymbol other, SymbolEqualityComparer comparison)
             {
                 if (one.Equals(other, comparison))
                 {
