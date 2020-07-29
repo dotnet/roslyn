@@ -1822,7 +1822,7 @@ sealed abstract record C2 : C1;
         }
 
         [Fact]
-        public void Clone_IntReturnType_UsedAsBaseType()
+        public void Clone_05_IntReturnType_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1919,7 +1919,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_IntReturnType_UsedInWith()
+        public void Clone_06_IntReturnType_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2022,7 +2022,7 @@ public class Program
         }
 
         [Fact]
-        public void Clone_Ambiguous_UsedAsBaseType()
+        public void Clone_07_Ambiguous_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2129,7 +2129,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_Ambiguous_UsedInWith()
+        public void Clone_08_Ambiguous_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2242,7 +2242,7 @@ public class Program
         }
 
         [Fact]
-        public void Clone_AmbiguousReverseOrder_UsedAsBaseType()
+        public void Clone_09_AmbiguousReverseOrder_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2348,7 +2348,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_AmbiguousReverseOrder_UsedInWith()
+        public void Clone_10_AmbiguousReverseOrder_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2757,7 +2757,7 @@ record D(int X) : C(X)
         }
 
         [Fact]
-        public void Clone_NonOverridable_01()
+        public void Clone_17_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2854,7 +2854,7 @@ public record B : A {
         }
 
         [Fact]
-        public void Clone_NonOverridable_02()
+        public void Clone_18_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
