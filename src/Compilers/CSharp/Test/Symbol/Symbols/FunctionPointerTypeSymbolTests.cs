@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTypeSymbolTests : CSharpTestBase
     {
-        private static CSharpCompilation CreateFunctionPointerCompilation(string source)
+        private static CSharpCompilation CreateFunctionPointerCompilation(string source, TargetFramework targetFramework = TargetFramework.Standard)
         {
-            return CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            return CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll, targetFramework: targetFramework);
         }
 
         [InlineData("", RefKind.None, "delegate*<System.Object>")]
@@ -227,33 +227,47 @@ class C
         [InlineData("unmanaged[Stdcall]", CallingConvention.Standard)]
         [InlineData("unmanaged[Thiscall]", CallingConvention.ThisCall)]
         [InlineData("unmanaged[Fastcall]", CallingConvention.FastCall)]
-        [InlineData("unmanaged", CallingConvention.Unmanaged, Skip = "PROTOTYPE(func-ptr): Update SRM to understand the new bit")]
+        [InlineData("unmanaged", CallingConvention.Unmanaged)]
         [Theory]
         internal void ValidCallingConventions(string convention, CallingConvention expectedConvention)
         {
-            var comp = CreateFunctionPointerCompilation($@"
+            string source = $@"
 class C
 {{
     public unsafe void M(delegate* {convention}<string> p) {{}}
-}}");
+}}";
 
-            comp.VerifyDiagnostics();
-            var c = comp.GetTypeByMetadataName("C");
-            var m = c.GetMethod("M");
-            var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
-            FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
-            Assert.Equal(expectedConvention, pointerType.Signature.CallingConvention);
-            Assert.Equal(SpecialType.System_String, pointerType.Signature.ReturnType.SpecialType);
+            verify(CreateFunctionPointerCompilation(source));
 
-            // https://github.com/dotnet/roslyn/issues/43321 test public calling convention exposure when added to the API
-            var syntaxTree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(syntaxTree);
+            var compWithMissingMembers = CreateFunctionPointerCompilation(source, targetFramework: TargetFramework.Minimal);
+            Assert.Null(compWithMissingMembers.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvCdecl"));
+            Assert.Null(compWithMissingMembers.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvThiscall"));
+            Assert.Null(compWithMissingMembers.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvFastcall"));
+            Assert.Null(compWithMissingMembers.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvStdcall"));
+            verify(compWithMissingMembers);
 
-            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
-                syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single(),
-                expectedSyntax: $"delegate* {convention}<string>",
-                expectedType: "delegate*<System.String>",
-                expectedSymbol: "delegate*<System.String>");
+            void verify(CSharpCompilation comp)
+            {
+                comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+
+                comp.VerifyDiagnostics();
+                var c = comp.GetTypeByMetadataName("C");
+                var m = c.GetMethod("M");
+                var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
+                FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
+                Assert.Equal(expectedConvention, pointerType.Signature.CallingConvention);
+                Assert.Equal(SpecialType.System_String, pointerType.Signature.ReturnType.SpecialType);
+
+                // https://github.com/dotnet/roslyn/issues/43321 test public calling convention exposure when added to the API
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+
+                FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
+                    syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single(),
+                    expectedSyntax: $"delegate* {convention}<string>",
+                    expectedType: "delegate*<System.String>",
+                    expectedSymbol: "delegate*<System.String>");
+            }
         }
 
         [Fact]
@@ -268,34 +282,57 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-                // (4,47): error CS8807: 'invalid' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                // (4,47): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //     public unsafe void M1(delegate* unmanaged[invalid]<void> p) {}
-                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(4, 47),
-                // (5,47): error CS8807: 'invalid' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "invalid").WithLocation(4, 47),
+                // (4,47): error CS9502: Type 'CallConvinvalid' is not defined.
+                //     public unsafe void M1(delegate* unmanaged[invalid]<void> p) {}
+                Diagnostic(ErrorCode.ERR_TypeNotFound, "invalid").WithArguments("CallConvinvalid").WithLocation(4, 47),
+                // (5,37): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //     public unsafe void M2(delegate* unmanaged[invalid, Stdcall]<void> p) {}
-                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(5, 47),
-                // (5,56): error CS8807: 'Stdcall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(5, 37),
+                // (5,47): error CS9502: Type 'CallConvinvalid' is not defined.
                 //     public unsafe void M2(delegate* unmanaged[invalid, Stdcall]<void> p) {}
-                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Stdcall").WithArguments("Stdcall").WithLocation(5, 56),
+                Diagnostic(ErrorCode.ERR_TypeNotFound, "invalid").WithArguments("CallConvinvalid").WithLocation(5, 47),
                 // (6,47): error CS1001: Identifier expected
                 //     public unsafe void M3(delegate* unmanaged[]<void> p) {}
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(6, 47));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(6, 47),
+                // (6,47): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                //     public unsafe void M3(delegate* unmanaged[]<void> p) {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "").WithLocation(6, 47)
+            );
 
             var c = comp.GetTypeByMetadataName("C");
-            var m = c.GetMethod("M1");
-            var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
-            FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
-            Assert.Equal(CallingConvention.Default, pointerType.Signature.CallingConvention);
+            var m1 = c.GetMethod("M1");
+            var m1PointerType = (FunctionPointerTypeSymbol)m1.Parameters.Single().Type;
+            Assert.Equal(CallingConvention.Unmanaged, m1PointerType.Signature.CallingConvention);
 
-            // PROTOTYPE(func-ptr): Verify the public results of M2 and M3
+            var m2 = c.GetMethod("M2");
+            var m2PointerType = (FunctionPointerTypeSymbol)m2.Parameters.Single().Type;
+            Assert.Equal(CallingConvention.Unmanaged, m2PointerType.Signature.CallingConvention);
+
+            var m3 = c.GetMethod("M3");
+            var m3PointerType = (FunctionPointerTypeSymbol)m3.Parameters.Single().Type;
+            Assert.Equal(CallingConvention.Unmanaged, m3PointerType.Signature.CallingConvention);
 
             // https://github.com/dotnet/roslyn/issues/43321 test public calling convention exposure when added to the API
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
+            var functionPointers = syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().ToArray();
+            Assert.Equal(3, functionPointers.Length);
 
-            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
-                syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().First(),
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, functionPointers[0],
                 expectedSyntax: "delegate* unmanaged[invalid]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvinvalid[missing])>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvinvalid[missing])>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, functionPointers[1],
+                expectedSyntax: "delegate* unmanaged[invalid, Stdcall]<void>",
+                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvinvalid[missing]) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvinvalid[missing]) modopt(System.Runtime.CompilerServices.CallConvStdcall)>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, functionPointers[2],
+                expectedSyntax: "delegate* unmanaged[]<void>",
                 expectedType: "delegate*<System.Void>",
                 expectedSymbol: "delegate*<System.Void>");
         }
@@ -1826,6 +1863,221 @@ unsafe class C
             Assert.Equal("delegate*<ref System.Int32, System.Void> ptr3", model.GetDeclaredSymbol(decls[2]).ToTestDisplayString());
             Assert.Equal("delegate*<System.Void, System.Void> ptr4", model.GetDeclaredSymbol(decls[3]).ToTestDisplayString());
             Assert.Equal("delegate*<ref System.Void> ptr5", model.GetDeclaredSymbol(decls[4]).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Equality_UnmanagedExtensionModifiers()
+        {
+            var comp = CreateFunctionPointerCompilation("");
+
+            var returnType = comp.GetSpecialType(SpecialType.System_String);
+
+            var objectMod = CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Object));
+            var thiscallMod = CSharpCustomModifier.CreateOptional(comp.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvThiscall"));
+            var stdcallMod = CSharpCustomModifier.CreateOptional(comp.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvStdcall"));
+
+            var funcPtrPlatformDefault = createTypeSymbol(customModifiers: default);
+            var funcPtrConventionThisCall = createTypeSymbol(customModifiers: default, CallingConvention.ThisCall);
+            var funcPtrConventionThisCallWithThiscallMod = createTypeSymbol(customModifiers: ImmutableArray.Create(thiscallMod), CallingConvention.ThisCall);
+
+            var funcPtrThiscall = createTypeSymbol(customModifiers: ImmutableArray.Create(thiscallMod));
+            var funcPtrThiscallObject = createTypeSymbol(customModifiers: ImmutableArray.Create(thiscallMod, objectMod));
+            var funcPtrObjectThiscall = createTypeSymbol(customModifiers: ImmutableArray.Create(objectMod, thiscallMod));
+            var funcPtrObjectThiscallObject = createTypeSymbol(customModifiers: ImmutableArray.Create(objectMod, thiscallMod, objectMod));
+
+            var funcPtrThiscallStdcall = createTypeSymbol(customModifiers: ImmutableArray.Create(thiscallMod, stdcallMod));
+            var funcPtrStdcallThiscall = createTypeSymbol(customModifiers: ImmutableArray.Create(stdcallMod, thiscallMod));
+            var funcPtrThiscallThiscallStdcall = createTypeSymbol(customModifiers: ImmutableArray.Create(thiscallMod, thiscallMod, stdcallMod));
+            var funcPtrThiscallObjectStdcall = createTypeSymbol(customModifiers: ImmutableArray.Create(thiscallMod, objectMod, stdcallMod));
+
+            verifyEquality(funcPtrPlatformDefault, funcPtrThiscall, expectedConventionEquality: false, expectedFullEquality: false);
+            verifyEquality(funcPtrPlatformDefault, funcPtrConventionThisCall, expectedConventionEquality: false, expectedFullEquality: false, skipGetCallingConventionModifiersCheck: true);
+            verifyEquality(funcPtrConventionThisCallWithThiscallMod, funcPtrConventionThisCall, expectedConventionEquality: true, expectedFullEquality: false, skipGetCallingConventionModifiersCheck: true);
+
+            // Single calling convention modopt
+            verifyEquality(funcPtrThiscall, funcPtrThiscallObject, expectedConventionEquality: true, expectedFullEquality: false);
+            verifyEquality(funcPtrThiscall, funcPtrObjectThiscall, expectedConventionEquality: true, expectedFullEquality: false);
+            verifyEquality(funcPtrThiscall, funcPtrObjectThiscallObject, expectedConventionEquality: true, expectedFullEquality: false);
+
+            verifyEquality(funcPtrThiscallObject, funcPtrObjectThiscall, expectedConventionEquality: true, expectedFullEquality: false);
+            verifyEquality(funcPtrThiscallObject, funcPtrObjectThiscallObject, expectedConventionEquality: true, expectedFullEquality: false);
+
+            verifyEquality(funcPtrObjectThiscall, funcPtrObjectThiscallObject, expectedConventionEquality: true, expectedFullEquality: false);
+
+            // Multiple calling convention modopts
+            verifyEquality(funcPtrThiscallStdcall, funcPtrStdcallThiscall, expectedConventionEquality: true, expectedFullEquality: false);
+            verifyEquality(funcPtrThiscallStdcall, funcPtrThiscallThiscallStdcall, expectedConventionEquality: true, expectedFullEquality: false);
+            verifyEquality(funcPtrThiscallStdcall, funcPtrThiscallObjectStdcall, expectedConventionEquality: true, expectedFullEquality: false);
+
+            verifyEquality(funcPtrStdcallThiscall, funcPtrThiscallThiscallStdcall, expectedConventionEquality: true, expectedFullEquality: false);
+            verifyEquality(funcPtrStdcallThiscall, funcPtrThiscallObjectStdcall, expectedConventionEquality: true, expectedFullEquality: false);
+
+            verifyEquality(funcPtrThiscallThiscallStdcall, funcPtrThiscallObjectStdcall, expectedConventionEquality: true, expectedFullEquality: false);
+
+            static void verifyEquality((FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr1, (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr2, bool expectedConventionEquality, bool expectedFullEquality, bool skipGetCallingConventionModifiersCheck = false)
+            {
+                // No equality between pointers with differring refkinds
+                Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
+                Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.ConsiderEverything));
+
+                if (!skipGetCallingConventionModifiersCheck)
+                {
+                    Assert.Equal(expectedConventionEquality, ptr1.NoRef.Signature.GetCallingConventionModifiers().SetEquals(ptr2.NoRef.Signature.GetCallingConventionModifiers()));
+                    Assert.Equal(expectedConventionEquality, ptr1.ByRef.Signature.GetCallingConventionModifiers().SetEquals(ptr2.ByRef.Signature.GetCallingConventionModifiers()));
+                }
+                Assert.Equal(expectedConventionEquality, ptr1.NoRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.Equal(expectedConventionEquality, ptr1.ByRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.Equal(expectedFullEquality, ptr1.NoRef.Equals(ptr2.NoRef, TypeCompareKind.ConsiderEverything));
+                Assert.Equal(expectedFullEquality, ptr1.ByRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
+            }
+
+            (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) createTypeSymbol(ImmutableArray<CustomModifier> customModifiers, CallingConvention callingConvention = CallingConvention.Unmanaged)
+                => (FunctionPointerTypeSymbol.CreateFromParts(
+                        callingConvention,
+                        TypeWithAnnotations.Create(returnType, customModifiers: customModifiers),
+                        refCustomModifiers: default,
+                        RefKind.None,
+                        parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty,
+                        parameterRefCustomModifiers: default,
+                        parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                        comp),
+                    FunctionPointerTypeSymbol.CreateFromParts(
+                        callingConvention,
+                        TypeWithAnnotations.Create(returnType),
+                        customModifiers,
+                        RefKind.Ref,
+                        parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty,
+                        parameterRefCustomModifiers: default,
+                        parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                        comp));
+        }
+
+        [Fact]
+        public void CallingConventionNamedCallConv()
+        {
+            var comp = CreateEmptyCompilation(@"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public class String { }
+    namespace Runtime.CompilerServices
+    {
+        internal class CallConv {}
+        public static class RuntimeFeature
+        {
+            public const string UnmanagedSignatureCallingConvention = nameof(UnmanagedSignatureCallingConvention);
+        }
+    }
+}
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            var returnType = comp.GetSpecialType(SpecialType.System_String);
+
+            var callConvMod = CSharpCustomModifier.CreateOptional(comp.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv"));
+
+            var funcPtr = createTypeSymbol(customModifiers: default);
+            var funcPtrCallConv = createTypeSymbol(customModifiers: ImmutableArray.Create(callConvMod));
+
+            verifyEquality(funcPtr, funcPtrCallConv, expectedConventionEquality: true, expectedFullEquality: false);
+
+            static void verifyEquality((FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr1, (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr2, bool expectedConventionEquality, bool expectedFullEquality)
+            {
+                // No equality between pointers with differring refkinds
+                Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
+                Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.ConsiderEverything));
+
+                Assert.Equal(expectedConventionEquality, ptr1.NoRef.Signature.GetCallingConventionModifiers().SetEquals(ptr2.NoRef.Signature.GetCallingConventionModifiers()));
+                Assert.Equal(expectedConventionEquality, ptr1.ByRef.Signature.GetCallingConventionModifiers().SetEquals(ptr2.ByRef.Signature.GetCallingConventionModifiers()));
+                Assert.Equal(expectedConventionEquality, ptr1.NoRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.Equal(expectedConventionEquality, ptr1.ByRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.Equal(expectedFullEquality, ptr1.NoRef.Equals(ptr2.NoRef, TypeCompareKind.ConsiderEverything));
+                Assert.Equal(expectedFullEquality, ptr1.ByRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
+            }
+
+            (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) createTypeSymbol(ImmutableArray<CustomModifier> customModifiers, CallingConvention callingConvention = CallingConvention.Unmanaged)
+                => (FunctionPointerTypeSymbol.CreateFromParts(
+                        callingConvention,
+                        TypeWithAnnotations.Create(returnType, customModifiers: customModifiers),
+                        refCustomModifiers: default,
+                        RefKind.None,
+                        parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty,
+                        parameterRefCustomModifiers: default,
+                        parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                        comp),
+                    FunctionPointerTypeSymbol.CreateFromParts(
+                        callingConvention,
+                        TypeWithAnnotations.Create(returnType),
+                        customModifiers,
+                        RefKind.Ref,
+                        parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty,
+                        parameterRefCustomModifiers: default,
+                        parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                        comp));
+        }
+
+        [Fact]
+        public void Equality_DifferingRefAndTypeCustomModifiers()
+        {
+            var comp = CreateFunctionPointerCompilation("");
+
+            var returnType = comp.GetSpecialType(SpecialType.System_String);
+
+            var objectMod = CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Object));
+            var thiscallMod = CSharpCustomModifier.CreateOptional(comp.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvThiscall"));
+            var stdcallMod = CSharpCustomModifier.CreateOptional(comp.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvStdcall"));
+
+            var funcPtrThiscallOnTypeThiscallOnRef = createTypeSymbol(typeCustomModifiers: ImmutableArray.Create(thiscallMod), refCustomModifiers: ImmutableArray.Create(thiscallMod));
+            var funcPtrThiscallOnTypeStdcallOnRef = createTypeSymbol(typeCustomModifiers: ImmutableArray.Create(thiscallMod), refCustomModifiers: ImmutableArray.Create(stdcallMod));
+            var funcPtrStdcallOnTypeThiscallOnRef = createTypeSymbol(typeCustomModifiers: ImmutableArray.Create(stdcallMod), refCustomModifiers: ImmutableArray.Create(thiscallMod));
+
+            verifyEquality(funcPtrThiscallOnTypeThiscallOnRef, funcPtrThiscallOnTypeStdcallOnRef, expectedTypeConventionEquality: true, expectedRefConventionEquality: false);
+            verifyEquality(funcPtrThiscallOnTypeThiscallOnRef, funcPtrStdcallOnTypeThiscallOnRef, expectedTypeConventionEquality: false, expectedRefConventionEquality: true);
+            verifyEquality(funcPtrThiscallOnTypeStdcallOnRef, funcPtrStdcallOnTypeThiscallOnRef, expectedTypeConventionEquality: false, expectedRefConventionEquality: false);
+
+            static void verifyEquality((FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr1, (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) ptr2, bool expectedTypeConventionEquality, bool expectedRefConventionEquality)
+            {
+                // No equality between pointers with differring refkinds
+                Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.False(ptr1.NoRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
+                Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.False(ptr1.ByRef.Equals(ptr2.NoRef, TypeCompareKind.ConsiderEverything));
+
+                Assert.Equal(expectedTypeConventionEquality, ptr1.NoRef.Signature.GetCallingConventionModifiers().SetEquals(ptr2.NoRef.Signature.GetCallingConventionModifiers()));
+                Assert.Equal(expectedRefConventionEquality, ptr1.ByRef.Signature.GetCallingConventionModifiers().SetEquals(ptr2.ByRef.Signature.GetCallingConventionModifiers()));
+
+                Assert.Equal(expectedTypeConventionEquality, ptr1.NoRef.Equals(ptr2.NoRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Assert.Equal(expectedRefConventionEquality, ptr1.ByRef.Equals(ptr2.ByRef, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                // If we weren't expected the ref version to be equal, but we were expecting the type version to be equal, then that means
+                // the type version will be identical because it will have no ref modifiers
+                Assert.Equal(expectedTypeConventionEquality && !expectedRefConventionEquality, ptr1.NoRef.Equals(ptr2.NoRef, TypeCompareKind.ConsiderEverything));
+                Assert.False(ptr1.ByRef.Equals(ptr2.ByRef, TypeCompareKind.ConsiderEverything));
+            }
+
+            (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) createTypeSymbol(ImmutableArray<CustomModifier> typeCustomModifiers, ImmutableArray<CustomModifier> refCustomModifiers, CallingConvention callingConvention = CallingConvention.Unmanaged)
+                => (FunctionPointerTypeSymbol.CreateFromParts(
+                        callingConvention,
+                        TypeWithAnnotations.Create(returnType, customModifiers: typeCustomModifiers),
+                        refCustomModifiers: default,
+                        RefKind.None,
+                        parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty,
+                        parameterRefCustomModifiers: default,
+                        parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                        comp),
+                    FunctionPointerTypeSymbol.CreateFromParts(
+                        callingConvention,
+                        TypeWithAnnotations.Create(returnType, customModifiers: typeCustomModifiers),
+                        refCustomModifiers,
+                        RefKind.Ref,
+                        parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty,
+                        parameterRefCustomModifiers: default,
+                        parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                        comp));
         }
     }
 }

@@ -60,8 +60,7 @@ namespace Microsoft.Cci
         /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
         /// in IL, or platform default if none are present
         /// </summary>
-        // PROTOTYPE(func-ptr): Use the SRM version
-        Unmanaged = 0x9,
+        Unmanaged = SignatureCallingConvention.Unmanaged,
 
         /// <summary>
         /// The convention for calling a generic method.
@@ -87,7 +86,8 @@ namespace Microsoft.Cci
             | SignatureCallingConvention.StdCall
             | SignatureCallingConvention.ThisCall
             | SignatureCallingConvention.FastCall
-            | SignatureCallingConvention.VarArgs;
+            | SignatureCallingConvention.VarArgs
+            | SignatureCallingConvention.Unmanaged;
 
         private const SignatureAttributes SignatureAttributesMask =
             SignatureAttributes.Generic

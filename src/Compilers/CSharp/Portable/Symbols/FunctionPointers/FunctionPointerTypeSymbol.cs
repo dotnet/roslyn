@@ -29,12 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed.
         /// </summary>
         public static FunctionPointerTypeSymbol CreateFromParts(
+            CallingConvention callingConvention,
             TypeWithAnnotations returnType,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             RefKind returnRefKind,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<ImmutableArray<CustomModifier>> parameterRefCustomModifiers,
             ImmutableArray<RefKind> parameterRefKinds,
             CSharpCompilation compilation)
-            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
+            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(callingConvention, returnType, refCustomModifiers, returnRefKind, parameterTypes, parameterRefCustomModifiers, parameterRefKinds, compilation));
 
         public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(

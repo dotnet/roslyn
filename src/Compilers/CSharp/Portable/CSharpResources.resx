@@ -6065,7 +6065,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>&amp;method group</value>
   </data>
   <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
-    <value>'{0}' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.</value>
+    <value>'{0}' is not a valid calling convention specifier for a function pointer.</value>
+  </data>
+  <data name="ERR_TypeNotFound" xml:space="preserve">
+    <value>Type '{0}' is not defined.</value>
+  </data>
+  <data name="ERR_TypeMustBePublic" xml:space="preserve">
+    <value>Type '{0}' must be public to be used as a calling convention.</value>
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
@@ -6255,6 +6261,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_UnsupportedCallingConvention" xml:space="preserve">
     <value>The calling convention of '{0}' is not supported by the language.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv" xml:space="preserve">
+    <value>The target runtime doesn't support extensible or runtime-environment default calling conventions.</value>
   </data>
   <data name="NotSameNumberParameterTypesAndRefKinds" xml:space="preserve">
     <value>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</value>
