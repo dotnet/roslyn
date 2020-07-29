@@ -314,6 +314,172 @@ class Program
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
+        [Fact]
+        public void VbOverrideOfCSharpCovariantReturn_01()
+        {
+            var cSharpSource = @"
+public class Base
+{
+    public virtual object M() => null;
+    public virtual object P => null;
+    public virtual object this[int i] => null;
+}
+public abstract class Derived : Base
+{
+    public override string M() => null;
+    public override string P => null;
+    public override string this[int i] => null;
+";
+            var csharpCompilation = CreateCovariantCompilation(cSharpSource).VerifyDiagnostics();
+            var csharpReference = csharpCompilation.EmitToImageReference();
+
+            var vbSource = @"
+Public Class Derived2 : Inherits Derived
+    Public Overrides Function M() As Object
+        Return Nothing
+    End Function
+    Public Overrides ReadOnly Property P As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Overrides Default ReadOnly Property Item(i As Integer) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class
+";
+            var ERR_InvalidOverrideDueToReturn2 =
+                typeof(VisualBasic.VisualBasicCompilation).Assembly.GetType("Microsoft.CodeAnalysis.VisualBasic.ERRID").GetField("ERR_InvalidOverrideDueToReturn2").GetValue(null);
+            CreateVisualBasicCompilation(vbSource, referencedAssemblies: new[] { CorelibraryWithCovariantReturnSupport, csharpReference })
+                .VerifyDiagnostics(
+        //BC30437: 'Public Overrides Function M() As Object' cannot override 'Public Overridable Overloads Function M() As String' because they differ by their return types.
+        //Public Overrides Function M() As Object
+        //                      ~
+        Diagnostic(ERR_InvalidOverrideDueToReturn2, "M").WithArguments("Public Overrides Function M() As Object", "Public Overridable Overloads Function M() As String").WithLocation(3, 31),
+        //BC30437: 'Public Overrides ReadOnly Property P As Object' cannot override 'Public Overridable Overloads ReadOnly Property P As String' because they differ by their return types.
+        //Public Overrides ReadOnly Property P As Object
+        //                               ~
+        Diagnostic(ERR_InvalidOverrideDueToReturn2, "P").WithArguments("Public Overrides ReadOnly Property P As Object", "Public Overridable Overloads ReadOnly Property P As String").WithLocation(6, 40),
+        //BC30437: 'Public Overrides ReadOnly Default Property Item(i As Integer) As Object' cannot override 'Public Overridable Overloads ReadOnly Default Property Item(i As Integer) As String' because they differ by their return types.
+        //Public Overrides Default ReadOnly Property Item(i As Integer) As Object
+        //                                       ~~~~
+        Diagnostic(ERR_InvalidOverrideDueToReturn2, "Item").WithArguments("Public Overrides ReadOnly Default Property Item(i As Integer) As Object", "Public Overridable Overloads ReadOnly Default Property Item(i As Integer) As String").WithLocation(11, 48)
+                );
+        }
+
+        [Fact]
+        public void VbOverrideOfCSharpCovariantReturn_02()
+        {
+            var cSharpSource = @"
+public class Base
+{
+    public virtual object M() => ""Base.M"";
+    public virtual object P => ""Base.P"";
+    public virtual object this[int i] => ""Base[]"";
+}
+public abstract class Derived : Base
+{
+    public override string M() => ""Derived.M"";
+    public override string P => ""Derived.P"";
+    public override string this[int i] => ""Derived[]"";
+}
+";
+            var csharpCompilation = CreateCovariantCompilation(cSharpSource).VerifyDiagnostics();
+            var csharpReference = csharpCompilation.EmitToImageReference();
+
+            var vbSource = @"
+Imports System
+Public Class Derived2 : Inherits Derived
+    Public Overrides Function M() As String
+        Return ""Derived2.M""
+    End Function
+    Public Overrides ReadOnly Property P As String
+        Get
+            Return ""Derived2.P""
+        End Get
+    End Property
+    Public Overrides Default ReadOnly Property Item(i As Integer) As String
+        Get
+            Return ""Derived2[]""
+        End Get
+    End Property
+    Public Shared Sub Test(b As Base, d As Derived, d2 As Derived2)
+        Console.WriteLine(b.M().ToString())
+        Console.WriteLine(b.P.ToString())
+        Console.WriteLine(b(0).ToString())
+        Console.WriteLine(d.M())
+        Console.WriteLine(d.P)
+        Console.WriteLine(d(0))
+        Console.WriteLine(d2.M())
+        Console.WriteLine(d2.P)
+        Console.WriteLine(d2(0))
+    End Sub
+    public Shared Sub Main()
+        Dim d2 = new Derived2
+        Test(d2, d2, d2)
+    End Sub
+End Class
+";
+            var compilationOptions = new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(OptimizationLevel.Release);
+            var vbCompilation = CreateVisualBasicCompilation(vbSource, compilationOptions: compilationOptions, referencedAssemblies: new[] { CorelibraryWithCovariantReturnSupport, csharpReference })
+                .VerifyDiagnostics(
+                );
+            // Suggestion: change the following test to one using ExecutionConditionUtil once it is available (it is in another pending PR).
+            var expectedOutput = new CovarantReturnRuntimeOnly().ShouldSkip ? null : @"
+Derived2.M
+Derived2.P
+Derived2[]
+Derived2.M
+Derived2.P
+Derived2[]
+Derived2.M
+Derived2.P
+Derived2[]";
+            CompileAndVerify(vbCompilation, verify: Verification.Skipped, expectedOutput: expectedOutput)
+                .VerifyIL("Derived2.Test", @"
+{
+  // Code size      118 (0x76)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""Function Base.M() As Object""
+  IL_0006:  callvirt   ""Function Object.ToString() As String""
+  IL_000b:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0010:  ldarg.0
+  IL_0011:  callvirt   ""Function Base.get_P() As Object""
+  IL_0016:  callvirt   ""Function Object.ToString() As String""
+  IL_001b:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.i4.0
+  IL_0022:  callvirt   ""Function Base.get_Item(Integer) As Object""
+  IL_0027:  callvirt   ""Function Object.ToString() As String""
+  IL_002c:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0031:  ldarg.1
+  IL_0032:  callvirt   ""Function Derived.M() As String""
+  IL_0037:  call       ""Sub System.Console.WriteLine(String)""
+  IL_003c:  ldarg.1
+  IL_003d:  callvirt   ""Function Derived.get_P() As String""
+  IL_0042:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0047:  ldarg.1
+  IL_0048:  ldc.i4.0
+  IL_0049:  callvirt   ""Function Derived.get_Item(Integer) As String""
+  IL_004e:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0053:  ldarg.2
+  IL_0054:  callvirt   ""Function Derived2.M() As String""
+  IL_0059:  call       ""Sub System.Console.WriteLine(String)""
+  IL_005e:  ldarg.2
+  IL_005f:  callvirt   ""Function Derived2.get_P() As String""
+  IL_0064:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0069:  ldarg.2
+  IL_006a:  ldc.i4.0
+  IL_006b:  callvirt   ""Function Derived2.get_Item(Integer) As String""
+  IL_0070:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0075:  ret
+}
+");
+        }
+
         [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
         public void CheckPreserveBaseOverride_01()
         {

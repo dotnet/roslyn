@@ -428,28 +428,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Figure out if the target runtime supports covariant returns of methods declared in classes.
+        /// True if the target runtime support covariant returns of methods declared in classes.
         /// </summary>
         internal bool RuntimeSupportsCovariantReturnsOfClasses
         {
             get
             {
                 // check for the runtime feature indicator.
-                if (!(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) is null))
-                {
-                    return true;
-                }
-
-                // https://github.com/dotnet/roslyn/issues/44206: For testing purposes, we added a feature flag to
-                // the C# compiler that causes the compiler to skip the requirement that the runtime supports covariant
-                // returns. We can remove it once we have a runtime that we can test against that actually supports the feature.
-                if (this is SourceAssemblySymbol { DeclaringCompilation: CSharpCompilation compilation } &&
-                    compilation.Feature("DoNotRequireRuntimeCovariantReturnsSupport") != null)
-                {
-                    return true;
-                }
-
-                return false;
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) is { };
             }
         }
 
