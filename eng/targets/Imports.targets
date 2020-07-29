@@ -199,6 +199,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Include BannedSymbols covering all projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Show launchSettings.json in the project if it exists. -->
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
