@@ -6,9 +6,11 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -55,8 +57,58 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return new SemanticTokensEditsResult(updatedTokens);
             }
 
-            var edits = SemanticTokensHelpers.ComputeSemanticTokensEdits(previousResultId, tokensCache.Tokens.Data, updatedTokens.Data);
+            var edits = ComputeSemanticTokensEdits(previousResultId, tokensCache.Tokens.Data, updatedTokens.Data);
             return new SemanticTokensEditsResult(updatedTokens, edits);
         }
+
+        /// <summary>
+        /// Compares two sets of SemanticTokens and returns the edits between them.
+        /// </summary>
+        private static LSP.SemanticTokensEdits ComputeSemanticTokensEdits(
+            int previousResultId,
+            int[] cachedSemanticTokens,
+            int[] updatedSemanticTokens)
+        {
+            using var _ = ArrayBuilder<SemanticTokensEdit>.GetInstance(out var edits);
+            var index = 0;
+
+            // There are three cases where we might need to create an edit:
+            //     Case 1: Both cached and updated tokens have values at an index, but the tokens don't match
+            //     Case 2: Cached tokens set is longer than updated tokens set - need to make deletion
+            //     Case 3: Updated tokens set is longer than cached tokens set - need to make insertion
+
+            while (index < cachedSemanticTokens.Length && index < updatedSemanticTokens.Length)
+            {
+                // Case 1: Both cached and updated tokens have values at index, but the tokens don't match
+                if (cachedSemanticTokens[index] != updatedSemanticTokens[index])
+                {
+                    edits.Add(GenerateEdit(start: index, deleteCount: 1, data: new int[] { updatedSemanticTokens[index] }));
+                }
+
+                index++;
+            }
+
+            // Case 2: Cached tokens is longer than updated tokens - need to make deletion
+            if (index < cachedSemanticTokens.Length)
+            {
+                var deleteCount = cachedSemanticTokens.Length - updatedSemanticTokens.Length;
+                edits.Add(GenerateEdit(start: index, deleteCount: deleteCount, data: Array.Empty<int>()));
+            }
+            // Case 3: Updated tokens set has value at index but cached tokens set does not - need to make insertion
+            else if (index < updatedSemanticTokens.Length)
+            {
+                edits.Add(GenerateEdit(start: index, deleteCount: 0, data: updatedSemanticTokens.Skip(index).ToArray()));
+            }
+
+            return new SemanticTokensEdits { Edits = edits.ToArray(), ResultId = (previousResultId + 1).ToString() };
+        }
+
+        internal static SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)
+            => new SemanticTokensEdit
+            {
+                Start = start,
+                DeleteCount = deleteCount,
+                Data = data
+            };
     }
 }
