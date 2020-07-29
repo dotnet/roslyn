@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
             _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromMilliseconds(500),
+                TimeSpan.FromMilliseconds(250),
                 this.NotifyProjectSystemAsync,
                 cancellationToken);
 
