@@ -1,3 +1,5 @@
+*REMOVED*Microsoft.CodeAnalysis.Compilation.CreateFunctionPointerTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol returnType, Microsoft.CodeAnalysis.RefKind returnRefKind, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> parameterTypes, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.RefKind> parameterRefKinds) -> Microsoft.CodeAnalysis.IFunctionPointerTypeSymbol
+Microsoft.CodeAnalysis.Compilation.CreateFunctionPointerTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol returnType, Microsoft.CodeAnalysis.RefKind returnRefKind, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> parameterTypes, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.RefKind> parameterRefKinds, System.Reflection.Metadata.SignatureCallingConvention callingConvention = System.Reflection.Metadata.SignatureCallingConvention.Default, System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.SignatureCallingConvention> callingConventionTypes = default(System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.SignatureCallingConvention>)) -> Microsoft.CodeAnalysis.IFunctionPointerTypeSymbol
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AdditionalFile.get -> Microsoft.CodeAnalysis.AdditionalText
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
@@ -9,6 +11,8 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsy
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText file, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.set -> void
+Microsoft.CodeAnalysis.IMethodSymbol.CallingConvention.get -> System.Reflection.Metadata.SignatureCallingConvention
+Microsoft.CodeAnalysis.IMethodSymbol.CallingConventionTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "<Program>$" -> string
 Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol

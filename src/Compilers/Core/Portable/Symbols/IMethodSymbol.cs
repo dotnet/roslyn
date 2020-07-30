@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -213,6 +214,19 @@ namespace Microsoft.CodeAnalysis
         /// Returns the list of custom attributes, if any, associated with the returned value. 
         /// </summary>
         ImmutableArray<AttributeData> GetReturnTypeAttributes();
+
+        /// <summary>
+        /// The calling convention enum of the method method symbol. If this value is <see cref="SignatureCallingConvention.Unmanaged"/>,
+        /// then <see cref="CallingConventionTypes"/> may have additional calling convention types that are considered part of the
+        /// calling convention of the method.
+        /// </summary>
+        SignatureCallingConvention CallingConvention { get; }
+
+        /// <summary>
+        /// Modifier types that are considered part of the calling convention of this method. If <see cref="CallingConvention"/> is not
+        /// <see cref="SignatureCallingConvention.Unmanaged"/>, then this will be an empty array.
+        /// </summary>
+        ImmutableArray<INamedTypeSymbol> CallingConventionTypes { get; }
 
         /// <summary>
         /// Returns a symbol (e.g. property, event, etc.) associated with the method.

@@ -74,5 +74,10 @@ namespace Microsoft.CodeAnalysis
         /// Append '!' to non-nullable reference types.
         /// </summary>
         IncludeNotNullableReferenceTypeModifier = 1 << 8,
+
+        /// <summary>
+        /// Explicitly put `managed` as the calling convention for function pointer types.
+        /// </summary>
+        UseExplicitManagedCallingConventionSpecifier = 1 << 9,
     }
 }

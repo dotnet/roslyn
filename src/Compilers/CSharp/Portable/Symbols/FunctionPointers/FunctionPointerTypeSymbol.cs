@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     suppressUseSiteDiagnostics));
 
         /// <summary>
-        /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed.
+        /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed. This is
+        /// intended for use in test code.
         /// </summary>
         public static FunctionPointerTypeSymbol CreateFromParts(
             CallingConvention callingConvention,
@@ -38,6 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<RefKind> parameterRefKinds,
             CSharpCompilation compilation)
             => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(callingConvention, returnType, refCustomModifiers, returnRefKind, parameterTypes, parameterRefCustomModifiers, parameterRefKinds, compilation));
+
+        /// <summary>
+        /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed.
+        /// </summary>
+        public static FunctionPointerTypeSymbol CreateFromParts(
+            CallingConvention callingConvention,
+            ImmutableArray<CustomModifier> callingConventionModifiers,
+            TypeWithAnnotations returnType,
+            RefKind returnRefKind,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(callingConvention, callingConventionModifiers, returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
 
         public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(
@@ -186,5 +200,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static RefKind GetRefKindForHashCode(RefKind refKind)
             => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
+        
+        /// <summary>
+        /// Return true if the given type is valid as a calling convention modifier type.
+        /// </summary>
+        internal static bool IsCallingConventionModifier(NamedTypeSymbol modifierType)
+        {
+            return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+                   && modifierType.Arity == 0
+                   && modifierType.Name != "CallConv"
+                   && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
+#pragma warning disable IDE0055 // Formatting wants to put the braces at the beginning of the line https://github.com/dotnet/roslyn/issues/46284
+                   && modifierType.ContainingNamespace is
+                      {
+                          Name: "CompilerServices",
+                          ContainingNamespace:
+                          {
+                              Name: "Runtime",
+                              ContainingNamespace:
+                              {
+                                  Name: "System",
+                                  ContainingNamespace: { IsGlobalNamespace: true }
+                              }
+                          }
+                      };
+#pragma warning restore IDE0055
+        }
     }
 }

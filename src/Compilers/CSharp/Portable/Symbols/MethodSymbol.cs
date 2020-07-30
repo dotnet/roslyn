@@ -873,6 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal virtual ImmutableArray<INamedTypeSymbol> CallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
+
         /// <summary>
         /// Returns the map from type parameters to type arguments.
         /// If this is not a generic method instantiation, returns null.

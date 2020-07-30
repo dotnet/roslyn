@@ -141,6 +141,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        ///  Maps an immutable array to another immutable array, passing the current index.
+        /// </summary>
+        /// <typeparam name="TItem"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="items">The sequence to map</param>
+        /// <param name="map">The mapping delegate</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ImmutableArray<TItem> items, Func<TItem, int, TResult> map)
+        {
+            return items.SelectAsArray((item, i, mapper) => mapper(item, i), map);
+        }
+
+        /// <summary>
         /// Maps an immutable array to another immutable array.
         /// </summary>
         /// <typeparam name="TItem"></typeparam>

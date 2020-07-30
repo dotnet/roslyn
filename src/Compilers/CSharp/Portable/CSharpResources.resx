@@ -6271,6 +6271,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="OutIsNotValidForReturn" xml:space="preserve">
     <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
   </data>
+  <data name="CallingConventionTypesRequireUnmanaged" xml:space="preserve">
+    <value>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</value>
+  </data>
+  <data name="CallingConventionTypeIsInvalid" xml:space="preserve">
+    <value>Cannot use '{0}' as a calling convention modifier.</value>
+  </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</value>
   </data>

@@ -164,7 +164,7 @@ unsafe class C
   // Code size       13 (0xd)
   .maxstack  1
   .locals init (delegate*<void> V_0, //ptr1
-                delegate*<void> V_1, //ptr2
+                delegate* unmanaged[Cdecl]<void> V_1, //ptr2
                 delegate*<string> V_2, //ptr3
                 delegate*<C, int> V_3) //ptr4
   IL_0000:  ldc.i4.0
@@ -691,41 +691,41 @@ unsafe class C
 
             VerifyDeclarationConversion(comp, model, variableDeclaratorSyntaxes[0],
                 expectedConversionKind: ConversionKind.Identity, expectedImplicit: true,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
-                expectedConvertedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedOriginalType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)> ptr1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr1 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)> ptr1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr1 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
-      IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
+      IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
 ");
 
             VerifyDeclarationConversion(comp, model, variableDeclaratorSyntaxes[1],
                 expectedConversionKind: ConversionKind.Identity, expectedImplicit: true,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
-                expectedConvertedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedOriginalType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)> ptr2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr2 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)> ptr2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr2 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
 ");
 
             VerifyDeclarationConversion(comp, model, variableDeclaratorSyntaxes[2],
                 expectedConversionKind: ConversionKind.Identity, expectedImplicit: true,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
-                expectedConvertedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedOriginalType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall, Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)> ptr3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr3 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall, Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)> ptr3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr3 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Stdcall, Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
 ");
         }
 
@@ -1047,30 +1047,30 @@ unsafe class C
             comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
 
             comp.VerifyDiagnostics(
-                // (6,49): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                // (6,49): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Cdecl]<void> ptr1 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(6, 49),
-                // (7,52): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate* unmanaged[Cdecl]<void>").WithLocation(6, 49),
+                // (7,52): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Thiscall]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Thiscall]<void> ptr2 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(7, 52),
-                // (8,51): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate* unmanaged[Thiscall]<void>").WithLocation(7, 52),
+                // (8,51): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Stdcall]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Stdcall]<void> ptr3 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(8, 51),
-                // (9,52): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate* unmanaged[Stdcall]<void>").WithLocation(8, 51),
+                // (9,52): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Thiscall]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Thiscall]<void> ptr4 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(9, 52),
-                // (10,51): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Thiscall]<void>").WithLocation(9, 52),
+                // (10,51): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Stdcall]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Stdcall]<void> ptr5 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(10, 51),
-                // (11,59): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Stdcall]<void>").WithLocation(10, 51),
+                // (11,59): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Thiscall, Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Thiscall, Cdecl]<void> ptr6 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(11, 59),
-                // (12,58): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Thiscall, Cdecl]<void>").WithLocation(11, 59),
+                // (12,58): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Cdecl, Stdcall]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Cdecl, Stdcall]<void> ptr7 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(12, 58),
-                // (13,68): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Cdecl, Stdcall]<void>").WithLocation(12, 58),
+                // (13,68): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void> ptr8 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(13, 68)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void>").WithLocation(13, 68)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -1082,12 +1082,12 @@ unsafe class C
             VerifyDeclarationConversion(comp, model, decls[0],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
                 expectedOriginalType: "delegate*<System.Void>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate* unmanaged[Cdecl]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Cdecl]<System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Cdecl]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
@@ -1096,12 +1096,12 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKin
             VerifyDeclarationConversion(comp, model, decls[1],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
                 expectedOriginalType: "delegate*<System.Void>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall]<System.Void> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
@@ -1110,12 +1110,12 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr2) (OperationKin
             VerifyDeclarationConversion(comp, model, decls[2],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
                 expectedOriginalType: "delegate*<System.Void>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr3 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall]<System.Void> ptr3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr3 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Stdcall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
@@ -1123,72 +1123,72 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr3) (OperationKin
 
             VerifyDeclarationConversion(comp, model, decls[3],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr4) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr4 = param2')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall]<System.Void> ptr4) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr4 = param2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
 ");
 
             VerifyDeclarationConversion(comp, model, decls[4],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr5) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr5 = param2')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall]<System.Void> ptr5) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr5 = param2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Stdcall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
 ");
 
             VerifyDeclarationConversion(comp, model, decls[5],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
-                expectedConvertedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>",
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)> ptr6) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr6 = param2')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)> ptr6) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr6 = param2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>, IsInvalid, IsImplicit) (Syntax: 'param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>, IsInvalid, IsImplicit) (Syntax: 'param2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
 ");
 
             VerifyDeclarationConversion(comp, model, decls[6],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
-                expectedConvertedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Cdecl, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)> ptr7) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr7 = param2')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Cdecl, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)> ptr7) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr7 = param2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid, IsImplicit) (Syntax: 'param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Cdecl, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid, IsImplicit) (Syntax: 'param2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
 ");
 
             VerifyDeclarationConversion(comp, model, decls[7],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
-                expectedOriginalType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
-                expectedConvertedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>",
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall, Stdcall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)> ptr8) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr8 = param2')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall, Stdcall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)> ptr8) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr8 = param2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>, IsInvalid, IsImplicit) (Syntax: 'param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall, Stdcall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>, IsInvalid, IsImplicit) (Syntax: 'param2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
 ");
         }
 
@@ -1865,18 +1865,18 @@ unsafe class C
                 // (11,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate*<int, void>[]'
                 //         _ = b ? ptr1 : ptr3;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string, void>[]", "delegate*<int, void>[]").WithLocation(11, 13),
-                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate*<string, void>[]'
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate* unmanaged[Cdecl]<string, void>[]'
                 //         _ = b ? ptr1 : ptr4;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string, void>[]", "delegate*<string, void>[]").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string, void>[]", "delegate* unmanaged[Cdecl]<string, void>[]").WithLocation(12, 13),
                 // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
                 //         _ = b ? ptr5 : ptr6;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(18, 13),
                 // (19,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<int>[]'
                 //         _ = b ? ptr5 : ptr7;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>[]", "delegate*<int>[]").WithLocation(19, 13),
-                // (20,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                // (20,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate* unmanaged[Cdecl]<string>[]'
                 //         _ = b ? ptr5 : ptr8;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>[]", "delegate* unmanaged[Cdecl]<string>[]").WithLocation(20, 13)
             );
 
             var tree = comp.SyntaxTrees[0];
