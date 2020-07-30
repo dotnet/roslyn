@@ -5,13 +5,11 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -39,10 +37,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
         private void AnalyzeAction(SyntaxNodeAnalysisContext context)
         {
-            if (!(isWhereClause(context) && canRefactor(context)))
+            var validIdentifiers = new List<string> { "First", "Last", "Single", "Any", "Count", "SingleOrDefault", "FirstOrDefault", "LastOrDefault" };
+            var memberAccess = context.Node as MemberAccessExpressionSyntax;
+            var invocation = memberAccess.Expression as InvocationExpressionSyntax;
+
+            // check if it is .Where(...)
+            if (memberAccess == null ||
+                !(invocation.Expression is MemberAccessExpressionSyntax expression) ||
+                invocation == null ||
+                expression.Name.Identifier.ValueText != "Where")
             {
                 return;
             }
+
+            // check if .Where() is followed by one of First, Last, Single, Any, Count, SingleOrDefault, FirstOrDefault, LastOrDefault
+           if (!validIdentifiers.Contains(memberAccess.Name.Identifier.ValueText, StringComparer.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             var location = context.Node.GetLocation();
             var options = context.Compilation.Options;
             context.ReportDiagnostic(
@@ -51,22 +64,5 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
         }
 
-        private bool canRefactor(SyntaxNodeAnalysisContext context)
-        {
-            return true;
-        }
-
-        private static bool isWhereClause(SyntaxNodeAnalysisContext context)
-        {
-            //get the inner most invocatio
-            var parent = context.Node.Parent;
-            var children = parent.ChildNodes();
-            var something = (InvocationExpressionSyntax)context.Node.Parent;
-            var memberAccess = something.Expression as MemberAccessExpressionSyntax;
-
-      
-
-            return true;
-        }
     }
 }
