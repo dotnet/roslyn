@@ -8807,5 +8807,269 @@ class Class
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedCdeclConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Cdecl]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Cdecl]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged[Cdecl]<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedStdcallConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Stdcall]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Stdcall]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged[Stdcall]<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedThiscallConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Thiscall]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Thiscall]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged[Thiscall]<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedFastcallConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Fastcall]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Fastcall]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged[Fastcall]<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedBadConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Bad]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Bad]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged[Bad]<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedThiscallStdcallConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Thiscall, Stdcall]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[Thiscall, Stdcall]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged[Thiscall, Stdcall]<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedMissingConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }

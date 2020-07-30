@@ -127,9 +127,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
 #if !CODE_STYLE
 
+#nullable enable
             public override TypeSyntax VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
-                // TODO(https://github.com/dotnet/roslyn/issues/39865): generate the calling convention once exposed through the API
+                FunctionPointerCallingConventionSyntax? callingConventionSyntax = null;
+                if (symbol.Signature.CallingConvention != System.Reflection.Metadata.SignatureCallingConvention.Default)
+                {
+                    SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> conventionsList = default;
+                    switch (symbol.Signature.CallingConvention)
+                    {
+                        case System.Reflection.Metadata.SignatureCallingConvention.CDecl:
+                            conventionsList = SyntaxFactory.SeparatedList(new[] { GetConventionForString("Cdecl") });
+                            break;
+                        case System.Reflection.Metadata.SignatureCallingConvention.StdCall:
+                            conventionsList = SyntaxFactory.SeparatedList(new[] { GetConventionForString("Stdcall") });
+                            break;
+                        case System.Reflection.Metadata.SignatureCallingConvention.ThisCall:
+                            conventionsList = SyntaxFactory.SeparatedList(new[] { GetConventionForString("Thiscall") });
+                            break;
+                        case System.Reflection.Metadata.SignatureCallingConvention.FastCall:
+                            conventionsList = SyntaxFactory.SeparatedList(new[] { GetConventionForString("Fastcall") });
+                            break;
+
+                        default:
+                            // All types that come from CallingConventionTypes start with "CallConv". We don't want the prefix for the actual
+                            // syntax, so strip it off
+                            const int CallConvLength = 8;
+                            conventionsList = SyntaxFactory.SeparatedList(symbol.Signature.CallingConventionTypes.SelectAsArray(type => GetConventionForString(type.Name[CallConvLength..])));
+                            break;
+                    }
+
+                    callingConventionSyntax = SyntaxFactory.FunctionPointerCallingConvention(
+                        SyntaxFactory.Token(SyntaxKind.UnmanagedKeyword),
+                        conventionsList.Count > 0
+                            ? SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(conventionsList)
+                            : null);
+
+                    static FunctionPointerUnmanagedCallingConventionSyntax GetConventionForString(string identifier)
+                        => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier(identifier));
+                }
+
                 var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind)))
                     .Concat(SpecializedCollections.SingletonEnumerable((
                         Type: symbol.Signature.ReturnType,
@@ -137,8 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     .SelectAsArray(t => SyntaxFactory.FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
                 return AddInformationTo(
-                    SyntaxFactory.FunctionPointerType(callingConvention: null, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
+                    SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
             }
+#nullable restore
 
 #endif
 
