@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             ImmutableDictionary<TKey, TValue> analysisResult,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
         {
+            Debug.Assert(telemetryInfo.IsEmpty || telemetryInfo.Count == analysisResult.Count);
+
             AnalysisResult = analysisResult;
             TelemetryInfo = telemetryInfo;
         }
