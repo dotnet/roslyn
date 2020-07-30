@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// <summary>
             /// Ensure server respects keep alive and shuts down after processing a single connection.
             /// </summary>
-            [ConditionalTheory(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
+            [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
             [InlineData(1)]
             [InlineData(2)]
             [InlineData(3)]
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// <summary>
             /// Ensure server respects keep alive and shuts down after processing simultaneous connections.
             /// </summary>
-            [ConditionalTheory(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
+            [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/46447")]
             [InlineData(2)]
             [InlineData(3)]
             public async Task SimultaneousConnectons(int connectionCount)
