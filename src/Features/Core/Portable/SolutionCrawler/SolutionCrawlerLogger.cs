@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private const string PersistentStorage = nameof(PersistentStorage);
         private const string GlobalOperation = nameof(GlobalOperation);
         private const string HigherPriority = nameof(HigherPriority);
-        private const string LowerPriority = nameof(LowerPriority);
         private const string TopLevel = nameof(TopLevel);
         private const string MemberLevel = nameof(MemberLevel);
         private const string NewWorkItem = nameof(NewWorkItem);
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             => logAggregator.IncreaseCount(ProjectEnqueue);
 
         public static void LogWorkItemEnqueue(
-            LogAggregator logAggregator, string language, DocumentId? documentId, InvocationReasons reasons, bool lowPriority, SyntaxPath? activeMember, bool added)
+            LogAggregator logAggregator, string language, DocumentId? documentId, InvocationReasons reasons, SyntaxPath? activeMember, bool added)
         {
             logAggregator.IncreaseCount(language);
             logAggregator.IncreaseCount(added ? NewWorkItem : UpdateWorkItem);
@@ -181,12 +180,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             if (documentId != null)
             {
                 logAggregator.IncreaseCount(activeMember == null ? TopLevel : MemberLevel);
-
-                if (lowPriority)
-                {
-                    logAggregator.IncreaseCount(LowerPriority);
-                    logAggregator.IncreaseCount(ValueTuple.Create(LowerPriority, documentId.Id));
-                }
             }
 
             foreach (var reason in reasons)

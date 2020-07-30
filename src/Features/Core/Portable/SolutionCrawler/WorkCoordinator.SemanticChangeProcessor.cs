@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
-                                isLowPriority: false, activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItem), tag: EnqueueItem)));
+                                activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItem), tag: EnqueueItem)));
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)

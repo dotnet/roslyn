@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CheckHigherPriorityDocument(item);
 
                         SolutionCrawlerLogger.LogWorkItemEnqueue(
-                            Processor._logAggregator, item.Language, item.DocumentId, item.InvocationReasons, item.IsLowPriority, item.ActiveMember, added);
+                            Processor._logAggregator, item.Language, item.DocumentId, item.InvocationReasons, item.ActiveMember, added);
                     }
 
                     private void CheckHigherPriorityDocument(WorkItem item)

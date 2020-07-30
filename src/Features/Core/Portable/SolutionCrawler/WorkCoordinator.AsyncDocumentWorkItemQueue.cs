@@ -75,23 +75,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var documentMap = _documentWorkQueue[projectId];
 
                     // explicitly iterate so that we can use struct enumerator.
-                    // Return the first normal priority work item we find.  If we don't
-                    // find any, then just return the first low prio item we saw.
-                    DocumentId? lowPriorityDocumentId = null;
-                    foreach (var (documentId, workItem) in documentMap)
+                    foreach (var (documentId, _) in documentMap)
                     {
-                        if (workItem.IsLowPriority)
-                        {
-                            lowPriorityDocumentId = documentId;
-                        }
-                        else
-                        {
-                            return documentId;
-                        }
+                        return documentId;
                     }
 
-                    Contract.ThrowIfNull(lowPriorityDocumentId);
-                    return lowPriorityDocumentId;
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)
