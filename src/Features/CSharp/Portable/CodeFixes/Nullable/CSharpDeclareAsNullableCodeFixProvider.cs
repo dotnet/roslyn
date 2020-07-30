@@ -219,9 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 {
                     return TryGetParameterTypeSyntax(parameter);
                 }
-                // implicitly declared fields don't have DeclaringSyntaxReferences so filter them out
                 else if (symbol is IFieldSymbol { IsImplicitlyDeclared: false } field)
                 {
+                    // implicitly declared fields don't have DeclaringSyntaxReferences so filter them out
                     var syntax = field.DeclaringSyntaxReferences[0].GetSyntax();
                     if (syntax is VariableDeclaratorSyntax declarator &&
                        declarator.Parent is VariableDeclarationSyntax declaration &&
@@ -234,10 +234,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                         return tupleElement.Type;
                     }
                 }
-                // Assigning a tuple field, eg. foo.Item1 = null
                 else if (symbol is IFieldSymbol { CorrespondingTupleField: IFieldSymbol tupleField })
                 {
-                    // the tupleField won't have DeclaringSyntaxReferences because it's implicitly declared, otherwise it
+                    // Assigning a tuple field, eg. foo.Item1 = null
+                    // The tupleField won't have DeclaringSyntaxReferences because it's implicitly declared, otherwise it
                     // would have fallen into the branch above. We can use the Locations instead, if there is one and it's in source
                     if (tupleField.Locations is { Length: 1 } &&
                         tupleField.Locations[0] is { IsInSource: true } location)
