@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
-        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
-
         // use eventMap and taskQueue to serialize events
         private readonly EventMap _eventMap;
         private readonly TaskQueue _eventQueue;
@@ -64,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
             _eventMap = new EventMap();
 
-            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
-            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new TaskQueue(Listener, s_eventScheduler);
+            _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             registrationService.Register(this);
         }

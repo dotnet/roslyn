@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _failedTransfer = failedTransfer ?? new StrongBox<ExceptionDispatchInfo>();
             }
 
+            internal event EventHandler? InvalidSwitch;
+
             private SynchronizationContext UnderlyingContext
             {
                 get;
@@ -110,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 catch (InvalidOperationException e)
                 {
                     _failedTransfer.Value = ExceptionDispatchInfo.Capture(e);
+                    InvalidSwitch?.Invoke(this, EventArgs.Empty);
                 }
 
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
@@ -129,6 +132,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 catch (InvalidOperationException e)
                 {
                     _failedTransfer.Value = ExceptionDispatchInfo.Capture(e);
+                    InvalidSwitch?.Invoke(this, EventArgs.Empty);
                 }
 
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs

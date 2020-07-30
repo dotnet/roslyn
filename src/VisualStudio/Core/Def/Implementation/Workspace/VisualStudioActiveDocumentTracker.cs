@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     {
                         _textBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
 
-                        if (!_textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+                        if (_textBuffer != null && !_textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                         {
                             _textBuffer.Changed += NonRoslynTextBuffer_Changed;
                         }

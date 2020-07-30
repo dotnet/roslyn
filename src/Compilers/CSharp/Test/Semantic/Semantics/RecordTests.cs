@@ -8,9 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -145,6 +149,243 @@ record Point(int x, int y);
 
             comp = CreateCompilation(src3);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord()
+        {
+            string source = @"
+public record A(int i,) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,23): error CS1031: Type expected
+                // public record A(int i,) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(2, 23),
+                // (2,23): error CS1001: Identifier expected
+                // public record A(int i,) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 23)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A.i { get; init; }",
+                "? A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, ? )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+
+            var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
+            Assert.Equal("A..ctor(System.Int32 i, ? )", primaryCtor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTrivia()
+        {
+            string source = @"
+public record A(int i, // A
+    // B
+    , /* C */ ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,23): error CS1031: Type expected
+                // public record A(int i, // A
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(2, 23),
+                // (2,23): error CS1001: Identifier expected
+                // public record A(int i, // A
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 23),
+                // (4,15): error CS1031: Type expected
+                //     , /* C */ ) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(4, 15),
+                // (4,15): error CS1001: Identifier expected
+                //     , /* C */ ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 15),
+                // (4,15): error CS0102: The type 'A' already contains a definition for ''
+                //     , /* C */ ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 15)
+                );
+
+            var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
+            Assert.Equal("A..ctor(System.Int32 i, ? , ? )", primaryCtor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[0].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[2].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompleteConstructor()
+        {
+            string source = @"
+public class C
+{
+    C(int i, ) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,14): error CS1031: Type expected
+                //     C(int i, ) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(4, 14),
+                // (4,14): error CS1001: Identifier expected
+                //     C(int i, ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 14)
+                );
+
+            var ctor = comp.GetMember<NamedTypeSymbol>("C").Constructors.Single();
+            Assert.Equal("C..ctor(System.Int32 i, ? )", ctor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithType()
+        {
+            string source = @"
+public record A(int i, int ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,28): error CS1001: Identifier expected
+                // public record A(int i, int ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 28)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A.i { get; init; }",
+                "System.Int32 A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
+            Assert.Equal("A..ctor(System.Int32 i, System.Int32 )", ctor.ToTestDisplayString());
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTwoTypes()
+        {
+            string source = @"
+public record A(int, string ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // public record A(int, string ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
+                // (2,29): error CS1001: Identifier expected
+                // public record A(int, string ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 29),
+                // (2,29): error CS0102: The type 'A' already contains a definition for ''
+                // public record A(int, string ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 29)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A. { get; init; }",
+                "System.String A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.String )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+
+            Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTwoTypes_SameType()
+        {
+            string source = @"
+public record A(int, int ) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // public record A(int, int ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(2, 20),
+                // (2,26): error CS1001: Identifier expected
+                // public record A(int, int ) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 26),
+                // (2,26): error CS0102: The type 'A' already contains a definition for ''
+                // public record A(int, int ) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(2, 26)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type A.EqualityContract { get; }",
+                "System.Int32 A. { get; init; }",
+                "System.Int32 A. { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.Int32 )", "A..ctor(A original)" },
+                comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
+
+            Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
+        public void IncompletePositionalRecord_WithTwoTypes_WithTrivia()
+        {
+            string source = @"
+public record A(int // A
+    // B
+    , int /* C */) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // public record A(int // A
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 20),
+                // (4,18): error CS1001: Identifier expected
+                //     , int /* C */) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 18),
+                // (4,18): error CS0102: The type 'A' already contains a definition for ''
+                //     , int /* C */) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(4, 18)
+                );
+
+            var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[0].DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
+        }
+
+        [Fact, WorkItem(46083, "https://github.com/dotnet/roslyn/issues/46083")]
+        public void IncompletePositionalRecord_SingleParameter()
+        {
+            string source = @"
+record A(x)
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(2, 10),
+                // (2,11): error CS1001: Identifier expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 11),
+                // (2,12): error CS1514: { expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 12),
+                // (2,12): error CS1513: } expected
+                // record A(x)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 12)
+                );
         }
 
         [Fact]
@@ -320,6 +561,15 @@ record C(int X, int X)
                 // record C(int X, int X)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 21)
             );
+
+            var expectedMembers = new[]
+            {
+                "System.Type C.EqualityContract { get; }",
+                "System.Int32 C.X { get; init; }",
+                "System.Int32 C.X { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
         }
 
         [Fact]
@@ -1480,6 +1730,9 @@ abstract sealed record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1506,6 +1759,9 @@ sealed abstract record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1560,10 +1816,13 @@ sealed abstract record C2 : C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_05()
+        public void Clone_05_IntReturnType_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1654,10 +1913,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_06()
+        public void Clone_06_IntReturnType_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1754,10 +2016,13 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_07()
+        public void Clone_07_Ambiguous_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1858,10 +2123,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_08()
+        public void Clone_08_Ambiguous_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1968,16 +2236,18 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_09()
+        public void Clone_09_AmbiguousReverseOrder_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
     extends System.Object
 {
-    // Methods
     // Methods
     .method public hidebysig specialname newslot virtual 
         instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
@@ -2072,10 +2342,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_10()
+        public void Clone_10_AmbiguousReverseOrder_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2182,6 +2455,9 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2481,7 +2757,7 @@ record D(int X) : C(X)
         }
 
         [Fact]
-        public void Clone_17()
+        public void Clone_17_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2572,10 +2848,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_18()
+        public void Clone_18_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2666,6 +2945,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -5509,7 +5791,6 @@ class Program
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
@@ -14577,7 +14858,7 @@ record Base
     public Base() {}
 }
 
-record C(int X, int Y) : Base(X, Y)
+record C(int X, int Y = 123) : Base(X, Y)
 {
     int Z = 123;
     public static void Main()
@@ -14586,7 +14867,7 @@ record C(int X, int Y) : Base(X, Y)
         Console.WriteLine(c.Z);
     }
 
-    C(int X, int Y, int Z) : this(X, Y) {}
+    C(int X, int Y, int Z = 124) : this(X, Y) {}
 }";
             var verifier = CompileAndVerify(src, expectedOutput: @"
 1
@@ -14626,7 +14907,7 @@ record C(int X, int Y) : Base(X, Y)
             var symbol = model.GetSymbolInfo(x).Symbol;
             Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
             Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
-            Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X, [System.Int32 Y = 123])", symbol.ContainingSymbol.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, symbol.ContainingSymbol.DeclaredAccessibility);
             Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
@@ -14656,17 +14937,153 @@ record C(int X, int Y) : Base(X, Y)
                 model = comp.GetSemanticModel(tree);
                 Assert.Empty(model.GetMemberGroup(baseWithargs));
                 model = comp.GetSemanticModel(tree);
+
+#nullable disable
+                var operation = model.GetOperation(baseWithargs);
+
+                VerifyOperationTree(comp, operation,
+@"
+IInvocationOperation ( Base..ctor(System.Int32 X, System.Int32 Y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Base(X, Y)')
+  Instance Receiver: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: 'Base(X, Y)')
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: 'X')
+        IParameterReferenceOperation: X (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'X')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: 'Y')
+        IParameterReferenceOperation: Y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
+
+                Assert.Null(model.GetOperation(baseWithargs.Type));
+                Assert.Null(model.GetOperation(baseWithargs.Parent));
+                Assert.Same(operation.Parent.Parent, model.GetOperation(baseWithargs.Parent.Parent));
+                Assert.Equal(SyntaxKind.RecordDeclaration, baseWithargs.Parent.Parent.Kind());
+
+                VerifyOperationTree(comp, operation.Parent.Parent,
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'record C(in ... }')
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Base(X, Y)')
+      Expression: 
+        IInvocationOperation ( Base..ctor(System.Int32 X, System.Int32 Y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Base(X, Y)')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: 'Base(X, Y)')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: 'X')
+                IParameterReferenceOperation: X (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'X')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: 'Y')
+                IParameterReferenceOperation: Y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Y')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  BlockBody: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'record C(in ... }')
+  ExpressionBody: 
+    null
+");
+
+                Assert.Null(operation.Parent.Parent.Parent);
+                ControlFlowGraphVerifier.VerifyGraph(comp,
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Base(X, Y)')
+          Expression: 
+            IInvocationOperation ( Base..ctor(System.Int32 X, System.Int32 Y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Base(X, Y)')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: 'Base(X, Y)')
+              Arguments(2):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: 'X')
+                    IParameterReferenceOperation: X (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'X')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: 'Y')
+                    IParameterReferenceOperation: Y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Y')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+", ControlFlowGraph.Create((IConstructorBodyOperation)operation.Parent.Parent));
+
+                var equalsValue = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
+
+                Assert.Equal("= 123", equalsValue.ToString());
+                model.VerifyOperationTree(equalsValue,
+@"
+IParameterInitializerOperation (Parameter: [System.Int32 Y = 123]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= 123')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+");
+#nullable enable
             }
             {
                 var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
                 Assert.Equal(": this(X, Y)", baseWithargs.ToString());
-                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
-                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
-                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("C..ctor(System.Int32 X, [System.Int32 Y = 123])", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("C..ctor(System.Int32 X, [System.Int32 Y = 123])", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("C..ctor(System.Int32 X, [System.Int32 Y = 123])", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
 
                 Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
                 Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
                 Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+
+                model.VerifyOperationTree(baseWithargs,
+@"
+IInvocationOperation ( C..ctor(System.Int32 X, [System.Int32 Y = 123])) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this(X, Y)')
+  Instance Receiver: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: ': this(X, Y)')
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: 'X')
+        IParameterReferenceOperation: X (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'X')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: 'Y')
+        IParameterReferenceOperation: Y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Y')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
+
+                var equalsValue = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Last();
+
+                Assert.Equal("= 124", equalsValue.ToString());
+                model.VerifyOperationTree(equalsValue,
+@"
+IParameterInitializerOperation (Parameter: [System.Int32 Z = 124]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= 124')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 124) (Syntax: '124')
+");
+
+                model.VerifyOperationTree(baseWithargs.Parent,
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'C(int X, in ... is(X, Y) {}')
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this(X, Y)')
+      Expression: 
+        IInvocationOperation ( C..ctor(System.Int32 X, [System.Int32 Y = 123])) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this(X, Y)')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: ': this(X, Y)')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: 'X')
+                IParameterReferenceOperation: X (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'X')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: 'Y')
+                IParameterReferenceOperation: Y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Y')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  BlockBody: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+  ExpressionBody: 
+    null
+");
             }
         }
 
@@ -14836,6 +15253,13 @@ partial record C : Base(X, Y)
             Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+
+            var recordDeclarations = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Skip(1).ToArray();
+
+            Assert.Equal("C", recordDeclarations[0].Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclarations[0]));
+            Assert.Equal("C", recordDeclarations[1].Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclarations[1]));
         }
 
         [Fact]
@@ -14890,6 +15314,14 @@ partial record C : Base(X, Y)
                 Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
                 Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
             }
+
+            var recordDeclarations = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Skip(1).ToArray();
+
+            Assert.Equal("C", recordDeclarations[0].Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclarations[0]));
+
+            Assert.Equal("C", recordDeclarations[1].Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclarations[1]));
         }
 
         [Fact]
@@ -14950,6 +15382,35 @@ partial record C : Base(X, Y)
             Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+
+            var recordDeclarations = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Skip(1).ToArray();
+
+            Assert.Equal("C", recordDeclarations[0].Identifier.ValueText);
+            model.VerifyOperationTree(recordDeclarations[0],
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'partial rec ... }')
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Base(X, Y)')
+      Expression: 
+        IInvocationOperation ( Base..ctor(System.Int32 X, System.Int32 Y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Base(X, Y)')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: 'Base(X, Y)')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: 'X')
+                IParameterReferenceOperation: X (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'X')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: 'Y')
+                IParameterReferenceOperation: Y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Y')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  BlockBody: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'partial rec ... }')
+  ExpressionBody: 
+    null
+");
+            Assert.Equal("C", recordDeclarations[1].Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclarations[1]));
         }
 
         [Fact]
@@ -15010,6 +15471,36 @@ partial record C(int X, int Y) : Base(X, Y)
             Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+
+            var recordDeclarations = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Skip(1).ToArray();
+
+            Assert.Equal("C", recordDeclarations[0].Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclarations[0]));
+
+            Assert.Equal("C", recordDeclarations[1].Identifier.ValueText);
+            model.VerifyOperationTree(recordDeclarations[1],
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'partial rec ... }')
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Base(X, Y)')
+      Expression: 
+        IInvocationOperation ( Base..ctor(System.Int32 X, System.Int32 Y)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Base(X, Y)')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: 'Base(X, Y)')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: 'X')
+                IParameterReferenceOperation: X (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'X')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Y) (OperationKind.Argument, Type: null) (Syntax: 'Y')
+                IParameterReferenceOperation: Y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Y')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  BlockBody: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'partial rec ... }')
+  ExpressionBody: 
+    null
+");
         }
 
         [Fact]
@@ -16149,6 +16640,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().First();
+            Assert.Null(model.GetOperation(recordDeclaration));
+
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 True
@@ -16546,6 +17044,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().ElementAt(1);
+            Assert.Equal("B", recordDeclaration.Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclaration));
+
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 False
@@ -17014,7 +17520,7 @@ record C;
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44988")]
+        [Fact]
         [WorkItem(44988, "https://github.com/dotnet/roslyn/issues/44988")]
         public void Equality_22()
         {
@@ -17028,6 +17534,18 @@ record C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
+                // record C
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record C
+{
+    int x = 0;
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
+                // record C
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record C
+{
+    int x = 0;
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1)
                 );
         }
 
@@ -17668,6 +18186,10 @@ record C(int X)
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
+
+            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Single();
+            Assert.Equal("C", recordDeclaration.Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclaration));
         }
 
         [Fact]
@@ -19133,6 +19655,1615 @@ record R : I, Base;
                 // record R : I, Base;
                 Diagnostic(ErrorCode.ERR_BaseClassMustBeFirst, "Base").WithArguments("Base").WithLocation(4, 15)
                 );
+        }
+
+        [Fact]
+        public void RecordLoadedInVisualBasicDisplaysAsRecord()
+        {
+            var src = @"
+public record A;
+";
+            var compRef = CreateCompilation(src).EmitToImageReference();
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: new[] { compRef });
+            var symbol = vbComp.GlobalNamespace.GetTypeMember("A");
+            Assert.Equal("record A",
+                SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
+        }
+
+        [Fact]
+        public void AnalyzerActions_01()
+        {
+            var text1 = @"
+record A([Attr1]int X = 0) : I1
+{}
+
+record B([Attr2]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+
+class Attr1 : System.Attribute {}
+class Attr2 : System.Attribute {}
+class Attr3 : System.Attribute {}
+";
+
+            var analyzer = new AnalyzerActions_01_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount0);
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
+            Assert.Equal(1, analyzer.FireCount13);
+            Assert.Equal(1, analyzer.FireCount14);
+            Assert.Equal(1, analyzer.FireCount15);
+            Assert.Equal(1, analyzer.FireCount16);
+            Assert.Equal(1, analyzer.FireCount17);
+            Assert.Equal(1, analyzer.FireCount18);
+            Assert.Equal(1, analyzer.FireCount19);
+            Assert.Equal(1, analyzer.FireCount20);
+            Assert.Equal(1, analyzer.FireCount21);
+            Assert.Equal(1, analyzer.FireCount22);
+            Assert.Equal(1, analyzer.FireCount23);
+            Assert.Equal(1, analyzer.FireCount24);
+            Assert.Equal(1, analyzer.FireCount25);
+            Assert.Equal(1, analyzer.FireCount26);
+            Assert.Equal(1, analyzer.FireCount27);
+            Assert.Equal(1, analyzer.FireCount28);
+            Assert.Equal(1, analyzer.FireCount29);
+            Assert.Equal(1, analyzer.FireCount30);
+            Assert.Equal(1, analyzer.FireCount31);
+        }
+
+        private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount0;
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+            public int FireCount10;
+            public int FireCount11;
+            public int FireCount12;
+            public int FireCount13;
+            public int FireCount14;
+            public int FireCount15;
+            public int FireCount16;
+            public int FireCount17;
+            public int FireCount18;
+            public int FireCount19;
+            public int FireCount20;
+            public int FireCount21;
+            public int FireCount22;
+            public int FireCount23;
+            public int FireCount24;
+            public int FireCount25;
+            public int FireCount26;
+            public int FireCount27;
+            public int FireCount28;
+            public int FireCount29;
+            public int FireCount30;
+            public int FireCount31;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.NumericLiteralExpression);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.EqualsValueClause);
+                context.RegisterSyntaxNodeAction(Handle3, SyntaxKind.BaseConstructorInitializer);
+                context.RegisterSyntaxNodeAction(Handle4, SyntaxKind.ConstructorDeclaration);
+                context.RegisterSyntaxNodeAction(Handle5, SyntaxKind.PrimaryConstructorBaseType);
+                context.RegisterSyntaxNodeAction(Handle6, SyntaxKind.RecordDeclaration);
+                context.RegisterSyntaxNodeAction(Handle7, SyntaxKind.IdentifierName);
+                context.RegisterSyntaxNodeAction(Handle8, SyntaxKind.SimpleBaseType);
+                context.RegisterSyntaxNodeAction(Handle9, SyntaxKind.ParameterList);
+                context.RegisterSyntaxNodeAction(Handle10, SyntaxKind.ArgumentList);
+            }
+
+            protected void Handle1(SyntaxNodeAnalysisContext context)
+            {
+                var literal = (LiteralExpressionSyntax)context.Node;
+
+                switch (literal.ToString())
+                {
+                    case "0":
+                        Interlocked.Increment(ref FireCount0);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "1":
+                        Interlocked.Increment(ref FireCount1);
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "2":
+                        Interlocked.Increment(ref FireCount2);
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+
+                    case "3":
+                        Interlocked.Increment(ref FireCount3);
+                        Assert.Equal("System.Int32 B.M()", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "4":
+                        Interlocked.Increment(ref FireCount4);
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "5":
+                        Interlocked.Increment(ref FireCount5);
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(literal.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle2(SyntaxNodeAnalysisContext context)
+            {
+                var equalsValue = (EqualsValueClauseSyntax)context.Node;
+
+                switch (equalsValue.ToString())
+                {
+                    case "= 0":
+                        Interlocked.Increment(ref FireCount15);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "= 1":
+                        Interlocked.Increment(ref FireCount16);
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "= 4":
+                        Interlocked.Increment(ref FireCount6);
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle3(SyntaxNodeAnalysisContext context)
+            {
+                var initializer = (ConstructorInitializerSyntax)context.Node;
+
+                switch (initializer.ToString())
+                {
+                    case ": base(5)":
+                        Interlocked.Increment(ref FireCount7);
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle4(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount8);
+                Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle5(SyntaxNodeAnalysisContext context)
+            {
+                var baseType = (PrimaryConstructorBaseTypeSyntax)context.Node;
+
+                switch (baseType.ToString())
+                {
+                    case "A(2)":
+                        switch (context.ContainingSymbol.ToTestDisplayString())
+                        {
+                            case "B..ctor([System.Int32 Y = 1])":
+                                Interlocked.Increment(ref FireCount9);
+                                break;
+                            case "B":
+                                Interlocked.Increment(ref FireCount17);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(baseType.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle6(SyntaxNodeAnalysisContext context)
+            {
+                var record = (RecordDeclarationSyntax)context.Node;
+
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount10);
+                        break;
+                    case "B":
+                        Interlocked.Increment(ref FireCount11);
+                        break;
+                    case "A":
+                        Interlocked.Increment(ref FireCount12);
+                        break;
+                    case "C":
+                        Interlocked.Increment(ref FireCount13);
+                        break;
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount14);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(record.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle7(SyntaxNodeAnalysisContext context)
+            {
+                var identifier = (IdentifierNameSyntax)context.Node;
+
+                switch (identifier.Identifier.ValueText)
+                {
+                    case "A":
+                        switch (identifier.Parent!.ToString())
+                        {
+                            case "A(2)":
+                                Interlocked.Increment(ref FireCount18);
+                                Assert.Equal("B", context.ContainingSymbol.ToTestDisplayString());
+                                break;
+                            case "A":
+                                Interlocked.Increment(ref FireCount19);
+                                Assert.Equal(SyntaxKind.SimpleBaseType, identifier.Parent.Kind());
+                                Assert.Equal("C", context.ContainingSymbol.ToTestDisplayString());
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "Attr1":
+                        Interlocked.Increment(ref FireCount24);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "Attr2":
+                        Interlocked.Increment(ref FireCount25);
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "Attr3":
+                        Interlocked.Increment(ref FireCount26);
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                }
+            }
+
+            protected void Handle8(SyntaxNodeAnalysisContext context)
+            {
+                var baseType = (SimpleBaseTypeSyntax)context.Node;
+
+                switch (baseType.ToString())
+                {
+                    case "I1":
+                        switch (context.ContainingSymbol.ToTestDisplayString())
+                        {
+                            case "A":
+                                Interlocked.Increment(ref FireCount20);
+                                break;
+                            case "B":
+                                Interlocked.Increment(ref FireCount21);
+                                break;
+                            case "C":
+                                Interlocked.Increment(ref FireCount22);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "A":
+                        switch (context.ContainingSymbol.ToTestDisplayString())
+                        {
+                            case "C":
+                                Interlocked.Increment(ref FireCount23);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+
+                    case "System.Attribute":
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle9(SyntaxNodeAnalysisContext context)
+            {
+                var parameterList = (ParameterListSyntax)context.Node;
+
+                switch (parameterList.ToString())
+                {
+                    case "([Attr1]int X = 0)":
+                        Interlocked.Increment(ref FireCount27);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "([Attr2]int Y = 1)":
+                        Interlocked.Increment(ref FireCount28);
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "([Attr3]int Z = 4)":
+                        Interlocked.Increment(ref FireCount29);
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "()":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle10(SyntaxNodeAnalysisContext context)
+            {
+                var argumentList = (ArgumentListSyntax)context.Node;
+
+                switch (argumentList.ToString())
+                {
+                    case "(2)":
+                        Interlocked.Increment(ref FireCount30);
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "(5)":
+                        Interlocked.Increment(ref FireCount31);
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_02()
+        {
+            var text1 = @"
+record A(int X = 0)
+{}
+
+record C
+{
+    C(int Z = 4)
+    {}
+}
+";
+
+            var analyzer = new AnalyzerActions_02_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+        }
+
+        private class AnalyzerActions_02_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(Handle, SymbolKind.Method);
+                context.RegisterSymbolAction(Handle, SymbolKind.Property);
+                context.RegisterSymbolAction(Handle, SymbolKind.Parameter);
+                context.RegisterSymbolAction(Handle, SymbolKind.NamedType);
+            }
+
+            private void Handle(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Int32 A.X { get; init; }":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    case "[System.Int32 X = 0]":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+                    case "[System.Int32 Z = 4]":
+                        Interlocked.Increment(ref FireCount5);
+                        break;
+                    case "A":
+                        Interlocked.Increment(ref FireCount6);
+                        break;
+                    case "C":
+                        Interlocked.Increment(ref FireCount7);
+                        break;
+                    case "System.Runtime.CompilerServices.IsExternalInit":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_03()
+        {
+            var text1 = @"
+record A(int X = 0)
+{}
+
+record C
+{
+    C(int Z = 4)
+    {}
+}
+";
+
+            var analyzer = new AnalyzerActions_03_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(0, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(0, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
+        }
+
+        private class AnalyzerActions_03_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+            public int FireCount10;
+            public int FireCount11;
+            public int FireCount12;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.Method);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.Property);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.Parameter);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.NamedType);
+            }
+
+            private void Handle1(SymbolStartAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        context.RegisterSymbolEndAction(Handle2);
+                        break;
+                    case "System.Int32 A.X { get; init; }":
+                        Interlocked.Increment(ref FireCount2);
+                        context.RegisterSymbolEndAction(Handle3);
+                        break;
+                    case "[System.Int32 X = 0]":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount4);
+                        context.RegisterSymbolEndAction(Handle4);
+                        break;
+                    case "[System.Int32 Z = 4]":
+                        Interlocked.Increment(ref FireCount5);
+                        break;
+                    case "A":
+                        Interlocked.Increment(ref FireCount9);
+
+                        Assert.Equal(0, FireCount1);
+                        Assert.Equal(0, FireCount2);
+                        Assert.Equal(0, FireCount6);
+                        Assert.Equal(0, FireCount7);
+
+                        context.RegisterSymbolEndAction(Handle5);
+                        break;
+                    case "C":
+                        Interlocked.Increment(ref FireCount10);
+
+                        Assert.Equal(0, FireCount4);
+                        Assert.Equal(0, FireCount8);
+
+                        context.RegisterSymbolEndAction(Handle6);
+                        break;
+                    case "System.Runtime.CompilerServices.IsExternalInit":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle2(SymbolAnalysisContext context)
+            {
+                Assert.Equal("A..ctor([System.Int32 X = 0])", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount6);
+            }
+
+            private void Handle3(SymbolAnalysisContext context)
+            {
+                Assert.Equal("System.Int32 A.X { get; init; }", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount7);
+            }
+
+            private void Handle4(SymbolAnalysisContext context)
+            {
+                Assert.Equal("C..ctor([System.Int32 Z = 4])", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount8);
+            }
+
+            private void Handle5(SymbolAnalysisContext context)
+            {
+                Assert.Equal("A", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount11);
+
+                Assert.Equal(1, FireCount1);
+                Assert.Equal(1, FireCount2);
+                Assert.Equal(1, FireCount6);
+                Assert.Equal(1, FireCount7);
+            }
+
+            private void Handle6(SymbolAnalysisContext context)
+            {
+                Assert.Equal("C", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount12);
+
+                Assert.Equal(1, FireCount4);
+                Assert.Equal(1, FireCount8);
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_04()
+        {
+            var text1 = @"
+record A([Attr1(100)]int X = 0) : I1
+{}
+
+record B([Attr2(200)]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3(300)]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_04_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(0, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
+            Assert.Equal(1, analyzer.FireCount13);
+            Assert.Equal(1, analyzer.FireCount14);
+            Assert.Equal(1, analyzer.FireCount15);
+            Assert.Equal(1, analyzer.FireCount16);
+            Assert.Equal(1, analyzer.FireCount17);
+        }
+
+        private class AnalyzerActions_04_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+            public int FireCount10;
+            public int FireCount11;
+            public int FireCount12;
+            public int FireCount13;
+            public int FireCount14;
+            public int FireCount15;
+            public int FireCount16;
+            public int FireCount17;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationAction(Handle1, OperationKind.ConstructorBody);
+                context.RegisterOperationAction(Handle2, OperationKind.Invocation);
+                context.RegisterOperationAction(Handle3, OperationKind.Literal);
+                context.RegisterOperationAction(Handle4, OperationKind.ParameterInitializer);
+                context.RegisterOperationAction(Handle5, OperationKind.PropertyInitializer);
+                context.RegisterOperationAction(Handle5, OperationKind.FieldInitializer);
+            }
+
+            protected void Handle1(OperationAnalysisContext context)
+            {
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        Assert.Equal(SyntaxKind.RecordDeclaration, context.Operation.Syntax.Kind());
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount2);
+                        Assert.Equal(SyntaxKind.RecordDeclaration, context.Operation.Syntax.Kind());
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount3);
+                        Assert.Equal(SyntaxKind.ConstructorDeclaration, context.Operation.Syntax.Kind());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle2(OperationAnalysisContext context)
+            {
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount4);
+                        Assert.Equal(SyntaxKind.PrimaryConstructorBaseType, context.Operation.Syntax.Kind());
+                        VerifyOperationTree((CSharpCompilation)context.Compilation, context.Operation,
+@"
+IInvocationOperation ( A..ctor([System.Int32 X = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'A(2)')
+  Instance Receiver: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'A(2)')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount5);
+                        Assert.Equal(SyntaxKind.BaseConstructorInitializer, context.Operation.Syntax.Kind());
+                        VerifyOperationTree((CSharpCompilation)context.Compilation, context.Operation,
+@"
+IInvocationOperation ( A..ctor([System.Int32 X = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(5)')
+  Instance Receiver: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: ': base(5)')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle3(OperationAnalysisContext context)
+            {
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "100":
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount6);
+                        break;
+                    case "0":
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount7);
+                        break;
+                    case "200":
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount8);
+                        break;
+                    case "1":
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount9);
+                        break;
+                    case "2":
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount10);
+                        break;
+                    case "300":
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount11);
+                        break;
+                    case "4":
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount12);
+                        break;
+                    case "5":
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount13);
+                        break;
+                    case "3":
+                        Assert.Equal("System.Int32 B.M()", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount17);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle4(OperationAnalysisContext context)
+            {
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "= 0":
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount14);
+                        break;
+                    case "= 1":
+                        Assert.Equal("B..ctor([System.Int32 Y = 1])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount15);
+                        break;
+                    case "= 4":
+                        Assert.Equal("C..ctor([System.Int32 Z = 4])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount16);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle5(OperationAnalysisContext context)
+            {
+                Assert.True(false);
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_05()
+        {
+            var text1 = @"
+record A([Attr1(100)]int X = 0) : I1
+{}
+
+record B([Attr2(200)]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3(300)]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_05_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+        }
+
+        private class AnalyzerActions_05_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(Handle);
+            }
+
+            private void Handle(OperationBlockAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        Assert.Equal(2, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
+
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount2);
+                        Assert.Equal(3, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
+                        Assert.Equal("A(2)", context.OperationBlocks[2].Syntax.ToString());
+
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount3);
+                        Assert.Equal(4, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
+
+                        Assert.Equal(OperationKind.Invocation, context.OperationBlocks[3].Kind);
+                        Assert.Equal(": base(5)", context.OperationBlocks[3].Syntax.ToString());
+
+                        break;
+                    case "System.Int32 B.M()":
+                        Interlocked.Increment(ref FireCount4);
+                        Assert.Equal(1, context.OperationBlocks.Length);
+                        Assert.Equal(OperationKind.Block, context.OperationBlocks[0].Kind);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_06()
+        {
+            var text1 = @"
+record A([Attr1(100)]int X = 0) : I1
+{}
+
+record B([Attr2(200)]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3(300)]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_06_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount100);
+            Assert.Equal(1, analyzer.FireCount200);
+            Assert.Equal(1, analyzer.FireCount300);
+            Assert.Equal(1, analyzer.FireCount400);
+
+            Assert.Equal(0, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
+            Assert.Equal(1, analyzer.FireCount13);
+            Assert.Equal(1, analyzer.FireCount14);
+            Assert.Equal(1, analyzer.FireCount15);
+            Assert.Equal(1, analyzer.FireCount16);
+            Assert.Equal(1, analyzer.FireCount17);
+
+            Assert.Equal(1, analyzer.FireCount1000);
+            Assert.Equal(1, analyzer.FireCount2000);
+            Assert.Equal(1, analyzer.FireCount3000);
+            Assert.Equal(1, analyzer.FireCount4000);
+        }
+
+        private class AnalyzerActions_06_Analyzer : AnalyzerActions_04_Analyzer
+        {
+            public int FireCount100;
+            public int FireCount200;
+            public int FireCount300;
+            public int FireCount400;
+
+            public int FireCount1000;
+            public int FireCount2000;
+            public int FireCount3000;
+            public int FireCount4000;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockStartAction(Handle);
+            }
+
+            private void Handle(OperationBlockStartAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount100);
+                        Assert.Equal(2, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
+
+                        RegisterOperationAction(context);
+                        context.RegisterOperationBlockEndAction(Handle6);
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount200);
+                        Assert.Equal(3, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
+                        Assert.Equal("A(2)", context.OperationBlocks[2].Syntax.ToString());
+
+                        RegisterOperationAction(context);
+                        context.RegisterOperationBlockEndAction(Handle6);
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount300);
+                        Assert.Equal(4, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
+
+                        Assert.Equal(OperationKind.Invocation, context.OperationBlocks[3].Kind);
+                        Assert.Equal(": base(5)", context.OperationBlocks[3].Syntax.ToString());
+
+                        RegisterOperationAction(context);
+                        context.RegisterOperationBlockEndAction(Handle6);
+                        break;
+                    case "System.Int32 B.M()":
+                        Interlocked.Increment(ref FireCount400);
+                        Assert.Equal(1, context.OperationBlocks.Length);
+                        Assert.Equal(OperationKind.Block, context.OperationBlocks[0].Kind);
+                        RegisterOperationAction(context);
+                        context.RegisterOperationBlockEndAction(Handle6);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void RegisterOperationAction(OperationBlockStartAnalysisContext context)
+            {
+                context.RegisterOperationAction(Handle1, OperationKind.ConstructorBody);
+                context.RegisterOperationAction(Handle2, OperationKind.Invocation);
+                context.RegisterOperationAction(Handle3, OperationKind.Literal);
+                context.RegisterOperationAction(Handle4, OperationKind.ParameterInitializer);
+                context.RegisterOperationAction(Handle5, OperationKind.PropertyInitializer);
+                context.RegisterOperationAction(Handle5, OperationKind.FieldInitializer);
+            }
+
+            private void Handle6(OperationBlockAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1000);
+                        Assert.Equal(2, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
+
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount2000);
+                        Assert.Equal(3, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 1", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr2(200)", context.OperationBlocks[1].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.Invocation, context.OperationBlocks[2].Kind);
+                        Assert.Equal("A(2)", context.OperationBlocks[2].Syntax.ToString());
+
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount3000);
+                        Assert.Equal(4, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 4", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr3(300)", context.OperationBlocks[1].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.Block, context.OperationBlocks[2].Kind);
+
+                        Assert.Equal(OperationKind.Invocation, context.OperationBlocks[3].Kind);
+                        Assert.Equal(": base(5)", context.OperationBlocks[3].Syntax.ToString());
+
+                        break;
+                    case "System.Int32 B.M()":
+                        Interlocked.Increment(ref FireCount4000);
+                        Assert.Equal(1, context.OperationBlocks.Length);
+                        Assert.Equal(OperationKind.Block, context.OperationBlocks[0].Kind);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_07()
+        {
+            var text1 = @"
+record A([Attr1(100)]int X = 0) : I1
+{}
+
+record B([Attr2(200)]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3(300)]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_07_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+        }
+
+        private class AnalyzerActions_07_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockAction(Handle);
+            }
+
+            private void Handle(CodeBlockAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+
+                        switch (context.CodeBlock)
+                        {
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount1);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        switch (context.CodeBlock)
+                        {
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "B" } }:
+                                Interlocked.Increment(ref FireCount2);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        switch (context.CodeBlock)
+                        {
+                            case ConstructorDeclarationSyntax { Identifier: { ValueText: "C" } }:
+                                Interlocked.Increment(ref FireCount3);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "System.Int32 B.M()":
+                        switch (context.CodeBlock)
+                        {
+                            case MethodDeclarationSyntax { Identifier: { ValueText: "M" } }:
+                                Interlocked.Increment(ref FireCount4);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_08()
+        {
+            var text1 = @"
+record A([Attr1]int X = 0) : I1
+{}
+
+record B([Attr2]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_08_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount100);
+            Assert.Equal(1, analyzer.FireCount200);
+            Assert.Equal(1, analyzer.FireCount300);
+            Assert.Equal(1, analyzer.FireCount400);
+
+            Assert.Equal(1, analyzer.FireCount0);
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(0, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+            Assert.Equal(0, analyzer.FireCount10);
+            Assert.Equal(0, analyzer.FireCount11);
+            Assert.Equal(0, analyzer.FireCount12);
+            Assert.Equal(0, analyzer.FireCount13);
+            Assert.Equal(0, analyzer.FireCount14);
+            Assert.Equal(1, analyzer.FireCount15);
+            Assert.Equal(1, analyzer.FireCount16);
+            Assert.Equal(0, analyzer.FireCount17);
+            Assert.Equal(0, analyzer.FireCount18);
+            Assert.Equal(0, analyzer.FireCount19);
+            Assert.Equal(0, analyzer.FireCount20);
+            Assert.Equal(0, analyzer.FireCount21);
+            Assert.Equal(0, analyzer.FireCount22);
+            Assert.Equal(0, analyzer.FireCount23);
+            Assert.Equal(1, analyzer.FireCount24);
+            Assert.Equal(1, analyzer.FireCount25);
+            Assert.Equal(1, analyzer.FireCount26);
+            Assert.Equal(0, analyzer.FireCount27);
+            Assert.Equal(0, analyzer.FireCount28);
+            Assert.Equal(0, analyzer.FireCount29);
+            Assert.Equal(1, analyzer.FireCount30);
+            Assert.Equal(1, analyzer.FireCount31);
+
+            Assert.Equal(1, analyzer.FireCount1000);
+            Assert.Equal(1, analyzer.FireCount2000);
+            Assert.Equal(1, analyzer.FireCount3000);
+            Assert.Equal(1, analyzer.FireCount4000);
+        }
+
+        private class AnalyzerActions_08_Analyzer : AnalyzerActions_01_Analyzer
+        {
+            public int FireCount100;
+            public int FireCount200;
+            public int FireCount300;
+            public int FireCount400;
+
+            public int FireCount1000;
+            public int FireCount2000;
+            public int FireCount3000;
+            public int FireCount4000;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockStartAction<SyntaxKind>(Handle);
+            }
+
+            private void Handle(CodeBlockStartAnalysisContext<SyntaxKind> context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+
+                        switch (context.CodeBlock)
+                        {
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount100);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        switch (context.CodeBlock)
+                        {
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "B" } }:
+                                Interlocked.Increment(ref FireCount200);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        switch (context.CodeBlock)
+                        {
+                            case ConstructorDeclarationSyntax { Identifier: { ValueText: "C" } }:
+                                Interlocked.Increment(ref FireCount300);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "System.Int32 B.M()":
+                        switch (context.CodeBlock)
+                        {
+                            case MethodDeclarationSyntax { Identifier: { ValueText: "M" } }:
+                                Interlocked.Increment(ref FireCount400);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.NumericLiteralExpression);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.EqualsValueClause);
+                context.RegisterSyntaxNodeAction(Handle3, SyntaxKind.BaseConstructorInitializer);
+                context.RegisterSyntaxNodeAction(Handle4, SyntaxKind.ConstructorDeclaration);
+                context.RegisterSyntaxNodeAction(Handle5, SyntaxKind.PrimaryConstructorBaseType);
+                context.RegisterSyntaxNodeAction(Handle6, SyntaxKind.RecordDeclaration);
+                context.RegisterSyntaxNodeAction(Handle7, SyntaxKind.IdentifierName);
+                context.RegisterSyntaxNodeAction(Handle8, SyntaxKind.SimpleBaseType);
+                context.RegisterSyntaxNodeAction(Handle9, SyntaxKind.ParameterList);
+                context.RegisterSyntaxNodeAction(Handle10, SyntaxKind.ArgumentList);
+
+                context.RegisterCodeBlockEndAction(Handle11);
+            }
+
+            private void Handle11(CodeBlockAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+
+                        switch (context.CodeBlock)
+                        {
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount1000);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        switch (context.CodeBlock)
+                        {
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "B" } }:
+                                Interlocked.Increment(ref FireCount2000);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        switch (context.CodeBlock)
+                        {
+                            case ConstructorDeclarationSyntax { Identifier: { ValueText: "C" } }:
+                                Interlocked.Increment(ref FireCount3000);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "System.Int32 B.M()":
+                        switch (context.CodeBlock)
+                        {
+                            case MethodDeclarationSyntax { Identifier: { ValueText: "M" } }:
+                                Interlocked.Increment(ref FireCount4000);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_09()
+        {
+            var text1 = @"
+record A([Attr1(100)]int X = 0) : I1
+{}
+
+record B([Attr2(200)]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3(300)]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_09_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+        }
+
+        private class AnalyzerActions_09_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(Handle1, SymbolKind.Method);
+                context.RegisterSymbolAction(Handle2, SymbolKind.Property);
+                context.RegisterSymbolAction(Handle3, SymbolKind.Parameter);
+            }
+
+            private void Handle1(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case "System.Int32 B.M()":
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle2(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "System.Int32 A.X { get; init; }":
+                        Interlocked.Increment(ref FireCount5);
+                        break;
+                    case "System.Int32 B.Y { get; init; }":
+                        Interlocked.Increment(ref FireCount6);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle3(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "[System.Int32 X = 0]":
+                        Interlocked.Increment(ref FireCount7);
+                        break;
+                    case "[System.Int32 Y = 1]":
+                        Interlocked.Increment(ref FireCount8);
+                        break;
+                    case "[System.Int32 Z = 4]":
+                        Interlocked.Increment(ref FireCount9);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
         }
     }
 }

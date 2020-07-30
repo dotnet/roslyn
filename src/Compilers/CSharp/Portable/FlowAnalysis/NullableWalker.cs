@@ -502,11 +502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
                     enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
                 }
-                else
-                {
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.State);
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.State);
-                }
             }
 
             void enforceMemberNotNullWhen(SyntaxNode syntaxOpt, bool sense, LocalState state)
@@ -604,11 +599,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
                         enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
-                    }
-                    else
-                    {
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.State);
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.State);
                     }
                 }
             }
@@ -741,6 +731,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable restore
+        internal static void AnalyzeIfNeeded(
+            CSharpCompilation compilation,
+            MethodSymbol method,
+            BoundNode node,
+            DiagnosticBag diagnostics)
+        {
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
+            {
+#if DEBUG
+                // Always run analysis in debug builds so that we can more reliably catch
+                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
+                diagnostics = new DiagnosticBag();
+#else
+                return;
+#endif
+            }
+
+            Analyze(compilation, method, node, diagnostics);
+        }
 
         internal static void Analyze(
             CSharpCompilation compilation,
@@ -1425,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 case NullableFlowState.MaybeNull:
                     // https://github.com/dotnet/roslyn/issues/46044: Skip the following check if /langversion > 8?
-                    if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8())
+                    if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8() && !(type.Type is TypeParameterSymbol { IsNotNullable: true }))
                     {
                         return false;
                     }
@@ -4955,7 +4964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // learn from post-conditions [Maybe/NotNull, Maybe/NotNullWhen] without using an assignment
-                        learnFromPostConditions(argument, parameterAnnotations);
+                        learnFromPostConditions(argument, parameterType, parameterAnnotations);
                     }
                     break;
                 case RefKind.Ref:
@@ -5139,11 +5148,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return typeWithState;
             }
 
-            void learnFromPostConditions(BoundExpression argument, FlowAnalysisAnnotations parameterAnnotations)
+            void learnFromPostConditions(BoundExpression argument, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
             {
                 // Note: NotNull = NotNullWhen(true) + NotNullWhen(false)
                 bool notNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
                 bool notNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                bool disallowNull = (parameterAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0;
+                bool setNotNullFromParameterType = !argument.IsSuppressed
+                    && !parameterType.Type.IsPossiblyNullableReferenceTypeTypeParameter()
+                    && parameterType.NullableAnnotation.IsNotAnnotated();
 
                 // Note: MaybeNull = MaybeNullWhen(true) + MaybeNullWhen(false)
                 bool maybeNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
@@ -5153,7 +5166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     LearnFromNullTest(argument, ref State);
                 }
-                else if (notNullWhenTrue && notNullWhenFalse && !IsConditionalState && !(maybeNullWhenTrue && maybeNullWhenFalse))
+                else if (((notNullWhenTrue && notNullWhenFalse) || disallowNull || setNotNullFromParameterType)
+                    && !IsConditionalState
+                    && !(maybeNullWhenTrue || maybeNullWhenFalse))
                 {
                     LearnFromNonNullTest(argument, ref State);
                 }

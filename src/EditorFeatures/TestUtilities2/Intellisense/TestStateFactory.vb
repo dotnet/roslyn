@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
-                                                            Optional extraExportedTypes As List(Of Type) = Nothing,
+                                                            Optional extraExportedTypes As IEnumerable(Of Type) = Nothing,
                                                             Optional workspaceKind As String = Nothing,
                                                             Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
