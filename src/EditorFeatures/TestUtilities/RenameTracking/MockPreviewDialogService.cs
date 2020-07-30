@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
-    [ExportWorkspaceService(typeof(IPreviewDialogService), "Test"), Shared]
+    [ExportWorkspaceService(typeof(IPreviewDialogService), ServiceLayer.Host), Shared, PartNotDiscoverable]
     internal class MockPreviewDialogService : IPreviewDialogService, IWorkspaceServiceFactory
     {
         public bool ReturnsNull;

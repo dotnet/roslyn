@@ -352,7 +352,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocument.Project.Solution,
                 interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                options: new CodeGenerationOptions(contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()), generateMethodBodies: false),
+                options: new CodeGenerationOptions(
+                    contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
+                    generateMethodBodies: false,
+                    options: await interfaceDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var syntaxRoot = await unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

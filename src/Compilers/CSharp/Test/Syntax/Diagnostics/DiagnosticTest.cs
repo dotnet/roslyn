@@ -254,6 +254,7 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -304,6 +305,7 @@ class X
                         case ErrorCode.WRN_ThrowPossibleNull:
                         case ErrorCode.WRN_UnboxPossibleNull:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
@@ -385,6 +387,7 @@ class X
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
                     ErrorCode.WRN_ConstOutOfRangeChecked,
+                    ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen,
                     ErrorCode.WRN_UnassignedThisAutoProperty,
                     ErrorCode.WRN_UnassignedThis,
                     ErrorCode.WRN_ParamUnassigned,

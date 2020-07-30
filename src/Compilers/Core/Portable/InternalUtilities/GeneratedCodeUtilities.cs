@@ -151,7 +151,7 @@ namespace Roslyn.Utilities
         {
             // Check for explicit user configuration for generated code.
             //     generated_code = true | false
-            if (options.TryGetValue("generated_code", out string optionValue) &&
+            if (options.TryGetValue("generated_code", out string? optionValue) &&
                 bool.TryParse(optionValue, out var boolValue))
             {
                 return boolValue;
