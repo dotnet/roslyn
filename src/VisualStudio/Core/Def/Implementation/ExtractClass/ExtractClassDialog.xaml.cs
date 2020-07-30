@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
         public string SelectMembers => ServicesVSResources.Select_members_colon;
-        public string ExtractClassTitle => ServicesVSResources.Extract_Class;
+        public string ExtractClassTitle => ServicesVSResources.Extract_Base_Class;
         public ExtractClassViewModel ViewModel { get; }
         public MemberSelection MemberSelectionControl { get; }
         public NewTypeDestinationSelection DestinationSelectionControl { get; }
