@@ -61,11 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// disposed, the operation will block the shutdown.
         /// </summary>
         /// <remarks>
-        /// The callback function <paramref name="func"/> is invoked synchronously prior to this method returning. If
-        /// the cancellation token supplied to the callback is not cancelled at the start of the callback, then the
-        /// entire asynchronous operation performed by <paramref name="func"/> will block shutdown of the threading
-        /// context. Otherwise, if the cancellation token is cancelled at the start of the callback, there are no
-        /// guarantees that the operation will block shutdown.
+        /// <para>The callback function <paramref name="func"/> is invoked synchronously prior to this method returning.
+        /// The entire asynchronous operation performed by <paramref name="func"/> will block shutdown of the threading
+        /// context.</para>
+        ///
+        /// <para>If the threading context is already disposed at the time this is called, the operation is cancelled
+        /// without calling <paramref name="func"/>.</para>
         /// </remarks>
         /// <param name="func">The callback function that performs an asynchronous operation.</param>
         JoinableTask RunWithShutdownBlockAsync(Func<CancellationToken, Task> func);

@@ -64,7 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public JoinableTask RunWithShutdownBlockAsync(Func<CancellationToken, Task> func)
         {
-            return ShutdownBlockingTaskFactory.RunAsync(() => func(DisposalToken));
+            return ShutdownBlockingTaskFactory.RunAsync(() =>
+            {
+                DisposalToken.ThrowIfCancellationRequested();
+                return func(DisposalToken);
+            });
         }
 
         public void Dispose()
