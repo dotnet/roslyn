@@ -1730,6 +1730,9 @@ abstract sealed record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1756,6 +1759,9 @@ sealed abstract record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -1810,10 +1816,13 @@ sealed abstract record C2 : C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_05()
+        public void Clone_05_IntReturnType_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -1904,10 +1913,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_06()
+        public void Clone_06_IntReturnType_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2004,10 +2016,13 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_07()
+        public void Clone_07_Ambiguous_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2108,10 +2123,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_08()
+        public void Clone_08_Ambiguous_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2218,16 +2236,18 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_09()
+        public void Clone_09_AmbiguousReverseOrder_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
     extends System.Object
 {
-    // Methods
     // Methods
     .method public hidebysig specialname newslot virtual 
         instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
@@ -2322,10 +2342,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_10()
+        public void Clone_10_AmbiguousReverseOrder_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2432,6 +2455,9 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2731,7 +2757,7 @@ record D(int X) : C(X)
         }
 
         [Fact]
-        public void Clone_17()
+        public void Clone_17_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2822,10 +2848,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_18()
+        public void Clone_18_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2916,6 +2945,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -19118,6 +19150,19 @@ public class C
                 //         _ = new R2<int>(2);
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("R2<T>", "T", "int").WithLocation(10, 20)
                 );
+        }
+
+        [Fact]
+        public void RecordLoadedInVisualBasicDisplaysAsRecord()
+        {
+            var src = @"
+public record A;
+";
+            var compRef = CreateCompilation(src).EmitToImageReference();
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: new[] { compRef });
+            var symbol = vbComp.GlobalNamespace.GetTypeMember("A");
+            Assert.Equal("record A",
+                SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
