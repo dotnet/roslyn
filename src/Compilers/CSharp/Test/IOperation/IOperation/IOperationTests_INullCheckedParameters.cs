@@ -31,11 +31,11 @@ public class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... input!) { }')
-      BlockBody: 
-        IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
-      ExpressionBody: 
-        null");
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... input!) { }')
+  BlockBody: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+  ExpressionBody: 
+    null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -2242,33 +2242,31 @@ class Program
             comp.MakeMemberMissing(WellKnownMember.System_ArgumentNullException__ctorString);
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
-                    // (7,37): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
-                    //         Func<string, string> func = x! => x;
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 37));
             var tree = comp.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             comp.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'public stat ... }')
-      BlockBody: 
-        IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
-          Locals: Local_1: System.Func<System.String, System.String> func
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Func<string ...  = x! => x;')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Func<string ... c = x! => x')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'func = x! => x')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x! => x')
-                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
-                          Target: 
-                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
-                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
-                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
-                                  ReturnedValue: 
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-              Initializer: 
-                null
-      ExpressionBody: 
-        null");
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'public stat ... }')
+  BlockBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+      Locals: Local_1: System.Func<System.String, System.String> func
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Func<string ...  = x! => x;')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Func<string ... c = x! => x')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'func = x! => x')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x! => x')
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                      Target: 
+                        IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
+                          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+                            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                              ReturnedValue: 
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+          Initializer: 
+            null
+  ExpressionBody: 
+    null");
             VerifyFlowGraph(comp, node1, expectedFlowGraph: @"
 Block[B0] - Entry
     Statements (0)

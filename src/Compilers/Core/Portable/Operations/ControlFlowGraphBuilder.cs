@@ -1482,8 +1482,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private ConditionalOperation GenerateNullCheckForParameter(IParameterSymbol parameter, SyntaxNode syntax, SemanticModel semanticModel)
         {
             Debug.Assert(parameter.Language == LanguageNames.CSharp);
-            ConstantValue constantValue = ConstantValue.Null;
-            var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue, isImplicit: true);
+            var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, constantValue: null, isImplicit: true);
             var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             IOperation conditionOp;
@@ -1499,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         semanticModel,
                         syntax,
                         boolType,
-                        constantValue,
+                        constantValue: null,
                         isImplicit: true),
                     isLifted: false,
                     isChecked: false,
@@ -1507,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     semanticModel,
                     syntax,
                     boolType,
-                    constantValue,
+                    constantValue: null,
                     isImplicit: true);
                 }
                 else
@@ -1522,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         semanticModel,
                         syntax,
                         boolType,
-                        constantValue,
+                        constantValue: null,
                         isImplicit: true),
                     isLifted: false,
                     isChecked: false,
@@ -1530,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     semanticModel,
                     syntax,
                     boolType,
-                    constantValue,
+                    constantValue: null,
                     isImplicit: true);
                 }
             }
@@ -1548,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     semanticModel,
                     syntax,
                     boolType,
-                    constantValue,
+                    constantValue: null,
                     isImplicit: true);
             }
 
@@ -1565,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     semanticModel,
                     syntax,
                     argumentNullExceptionType,
-                    constantValue,
+                    constantValue: null,
                     isImplicit: true);
             }
             else
@@ -1586,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         semanticModel,
                         syntax,
                         argumentNullExceptionType,
-                        constantValue,
+                        constantValue: null,
                         isImplicit: true);
             }
 
@@ -1596,14 +1595,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     semanticModel,
                     syntax,
                     argumentNullExceptionType,
-                    constantValue,
+                    constantValue: null,
                     isImplicit: true),
                 semanticModel,
                 syntax,
                 type: null,
-                constantValue,
+                constantValue: null,
                 isImplicit: true);
-            return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue, isImplicit: true);
+            return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue: null, isImplicit: true);
         }
 
         private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
