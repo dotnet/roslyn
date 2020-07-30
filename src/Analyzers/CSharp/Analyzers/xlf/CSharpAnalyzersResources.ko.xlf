@@ -87,6 +87,11 @@
         <target state="translated">default' 식 단순화</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_linq_expressions">
+        <source>Simplify linq expressions</source>
+        <target state="new">Simplify linq expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
         <target state="translated">Struct에서 'this'에 대한 할당이 생성자 외부에 있습니다. 읽기 전용 필드를 쓰기 가능으로 설정하세요.</target>

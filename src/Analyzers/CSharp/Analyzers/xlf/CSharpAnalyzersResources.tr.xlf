@@ -87,6 +87,11 @@
         <target state="translated">Default' ifadesini basitleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_linq_expressions">
+        <source>Simplify linq expressions</source>
+        <target state="new">Simplify linq expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
         <target state="translated">Struct, oluşturucu dışında 'this' öğesine yönelik atama içeriyor. Salt okunur alanları yazılabilir yapın</target>
