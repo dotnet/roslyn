@@ -1885,6 +1885,7 @@ tryAgain:
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.StructKeyword:
+                case SyntaxKind.DefaultKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
@@ -1920,6 +1921,9 @@ tryAgain:
                     questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
 
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
+                case SyntaxKind.DefaultKeyword:
+                    var defaultToken = this.EatToken();
+                    return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);

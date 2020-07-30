@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_YieldNotAllowedInScript = 7020,
         ERR_NamespaceNotAllowedInScript = 7021,
         WRN_MainIgnored = 7022,
-        ERR_StaticInAsOrIs = 7023,
+        WRN_StaticInAsOrIs = 7023,
         ERR_InvalidDelegateType = 7024,
         ERR_BadVisEventType = 7025,
         ERR_GlobalAttributesNotAllowed = 7026,
@@ -1831,6 +1831,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
+        ERR_OverrideDefaultConstraintNotSatisfied = 8822,
+        ERR_DefaultConstraintOverrideOnly = 8823,
+
+        WRN_SwitchExpressionNotExhaustiveWithWhen = 8846,
+        WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
 
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,

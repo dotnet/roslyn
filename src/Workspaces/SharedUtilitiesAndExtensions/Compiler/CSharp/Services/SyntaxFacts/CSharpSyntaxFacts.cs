@@ -1553,6 +1553,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return IsOnHeader(root, position, node, node.CloseParenToken);
         }
 
+        public bool IsOnWhileStatementHeader(SyntaxNode root, int position, out SyntaxNode whileStatement)
+        {
+            var node = TryGetAncestorForLocation<WhileStatementSyntax>(root, position);
+            whileStatement = node;
+            if (whileStatement == null)
+            {
+                return false;
+            }
+
+            return IsOnHeader(root, position, node, node.CloseParenToken);
+        }
+
         public bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement)
         {
             var node = TryGetAncestorForLocation<ForEachStatementSyntax>(root, position);
