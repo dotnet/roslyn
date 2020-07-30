@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1695,6 +1696,60 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
             Assert.False(comp.NullableSemanticAnalysisEnabled);
+        }
+
+        private class CSharp73ProvidesNullableSemanticInfo_Analyzer : DiagnosticAnalyzer
+        {
+            public int HitCount;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
+            }
+
+            private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
+            {
+                var node = (MemberAccessExpressionSyntax)context.Node;
+                var model = context.SemanticModel;
+                var info = model.GetTypeInfo(node.Expression);
+
+                Assert.Equal(PublicNullableAnnotation.Annotated, info.Nullability.Annotation);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, info.Nullability.FlowState);
+
+                Interlocked.Increment(ref HitCount);
+            }
+        }
+
+        [Fact]
+        public void CSharp73ProvidesNullableSemanticInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string s)
+    {
+        if (s == null)
+        {
+            s.ToString();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                );
+
+            var analyzer = new CSharp73ProvidesNullableSemanticInfo_Analyzer();
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }).Verify();
+            Assert.Equal(1, analyzer.HitCount);
         }
 
         [Fact]
