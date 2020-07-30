@@ -45,17 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hintClassification;
         private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
+        private readonly IThreadingContext _threadingContext;
         private readonly IToolTipService _toolTipService;
-        private readonly IViewElementFactoryService _viewElementFactoryService;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
+            _threadingContext = taggerProvider.ThreadingContext;
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
             _toolTipService = taggerProvider.ToolTipService;
-            _viewElementFactoryService = taggerProvider.ViewElementFactoryService;
             _textView = textView;
             _buffer = buffer;
             _tagAggregator = tagAggregator;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView.LineHeight, Format, _toolTipService, _textView, _viewElementFactoryService)));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight, Format, _toolTipService, _textView, dataTagSpan, textTag.Key, _threadingContext)));
                     }
                 }
             }

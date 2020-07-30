@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     internal class InlineParameterNameHintDataTag : ITag
     {
         public readonly string ParameterName;
-
-        public InlineParameterNameHintDataTag(string parameterName)
+        public readonly SymbolKey Key;
+        public InlineParameterNameHintDataTag(string parameterName, SymbolKey symbolKey)
         {
             if (parameterName.Length == 0)
             {
@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             }
 
             ParameterName = parameterName;
+            Key = symbolKey;
         }
     }
 }

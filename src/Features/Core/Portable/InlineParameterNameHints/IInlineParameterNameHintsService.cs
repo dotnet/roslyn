@@ -12,14 +12,16 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
     internal readonly struct InlineParameterHint
     {
-        public InlineParameterHint(string name, int position)
+        public InlineParameterHint(SymbolKey key, string name, int position)
         {
+            Key = key;
             Name = name;
             Position = position;
         }
 
         public readonly string Name { get; }
         public readonly int Position { get; }
+        public readonly SymbolKey Key { get; }
     }
 
     internal interface IInlineParameterNameHintsService : ILanguageService

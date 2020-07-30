@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 foreach (var span in paramNameHintSpans)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Position, 0), new InlineParameterNameHintDataTag(span.Name)));
+                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Position, 0), new InlineParameterNameHintDataTag(span.Name, span.Key)));
                 }
             }
         }
