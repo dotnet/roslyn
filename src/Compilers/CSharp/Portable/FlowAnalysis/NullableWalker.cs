@@ -4039,7 +4039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!receiverType.HasNullType)
             {
                 // Update method based on inferred receiver type.
-                method = (MethodSymbol)AsMemberOfType(receiverType.Type!, method);
+                method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
             }
 
             ImmutableArray<VisitArgumentResult> results;
@@ -5380,7 +5380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!method.IsStatic)
                     {
-                        method = (MethodSymbol)AsMemberOfType(receiverType.Type!, method);
+                        method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                     }
                 }
                 return method.ReturnTypeWithAnnotations;
@@ -5508,7 +5508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // See Binder.BindNullCoalescingOperator for initial binding.
-        private Conversion GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
+        private Conversion GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool reportMismatch)
         {
             var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType, fromExplicitCast: false, extensionMethodThisArgument: false);
             bool canConvertNestedNullability = conversion.Exists;
@@ -5519,7 +5519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument)
+        private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument)
         {
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             bool useExpression = sourceType is null || UseExpressionForConversion(sourceExpression);
@@ -5589,7 +5589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// list.Add(null);
         /// </example>
         /// </summary>
-        private static Symbol AsMemberOfType(TypeSymbol type, Symbol symbol)
+        private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
 
@@ -7787,7 +7787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialMember? nullableOfTMember = null;
             if (member.RequiresInstanceReceiver())
             {
-                member = AsMemberOfType(receiverType.Type!, member);
+                member = AsMemberOfType(receiverType.Type, member);
                 nullableOfTMember = GetNullableOfTMember(member);
                 // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                 // after RHS has been visited, and only if the receiver has not changed.
@@ -7965,7 +7965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(convertedResult.Type!, node.EnumeratorInfoOpt.GetEnumeratorMethod);
+            var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorMethod);
             var enumeratorReturnType = getEnumeratorMethod.ReturnTypeWithAnnotations.ToTypeWithState();
             if (enumeratorReturnType.State != NullableFlowState.NotNull)
             {
@@ -8607,7 +8607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var @event = node.Event;
             if (!@event.IsStatic)
             {
-                @event = (EventSymbol)AsMemberOfType(ResultType.Type!, @event);
+                @event = (EventSymbol)AsMemberOfType(ResultType.Type, @event);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
                 _ = CheckPossibleNullReceiver(receiverOpt!);
