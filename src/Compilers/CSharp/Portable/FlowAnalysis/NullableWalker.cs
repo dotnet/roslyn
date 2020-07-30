@@ -6832,7 +6832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntax = group.Syntax;
                 if (!invokedAsExtensionMethod)
                 {
-                    method = (MethodSymbol)AsMemberOfType(receiverType.Type!, method);
+                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                 }
                 if (method.IsGenericMethod && HasImplicitTypeArguments(group.Syntax))
                 {
@@ -6849,6 +6849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameterType = parameter.TypeWithAnnotations;
                         arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
                     }
+                    Debug.Assert(_binder is object);
                     method = InferMethodTypeArguments(_binder!, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
                 if (invokedAsExtensionMethod)
@@ -8351,7 +8352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(awaitableInfo);
             _awaitablePlaceholdersOpt.Remove(placeholder);
 
-            if (node.Type.IsValueType || node.HasErrors || node.AwaitableInfo.GetResult is null)
+            if (node.Type.IsValueType || node.HasErrors || awaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
             }
@@ -8360,7 +8361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // It is possible for the awaiter type returned from GetAwaiter to not be a named type. e.g. it could be a type parameter.
                 // Proper handling of this is additional work which only benefits a very uncommon scenario,
                 // so we will just use the originally bound GetResult method in this case.
-                var getResult = awaitableInfo.GetResult!;
+                var getResult = awaitableInfo.GetResult;
                 var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType
                     ? getResult.OriginalDefinition.AsMember(taskAwaiterType)
                     : getResult;
@@ -8606,7 +8607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @event = (EventSymbol)AsMemberOfType(ResultType.Type, @event);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
-                _ = CheckPossibleNullReceiver(receiverOpt!);
+                _ = CheckPossibleNullReceiver(receiverOpt);
                 SetUpdatedSymbol(node, node.Event, @event);
             }
             VisitRvalue(node.Argument);
