@@ -96,6 +96,7 @@ namespace Analyzer.Utilities
         public const string SystemComponentModelCompositionExportAttribute = "System.ComponentModel.Composition.ExportAttribute";
         public const string SystemComponentModelCompositionImportingConstructorAttribute = "System.ComponentModel.Composition.ImportingConstructorAttribute";
         public const string SystemComponentModelCompositionInheritedExportAttribute = "System.ComponentModel.Composition.InheritedExportAttribute";
+        public const string SystemComponentModelDesignerCategoryAttribute = "System.ComponentModel.DesignerCategoryAttribute";
         public const string SystemComponentModelLocalizableAttribute = "System.ComponentModel.LocalizableAttribute";
         public const string SystemCompositionExportAttribute = "System.Composition.ExportAttribute";
         public const string SystemCompositionImportingConstructorAttribute = "System.Composition.ImportingConstructorAttribute";
@@ -113,11 +114,13 @@ namespace Analyzer.Utilities
         public const string SystemDataOdbcOdbcParameter = "System.Data.Odbc.OdbcParameter";
         public const string SystemDataOleDbOleDbParameter = "System.Data.OleDb.OleDbParameter";
         public const string SystemDataSqlClientSqlParameter = "System.Data.SqlClient.SqlParameter";
+        public const string SystemDataTypedTableBase1 = "System.Data.TypedTableBase`1";
         public const string SystemDateTime = "System.DateTime";
         public const string SystemDecimal = "System.Decimal";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
+        public const string SystemDiagnosticsDebuggerNonUserCode = "System.Diagnostics.DebuggerNonUserCodeAttribute";
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemDiagnosticsTraceListener = "System.Diagnostics.TraceListener";
@@ -240,6 +243,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyX509CertificatesX509Chain = "System.Security.Cryptography.X509Certificates.X509Chain";
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
         public const string SystemSerializableAttribute = "System.SerializableAttribute";
+        public const string SystemServiceModelMessageContractAttribute = "System.ServiceModel.MessageContractAttribute";
         public const string SystemServiceModelOperationContractAttribute = "System.ServiceModel.OperationContractAttribute";
         public const string SystemSingle = "System.Single";
         public const string SystemStackOverflowException = "System.StackOverflowException";
