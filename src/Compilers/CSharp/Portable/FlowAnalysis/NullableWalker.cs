@@ -3810,8 +3810,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState consequenceRValue;
             TypeWithState alternativeRValue;
 
-            Debug.Assert(node.Kind != BoundKind.UnconvertedConditionalOperator);
-
             if (isRef)
             {
                 TypeWithAnnotations consequenceLValue;
