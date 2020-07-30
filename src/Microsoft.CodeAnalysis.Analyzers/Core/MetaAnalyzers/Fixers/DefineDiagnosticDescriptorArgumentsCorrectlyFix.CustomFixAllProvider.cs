@@ -127,9 +127,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
                         var text = await additionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         using var textChanges = ArrayBuilder<TextChange>.GetInstance(fixInfos.Count);
+                        using var seenInputSpansToFix = PooledHashSet<TextSpan>.GetInstance();
                         foreach (var fixInfo in fixInfos)
                         {
-                            textChanges.Add(new TextChange(fixInfo.AdditionalDocumentSpanToFix!.Value, fixInfo.FixValue));
+                            var inputSpanToFix = fixInfo.AdditionalDocumentSpanToFix!.Value;
+                            if (seenInputSpansToFix.Add(inputSpanToFix))
+                            {
+                                textChanges.Add(new TextChange(inputSpanToFix, fixInfo.FixValue));
+                            }
                         }
 
                         var newText = text.WithChanges(textChanges);
