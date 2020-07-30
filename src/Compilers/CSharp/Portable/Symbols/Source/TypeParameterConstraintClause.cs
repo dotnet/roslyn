@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -37,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ObliviousNullabilityIfReferenceType = 0x40,
 
         NotNull = 0x80,
+        Default = 0x100,
 
         /// <summary>
         /// All bits involved into describing various aspects of 'class' constraint. 
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert((constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
-                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor)) == 0);
+                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor | TypeParameterConstraintKind.Default)) == 0);
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
@@ -202,14 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.ContainingSymbol == (object)args.container)
                         {
-                            if (args.isValueTypeOverride[typeParameterSymbol])
-                            {
-                                type.TryForceResolveAsNullableValueType();
-                            }
-                            else
-                            {
-                                type.TryForceResolveAsNullableReferenceType();
-                            }
+                            type.TryForceResolve(args.isValueTypeOverride[typeParameterSymbol]);
                         }
                         return false;
                     }, typePredicate: null, arg: (container, isValueTypeOverride), canDigThroughNullable: false, useDefaultType: true);

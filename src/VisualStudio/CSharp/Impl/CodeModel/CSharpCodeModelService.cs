@@ -1340,7 +1340,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             // trim off leading whitespace and exterior trivia.
             var lengthToStrip = lines[0].GetLeadingWhitespace().Length;
-            var linesCount = lines.Length;
 
             for (var i = 1; i < lines.Length; i++)
             {

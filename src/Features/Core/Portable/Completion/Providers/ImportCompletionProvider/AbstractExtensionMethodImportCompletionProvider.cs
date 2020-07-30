@@ -113,6 +113,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 serializableItem.Glyph,
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
-                (serializableItem.SymbolKeyData, receiverTypeSymbolKey));
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount));
     }
 }

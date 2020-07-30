@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return true;
             }
 
-            if (!TryGetDocumentId(out var documentId) && _previousDocument != null)
+            if (!TryGetDocumentId(out _) && _previousDocument != null)
             {
                 document = _previousDocument;
             }

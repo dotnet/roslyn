@@ -1241,7 +1241,7 @@ void local(Func<nint, nint> fn)
 {
     Console.WriteLine(fn(0));
 }";
-            VerifyInPreview(source, expectedOutput: "1", metadataName: "$Program.<>c.<$Main>b__0_0", expectedIL: @"
+            VerifyInPreview(source, expectedOutput: "1", metadataName: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + ".<>c.<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">b__0_0", expectedIL: @"
 {
   // Code size        5 (0x5)
   .maxstack  2

@@ -379,9 +379,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
-            => !IsCPSProject(project);
-
         internal bool IsCPSProject(CodeAnalysis.Project project)
             => IsCPSProject(project.Id);
 
@@ -391,11 +388,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (this.TryGetHierarchy(projectId, out var hierarchy))
             {
-                // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
-                // This is because the remove/add of the documents in CPS is not synchronous
-                // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
-                // expecting the changes to happen immediately.  Because they are deferred in CPS
-                // this causes problems.
                 return hierarchy.IsCapabilityMatch("CPS");
             }
 
@@ -465,7 +457,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private bool TryGetProjectData(ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy, [NotNullWhen(returnValue: true)] out EnvDTE.Project? project)
         {
-            hierarchy = null;
             project = null;
 
             return
@@ -553,7 +544,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
@@ -575,7 +566,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
@@ -608,7 +599,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(metadataReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
@@ -634,7 +625,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(metadataReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
@@ -666,8 +657,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
-            GetProjectData(projectReference.ProjectId, out var refHierarchy, out var refProject);
+            GetProjectData(projectId, out _, out var project);
+            GetProjectData(projectReference.ProjectId, out _, out var refProject);
 
             var vsProject = (VSProject)project.Object;
             vsProject.References.AddProject(refProject);
@@ -709,8 +700,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
-            GetProjectData(projectReference.ProjectId, out var refHierarchy, out var refProject);
+            GetProjectData(projectId, out _, out var project);
+            GetProjectData(projectReference.ProjectId, out _, out var refProject);
 
             var vsProject = (VSProject)project.Object;
             foreach (Reference reference in vsProject.References)
@@ -735,7 +726,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, TextDocumentKind documentKind)
         {
-            GetProjectData(info.Id.ProjectId, out var hierarchy, out var project);
+            GetProjectData(info.Id.ProjectId, out _, out var project);
 
             // If the first namespace name matches the name of the project, then we don't want to
             // generate a folder for that.  The project is implicitly a folder with that name.
@@ -749,15 +740,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (IsWebsite(project))
             {
-                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
+                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, documentKind, initialText, info.FilePath);
             }
             else if (folders.Any())
             {
-                AddDocumentToFolder(project, info.Id, folders, info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
+                AddDocumentToFolder(project, info.Id, folders, info.Name, documentKind, initialText, info.FilePath);
             }
             else
             {
-                AddDocumentToProject(project, info.Id, info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
+                AddDocumentToProject(project, info.Id, info.Name, documentKind, initialText, info.FilePath);
             }
 
             var undoManager = TryGetUndoManager();
@@ -840,7 +831,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             EnvDTE.Project project,
             DocumentId documentId,
             string documentName,
-            SourceCodeKind sourceCodeKind,
             TextDocumentKind documentKind,
             SourceText? initialText = null,
             string? filePath = null)
@@ -852,7 +842,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, documentKind);
+            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
         }
 
         private ProjectItem AddDocumentToFolder(
@@ -860,7 +850,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentId documentId,
             IEnumerable<string> folders,
             string documentName,
-            SourceCodeKind sourceCodeKind,
             TextDocumentKind documentKind,
             SourceText? initialText = null,
             string? filePath = null)
@@ -874,7 +863,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, documentKind);
+            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
         }
 
         private ProjectItem AddDocumentToProjectItems(
@@ -882,7 +871,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentId documentId,
             string? folderPath,
             string documentName,
-            SourceCodeKind sourceCodeKind,
             SourceText? initialText,
             string? filePath,
             TextDocumentKind documentKind)
@@ -891,7 +879,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 Contract.ThrowIfNull(folderPath, "If we didn't have a file path, then we expected a folder path to generate the file path from.");
                 var baseName = Path.GetFileNameWithoutExtension(documentName);
-                var extension = documentKind == TextDocumentKind.Document ? GetPreferredExtension(documentId, sourceCodeKind) : Path.GetExtension(documentName);
+                var extension = documentKind == TextDocumentKind.Document ? GetPreferredExtension(documentId) : Path.GetExtension(documentName);
                 var uniqueName = projectItems.GetUniqueName(baseName, extension);
                 filePath = Path.Combine(folderPath, uniqueName);
             }
@@ -931,7 +919,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var project = (IVsProject3)hierarchy;
-                project.RemoveItem(0, itemId, out var result);
+                project.RemoveItem(0, itemId, out _);
 
                 var undoManager = TryGetUndoManager();
                 var docInfo = CreateDocumentInfoWithoutText(document);
@@ -998,44 +986,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var document = this.CurrentSolution.GetTextDocument(documentId);
             if (document != null)
             {
-                if (TryGetFrame(document, out var frame))
+                OpenDocumentFromPath(document.FilePath, document.Project.Id, activate);
+            }
+        }
+
+        internal void OpenDocumentFromPath(string? filePath, ProjectId projectId, bool activate = true)
+        {
+            if (TryGetFrame(filePath, projectId, out var frame))
+            {
+                if (activate)
                 {
-                    if (activate)
-                    {
-                        frame.Show();
-                    }
-                    else
-                    {
-                        frame.ShowNoActivate();
-                    }
+                    frame.Show();
+                }
+                else
+                {
+                    frame.ShowNoActivate();
                 }
             }
         }
 
-        private bool TryGetFrame(CodeAnalysis.TextDocument document, [NotNullWhen(returnValue: true)] out IVsWindowFrame? frame)
+        /// <summary>
+        /// Opens a file and retrieves the window frame.
+        /// </summary>
+        /// <param name="filePath">the file path of the file to open.</param>
+        /// <param name="projectId">used to retrieve the IVsHierarchy to ensure the file is opened in a matching context.</param>
+        /// <param name="frame">the window frame.</param>
+        /// <returns></returns>
+        private bool TryGetFrame(string? filePath, ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsWindowFrame? frame)
         {
             frame = null;
 
-            if (document.FilePath == null)
+            if (filePath == null)
             {
                 return false;
             }
 
-            var hierarchy = GetHierarchy(document.Project.Id);
-            var itemId = hierarchy?.TryGetItemId(document.FilePath) ?? (uint)VSConstants.VSITEMID.Nil;
+            var hierarchy = GetHierarchy(projectId);
+            var itemId = hierarchy?.TryGetItemId(filePath) ?? (uint)VSConstants.VSITEMID.Nil;
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
                 // If the ItemId is Nil, then IVsProject would not be able to open the
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only
                 // depends on the file path.
 
-                var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
+                var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
                 return ErrorHandler.Succeeded(openDocumentService.OpenDocumentViaProject(
-                    document.FilePath,
+                    filePath,
                     VSConstants.LOGVIEWID.TextView_guid,
-                    out var oleServiceProvider,
-                    out var uiHierarchy,
-                    out var itemid,
+                    out _,
+                    out _,
+                    out _,
                     out frame));
             }
             else
@@ -1068,8 +1068,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var filePath = this.GetFilePath(documentId);
                 if (filePath != null)
                 {
-                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
-                    if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out var uiHierarchy, null, out var frame, out var isOpen)))
+                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                    if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out _, null, out var frame, out _)))
                     {
                         // TODO: do we need save argument for CloseDocument?
                         frame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
@@ -1141,7 +1141,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // Must save the document first for things like Breakpoints to be preserved.
-                projectItemForDocument.Save();
+                // WORKAROUND: Check if the document needs to be saved before calling save. 
+                // Should remove the if below and just call save() once 
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163405
+                // is fixed
+                if (!projectItemForDocument.Saved)
+                {
+                    projectItemForDocument.Save();
+                }
 
                 var uniqueName = projectItemForDocument.Collection
                     .GetUniqueNameIgnoringProjectItem(
@@ -1201,7 +1208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
+        private string GetPreferredExtension(DocumentId documentId)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
             return CurrentSolution.GetRequiredProject(documentId.ProjectId).Language switch
@@ -1363,7 +1370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (referencingHierarchy is IVsProjectFlavorReferences3 referencingProjectFlavor3)
             {
-                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out var unused)))
+                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out _)))
                 {
                     // Something went wrong even trying to see if the reference would be allowed.
                     // Assume it won't be allowed.
@@ -1379,7 +1386,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (referencedHierarchy is IVsProjectFlavorReferences3 referencedProjectFlavor3)
             {
-                if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out var unused)))
+                if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out _)))
                 {
                     // Something went wrong even trying to see if the reference would be allowed.
                     // Assume it won't be allowed.
@@ -1485,7 +1492,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                string languageName = CurrentSolution.GetRequiredProject(projectId).Language;
+                var languageName = CurrentSolution.GetRequiredProject(projectId).Language;
 
                 if (_projectReferenceInfoMap.TryGetValue(projectId, out var projectReferenceInfo))
                 {

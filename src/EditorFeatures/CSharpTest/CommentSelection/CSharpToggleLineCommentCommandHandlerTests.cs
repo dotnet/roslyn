@@ -1055,7 +1055,7 @@ class C
                 .First(export => typeof(ToggleLineCommentCommandHandler).Equals(export.GetType()));
         }
 
-        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
+        internal override TestWorkspace GetWorkspace(string markup, TestComposition composition)
+            => TestWorkspace.CreateCSharp(markup, composition: composition);
     }
 }

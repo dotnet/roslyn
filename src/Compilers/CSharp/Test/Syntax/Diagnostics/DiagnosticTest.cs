@@ -31,12 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ErrorCode.Void,
                 ErrorCode.Unknown,
                 ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
-
-                // The following error codes are reserved by feature branches
-                ErrorCode.ERR_8813,
-                ErrorCode.ERR_8814,
-                ErrorCode.ERR_8815,
-                ErrorCode.ERR_8816,
             };
             foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
             {
@@ -260,10 +254,10 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
-                        case ErrorCode.WRN_NubExprIsConstBool2:
                         case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
                         case ErrorCode.WRN_NoRuntimeMetadataVersion:
                             Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
@@ -311,6 +305,7 @@ class X
                         case ErrorCode.WRN_ThrowPossibleNull:
                         case ErrorCode.WRN_UnboxPossibleNull:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
@@ -336,6 +331,10 @@ class X
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_StaticInAsOrIs:
+                            Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -379,6 +378,7 @@ class X
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
                     ErrorCode.WRN_ConstOutOfRangeChecked,
+                    ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

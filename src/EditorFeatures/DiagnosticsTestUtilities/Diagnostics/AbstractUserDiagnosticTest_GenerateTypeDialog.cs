@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
@@ -21,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
     {
+        // TODO: IInlineRenameService requires WPF (https://github.com/dotnet/roslyn/issues/46153)
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+            typeof(TestGenerateTypeOptionsService),
+            typeof(TestProjectManagementService));
+
         internal async Task TestWithMockedGenerateTypeDialog(
             string initial,
             string languageName,
@@ -47,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             bool isCancelled = false)
         {
             var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial)
+                ? TestWorkspace.Create(initial, composition: s_composition)
                 : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial)
-                  : TestWorkspace.CreateVisualBasic(initial);
+                  ? TestWorkspace.CreateCSharp(initial, composition: s_composition)
+                  : TestWorkspace.CreateVisualBasic(initial, composition: s_composition);
 
             var testOptions = new TestParameters();
             var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);

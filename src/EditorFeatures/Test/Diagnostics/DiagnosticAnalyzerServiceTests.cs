@@ -3,18 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,7 +22,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -34,10 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticAnalyzerServiceTests
     {
+        private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalse()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new Analyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseFSAOn()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new Analyzer()));
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseWhenFileOpened()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new Analyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseWhenFileOpenedWithCompilerAnalyzer()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalseWithCompilerAnalyzerFSAOn()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
 
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [InlineData(false)]
         public async Task TestDisabledByDefaultAnalyzerEnabledWithEditorConfig(bool enabledWithEditorconfig)
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new DisabledByDefaultAnalyzer()));
 
@@ -243,7 +244,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public async Task TestOpenFileOnlyAnalyzerDiagnostics()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new OpenFileOnlyAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -301,7 +302,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public async Task TestSynchronizeWithBuild()
         {
-            var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -368,7 +369,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public void TestHostAnalyzerOrdering()
         {
-            var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
+            using var workspace = CreateWorkspace();
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
                 new Priority20Analyzer(),
@@ -413,7 +414,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public async Task TestHostAnalyzerErrorNotLeaking()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var solution = workspace.CurrentSolution;
 
@@ -510,7 +511,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
         private static AdhocWorkspace CreateWorkspaceWithProjectAndAnalyzer(DiagnosticAnalyzer analyzer)
         {
-            var workspace = new AdhocWorkspace();
+            var workspace = CreateWorkspace();
             var projectId = ProjectId.CreateNewId();
 
             var solution = workspace.CurrentSolution;
@@ -567,6 +568,105 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         }
 
         [Theory, CombinatorialData]
+        internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple, BackgroundAnalysisScope analysisScope)
+        {
+            using var workspace = new AdhocWorkspace();
+            var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
+            workspace.SetOptions(options);
+
+            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            var project = workspace.AddProject(projectInfo);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            if (testMultiple)
+            {
+                analyzer = new AdditionalFileAnalyzer2(registerFromInitialize, diagnosticSpan, id: "ID0002");
+                analyzers = analyzers.Add(analyzer);
+            }
+
+            var analyzerReference = new AnalyzerImageReference(analyzers);
+            project = project.WithAnalyzerReferences(new[] { analyzerReference })
+                .AddAdditionalDocument(name: "dummy.txt", text: "Additional File Text", filePath: "dummy.txt").Project;
+            if (testMultiple)
+            {
+                project = project.AddAdditionalDocument(name: "dummy2.txt", text: "Additional File2 Text", filePath: "dummy2.txt").Project;
+            }
+
+            var applied = workspace.TryApplyChanges(project.Solution);
+            Assert.True(applied);
+
+            // create listener/service/analyzer
+            var listener = new AsynchronousOperationListener();
+            var service = new MyDiagnosticAnalyzerService(listener);
+
+            var diagnostics = new ConcurrentSet<DiagnosticData>();
+            service.DiagnosticsUpdated += (s, e) =>
+            {
+                diagnostics.AddRange(e.Diagnostics);
+            };
+
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var firstAdditionalDocument = project.AdditionalDocuments.FirstOrDefault();
+
+            switch (analysisScope)
+            {
+                case BackgroundAnalysisScope.ActiveFile:
+                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                    workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
+                    await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstAdditionalDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
+                    break;
+
+                case BackgroundAnalysisScope.FullSolution:
+                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(analysisScope);
+            }
+
+            await listener.ExpeditedWaitAsync();
+
+            var expectedCount = !testMultiple
+                ? 1
+                : analysisScope == BackgroundAnalysisScope.FullSolution ? 4 : 2;
+            Assert.Equal(expectedCount, diagnostics.Count);
+
+            for (var i = 0; i < analyzers.Length; i++)
+            {
+                analyzer = (AdditionalFileAnalyzer)analyzers[i];
+                foreach (var additionalDoc in project.AdditionalDocuments)
+                {
+                    var applicableDiagnostics = diagnostics.Where(
+                        d => d.Id == analyzer.Descriptor.Id && d.DataLocation.OriginalFilePath == additionalDoc.FilePath);
+
+                    if (analysisScope != BackgroundAnalysisScope.FullSolution &&
+                        firstAdditionalDocument != additionalDoc)
+                    {
+                        Assert.Empty(applicableDiagnostics);
+                    }
+                    else
+                    {
+                        var diagnostic = Assert.Single(applicableDiagnostics);
+                        Assert.Equal(diagnosticSpan, diagnostic.GetTextSpan());
+                        diagnostics.Remove(diagnostic);
+                    }
+                }
+            }
+
+            Assert.Empty(diagnostics);
+        }
+
+        private class AdditionalFileAnalyzer2 : AdditionalFileAnalyzer
+        {
+            public AdditionalFileAnalyzer2(bool registerFromInitialize, TextSpan diagnosticSpan, string id)
+                : base(registerFromInitialize, diagnosticSpan, id)
+            {
+            }
+        }
+
+        [Theory, CombinatorialData]
         internal async Task TestDiagnosticSuppressor(bool includeAnalyzer, bool includeSuppressor, BackgroundAnalysisScope analysisScope)
         {
             var analyzers = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
@@ -582,7 +682,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
 
-            using var workspace = TestWorkspace.CreateCSharp("class A {}", exportProvider: EditorServicesUtil.ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp("class A {}", composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService)));
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 
@@ -686,7 +786,7 @@ class A
 ";
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: EditorServicesUtil.ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService)));
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 
@@ -711,7 +811,7 @@ class A
             {
                 case BackgroundAnalysisScope.ActiveFile:
                     workspace.OpenDocument(document.Id);
-                    var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
+                    var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
@@ -785,11 +885,19 @@ class A
             return (syntax, semantic);
         }
 
-        private static async Task RunAllAnalysisAsync(IIncrementalAnalyzer analyzer, Document document)
+        private static async Task RunAllAnalysisAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument)
         {
-            await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-            await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-            await analyzer.AnalyzeProjectAsync(document.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            if (textDocument is Document document)
+            {
+                await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
+                await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            }
+            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+            {
+                await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
+            }
+
+            await analyzer.AnalyzeProjectAsync(textDocument.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService

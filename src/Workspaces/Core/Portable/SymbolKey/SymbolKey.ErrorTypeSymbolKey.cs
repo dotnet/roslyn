@@ -30,8 +30,11 @@ namespace Microsoft.CodeAnalysis
                         break;
                 }
 
+                var isConstructed = !symbol.Equals(symbol.ConstructedFrom);
                 visitor.WriteInteger(symbol.Arity);
-                if (!symbol.Equals(symbol.ConstructedFrom))
+                visitor.WriteBoolean(isConstructed);
+
+                if (isConstructed)
                 {
                     visitor.WriteSymbolKeyArray(symbol.TypeArguments);
                 }
@@ -57,43 +60,57 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutable();
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var name = reader.ReadString();
-                var containingSymbolResolution = ResolveContainer(reader);
-                var arity = reader.ReadInteger();
 
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
+                var arity = reader.ReadInteger();
+                var isConstructed = reader.ReadBoolean();
+
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+
+                if (containingSymbolFailureReason != null)
+                {
+                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                    return default;
+                }
+
+                if (typeArgumentsFailureReason != null)
+                {
+                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
+                    return default;
+                }
+
                 if (typeArguments.IsDefault)
                 {
+                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed)";
                     return default;
                 }
 
                 using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
-                var typeArgumentsArray = arity > 0 ? typeArguments.Builder.ToArray() : null;
+                var typeArgumentsArray = isConstructed ? typeArguments.Builder.ToArray() : null;
                 foreach (var container in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
                 {
-                    result.AddIfNotNull(Construct(
-                        reader, container, name, arity, typeArgumentsArray));
+                    var originalType = reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
+                    var errorType = isConstructed ? originalType.Construct(typeArgumentsArray) : originalType;
+                    result.AddIfNotNull(errorType);
                 }
 
                 // Always ensure at least one error type was created.
                 if (result.Count == 0)
-                {
-                    result.AddIfNotNull(Construct(
-                        reader, container: null, name, arity, typeArgumentsArray));
-                }
+                    result.AddIfNotNull(reader.Compilation.CreateErrorTypeSymbol(container: null, name, arity));
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(ErrorTypeSymbolKey)} failed)", out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader)
+            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader, out string failureReason)
             {
                 var type = reader.ReadInteger();
 
                 if (type == 0)
-                    return reader.ReadSymbolKey();
+                    return reader.ReadSymbolKey(out failureReason);
 
                 if (type == 1)
                 {
@@ -104,19 +121,17 @@ namespace Microsoft.CodeAnalysis
                     for (var i = namespaceNames.Count - 1; i >= 0; i--)
                         currentNamespace = reader.Compilation.CreateErrorNamespaceSymbol(currentNamespace, namespaceNames[i]);
 
+                    failureReason = null;
                     return new SymbolKeyResolution(currentNamespace);
                 }
 
                 if (type == 2)
+                {
+                    failureReason = null;
                     return default;
+                }
 
                 throw ExceptionUtilities.UnexpectedValue(type);
-            }
-
-            private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol container, string name, int arity, ITypeSymbol[] typeArguments)
-            {
-                var result = reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
-                return typeArguments != null ? result.Construct(typeArguments) : result;
             }
         }
     }
