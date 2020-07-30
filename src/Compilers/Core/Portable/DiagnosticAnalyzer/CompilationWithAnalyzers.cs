@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             compilation = compilation
                 .WithOptions(compilation.Options.WithReportSuppressedDiagnostics(analysisOptions.ReportSuppressedDiagnostics))
+                .WithSemanticModelProvider(new CachingSemanticModelProvider())
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
             _compilation = compilation;
             _analyzers = analyzers;
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _cancellationToken = cancellationToken;
 
             _compilationData = new CompilationData(_compilation);
-            _analysisState = new AnalysisState(analyzers, _compilationData, _compilation.Options);
+            _analysisState = new AnalysisState(analyzers, _compilationData.SemanticModelProvider, _compilation.Options);
             _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers, _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty);
             _analyzerManager = new AnalyzerManager(analyzers);
             _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None));
@@ -751,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await Task.WhenAll(partialTrees.Select(tree =>
                             Task.Run(() =>
                             {
-                                var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
+                                var treeModel = _compilation.GetSemanticModel(tree);
                                 analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrAdditionalFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
                                 return ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false);
                             }, cancellationToken))).ConfigureAwait(false);
@@ -761,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var tree in partialTrees)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
-                            var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
+                            var treeModel = _compilation.GetSemanticModel(tree);
                             analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrAdditionalFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
                             await ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false).ConfigureAwait(false);
                         }
@@ -893,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else if (!analysisScope.IsSyntacticSingleFileAnalysis)
             {
-                var mappedModel = _compilationData.GetOrCreateCachedSemanticModel(analysisScope.FilterFileOpt!.Value.SourceTree!, _compilation, cancellationToken);
+                var mappedModel = _compilation.GetSemanticModel(analysisScope.FilterFileOpt!.Value.SourceTree!);
                 _ = mappedModel.GetDiagnostics(cancellationToken: cancellationToken);
             }
         }
@@ -1282,8 +1283,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 yield break;
             }
 
+            compilation = compilation.WithSemanticModelProvider(new CachingSemanticModelProvider());
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
-            var semanticModelsByTree = new Dictionary<SyntaxTree, SemanticModel>();
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic != null)
@@ -1291,20 +1292,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null)
                     {
-                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic, getSemanticModel);
+                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic, compilation.SemanticModelProvider);
                     }
                 }
-            }
-
-            SemanticModel getSemanticModel(Compilation compilation, SyntaxTree tree)
-            {
-                if (!semanticModelsByTree.TryGetValue(tree, out var model))
-                {
-                    model = compilation.GetSemanticModel(tree);
-                    semanticModelsByTree.Add(tree, model);
-                }
-
-                return model;
             }
         }
 

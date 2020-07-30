@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private readonly HashSet<ISymbol> _partialSymbolsWithGeneratedSourceEvents;
-        private readonly CompilationData _compilationData;
+        private readonly CachingSemanticModelProvider _semanticModelProvider;
         private readonly CompilationOptions _compilationOptions;
 
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
-        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData, CompilationOptions compilationOptions)
+        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CachingSemanticModelProvider semanticModelProvider, CompilationOptions compilationOptions)
         {
             _gate = new SemaphoreSlim(initialCount: 1);
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
-            _compilationData = compilationData;
+            _semanticModelProvider = semanticModelProvider;
             _compilationOptions = compilationOptions;
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Add/remove compilation unit completed events.
                 if (compilationEvent is CompilationUnitCompletedEvent compilationUnitCompletedEvent)
                 {
-                    var tree = compilationUnitCompletedEvent.SemanticModel.SyntaxTree;
+                    var tree = compilationUnitCompletedEvent.CompilationUnit;
                     if (add)
                     {
                         AddPendingSourceEvent_NoLock(tree, compilationEvent);
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 currentEvents = new HashSet<CompilationEvent>();
                 _pendingSourceEvents[tree] = currentEvents;
-                _compilationData.RemoveCachedSemanticModel(tree);
+                _semanticModelProvider.RemoveCachedSemanticModel(tree);
             }
 
             currentEvents.Add(compilationEvent);
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (currentEvents.Remove(compilationEvent) && currentEvents.Count == 0)
                 {
                     _pendingSourceEvents.Remove(tree);
-                    _compilationData.RemoveCachedSemanticModel(tree);
+                    _semanticModelProvider.RemoveCachedSemanticModel(tree);
                 }
             }
         }

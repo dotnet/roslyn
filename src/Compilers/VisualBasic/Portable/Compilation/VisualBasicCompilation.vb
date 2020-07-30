@@ -391,7 +391,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hostObjectType,
                 isSubmission,
                 referenceManager:=Nothing,
-                reuseReferenceManager:=False)
+                reuseReferenceManager:=False,
+                eventQueue:=Nothing,
+                semanticModelProvider:=Nothing)
 
             If syntaxTrees IsNot Nothing Then
                 c = c.AddSyntaxTrees(syntaxTrees)
@@ -417,9 +419,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             isSubmission As Boolean,
             referenceManager As ReferenceManager,
             reuseReferenceManager As Boolean,
+            semanticModelProvider As SemanticModelProvider,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, eventQueue)
+            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, semanticModelProvider, eventQueue)
 
             Debug.Assert(rootNamespaces IsNot Nothing)
             Debug.Assert(declarationTable IsNot Nothing)
@@ -506,6 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
+                Me.SemanticModelProvider,
                 eventQueue:=Nothing) ' no event queue when cloning
         End Function
 
@@ -530,7 +534,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=Not referenceDirectivesChanged)
+                reuseReferenceManager:=Not referenceDirectivesChanged,
+                Me.SemanticModelProvider)
         End Function
 
         ''' <summary>
@@ -555,7 +560,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal))
+                reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal),
+                Me.SemanticModelProvider)
         End Function
 
         Public Shadows Function WithReferences(ParamArray newReferences As MetadataReference()) As VisualBasicCompilation
@@ -596,7 +602,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 referenceManager:=Nothing,
-                reuseReferenceManager:=False)
+                reuseReferenceManager:=False,
+                Me.SemanticModelProvider)
             Return c
         End Function
 
@@ -649,7 +656,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.HostObjectType,
                 Me.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions))
+                reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions),
+                Me.SemanticModelProvider)
             Return c
         End Function
 
@@ -683,7 +691,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
-                reuseReferenceManager)
+                reuseReferenceManager,
+                Me.SemanticModelProvider)
+        End Function
+
+        ''' <summary>
+        ''' Returns a new compilation with the given semantic model provider.
+        ''' </summary>
+        Friend Overrides Function WithSemanticModelProvider(semanticModelProvider As SemanticModelProvider) As Compilation
+            Return New VisualBasicCompilation(
+                Me.AssemblyName,
+                Me.Options,
+                Me.ExternalReferences,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
+                _embeddedTrees,
+                _declarationTable,
+                Me.PreviousSubmission,
+                Me.SubmissionReturnType,
+                Me.HostObjectType,
+                Me.IsSubmission,
+                _referenceManager,
+                reuseReferenceManager:=True,
+                semanticModelProvider)
         End Function
 
         ''' <summary>
@@ -705,6 +736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
+                Me.SemanticModelProvider,
                 eventQueue:=eventQueue)
         End Function
 

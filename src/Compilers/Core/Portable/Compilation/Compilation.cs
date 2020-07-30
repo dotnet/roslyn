@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<MetadataReference> references,
             IReadOnlyDictionary<string, string> features,
             bool isSubmission,
+            SemanticModelProvider? semanticModelProvider,
             AsyncQueue<CompilationEvent>? eventQueue)
         {
             RoslynDebug.Assert(!references.IsDefault);
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
+            this.SemanticModelProvider = semanticModelProvider;
             this.EventQueue = eventQueue;
 
             _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
@@ -196,6 +198,11 @@ namespace Microsoft.CodeAnalysis
         internal abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent>? eventQueue);
 
         /// <summary>
+        /// Returns a new compilation with a given semantic model provider.
+        /// </summary>
+        internal abstract Compilation WithSemanticModelProvider(SemanticModelProvider semanticModelProvider);
+
+        /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
         /// <param name="syntaxTree">The specified syntax tree.</param>
@@ -203,7 +210,16 @@ namespace Microsoft.CodeAnalysis
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
+            => GetSemanticModel(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
+
+        internal SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull)
         {
+            if (SemanticModelProvider != null && useSemanticModelProviderIfNonNull)
+            {
+                Debug.Assert(!ignoreAccessibility);
+                return SemanticModelProvider.GetSemanticModel(syntaxTree, this);
+            }
+
             return CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
         }
 
@@ -500,6 +516,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract bool CommonContainsSyntaxTree(SyntaxTree? syntaxTree);
+
+        /// <summary>
+        /// Optional semantic model provider for this compilation.
+        /// </summary>
+        internal readonly SemanticModelProvider? SemanticModelProvider;
 
         /// <summary>
         /// The event queue that this compilation was created with.

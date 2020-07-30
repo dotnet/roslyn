@@ -6,7 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,51 +14,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal class CompilationData
         {
-            /// <summary>
-            /// Cached semantic model for the compilation trees.
-            /// PERF: This cache enables us to re-use semantic model's bound node cache across analyzer execution and diagnostic queries.
-            /// </summary>
-            private readonly Dictionary<SyntaxTree, SemanticModel> _semanticModelsMap;
-
             private readonly Dictionary<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataMap;
 
-            public CompilationData(Compilation comp)
+            public CompilationData(Compilation compilation)
             {
-                _semanticModelsMap = new Dictionary<SyntaxTree, SemanticModel>();
-                this.SuppressMessageAttributeState = new SuppressMessageAttributeState(comp);
+                Debug.Assert(compilation.SemanticModelProvider is CachingSemanticModelProvider);
+
+                SemanticModelProvider = (CachingSemanticModelProvider)compilation.SemanticModelProvider;
+                this.SuppressMessageAttributeState = new SuppressMessageAttributeState(compilation);
                 _declarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
             }
 
+            public CachingSemanticModelProvider SemanticModelProvider { get; }
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
-
-            public SemanticModel GetOrCreateCachedSemanticModel(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
-            {
-                SemanticModel? model;
-                lock (_semanticModelsMap)
-                {
-                    if (_semanticModelsMap.TryGetValue(tree, out model) && model.Compilation == compilation)
-                    {
-                        return model;
-                    }
-                }
-
-                model = compilation.GetSemanticModel(tree);
-
-                lock (_semanticModelsMap)
-                {
-                    _semanticModelsMap[tree] = model;
-                }
-
-                return model;
-            }
-
-            public bool RemoveCachedSemanticModel(SyntaxTree tree)
-            {
-                lock (_semanticModelsMap)
-                {
-                    return _semanticModelsMap.Remove(tree);
-                }
-            }
 
             internal DeclarationAnalysisData GetOrComputeDeclarationAnalysisData(
                 SyntaxReference declaration,
