@@ -1048,5 +1048,84 @@ class Program
     string [|s|], s2 = ""hello"";
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        [WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        public async Task FixTupleFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+  static void F1((string, string?) t)
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = [|null|];
+  }
+}",
+@"#nullable enable
+class Program
+{
+  static void F1((string?, string?) t)
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = null;
+  }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        public async Task FixTupleNamedFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+  static void F1((string Foo, string? Bar) t)
+  {
+    if (t.Bar == null) return;
+    t.Foo = [|null|];
+  }
+}",
+@"#nullable enable
+class Program
+{
+  static void F1((string? Foo, string? Bar) t)
+  {
+    if (t.Bar == null) return;
+    t.Foo = null;
+  }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(46354, "https://github.com/dotnet/roslyn/issues/46354")]
+        public async Task FixTupleGenericFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+  static void F1<T>((T, T?) t) where T : class
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = [|null|];
+    
+    var (a, b) = t;
+  }
+}",
+@"#nullable enable
+class Program
+{
+  static void F1<T>((T?, T?) t) where T : class
+  {
+    if (t.Item2 == null) return;
+    t.Item1 = null;
+    
+    var (a, b) = t;
+  }
+}", parameters: s_nullableFeature);
+        }
     }
 }

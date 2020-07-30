@@ -229,6 +229,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                     {
                         return declaration.Type;
                     }
+                    else if (syntax is TupleElementSyntax tupleElement)
+                    {
+                        return tupleElement.Type;
+                    }
+                }
+                // Assigning a tuple field, eg. foo.Item1 = null
+                else if (symbol is IFieldSymbol { CorrespondingTupleField: IFieldSymbol tupleField })
+                {
+                    // the tupleField won't have DeclaringSyntaxReferences because it's implicitly declared, otherwise it
+                    // would have fallen into the branch above. We can use the Locations instead, if there is one and it's in source
+                    if (tupleField.Locations is { Length: 1 } &&
+                        tupleField.Locations[0] is { IsInSource: true } location)
+                    {
+                        if (location.FindNode(default) is TupleElementSyntax tupleElement)
+                        {
+                            return tupleElement.Type;
+                        }
+                    }
                 }
                 else if (symbol is IPropertySymbol property)
                 {
