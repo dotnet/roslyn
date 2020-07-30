@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T where T : class? => true
         /// T where T : IComparable => true
         /// T where T : IComparable? => true
+        /// T where T : notnull => true
         /// </summary>
         /// <remarks>
         /// In C#9, annotations are allowed regardless of constraints.

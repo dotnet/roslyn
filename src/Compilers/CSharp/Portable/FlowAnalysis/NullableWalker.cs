@@ -1415,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 case NullableFlowState.MaybeNull:
                     // https://github.com/dotnet/roslyn/issues/46044: Skip the following check if /langversion > 8?
-                    if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8())
+                    if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8() && !(type.Type is TypeParameterSymbol { IsNotNullable: true }))
                     {
                         return false;
                     }
