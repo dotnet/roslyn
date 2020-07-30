@@ -37,22 +37,20 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             }
 
             // If we register the action on a class node, no need to find selected members. Just allow
-            // the action to be invoked with the dialog 
-            var didRegisterClassAction = await TryRegisterClassActionAsync(context, optionsService).ConfigureAwait(false);
-            if (didRegisterClassAction)
-            {
-                return;
-            }
+            // the action to be invoked with the dialog and no selected members
+            var action = await TryGetClassActionAsync(context, optionsService).ConfigureAwait(false)
+                ?? await RegisterMemberActionAsync(context, optionsService).ConfigureAwait(false);
 
-            await RegisterMemberActionAsync(context, optionsService).ConfigureAwait(false);
+            if (action != null)
+                context.RegisterRefactoring(action, action.Span);
         }
 
-        private async Task RegisterMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
+        private async Task<ExtractClassWithDialogCodeAction?> RegisterMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (selectedMemberNode is null)
             {
-                return;
+                return null;
             }
 
             var (document, span, cancellationToken) = context;
@@ -60,14 +58,14 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
             if (selectedMember is null || selectedMember.ContainingType is null)
             {
-                return;
+                return null;
             }
 
             // Use same logic as pull members up for determining if a selected member
             // is valid to be moved into a base
             if (!MemberAndDestinationValidator.IsMemberValid(selectedMember))
             {
-                return;
+                return null;
             }
 
             var containingType = selectedMember.ContainingType;
@@ -77,18 +75,18 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // current
             if (containingType.BaseType?.SpecialType != SpecialType.System_Object)
             {
-                return;
+                return null;
             }
 
-            context.RegisterRefactoring(new ExtractClassWithDialogCodeAction(document, span, optionsService, selectedMember.ContainingType, selectedMember), selectedMemberNode.Span);
+            return new ExtractClassWithDialogCodeAction(document, span, optionsService, selectedMember.ContainingType, selectedMember);
         }
 
-        private async Task<bool> TryRegisterClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
+        private async Task<ExtractClassWithDialogCodeAction?> TryGetClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
             var selectedClassNode = await GetSelectedClassDeclarationAsync(context).ConfigureAwait(false);
             if (selectedClassNode is null)
             {
-                return false;
+                return null;
             }
 
             var (document, span, cancellationToken) = context;
@@ -98,11 +96,10 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
             if (originalSymbol is INamedTypeSymbol originalType)
             {
-                context.RegisterRefactoring(new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType));
-                return true;
+                return new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType);
             }
 
-            return false;
+            return null;
         }
     }
 }

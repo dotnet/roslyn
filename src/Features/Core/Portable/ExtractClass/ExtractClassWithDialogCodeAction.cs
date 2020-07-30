@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly Document _document;
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
-        private readonly TextSpan _span;
         private readonly IExtractClassOptionsService _service;
+
+        public TextSpan Span { get; }
 
         public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType, ISymbol selectedMember)
             : this(document, span, service, selectedType)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType)
         {
             _document = document;
-            _span = span;
+            Span = span;
             _service = service;
             _selectedType = selectedType;
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var originalTypeDeclaration = root.FindNode(_span).FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+                var originalTypeDeclaration = root.FindNode(Span).FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
 
                 if (originalTypeDeclaration is null)
                     throw new InvalidOperationException();
