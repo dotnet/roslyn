@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             var additionalFiles = compilationContext.Options.AdditionalFiles;
             var errors = new List<Diagnostic>();
 
-            // TODO: Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics.
+            // Switch to "RegisterAdditionalFileAction" available in Microsoft.CodeAnalysis "3.8.x" to report additional file diagnostics: https://github.com/dotnet/roslyn-analyzers/issues/3918
             if (!TryGetApiData(additionalFiles, errors, compilationContext.CancellationToken, out ApiData shippedData, out ApiData unshippedData) ||
                 !ValidateApiFiles(shippedData, unshippedData, errors))
             {
