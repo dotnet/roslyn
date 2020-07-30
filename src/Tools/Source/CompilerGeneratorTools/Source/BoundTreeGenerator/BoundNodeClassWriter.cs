@@ -703,6 +703,18 @@ namespace BoundTreeGenerator
             return Enumerable.Empty<Field>();
         }
 
+        private Field GetMostDerivedField(Node node, string fieldName)
+        {
+            foreach (var type in TypeAndBaseTypes(node))
+            {
+                if (FieldsIncludingOverrides(type).SingleOrDefault(f => f.Name == fieldName) is { } field)
+                {
+                    return field;
+                }
+            }
+            return null;
+        }
+
         private TreeType BaseType(TreeType node)
         {
             string name = _typeMap[node.Name];
@@ -1548,7 +1560,9 @@ namespace BoundTreeGenerator
                                         }
                                         else if (updatedType && field.Name == "Type")
                                         {
-                                            return "infoAndType.Type!";
+                                            // Use the override for the field if any.
+                                            field = GetMostDerivedField(node, field.Name);
+                                            return $"infoAndType.Type" + (field.Null == "disallow" ? "!" : "");
                                         }
                                         else if (symbolIsPotentiallyUpdated(field) || immutableArrayIsPotentiallyUpdated(field))
                                         {
