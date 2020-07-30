@@ -47,5 +47,33 @@ struct S
             CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
             CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6)).VerifyDiagnostics(whenWave5);
         }
+
+        [Fact]
+        public void WRN_StaticInAsOrIs()
+        {
+            var source = @"
+class Program
+{
+    public static void M(object o)
+    {
+        if (o is SC)
+            _ = o as SC;
+    }
+}
+static class SC { }
+";
+            var whenWave5 = new[]
+            {
+                // (6,13): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'SC'
+                //         if (o is SC)
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o is SC").WithArguments("SC").WithLocation(6, 13),
+                // (7,17): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'SC'
+                //             _ = o as SC;
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o as SC").WithArguments("SC").WithLocation(7, 17)
+            };
+            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
+        }
     }
 }

@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Dim result As CodeModelTestState = Nothing
             Try
@@ -139,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         End Try
 
                         Dim wrapperRCW = Marshal.GetObjectForIUnknown(wrapperUnknown)
-                        Return CType(wrapperRCW, IComWrapper)
+                        Return CType(wrapperRCW, IComWrapperFixed)
                     Finally
                         Marshal.Release(innerUnknown)
                     End Try

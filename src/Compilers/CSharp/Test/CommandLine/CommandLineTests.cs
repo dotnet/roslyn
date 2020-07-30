@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CommandLineTestBase
     {
-#if NETCOREAPP3_1
+#if NETCOREAPP
         private static readonly string s_CSharpCompilerExecutable;
         private static readonly string s_DotnetCscRun;
 #else
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         static CommandLineTests()
         {
-#if NETCOREAPP3_1
+#if NETCOREAPP
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
@@ -4130,7 +4131,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
   </runtime>
 </configuration>");
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
             var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             // Test linking two appconfig dlls with simple src
@@ -11101,12 +11102,13 @@ class C
 
 #if NET472
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
-        public void LoadingAnalyzerNetStandard13()
+        public void LoadinganalyzerNetStandard13()
         {
             var analyzerFileName = "AnalyzerNS13.dll";
             var srcFileName = "src.cs";
 
             var analyzerDir = Temp.CreateDirectory();
+
             var analyzerFile = analyzerDir.CreateFile(analyzerFileName).WriteAllBytes(DesktopTestHelpers.CreateCSharpAnalyzerNetStandard13(Path.GetFileNameWithoutExtension(analyzerFileName)));
             var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
 
@@ -11123,6 +11125,7 @@ System.NotImplementedException: 28
             Assert.Equal(0, result.ExitCode);
         }
 #endif
+
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()

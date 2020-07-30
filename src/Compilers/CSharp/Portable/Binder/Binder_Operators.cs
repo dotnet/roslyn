@@ -2237,13 +2237,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType = operand.Type;
             Debug.Assert((object)operandType != null, "BindValue should have caught a null operand type");
 
-            bool isManagedType = operandType.IsManagedType;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            ManagedKind managedKind = operandType.GetManagedKind(ref useSiteDiagnostics);
+            diagnostics.Add(node.Location, useSiteDiagnostics);
+
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)
             {
                 if (!hasErrors)
                 {
-                    hasErrors = CheckManagedAddr(Compilation, operandType, node.Location, diagnostics);
+                    hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
                 }
 
                 if (!hasErrors)
@@ -2257,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol pointedAtType = isManagedType && allowManagedAddressOf
+            TypeSymbol pointedAtType = managedKind == ManagedKind.Managed && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
                 : operandType ?? CreateErrorType();
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
@@ -2875,12 +2878,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The native compiler allows "x is C" where C is a static class. This
             // is strictly illegal according to the specification (see the section
             // called "Referencing Static Class Types".) To retain compatibility we
-            // allow it, but when /feature:strict is enabled we break with the native
-            // compiler and turn this into an error, as it should be.
-            if (targetType.IsStatic && Compilation.FeatureStrictEnabled)
+            // allow it, but when /warn:5 or higher we break with the native
+            // compiler and turn this into a warning.
+            if (targetType.IsStatic)
             {
-                Error(diagnostics, ErrorCode.ERR_StaticInAsOrIs, node, targetType);
-                return true;
+                Error(diagnostics, ErrorCode.WRN_StaticInAsOrIs, node, targetType);
             }
 
             if ((object)operandType != null && operandType.IsPointerOrFunctionPointer() || targetType.IsPointerOrFunctionPointer())
@@ -3401,12 +3403,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a static type C to be an expression of type C.
             // It also allows "someObject as C" if "someObject"
             // is of type object. To retain compatibility we
-            // allow it, but when /feature:strict is enabled we break with the native
-            // compiler and turn this into an error, as it should be.
-            if (targetType.IsStatic && Compilation.FeatureStrictEnabled)
+            // allow it, but when /warn:5 or higher we break with the native
+            // compiler and turn this into a warning.
+            if (targetType.IsStatic)
             {
-                Error(diagnostics, ErrorCode.ERR_StaticInAsOrIs, node, targetType);
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                Error(diagnostics, ErrorCode.WRN_StaticInAsOrIs, node, targetType);
             }
 
             if (operand.IsLiteralNull())

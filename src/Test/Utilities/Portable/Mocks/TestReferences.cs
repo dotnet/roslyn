@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Roslyn.Test.Utilities;
 
 public static class TestReferences
@@ -95,7 +96,7 @@ public static class TestReferences
         public static class silverlight_v5_0_5_0
         {
             private static readonly Lazy<PortableExecutableReference> s_system = new Lazy<PortableExecutableReference>(
-                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll"),
+                () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll"),
                 LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference System => s_system.Value;
         }
@@ -104,7 +105,7 @@ public static class TestReferences
     public static class NetStandard13
     {
         private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
-            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
+            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.netstandard13.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntime => s_systemRuntime.Value;
     }
@@ -694,7 +695,7 @@ public static class TestReferences
         public static class NoPia
         {
             private static readonly Lazy<PortableExecutableReference> s_stdOle = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.ProprietaryPias.stdole).GetReference(display: "stdole.dll"),
+        () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.ProprietaryPias.stdole).GetReference(display: "stdole.dll"),
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference StdOle => s_stdOle.Value;
 

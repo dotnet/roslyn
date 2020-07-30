@@ -671,6 +671,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
@@ -1410,6 +1414,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a TypeConstraintSyntax node.</summary>
         public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
+        public virtual void VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
         public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
@@ -2087,6 +2094,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitTypeConstraint(TypeConstraintSyntax node)
             => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+
+        public override SyntaxNode? VisitDefaultConstraint(DefaultConstraintSyntax node)
+            => node.Update(VisitToken(node.DefaultKeyword));
 
         public override SyntaxNode? VisitFieldDeclaration(FieldDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax?)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.SemicolonToken));
@@ -5130,6 +5140,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type == null) throw new ArgumentNullException(nameof(type));
             return (TypeConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeConstraint((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
+
+        /// <summary>Creates a new DefaultConstraintSyntax instance.</summary>
+        public static DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
+        {
+            if (defaultKeyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+            return (DefaultConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultConstraint((Syntax.InternalSyntax.SyntaxToken)defaultKeyword.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new DefaultConstraintSyntax instance.</summary>
+        public static DefaultConstraintSyntax DefaultConstraint()
+            => SyntaxFactory.DefaultConstraint(SyntaxFactory.Token(SyntaxKind.DefaultKeyword));
 
         /// <summary>Creates a new FieldDeclarationSyntax instance.</summary>
         public static FieldDeclarationSyntax FieldDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)

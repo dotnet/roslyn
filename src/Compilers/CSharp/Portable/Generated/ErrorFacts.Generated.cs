@@ -152,6 +152,7 @@
                 case ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation:
                 case ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation:
                 case ErrorCode.WRN_MainIgnored:
+                case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_InvalidVersionFormat:
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
@@ -245,6 +246,8 @@
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                     return true;
                 default:
                     return false;
