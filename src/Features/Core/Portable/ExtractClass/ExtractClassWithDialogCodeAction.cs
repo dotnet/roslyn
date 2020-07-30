@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             : this(document, span, service, selectedType)
         {
             _selectedMember = selectedMember;
-
-            Title = string.Format(FeaturesResources.Pull_0_up_to_new_base_class, selectedMember.ToNameDisplayString());
         }
 
         public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType)
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             _service = service;
             _selectedType = selectedType;
 
-            Title = FeaturesResources.Extract_new_base_class;
+            Title = FeaturesResources.Pull_members_up_to_new_base_class;
         }
 
         public override string Title { get; }

@@ -360,11 +360,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">擷取方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_new_base_class">
-        <source>Extract new base class</source>
-        <target state="new">Extract new base class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">無法分析下列項目的資料流程: {0}</target>
@@ -645,14 +640,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">提取 '{0}' 最多 '{1}’</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_0_up_to_new_base_class">
-        <source>Pull '{0}' up to new base class</source>
-        <target state="new">Pull '{0}' up to new base class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">將成員提取直到基底類型...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="new">Pull member(s) up to new base class...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">

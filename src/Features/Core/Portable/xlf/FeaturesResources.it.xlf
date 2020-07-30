@@ -360,11 +360,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Estrai il metodo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_new_base_class">
-        <source>Extract new base class</source>
-        <target state="new">Extract new base class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Non è stato possibile analizzare il flusso di dati per: {0}</target>
@@ -645,14 +640,14 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Esegui pull di '{0}' fino a '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_0_up_to_new_base_class">
-        <source>Pull '{0}' up to new base class</source>
-        <target state="new">Pull '{0}' up to new base class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Esegui pull dei membri fino al tipo di base...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="new">Pull member(s) up to new base class...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">

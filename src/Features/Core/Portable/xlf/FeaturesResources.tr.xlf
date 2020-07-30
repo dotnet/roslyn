@@ -360,11 +360,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Yöntemi ayıkla</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_new_base_class">
-        <source>Extract new base class</source>
-        <target state="new">Extract new base class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">{0} için veri akışı analiz edilemedi</target>
@@ -645,14 +640,14 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">'{0}' öğesini '{1}' hedefine çek</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_0_up_to_new_base_class">
-        <source>Pull '{0}' up to new base class</source>
-        <target state="new">Pull '{0}' up to new base class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Üyeleri temel türe çek...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="new">Pull member(s) up to new base class...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
