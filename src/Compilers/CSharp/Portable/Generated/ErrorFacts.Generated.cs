@@ -246,6 +246,8 @@
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                     return true;
                 default:
                     return false;
