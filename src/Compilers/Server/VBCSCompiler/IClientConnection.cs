@@ -41,7 +41,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal interface IClientConnectionHost
     {
-        Task<IClientConnection> ListenAsync(CancellationToken cancellationToken);
-    }
+        bool IsListening { get; }
 
+        /// <summary>
+        /// Start listening for new connections
+        /// </summary>
+        void BeginListening();
+
+        /// <summary>
+        /// Returns a <see cref="Task"/> that completes when a new <see cref="IClientConnection"/> is 
+        /// received. If this is called after <see cref="EndListening"/> is called then an exception
+        /// will be thrown.
+        /// </summary>
+        Task<IClientConnection> GetNextClientConnectionAsync();
+
+        /// <summary>
+        /// Stop accepting new connections. It will also ensure that the last return from 
+        /// <see cref="GetNextClientConnectionAsync"/> is in a completed state.
+        /// </summary>
+        void EndListening();
+    }
 }

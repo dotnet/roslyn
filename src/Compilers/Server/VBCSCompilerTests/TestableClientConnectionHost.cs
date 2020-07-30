@@ -14,12 +14,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         private TaskCompletionSource<IClientConnection> _listenTask;
 
+        public bool IsListening { get; set; }
+
         public TestableClientConnectionHost()
         {
             _listenTask = new TaskCompletionSource<IClientConnection>();
         }
 
-        public Task<IClientConnection> ListenAsync(CancellationToken cancellationToken) => _listenTask.Task;
+        public void BeginListening()
+        {
+            IsListening = true;
+        }
+
+        public void EndListening()
+        {
+            IsListening = false;
+        }
+
+        public Task<IClientConnection> GetNextClientConnectionAsync() => _listenTask.Task;
 
         public void Add(Action<TaskCompletionSource<IClientConnection>> action)
         {

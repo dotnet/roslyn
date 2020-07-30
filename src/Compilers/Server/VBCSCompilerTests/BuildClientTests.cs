@@ -159,8 +159,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // Create server and try again
                 Assert.True(TryCreateServer(pipeName));
-                Assert.True(await TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
-                // With infinite timeout
                 Assert.True(await TryConnectToNamedPipe(pipeName, Timeout.Infinite, cancellationToken: default));
             }
 

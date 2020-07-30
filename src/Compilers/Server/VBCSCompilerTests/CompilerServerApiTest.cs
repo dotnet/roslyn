@@ -44,17 +44,6 @@ class Hello
             return source.Task;
         }
 
-        private static IClientConnectionHost CreateClientConnectionHost(params Task<IClientConnection>[] connections)
-        {
-            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-            var index = 0;
-            host
-                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
-                .Returns((CancellationToken ct) => connections[index++]);
-
-            return host.Object;
-        }
-
         private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
         {
             var directory = Temp.CreateDirectory();
@@ -89,15 +78,6 @@ class Hello
                 await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
                 return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
             }
-        }
-
-        private static Mock<IClientConnectionHost> CreateNopClientConnectionHost()
-        {
-            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-            host
-                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
-                .Returns(new TaskCompletionSource<IClientConnection>().Task);
-            return host;
         }
 
         private static Task<T> FromException<T>(Exception ex)
@@ -141,8 +121,13 @@ class Hello
             var pipeName = Guid.NewGuid().ToString("N");
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
+            host.Setup(x => x.BeginListening());
+            host.Setup(x => x.EndListening());
             host
-                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
+                .Setup(x => x.IsListening)
+                .Returns(true);
+            host
+                .Setup(x => x.GetNextClientConnectionAsync())
                 .Returns(() =>
                 {
                     // Use a thread instead of Task to guarantee this code runs on a different

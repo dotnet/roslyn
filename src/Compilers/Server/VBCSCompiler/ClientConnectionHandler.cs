@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Net.Sockets;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading;
@@ -80,6 +81,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     var response = new RejectedBuildResponse("Compilation not allowed at this time");
                     await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
                     return CompletionData.RequestCompleted;
+                }
+
+                if (!Environment.Is64BitProcess && !MemoryHelper.IsMemoryAvailable())
+                {
+                    var message = "Not enough resources to accept connection";
+                    CompilerServerLogger.Log(message);
+                    var response = new RejectedBuildResponse(message);
+                    await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                    return CompletionData.RequestError;
                 }
 
                 return await ProcessCompilationRequestAsync(clientConnection, request, cancellationToken).ConfigureAwait(false);
