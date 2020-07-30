@@ -1675,19 +1675,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
                     var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
-                    switch (isSufficientLangVersion, compilation)
+                    if (compilation.NullableSemanticAnalysisEnabled)
                     {
-                        case (true, { NullableSemanticAnalysisEnabled: true }):
-                            methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(compilation, method, methodBody, bodyBinder, diagnostics, createSnapshots: true, out snapshotManager, ref remappedSymbols);
-                            break;
-                        case (true, { ShouldRunNullableWalker: true }):
-                            NullableWalker.Analyze(compilation, method, methodBody, diagnostics);
-                            break;
-#if DEBUG
-                        default:
-                            NullableWalker.Analyze(compilation, method, methodBody, new DiagnosticBag());
-                            break;
-#endif
+                        methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
+                            compilation,
+                            method,
+                            methodBody,
+                            bodyBinder,
+                            // if language version is insufficient, we do not want to surface nullability diagnostics,
+                            // but we should still provide nullability information through the semantic model.
+                            isSufficientLangVersion ? diagnostics : new DiagnosticBag(),
+                            createSnapshots: true,
+                            out snapshotManager,
+                            ref remappedSymbols);
+                    }
+                    else
+                    {
+                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics);
                     }
 
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
