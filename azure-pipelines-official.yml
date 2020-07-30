@@ -90,7 +90,7 @@ stages:
 
     - task: MicroBuildOptProfPlugin@5
       inputs:
-        skipRunOptimize: true
+        ShouldSkipOptimize: true
       displayName: 'Install OptProf Plugin'
 
     # Required by MicroBuildBuildVSBootstrapper
