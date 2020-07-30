@@ -219,7 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 {
                     return TryGetParameterTypeSyntax(parameter);
                 }
-                else if (symbol is IFieldSymbol field)
+                // implicitly declared fields don't have DeclaringSyntaxReferences so filter them out
+                else if (symbol is IFieldSymbol { IsImplicitlyDeclared: false } field)
                 {
                     var syntax = field.DeclaringSyntaxReferences[0].GetSyntax();
                     if (syntax is VariableDeclaratorSyntax declarator &&
