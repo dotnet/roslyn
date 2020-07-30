@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             string expected,
             IEnumerable<(string name, bool makeAbstract)> dialogSelection = null,
             bool sameFile = false,
-            bool expectNullMember = false,
+            bool isClassDeclarationSelection = false,
             TestParameters testParameters = default)
         {
-            var service = new TestExtractClassOptionsService(dialogSelection, sameFile, expectNullMember);
+            var service = new TestExtractClassOptionsService(dialogSelection, sameFile, isClassDeclarationSelection);
 
             return TestInRegularAndScript1Async(
                 input,
@@ -1142,7 +1142,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1181,7 +1181,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1220,7 +1220,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1259,7 +1259,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1308,7 +1308,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1357,7 +1357,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1406,7 +1406,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1456,7 +1456,7 @@ internal class MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1495,7 +1495,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         [Fact]
@@ -1534,7 +1534,7 @@ class Test : MyBase
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, expectNullMember: true);
+            await TestAsync(input, expected, isClassDeclarationSelection: true);
         }
 
         private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
@@ -1547,13 +1547,13 @@ class Test : MyBase
         {
             private readonly IEnumerable<(string name, bool makeAbstract)> _dialogSelection;
             private readonly bool _sameFile;
-            private readonly bool _expectNullMember;
+            private readonly bool isClassDeclarationSelection;
 
-            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool expectNullMember = false)
+            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
-                _expectNullMember = expectNullMember;
+                this.isClassDeclarationSelection = isClassDeclarationSelection;
             }
 
             public string FileName { get; set; } = "MyBase.cs";
@@ -1569,12 +1569,12 @@ class Test : MyBase
                 {
                     if (selectedMember is null)
                     {
-                        Assert.True(_expectNullMember);
+                        Assert.True(isClassDeclarationSelection);
                         selections = availableMembers.Select(member => (member, makeAbstract: false));
                     }
                     else
                     {
-                        Assert.False(_expectNullMember);
+                        Assert.False(isClassDeclarationSelection);
                         selections = new[] { (selectedMember, false) };
                     }
                 }
