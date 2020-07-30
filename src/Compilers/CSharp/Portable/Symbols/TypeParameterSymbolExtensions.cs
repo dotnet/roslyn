@@ -5,6 +5,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class TypeParameterSymbolExtensions
@@ -14,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)typeParameter1 != null);
             Debug.Assert((object)typeParameter2 != null);
 
-            Stack<TypeParameterSymbol> stack = null;
-            HashSet<TypeParameterSymbol> visited = null;
+            Stack<TypeParameterSymbol>? stack = null;
+            HashSet<TypeParameterSymbol>? visited = null;
 
-            do
+            while (true)
             {
                 foreach (var constraintType in typeParameter1.ConstraintTypesNoUseSiteDiagnostics)
                 {
@@ -41,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 typeParameter1 = stack.Pop();
             }
-            while (typeParameter1 is object);
 
             return false;
         }
