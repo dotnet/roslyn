@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
                 typeParameter1 = stack.Pop();
-            } while (typeParameter1 is object);
+            }
+            while (typeParameter1 is object);
 
             return false;
         }
