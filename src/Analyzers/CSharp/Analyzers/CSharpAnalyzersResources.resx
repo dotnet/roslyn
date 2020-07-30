@@ -305,4 +305,7 @@
   <data name="Remove_unnessary_discard" xml:space="preserve">
     <value>Remove unnecessary discard</value>
   </data>
+  <data name="Simplify_linq_expressions" xml:space="preserve">
+    <value>Simplify linq expressions</value>
+  </data>
 </root>
