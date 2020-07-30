@@ -2285,7 +2285,17 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
-            CompileAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(4, 1),
+                // (23,26): warning CS8848: Operator 'from' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var b = false && from x in src select x;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "from x in src").WithArguments("from").WithLocation(23, 26)
+                );
         }
 
         [WorkItem(543109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543109")]
