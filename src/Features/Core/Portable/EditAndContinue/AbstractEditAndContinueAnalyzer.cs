@@ -3004,7 +3004,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        private static ISymbol TryGetParameterlessConstructor(INamedTypeSymbol type, bool isStatic)
+        private static ISymbol? TryGetParameterlessConstructor(INamedTypeSymbol type, bool isStatic)
         {
             var oldCtors = isStatic ? type.StaticConstructors : type.InstanceConstructors;
             if (isStatic)

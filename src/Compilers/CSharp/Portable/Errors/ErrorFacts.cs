@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
             nullableWarnings.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
             nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen));
 
             nullableWarnings.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             nullableWarnings.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
@@ -463,6 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParameterDisallowsNull:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                     return 1;
                 default:
                     return 0;

@@ -14,7 +14,7 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
     [Export(typeof(IInteractiveWindowEditorFactoryService))]
-    internal class InteractiveWindowEditorsFactoryService : IInteractiveWindowEditorFactoryService
+    internal class TestInteractiveWindowEditorFactoryService : IInteractiveWindowEditorFactoryService
     {
         public const string ContentType = "text";
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InteractiveWindowEditorsFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentTypeRegistry)
+        public TestInteractiveWindowEditorFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentTypeRegistry)
         {
             _textBufferFactoryService = textBufferFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)
         {
-            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} in {nameof(InteractiveWindowEditorsFactoryService)}");
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} in {nameof(TestInteractiveWindowEditorFactoryService)}");
 
             var textView = _textEditorFactoryService.CreateTextView(buffer, roles);
             return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;
