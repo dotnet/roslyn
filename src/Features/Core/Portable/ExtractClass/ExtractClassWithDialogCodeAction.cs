@@ -32,24 +32,16 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
+        public override string Title => FeaturesResources.Pull_members_up_to_new_base_class;
 
-        public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType, ISymbol selectedMember)
-            : this(document, span, service, selectedType)
-        {
-            _selectedMember = selectedMember;
-        }
-
-        public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType)
+        public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType, ISymbol? selectedMember = null)
         {
             _document = document;
-            Span = span;
             _service = service;
             _selectedType = selectedType;
-
-            Title = FeaturesResources.Pull_members_up_to_new_base_class;
+            _selectedMember = selectedMember;
+            Span = span;
         }
-
-        public override string Title { get; }
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
