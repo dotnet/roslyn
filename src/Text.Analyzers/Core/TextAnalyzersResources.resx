@@ -192,4 +192,10 @@
   <data name="CategoryNaming" xml:space="preserve">
     <value>Naming</value>
   </data>
+  <data name="IdentifiersShouldBeSpelledCorrectlyFileParse" xml:space="preserve">
+    <value>Error parsing dictionary '{0}': {1}</value>
+  </data>
+  <data name="IdentifiersShouldBeSpelledCorrectlyMessageVariable" xml:space="preserve">
+    <value>Correct the spelling of '{0}' in variable name {1}.</value>
+  </data>
 </root>

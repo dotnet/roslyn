@@ -17,6 +17,16 @@
         <target state="new">Flags enums should have plural names</target>
         <note />
       </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
+        <source>Error parsing dictionary '{0}': {1}</source>
+        <target state="new">Error parsing dictionary '{0}': {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageVariable">
+        <source>Correct the spelling of '{0}' in variable name {1}.</source>
+        <target state="new">Correct the spelling of '{0}' in variable name {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
         <source>Identifiers should be spelled correctly</source>
         <target state="translated">Pisownia identyfikatorów powinna być poprawna</target>
