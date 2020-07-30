@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
-    [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Default), Shared, PartNotDiscoverable]
     internal class TestChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
         public AddedParameterOrExistingIndex[]? UpdatedSignature = null;

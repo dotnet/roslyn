@@ -6616,5 +6616,62 @@ namespace System
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ x: 1,  y: 2,  Extra: 3 }").WithLocation(3, 41)
                 );
         }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_30()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M((bool, bool, bool, bool) t) => t switch
+    {
+        (false, true, true, true) => 3,
+        (false, true, false, true) when b => 4,
+        (false, false, false, true) => 5,
+        (false, false, true, true) => 6,
+        (true, _, false, _) => 1,
+        (true, _, true, _) => 2,
+        (false, _, _, false) => 7,
+    };
+    bool b => true;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,44): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(false, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+
+                //     int M((bool, bool, bool, bool) t) => t switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("(false, true, false, true)").WithLocation(4, 44)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_31()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M((object?, bool, bool, bool) t) => t switch
+    {
+        (null, true, true, true) => 3,
+        (null, true, false, true) when b => 4,
+        (null, false, false, true) => 5,
+        (null, false, true, true) => 6,
+        ({ }, _, false, _) => 1,
+        ({ }, _, true, _) => 2,
+        (null, _, _, false) => 7,
+    };
+    bool b => true;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //     int M((object?, bool, bool, bool) t) => t switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
+                );
+        }
     }
 }

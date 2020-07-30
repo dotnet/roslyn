@@ -1520,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var pair in membersByName)
             {
                 var name = pair.Key;
-                Symbol lastSym = GetTypeMembers(name).FirstOrDefault();
+                Symbol? lastSym = GetTypeMembers(name).FirstOrDefault();
                 methodsBySignature.Clear();
                 // Conversion collisions do not consider the name of the conversion,
                 // so do not clear that dictionary.
@@ -1567,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //   following a field of the same name, or a field and a nested type of the same name.
                     //
 
-                    if ((object)lastSym != null)
+                    if ((object?)lastSym != null)
                     {
                         if (symbol.Kind != SymbolKind.Method || lastSym.Kind != SymbolKind.Method)
                         {
