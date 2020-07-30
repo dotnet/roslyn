@@ -5,17 +5,26 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.NamingStyles
     Public Class NamingStylesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly options As NamingStylesTestOptionSets = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
+        Private Shared ReadOnly s_options As NamingStylesTestOptionSets = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
+
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
+            GetType(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService))
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicNamingStyleDiagnosticAnalyzer(), New NamingStyleCodeFixProvider())
+        End Function
+
+        Protected Overrides Function GetComposition() As TestComposition
+            Return s_composition
         End Function
 
         ' TODO: everything else apart from locals
@@ -31,7 +40,7 @@ end module",
     sub M(x as integer)
     end sub
 end module",
-                options:=options.ParameterNamesAreCamelCase)
+                options:=s_options.ParameterNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -47,7 +56,7 @@ end module",
         dim x = 0
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -63,7 +72,7 @@ end module",
         dim X as integer, y, Z as string
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -79,7 +88,7 @@ end module",
         dim x(0 to 4) as integer, Y as new object(), Z%? as integer
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -95,7 +104,7 @@ end module",
         dim X(0 to 4) as integer, y as new object(), Z%? as integer
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -111,7 +120,7 @@ end module",
         dim X(0 to 4) as integer, Y as new object(), z%? as integer
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -129,7 +138,7 @@ end module",
         end using
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -147,7 +156,7 @@ end module",
         end using
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
@@ -166,7 +175,7 @@ end module",
         next
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -178,7 +187,7 @@ end module",
         for [|I|] = 1 to 10
         next
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -196,7 +205,7 @@ end module",
         next
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
@@ -215,7 +224,7 @@ end module",
         next
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -227,7 +236,7 @@ end module",
         for each [|X|] in {}
         next
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -245,7 +254,7 @@ end module",
         next
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -267,7 +276,7 @@ module C
         end try
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -280,7 +289,7 @@ module C
         [|catch|]
         end try
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
@@ -299,7 +308,7 @@ end module",
         System.Console.WriteLine(value)
     end sub
 end module",
-                options:=options.LocalNamesAreCamelCase)
+                options:=s_options.LocalNamesAreCamelCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -310,7 +319,7 @@ end module",
         Value = 0
         System.Console.WriteLine([|Value|])
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -322,7 +331,7 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
         [|Value|] = 0
         System.Console.WriteLine(Value)
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -336,7 +345,7 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
             let Number = integer.Parse(STR)
             select Number * Number
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -350,7 +359,7 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
             let [|Number|] = integer.Parse(STR)
             select Number * Number
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -359,7 +368,7 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
 "module C
     sub M([|X|] as integer)
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -369,7 +378,7 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
     sub M()
         dim tuple as ([|A|] as integer, B as string)
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -379,7 +388,7 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
     sub M()
         dim tuple as (A as integer, ([|B|] as string, C as string)) = (0, (string.Empty, string.Empty))
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -389,7 +398,7 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
     sub M()
         dim tuple = ([|A|]:=0, B:=0)
     end sub
-end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+end module", New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -401,7 +410,7 @@ end module",
 "module C
     const FIELD = 0
 end module",
-                options:=options.ConstantsAreUpperCase)
+                options:=s_options.ConstantsAreUpperCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -417,7 +426,7 @@ end module",
         const local1 = 0, LOCAL2 as integer = 0
     end sub
 end module",
-                options:=options.ConstantsAreUpperCase)
+                options:=s_options.ConstantsAreUpperCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -425,7 +434,7 @@ end module",
             Await TestMissingInRegularAndScriptAsync(
 "module C
     readonly [|field|] = 0
-end module", New TestParameters(options:=options.ConstantsAreUpperCase))
+end module", New TestParameters(options:=s_options.ConstantsAreUpperCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -435,7 +444,7 @@ end module", New TestParameters(options:=options.ConstantsAreUpperCase))
     sub M()
         dim local1 = 0, [|local2|] as integer = 0
     end sub
-end module", New TestParameters(options:=options.ConstantsAreUpperCase))
+end module", New TestParameters(options:=s_options.ConstantsAreUpperCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -451,7 +460,7 @@ end module",
         const PASCALCASE = 0
     end sub
 end module",
-                options:=options.LocalsAreCamelCaseConstantsAreUpperCase)
+                options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -467,7 +476,7 @@ end module",
         dim pascalCase = 0
     end sub
 end module",
-                options:=options.LocalsAreCamelCaseConstantsAreUpperCase)
+                options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -478,7 +487,7 @@ end module",
 End Interface",
 "Interface ITest
 End Interface",
-                options:=options.InterfaceNamesStartWithI)
+                options:=s_options.InterfaceNamesStartWithI)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
@@ -489,7 +498,7 @@ End Interface",
 End Class",
 "Public Class classHolder(Of TType)
 End Class",
-                options:=options.TypeParameterNamesStartWithT)
+                options:=s_options.TypeParameterNamesStartWithT)
         End Function
 
     End Class

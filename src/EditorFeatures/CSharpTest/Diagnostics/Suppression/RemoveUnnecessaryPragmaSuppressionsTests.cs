@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         protected sealed override ParseOptions GetScriptOptions() => Options.Script;
         protected internal sealed override string GetLanguage() => LanguageNames.CSharp;
-        protected sealed override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions,
-                (parameters.compilationOptions ?? TestOptions.DebugDll).WithReportSuppressedDiagnostics(true));
+
+        protected override TestParameters SetParameterDefaults(TestParameters parameters)
+            => parameters.WithCompilationOptions((parameters.compilationOptions ?? TestOptions.DebugDll).WithReportSuppressedDiagnostics(true));
 
         protected sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -1000,7 +1000,7 @@ class Class
     }}
 }}|]";
                 var parameters = new TestParameters();
-                using var workspace = CreateWorkspaceFromFile(source, parameters);
+                using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
                 // Suppress the diagnostic in options.
                 var projectId = workspace.Projects[0].Id;

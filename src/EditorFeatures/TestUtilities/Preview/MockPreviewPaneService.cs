@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
-    [ExportWorkspaceService(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceService(typeof(IPreviewPaneService), ServiceLayer.Host), Shared, PartNotDiscoverable]
     internal class MockPreviewPaneService : IPreviewPaneService
     {
         [ImportingConstructor]

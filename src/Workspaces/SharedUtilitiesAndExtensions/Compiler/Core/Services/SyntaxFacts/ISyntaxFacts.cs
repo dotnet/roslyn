@@ -450,6 +450,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction);
         bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration);
         bool IsOnIfStatementHeader(SyntaxNode root, int position, out SyntaxNode ifStatement);
+        bool IsOnWhileStatementHeader(SyntaxNode root, int position, out SyntaxNode whileStatement);
         bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, out SyntaxNode typeDeclaration);
 

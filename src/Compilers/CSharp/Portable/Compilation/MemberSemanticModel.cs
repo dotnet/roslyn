@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureNullabilityAnalysisPerformedIfNecessary();
             if (_lazyRemappedSymbols is null) return originalSymbol;
 
-            if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
+            if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol? remappedSymbol))
             {
                 RoslynDebug.Assert(remappedSymbol is object);
                 return (T)remappedSymbol;
@@ -2321,6 +2321,11 @@ foundParent:;
             {
                 return symbol;
             }
+        }
+
+        internal sealed override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>
