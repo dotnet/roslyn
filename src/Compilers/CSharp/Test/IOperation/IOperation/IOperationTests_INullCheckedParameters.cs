@@ -2554,7 +2554,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
   ExpressionBody: 
     null");
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
