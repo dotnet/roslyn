@@ -3754,7 +3754,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var receiver = node.Receiver;
-            Debug.Assert(receiver.Type is object);
             _ = VisitRvalueWithState(receiver);
             _currentConditionalReceiverVisitResult = _visitResult;
             var previousConditionalAccessSlot = _lastConditionalAccessSlot;
@@ -3772,7 +3771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LearnFromNullTest(receiver, ref receiverState);
                 LearnFromNonNullTest(receiver, ref this.State);
                 var nextConditionalAccessSlot = MakeSlot(receiver);
-                if (nextConditionalAccessSlot > 0 && receiver.Type.IsNullableType())
+                if (nextConditionalAccessSlot > 0 && receiver.Type?.IsNullableType() == true)
                     nextConditionalAccessSlot = GetNullableOfTValueSlot(receiver.Type, nextConditionalAccessSlot, out _);
 
                 _lastConditionalAccessSlot = nextConditionalAccessSlot;
