@@ -10,16 +10,22 @@ namespace Test.Utilities
 {
     public static class AdditionalMetadataReferences
     {
-        public static ReferenceAssemblies Default { get; } = ReferenceAssemblies.Default
+        public static ReferenceAssemblies Default { get; } = ReferenceAssemblies.NetFramework.Net46.Default
+            .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "2.10.0")));
+
+        public static ReferenceAssemblies Default472 { get; } = ReferenceAssemblies.NetFramework.Net472.Default
             .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "2.10.0")));
 
         public static ReferenceAssemblies DefaultWithSystemWeb { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Web", "System.Web.Extensions"));
 
-        public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = Default
+        public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = Default472
             .AddAssemblies(ImmutableArray.Create("PresentationFramework", "System.DirectoryServices", "System.Web", "System.Web.Extensions", "System.Xaml"))
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("AntiXSS", "4.3.0")));
+            .AddPackages(ImmutableArray.Create(
+                new PackageIdentity("AntiXSS", "4.3.0"),
+                new PackageIdentity("Microsoft.EntityFrameworkCore.Relational", "2.0.3")));
 
         public static ReferenceAssemblies DefaultWithSerialization { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Runtime.Serialization"));

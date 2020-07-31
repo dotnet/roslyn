@@ -26,6 +26,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisDiagnosticsGeneratedCodeAnalysisFlags = "Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags";
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
+        public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
