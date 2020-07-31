@@ -60,6 +60,9 @@ namespace IdeCoreBenchmarks
 
             var start = DateTime.Now;
             _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
+            foreach (var d in _workspace.Diagnostics)
+                Console.WriteLine(d);
+
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
