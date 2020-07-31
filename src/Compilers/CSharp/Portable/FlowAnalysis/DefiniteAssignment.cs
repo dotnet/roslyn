@@ -386,35 +386,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(diagnostics != null);
 
-            AnalyzeCore(compilation, member, node, diagnostics, requireOutParamsAssigned);
-
-            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() && compilation.ShouldRunNullableWalker)
-            {
-                NullableWalker.Analyze(compilation, member, node, diagnostics);
-            }
-#if DEBUG
-            else
-            {
-                NullableWalker.Analyze(compilation, member, node, new DiagnosticBag());
-            }
-#endif
-        }
-
-        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
-        {
-            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
-            public override bool Equals([AllowNull] Diagnostic x, [AllowNull] Diagnostic y) => x.Equals(y);
-            public override int GetHashCode([DisallowNull] Diagnostic obj) =>
-                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
-        }
-
-        private static void AnalyzeCore(
-            CSharpCompilation compilation,
-            MethodSymbol member,
-            BoundNode node,
-            DiagnosticBag diagnostics,
-            bool requireOutParamsAssigned)
-        {
             // Run the strongest version of analysis
             DiagnosticBag strictDiagnostics = analyze(strictAnalysis: true);
             if (strictDiagnostics.IsEmptyWithoutResolution)
@@ -513,6 +484,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return result;
             }
+        }
+
+        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
+        {
+            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
+            public override bool Equals([AllowNull] Diagnostic x, [AllowNull] Diagnostic y) => x.Equals(y);
+            public override int GetHashCode([DisallowNull] Diagnostic obj) =>
+                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
         }
 
         /// <summary>
