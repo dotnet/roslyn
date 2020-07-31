@@ -282,9 +282,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiersBuilder.AddRange(callingConventionModifiers);
             }
 
-            if (returnRefKind == RefKind.In || returnRefKind == RefKind.Out)
+            if (GetCustomModifierForRefKind(returnRefKind, compilation) is CustomModifier modifier)
             {
-                modifiersBuilder.Add(GetCustomModifierForRefKind(returnRefKind, compilation)!);
+                modifiersBuilder.Add(modifier);
             }
 
             ImmutableArray<CustomModifier> refCustomModifiers;
