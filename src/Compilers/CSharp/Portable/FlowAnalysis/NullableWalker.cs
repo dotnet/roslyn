@@ -8618,9 +8618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            VisitRvalue(node.ReceiverOpt);
-            Debug.Assert(!IsConditionalState);
             var receiverOpt = node.ReceiverOpt;
+            VisitRvalue(receiverOpt);
+            Debug.Assert(!IsConditionalState);
             var @event = node.Event;
             if (!@event.IsStatic)
             {
@@ -8632,6 +8632,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             VisitRvalue(node.Argument);
             // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.
+            if (node.Argument.ConstantValue?.IsNull != true)
+            {
+                if (node.IsAddition)
+                {
+                    if (ResultType.IsNotNull)
+                    {
+                        LearnFromNonNullTest(MakeMemberSlot(receiverOpt, @event), ref State);
+                    }
+                }
+                else
+                {
+                    LearnFromNullTest(MakeMemberSlot(receiverOpt, @event), ResultType.Type, ref State, markDependentSlotsNotNull: false);
+                }
+            }
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29969 Review whether this is the correct result
             return null;
         }
