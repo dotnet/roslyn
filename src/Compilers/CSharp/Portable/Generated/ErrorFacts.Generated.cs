@@ -248,6 +248,7 @@
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
+                case ErrorCode.WRN_PrecedenceInversion:
                 case ErrorCode.WRN_UnassignedThisAutoProperty:
                 case ErrorCode.WRN_UnassignedThis:
                 case ErrorCode.WRN_ParamUnassigned:

@@ -334,6 +334,7 @@ class X
                             break;
                         case ErrorCode.WRN_NubExprIsConstBool2:
                         case ErrorCode.WRN_StaticInAsOrIs:
+                        case ErrorCode.WRN_PrecedenceInversion:
                         case ErrorCode.WRN_UnassignedThisAutoProperty:
                         case ErrorCode.WRN_UnassignedThis:
                         case ErrorCode.WRN_ParamUnassigned:
@@ -388,6 +389,7 @@ class X
                     ErrorCode.WRN_IsPatternAlways,
                     ErrorCode.WRN_ConstOutOfRangeChecked,
                     ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen,
+                    ErrorCode.WRN_PrecedenceInversion,
                     ErrorCode.WRN_UnassignedThisAutoProperty,
                     ErrorCode.WRN_UnassignedThis,
                     ErrorCode.WRN_ParamUnassigned,

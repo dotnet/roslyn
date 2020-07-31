@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     walker.Analyze(ref badRegion, result);
                     Debug.Assert(!badRegion);
                 }
-                catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+                catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
                 {
                     ex.AddAnError(result);
                 }

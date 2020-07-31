@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // We don't want to block up file removal on the UI thread since we want that path to stay asynchronous.
                 CodeModelService.DetachFormatTrackingToBuffer(_invisibleEditor.TextBuffer);
 
-                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(() => { _invisibleEditor.Dispose(); });
+                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(cancellationToken => { _invisibleEditor.Dispose(); });
             }
 
             base.Shutdown();

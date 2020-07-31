@@ -79,6 +79,45 @@ static class SC { }
         }
 
         [Fact]
+        public void WRN_PrecedenceInversion()
+        {
+            var source = @"
+using System;
+
+class X
+{
+    public bool Select<T>(Func<int, T> selector) => true;
+    public static int operator +(Action a, X right) => 0;
+}
+
+class P
+{
+    static void M1()
+    {
+        var src = new X();
+        var b = false && from x in src select x;
+    }
+    static void M2()
+    {
+        var x = new X();
+        var i = ()=>{} + x;
+    }
+}";
+            var whenWave5 = new[]
+            {
+                // (15,26): warning CS8848: Operator 'from' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var b = false && from x in src select x;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "from x in src").WithArguments("from").WithLocation(15, 26),
+                // (20,24): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var i = ()=>{} + x;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(20, 24)
+            };
+            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
+        }
+
+        [Fact]
         public void WRN_UnassignedThisAutoProperty()
         {
             var source = @"
