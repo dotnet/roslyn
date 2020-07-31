@@ -50,12 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
             Guid languageServiceGuid)
         {
             var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
+            var projectId = ProjectId.CreateNewId($"Project for {filePath}");
+            workspace.OnProjectAdded(ProjectInfo.Create(projectId, VersionStamp.Default, filePath, string.Empty, "TypeScript"));
 
             _underlyingObject = new ContainedLanguage(
                 bufferCoordinator,
                 componentModel,
                 workspace,
-                ProjectId.CreateNewId($"Project for {filePath}"),
+                projectId,
                 null,
                 filePath,
                 languageServiceGuid,
