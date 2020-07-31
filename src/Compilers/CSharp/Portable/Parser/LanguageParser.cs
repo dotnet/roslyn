@@ -1885,6 +1885,7 @@ tryAgain:
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.StructKeyword:
+                case SyntaxKind.DefaultKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
@@ -1920,6 +1921,9 @@ tryAgain:
                     questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
 
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
+                case SyntaxKind.DefaultKeyword:
+                    var defaultToken = this.EatToken();
+                    return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
@@ -10033,24 +10037,22 @@ tryAgain:
                 // We'll "take" this operator, as precedence is tentatively OK.
                 var opToken = this.EatContextualToken(tk);
 
-                if (leftOperand.Kind == SyntaxKind.IsPatternExpression || IsStrict)
+                var leftPrecedence = GetPrecedence(leftOperand.Kind);
+                if (newPrecedence > leftPrecedence)
                 {
-                    var leftPrecedence = GetPrecedence(leftOperand.Kind);
-                    if (newPrecedence > leftPrecedence)
-                    {
-                        // Normally, a left operand with a looser precedence will consume all right operands that
-                        // have a tighter precedence.  For example, in the expression `a + b * c`, the `* c` part
-                        // will be consumed as part of the right operand of the addition.  However, there are a
-                        // few circumstances in which a tighter precedence is not consumed: that occurs when the
-                        // left hand operator does not have an expression as its right operand.  This occurs for
-                        // the is-type operator and the is-pattern operator.  Source text such as
-                        // `a is {} + b` should produce a syntax error, as parsing the `+` with an `is`
-                        // expression as its left operand would be a precedence inversion.  Similarly, it occurs
-                        // with an anonymous method expression or a lambda expression with a block body.  No
-                        // further parsing will find a way to fix things up, so we accept the operator but issue
-                        // an error.
-                        opToken = this.AddError(opToken, ErrorCode.ERR_UnexpectedToken, opToken.Text);
-                    }
+                    // Normally, a left operand with a looser precedence will consume all right operands that
+                    // have a tighter precedence.  For example, in the expression `a + b * c`, the `* c` part
+                    // will be consumed as part of the right operand of the addition.  However, there are a
+                    // few circumstances in which a tighter precedence is not consumed: that occurs when the
+                    // left hand operator does not have an expression as its right operand.  This occurs for
+                    // the is-type operator and the is-pattern operator.  Source text such as
+                    // `a is {} + b` should produce a syntax error, as parsing the `+` with an `is`
+                    // expression as its left operand would be a precedence inversion.  Similarly, it occurs
+                    // with an anonymous method expression or a lambda expression with a block body.  No
+                    // further parsing will find a way to fix things up, so we accept the operator but issue
+                    // a diagnostic.
+                    ErrorCode errorCode = leftOperand.Kind == SyntaxKind.IsPatternExpression ? ErrorCode.ERR_UnexpectedToken : ErrorCode.WRN_PrecedenceInversion;
+                    opToken = this.AddError(opToken, errorCode, opToken.Text);
                 }
 
                 if (doubleOp)
@@ -12442,9 +12444,9 @@ tryAgain:
             this.EnterQuery();
             var fc = this.ParseFromClause();
             fc = CheckFeatureAvailability(fc, MessageID.IDS_FeatureQueryExpression);
-            if (precedence > Precedence.Assignment && IsStrict)
+            if (precedence > Precedence.Assignment)
             {
-                fc = this.AddError(fc, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
+                fc = this.AddError(fc, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
             }
 
             var body = this.ParseQueryBody();
@@ -12690,8 +12692,6 @@ tryAgain:
             var body = this.ParseQueryBody();
             return _syntaxFactory.QueryContinuation(@into, name, body);
         }
-
-        private bool IsStrict => this.Options.Features.ContainsKey("strict");
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
         private new bool IsIncremental

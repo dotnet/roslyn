@@ -17,8 +17,13 @@ namespace Microsoft.CodeAnalysis
         public const string Preview = nameof(Preview);
         public const string MSBuild = "MSBuildWorkspace"; // This string is specifically used to avoid a breaking change.
 
+        /// <summary>
+        /// <see cref="AdhocWorkspace"/> kind.
+        /// </summary>
+        internal const string Custom = "Custom";
+
         internal const string Test = nameof(Test);
-        internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
+        internal const string CloudEnvironmentClientWorkspace = nameof(CloudEnvironmentClientWorkspace);
         internal const string RemoteWorkspace = nameof(RemoteWorkspace);
         internal const string RemoteTemporaryWorkspace = nameof(RemoteTemporaryWorkspace);
     }

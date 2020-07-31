@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -2543,7 +2542,6 @@ static class MyClass3
             {
                 TestState = { Sources = { source1, source2 } },
                 FixedState = { Sources = { fixedSource1, fixedSource2 } },
-                NumberOfFixAllInDocumentIterations = 2,
             }.RunAsync();
         }
 

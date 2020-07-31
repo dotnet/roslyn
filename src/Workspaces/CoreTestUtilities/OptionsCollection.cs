@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         public int Count => _options.Count;
 
+        public void Set<T>(Option2<T> option, T value)
+            => _options[new OptionKey2(option)] = value;
+
         public void Add<T>(Option2<T> option, T value)
             => _options.Add(new OptionKey2(option), value);
 

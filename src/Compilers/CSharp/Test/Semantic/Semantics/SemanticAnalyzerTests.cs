@@ -245,7 +245,7 @@ class P // : IEnumerable
 //        // error CS0245: Destructors and object.Finalize cannot be called directly. Consider
 //        // calling IDisposable.Dispose if available.
 //        base.Finalize();
-//        // error CS0250: Do not directly call your base class Finalize method. It is called
+//        // error CS0250: Do not directly call your base type Finalize method. It is called
 //        // automatically from your destructor.
 //    }
     public void GenericConstrained<T>(T t) where T : class { }
