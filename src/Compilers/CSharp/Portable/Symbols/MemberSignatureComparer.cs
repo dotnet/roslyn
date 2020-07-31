@@ -99,7 +99,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             considerRefKindDifferences: false,
-            typeComparison: TypeCompareKind.AllIgnoreOptions); //shouldn't actually matter for source members
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
+        /// This instance is used to determine if some API specific to records is explicitly declared.
+        /// It is the same as <see cref="DuplicateSourceComparer"/> except it considers ref kinds as well.
+        /// </summary>
+        public static readonly MemberSignatureComparer RecordAPISignatureComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: false,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition.
@@ -155,12 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// This instance is used to check whether one property or event overrides another, according to the C# definition.
         /// <para>NOTE: C# ignores accessor member names.</para>
-        /// <para>CAVEAT: considers return types so that getters and setters will be treated the same.</para>
         /// </summary>
         public static readonly MemberSignatureComparer CSharpAccessorOverrideComparer = new MemberSignatureComparer(
             considerName: false,
             considerExplicitlyImplementedInterfaces: false, //Bug: DevDiv #15775
-            considerReturnType: true,
+            considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefKindDifferences: true,
@@ -313,6 +325,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerCallingConvention = considerCallingConvention;
             _considerRefKindDifferences = considerRefKindDifferences;
             _typeComparison = typeComparison;
+            Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
+                         $"Rely on the {nameof(considerRefKindDifferences)} flag to set this to ensure all cases are handled.");
+            if (!considerRefKindDifferences)
+            {
+                _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
+            }
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -448,18 +466,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // CONSIDER: modify hash for constraints?
 
-                hash = Hash.Combine(member.GetMemberArity(), hash);
-                hash = Hash.Combine(member.GetParameterCount(), hash);
+                if (member.Kind != SymbolKind.Field)
+                {
+                    hash = Hash.Combine(member.GetMemberArity(), hash);
+                    hash = Hash.Combine(member.GetParameterCount(), hash);
+                }
             }
             return hash;
         }
 
         #endregion
-
-        public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, TypeCompareKind typeComparison)
-        {
-            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), typeComparison);
-        }
 
         private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, TypeCompareKind typeComparison)
         {

@@ -207,13 +207,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         #region Helpers
 
-        private Lazy<Extension, OrderableMetadata> CreateExtension(string? name = null, IEnumerable<string>? before = null, IEnumerable<string>? after = null)
+        private static Lazy<Extension, OrderableMetadata> CreateExtension(string? name = null, IEnumerable<string>? before = null, IEnumerable<string>? after = null)
             => new Lazy<Extension, OrderableMetadata>(new OrderableMetadata(name, before: before, after: after));
 
-        private IEnumerable<string?> GetNames(IEnumerable<Lazy<Extension, OrderableMetadata>> actual)
+        private static IEnumerable<string?> GetNames(IEnumerable<Lazy<Extension, OrderableMetadata>> actual)
             => actual.Select(i => i.Metadata.Name);
 
-        private void VerifyOrder(string expected, IEnumerable<Lazy<Extension, OrderableMetadata>> actual)
+        private static void VerifyOrder(string expected, IEnumerable<Lazy<Extension, OrderableMetadata>> actual)
         {
             var actualOrder = string.Join(string.Empty, GetNames(actual));
             Assert.Equal(expected, actualOrder);

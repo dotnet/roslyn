@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4899,7 +4900,7 @@ class C
                 // (4,16): error CS1002: ; expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(4, 16),
-                // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,16): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
                 // (4,19): error CS1031: Type expected
@@ -4911,7 +4912,7 @@ class C
                 // (4,19): error CS1026: ) expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
-                // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
+                // (4,19): error CS1519: Invalid token '1' in class, record, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
                 // (4,5): error CS1520: Method must have a return type
@@ -5039,30 +5040,22 @@ System.Console.Write($""{x} {y}"");
         }
 
         [Fact]
-        public void NoGlobalDeconstructionOutsideScript()
+        public void GlobalDeconstructionOutsideScript()
         {
             var source =
 @"
 (string x, int y) = (""hello"", 42);
+System.Console.Write(x);
+System.Console.Write(y);
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
-            comp.VerifyDiagnostics(
-                // (2,19): error CS1022: Type or namespace definition, or end-of-file expected
-                // (string x, int y) = ("hello", 42);
-                Diagnostic(ErrorCode.ERR_EOFExpected, "=").WithLocation(2, 19),
-                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
-                // (string x, int y) = ("hello", 42);
-                Diagnostic(ErrorCode.ERR_EOFExpected, @"""hello""").WithLocation(2, 22),
-                // (2,22): error CS1026: ) expected
-                // (string x, int y) = ("hello", 42);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""hello""").WithLocation(2, 22),
-                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
-                );
+            comp.VerifyDiagnostics();
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
-            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
+            Assert.True(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
+
+            CompileAndVerify(comp, expectedOutput: "hello42");
         }
 
         [Fact]
@@ -7572,7 +7565,7 @@ Handler");
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_03()
         {
@@ -7619,7 +7612,7 @@ Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataRe
             Assert.True(comp2.Compilation.GetMember<IEventSymbol>("C.E").IsWindowsRuntimeEvent);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_04()
         {

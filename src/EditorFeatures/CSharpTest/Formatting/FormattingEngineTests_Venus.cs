@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
     {
+        public FormattingEngineTests_Venus(ITestOutputHelper output) : base(output) { }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public async Task SimpleOneLineNugget()
         {

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2846,14 +2847,14 @@ class C
         [Fact]
         public void MethodUpdate_UpdateParameterToNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void M(string s)
     {
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void M(string? s)
@@ -2872,7 +2873,7 @@ class C
         [Fact]
         public void MethodUpdate_UpdateParameterToNonNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void M(string? s)
@@ -2880,7 +2881,7 @@ class C
         
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void M(string s)
@@ -2896,7 +2897,6 @@ class C
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "string s", FeaturesResources.parameter));
         }
-
 
         [Fact]
         public void MethodUpdate_RenameMethodName()
@@ -5174,7 +5174,7 @@ partial class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var syntaxMap = GetSyntaxMap(src1, src2);
+            _ = GetSyntaxMap(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C(int x)"));
@@ -7286,7 +7286,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var syntaxMap = GetSyntaxMap(src1, src2);
+            _ = GetSyntaxMap(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "public C(int x)"));

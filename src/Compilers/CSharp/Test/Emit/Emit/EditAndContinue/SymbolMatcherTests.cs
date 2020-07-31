@@ -1272,5 +1272,135 @@ interface I
             Assert.Same(e0, matcher.MapDefinition(e1));
             Assert.Same(f0, matcher.MapDefinition(f1));
         }
+
+        [Fact]
+        public void FunctionPointerMembersTranslated()
+        {
+            var source = @"
+unsafe class C
+{
+    delegate*<void> f1;
+    delegate*<C, C, C> f2;
+    delegate*<ref C> f3;
+    delegate*<ref readonly C> f4;
+    delegate*<ref C, void> f5;
+    delegate*<in C, void> f6;
+    delegate*<out C, void> f7;
+}
+";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation1 = compilation0.WithSource(source);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            for (int i = 1; i <= 7; i++)
+            {
+                var f_0 = compilation0.GetMember<FieldSymbol>($"C.f{i}");
+                var f_1 = compilation1.GetMember<FieldSymbol>($"C.f{i}");
+
+                Assert.Same(f_0, matcher.MapDefinition(f_1));
+            }
+        }
+
+        [Theory]
+        [InlineData("C", "void")]
+        [InlineData("C", "object")]
+        [InlineData("C", "ref C")]
+        [InlineData("C", "ref readonly C")]
+        [InlineData("ref C", "ref readonly C")]
+        public void FunctionPointerMembers_ReturnMismatch(string return1, string return2)
+        {
+            var source1 = $@"
+unsafe class C
+{{
+    delegate*<C, {return1}> f1;
+}}";
+
+            var source2 = $@"
+unsafe class C
+{{
+    delegate*<C, {return2}> f1;
+}}";
+
+            var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation1 = compilation0.WithSource(source2);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
+
+            Assert.Null(matcher.MapDefinition(f_1));
+        }
+
+        [Theory]
+        [InlineData("C", "object")]
+        [InlineData("C", "ref C")]
+        [InlineData("C", "out C")]
+        [InlineData("C", "in C")]
+        [InlineData("ref C", "out C")]
+        [InlineData("ref C", "in C")]
+        [InlineData("out C", "in C")]
+        [InlineData("C, C", "C")]
+        public void FunctionPointerMembers_ParamMismatch(string param1, string param2)
+        {
+            var source1 = $@"
+unsafe class C
+{{
+    delegate*<{param1}, C, void>* f1;
+}}";
+
+            var source2 = $@"
+unsafe class C
+{{
+    delegate*<{param2}, C, void>* f1;
+}}";
+
+            verify(source1, source2);
+
+            source1 = $@"
+unsafe class C
+{{
+    delegate*<C, {param1}, void> f1;
+}}";
+
+            source2 = $@"
+unsafe class C
+{{
+    delegate*<C, {param2}, void> f1;
+}}";
+
+            verify(source1, source2);
+
+            static void verify(string source1, string source2)
+            {
+                var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+                var compilation1 = compilation0.WithSource(source2);
+
+                var matcher = new CSharpSymbolMatcher(
+                    null,
+                    compilation1.SourceAssembly,
+                    default,
+                    compilation0.SourceAssembly,
+                    default,
+                    null);
+
+                var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
+
+                Assert.Null(matcher.MapDefinition(f_1));
+            }
+        }
     }
 }

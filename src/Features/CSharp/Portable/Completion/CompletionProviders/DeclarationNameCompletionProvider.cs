@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = completionContext.Position;
                 var document = completionContext.Document;
                 var cancellationToken = completionContext.CancellationToken;
-                var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
                 if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
                 {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return baseNames;
         }
 
-        private bool IsValidType(ITypeSymbol type)
+        private static bool IsValidType(ITypeSymbol type)
         {
             if (type == null)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return !type.IsSpecialType();
         }
 
-        private Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
+        private static Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
         {
             var publicIcon = kind switch
             {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (type, wasPlural);
         }
 
-        private async Task<ImmutableArray<(string name, SymbolKind kind)>> GetRecommendedNamesAsync(
+        private static async Task<ImmutableArray<(string name, SymbolKind kind)>> GetRecommendedNamesAsync(
             ImmutableArray<ImmutableArray<string>> baseNames,
             NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbol.Kind == SymbolKind.RangeVariable;
         }
 
-        private CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
+        private static CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
             return CommonCompletionItem.Create(
                 name,

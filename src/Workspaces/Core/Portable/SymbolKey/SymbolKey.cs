@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -65,6 +67,19 @@ namespace Microsoft.CodeAnalysis
     /// </list>
     /// </para>
     /// <para>
+    /// Interior-method-level symbols (i.e. <see cref="ILabelSymbol"/>, <see cref="ILocalSymbol"/>, <see
+    /// cref="IRangeVariableSymbol"/> and <see cref="MethodKind.LocalFunction"/> <see cref="IMethodSymbol"/>s can also
+    /// be represented and restored in a different compilation.  To resolve these the destination compilation's <see
+    /// cref="SyntaxTree"/> is enumerated to list all the symbols with the same <see cref="ISymbol.Name"/> and <see
+    /// cref="ISymbol.Kind"/> as the original symbol.  The symbol with the same index in the destination tree as the
+    /// symbol in the original tree is returned.  This allows these sorts of symbols to be resolved in a way that is
+    /// resilient to basic forms of edits.  For example, adding whitespace edits, or adding removing symbols with
+    /// different names and types.  However, it may not find a matching symbol in the face of other sorts of edits.
+    /// </para>
+    /// <para>
+    /// Symbol keys cannot be created for interior-method symbols that were created in a speculative semantic model.
+    /// </para>
+    /// <para>
     ///     Due to issues arising from errors and ambiguity, it's possible for a SymbolKey to resolve to
     ///     multiple symbols. For example, in the following type:
     ///     <code>
@@ -77,11 +92,10 @@ namespace Microsoft.CodeAnalysis
     ///     The SymbolKey for both 'M' methods will be the same.  The SymbolKey will then resolve to both methods.
     /// </para>
     /// <para>
-    /// <see cref="SymbolKey"/>s are not guaranteed to work across different versions of Roslyn.
-    /// They can be persisted in their <see cref="ToString()"/> form and used across sessions with
-    /// the same version of Roslyn. However, future versions may change the encoded format and may
-    /// no longer be able to <see cref="Resolve(Compilation, bool, bool, CancellationToken)"/> previous
-    /// keys.  As such, only persist if using for a cache that can be regenerated if necessary.
+    /// <see cref="SymbolKey"/>s are not guaranteed to work across different versions of Roslyn. They can be persisted
+    /// in their <see cref="ToString()"/> form and used across sessions with the same version of Roslyn. However, future
+    /// versions may change the encoded format and may no longer be able to <see cref="Resolve"/> previous keys.  As
+    /// such, only persist if using for a cache that can be regenerated if necessary.
     /// </para>
     /// </summary>
     internal partial struct SymbolKey
@@ -107,7 +121,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
         /// </summary>
-        internal static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
             => new SymbolKey(CreateString(symbol, cancellationToken));
 
         /// <summary>
@@ -123,28 +137,59 @@ namespace Microsoft.CodeAnalysis
         /// <c>A</c> and <c>X.SomeClass</c> from assembly <c>B</c> will be considered the same
         /// effective symbol.
         /// </param>
-        internal static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
+        public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
             => SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
 
-        internal static SymbolKeyResolution ResolveString(
+        public static bool CanCreate(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            if (BodyLevelSymbolKey.IsBodyLevelSymbol(symbol))
+            {
+                var locations = BodyLevelSymbolKey.GetBodyLevelSourceLocations(symbol, cancellationToken);
+                if (locations.Length == 0)
+                    return false;
+
+                // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                // compilation in the case of work done with a speculative model.
+                var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
+                return compilation.SyntaxTrees.Contains(locations.First().SourceTree);
+            }
+
+            return true;
+        }
+
+        public static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
-            bool ignoreAssemblyKey = false, bool resolveLocations = false,
-            CancellationToken cancellationToken = default)
+            bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
+        {
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, out _, cancellationToken);
+        }
+
+        public static SymbolKeyResolution ResolveString(
+            string symbolKey, Compilation compilation,
+            out string failureReason, CancellationToken cancellationToken)
+        {
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey: false, out failureReason, cancellationToken);
+        }
+
+        public static SymbolKeyResolution ResolveString(
+            string symbolKey, Compilation compilation, bool ignoreAssemblyKey,
+            out string failureReason, CancellationToken cancellationToken)
         {
             using var reader = SymbolKeyReader.GetReader(
-                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+                symbolKey, compilation, ignoreAssemblyKey, cancellationToken);
             var version = reader.ReadFormatVersion();
             if (version != FormatVersion)
             {
+                failureReason = $"({nameof(SymbolKey)} invalid format '${version}')";
                 return default;
             }
 
-            var result = reader.ReadSymbolKey();
+            var result = reader.ReadSymbolKey(out failureReason);
             Debug.Assert(reader.Position == symbolKey.Length);
             return result;
         }
 
-        internal static string CreateString(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static string CreateString(ISymbol symbol, CancellationToken cancellationToken = default)
             => CreateStringWorker(FormatVersion, symbol, cancellationToken);
 
         // Internal for testing purposes.
@@ -158,15 +203,12 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Tries to resolve this <see cref="SymbolKey"/> in the given 
-        /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
-        /// should only be given <see langword="true"/> if the symbol was produced from a compilation
-        /// that has the exact same source as the compilation we're resolving against.  Otherwise
-        /// the locations resolved may not actually be correct in the final compilation.
+        /// <paramref name="compilation"/> to a matching symbol.
         /// </summary>
         public SymbolKeyResolution Resolve(
-            Compilation compilation, bool ignoreAssemblyKey = false, bool resolveLocations = false, CancellationToken cancellationToken = default)
+            Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
-            return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+            return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, cancellationToken);
         }
 
         /// <summary>
@@ -181,7 +223,8 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
             => _symbolKeyData;
 
-        private static SymbolKeyResolution CreateResolution<TSymbol>(PooledArrayBuilder<TSymbol> symbols)
+        private static SymbolKeyResolution CreateResolution<TSymbol>(
+            PooledArrayBuilder<TSymbol> symbols, string reasonIfFailed, out string failureReason)
             where TSymbol : class, ISymbol
         {
 #if DEBUG
@@ -193,14 +236,17 @@ namespace Microsoft.CodeAnalysis
 
             if (symbols.Builder.Count == 0)
             {
+                failureReason = reasonIfFailed;
                 return default;
             }
             else if (symbols.Builder.Count == 1)
             {
+                failureReason = null;
                 return new SymbolKeyResolution(symbols.Builder[0]);
             }
             else
             {
+                failureReason = null;
                 return new SymbolKeyResolution(
                     ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutable()),
                     CandidateReason.Ambiguous);

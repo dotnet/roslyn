@@ -261,20 +261,27 @@ namespace Microsoft.CodeAnalysis
 
         protected ImmutableArray<KeyValuePair<string, string>> ParsePathMap(string pathMap, IList<Diagnostic> errors)
         {
-            var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
             if (pathMap.IsEmpty())
             {
-                return pathMapBuilder.ToImmutableAndFree();
+                return ImmutableArray<KeyValuePair<string, string>>.Empty;
             }
 
-            foreach (var kEqualsV in pathMap.Split(','))
+            var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
+
+            foreach (var kEqualsV in SplitWithDoubledSeparatorEscaping(pathMap, ','))
             {
-                var kv = kEqualsV.Split('=');
+                if (kEqualsV.IsEmpty())
+                {
+                    continue;
+                }
+
+                var kv = SplitWithDoubledSeparatorEscaping(kEqualsV, '=');
                 if (kv.Length != 2)
                 {
                     errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
                     continue;
                 }
+
                 var from = kv[0];
                 var to = kv[1];
 
@@ -293,6 +300,49 @@ namespace Microsoft.CodeAnalysis
             return pathMapBuilder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Splits specified <paramref name="str"/> on <paramref name="separator"/>
+        /// treating two consecutive separators as if they were a single non-separating character.
+        /// E.g. "a,,b,c" split on ',' yields ["a,b", "c"].
+        /// </summary>
+        internal static string[] SplitWithDoubledSeparatorEscaping(string str, char separator)
+        {
+            if (str.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var result = ArrayBuilder<string>.GetInstance();
+            var pooledPart = PooledStringBuilder.GetInstance();
+            var part = pooledPart.Builder;
+
+            int i = 0;
+            while (i < str.Length)
+            {
+                char c = str[i++];
+                if (c == separator)
+                {
+                    if (i < str.Length && str[i] == separator)
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        result.Add(part.ToString());
+                        part.Clear();
+                        continue;
+                    }
+                }
+
+                part.Append(c);
+            }
+
+            result.Add(part.ToString());
+
+            pooledPart.Free();
+            return result.ToArrayAndFree();
+        }
+
         internal void ParseOutputFile(
             string value,
             IList<Diagnostic> errors,
@@ -300,12 +350,8 @@ namespace Microsoft.CodeAnalysis
             out string? outputFileName,
             out string? outputDirectory)
         {
-            outputFileName = null;
-            outputDirectory = null;
-            string? invalidPath = null;
-
             string unquoted = RemoveQuotesAndSlashes(value);
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out string? invalidPath);
             if (outputFileName == null ||
                 !MetadataHelpers.IsValidAssemblyOrModuleName(outputFileName))
             {
@@ -320,13 +366,10 @@ namespace Microsoft.CodeAnalysis
             IList<Diagnostic> errors,
             string? baseDirectory)
         {
-            string? outputFileName = null;
-            string? outputDirectory = null;
             string? pdbPath = null;
-            string? invalidPath = null;
 
             string unquoted = RemoveQuotesAndSlashes(value);
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out string? outputFileName, out string? outputDirectory, out string? invalidPath);
             if (outputFileName == null ||
                 PathUtilities.ChangeExtension(outputFileName, extension: null).Length == 0)
             {
@@ -348,12 +391,9 @@ namespace Microsoft.CodeAnalysis
             string? baseDirectory,
             bool generateDiagnostic = true)
         {
-            string? outputFileName = null;
-            string? outputDirectory = null;
             string? genericPath = null;
-            string? invalidPath = null;
 
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out string? outputFileName, out string? outputDirectory, out string? invalidPath);
             if (string.IsNullOrWhiteSpace(outputFileName))
             {
                 if (generateDiagnostic)
@@ -509,9 +549,7 @@ namespace Microsoft.CodeAnalysis
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
-                bool hasValue;
-                string? value;
-                if (isClientArgsOption(arg, "keepalive", out hasValue, out value))
+                if (isClientArgsOption(arg, "keepalive", out bool hasValue, out string? value))
                 {
                     if (string.IsNullOrEmpty(value))
                     {
@@ -519,8 +557,7 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    int intValue;
-                    if (int.TryParse(value, out intValue))
+                    if (int.TryParse(value, out int intValue))
                     {
                         if (intValue < -1)
                         {
@@ -568,7 +605,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
+            static bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
             {
                 hasValue = false;
                 optionValue = null;
@@ -610,13 +647,11 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-                using (TextReader reader = CreateTextFileReader(fullPath))
+                using TextReader reader = CreateTextFileReader(fullPath);
+                string? str;
+                while ((str = reader.ReadLine()) != null)
                 {
-                    string? str;
-                    while ((str = reader.ReadLine()) != null)
-                    {
-                        lines.Add(str);
-                    }
+                    lines.Add(str);
                 }
             }
             catch (Exception)
@@ -950,9 +985,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static Encoding? TryParseEncodingName(string arg)
         {
-            long codepage;
             if (!string.IsNullOrWhiteSpace(arg)
-                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out codepage)
+                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out long codepage)
                 && (codepage > 0))
             {
                 try

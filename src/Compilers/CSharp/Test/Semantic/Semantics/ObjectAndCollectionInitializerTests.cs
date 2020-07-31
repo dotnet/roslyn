@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1196,7 +1197,7 @@ class MemberInitializerTest
             Initializers(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         var i = /*<bind>*/new I() { }/*</bind>*/; // CS0144
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { }").WithArguments("I").WithLocation(7, 27)
             };
@@ -3954,7 +3955,7 @@ interface I : IEnumerable<int>
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,15): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (8,15): error CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         I i = new I() { 1, 2 }
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { 1, 2 }").WithArguments("I").WithLocation(8, 15),
                 // (8,31): error CS1002: ; expected

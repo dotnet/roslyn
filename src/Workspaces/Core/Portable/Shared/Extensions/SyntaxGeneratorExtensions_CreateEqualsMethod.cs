@@ -382,7 +382,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                       !method.IsStatic &&
                       method.Parameters.Length == 1 &&
                       method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                      method.Parameters[0].Type.SpecialType == SpecialType.System_Object
+                      method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                      !method.IsAbstract
                 select method;
 
             return existingMethods.Any();

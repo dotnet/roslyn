@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                     {TestResources.SymbolsTests.TypeForwarders.TypeForwarder,
                                      TestResources.SymbolsTests.TypeForwarders.TypeForwarderLib,
                                      TestResources.SymbolsTests.TypeForwarders.TypeForwarderBase,
-                                     TestResources.NetFX.v4_0_21006.mscorlib})
+                                     TestMetadata.ResourcesNet40.mscorlib})
 
             TestTypeForwarderHelper(assemblies)
         End Sub
@@ -1034,6 +1035,8 @@ End class
 
             appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef1, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
+            Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(appCompilation))
+
             peModule = DirectCast(appCompilation.Assembly.Modules(1), PEModuleSymbol)
             metadata = peModule.Module
 
@@ -1050,6 +1053,7 @@ End class
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(1, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
                                      ValidateExportedTypeRow(metadataReader1.ExportedTypes.First(), metadataReader1, "CF1")
+                                     Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(m.ContainingAssembly))
 
                                      ' Attributes should not actually be emitted.
                                      Assert.Equal(0, m.ContainingAssembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count())
@@ -1129,6 +1133,14 @@ End class
 BC30652: Reference required to assembly 'ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'CF1'. Add one to your project.
 </expected>)
         End Sub
+
+        Private Shared Function GetNamesOfForwardedTypes(appCompilation As VisualBasicCompilation) As IEnumerable(Of String)
+            Return GetNamesOfForwardedTypes(appCompilation.Assembly)
+        End Function
+
+        Private Shared Function GetNamesOfForwardedTypes(assembly As AssemblySymbol) As IEnumerable(Of String)
+            Return DirectCast(assembly, IAssemblySymbol).GetForwardedTypes().Select(Function(t) t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+        End Function
 
         Private Shared Sub ValidateExportedTypeRow(exportedTypeHandle As ExportedTypeHandle, reader As MetadataReader, expectedFullName As String)
             Dim exportedTypeRow As ExportedType = reader.GetExportedType(exportedTypeHandle)
@@ -1211,11 +1223,13 @@ End class
 </compilation>
 
             Dim appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
+            Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(appCompilation))
 
             ' Exported types in .NET module cause PEVerify to fail.
             CompileAndVerify(appCompilation, verify:=Verification.Fails,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
+                                     Assert.Equal({"CF1"}, GetNamesOfForwardedTypes(m.ContainingAssembly))
                                      Assert.Equal(2, peReader1.GetTableRowCount(TableIndex.ExportedType))
                                      ValidateExportedTypeRow(peReader1.ExportedTypes.First(), peReader1, "CF1")
                                      ValidateExportedTypeRow(peReader1.ExportedTypes(1), peReader1, "CF1+CF2")

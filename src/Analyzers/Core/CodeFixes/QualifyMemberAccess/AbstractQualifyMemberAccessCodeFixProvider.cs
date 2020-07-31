@@ -35,12 +35,10 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
             foreach (var diagnostic in diagnostics)
@@ -57,6 +55,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                     editor.ReplaceNode(node, qualifiedAccess);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         protected abstract TSimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);

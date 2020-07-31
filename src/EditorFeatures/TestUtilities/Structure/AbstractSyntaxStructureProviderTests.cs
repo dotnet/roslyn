@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             }
         }
 
-        protected RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+        protected static RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
             => new RegionData(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
-        protected RegionData Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+        protected static RegionData Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
             => new RegionData(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
         private static BlockSpan CreateBlockSpan(

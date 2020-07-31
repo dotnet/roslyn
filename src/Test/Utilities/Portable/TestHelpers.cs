@@ -70,7 +70,6 @@ namespace Roslyn.Test.Utilities
             return value.ToString();
         }
 
-
         /// <summary>
         /// <see cref="System.Xml.Linq.XComment.Value"/> is serialized with "--" replaced by "- -"
         /// </summary>

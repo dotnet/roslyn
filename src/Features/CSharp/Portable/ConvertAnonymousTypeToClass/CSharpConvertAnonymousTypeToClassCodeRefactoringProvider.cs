@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 {
@@ -41,7 +42,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(anonymousObject.CloseBraceToken));
 
         private SeparatedSyntaxList<ArgumentSyntax> CreateArguments(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
-            => SyntaxFactory.SeparatedList<ArgumentSyntax>(CreateArguments(initializers.GetWithSeparators()));
+            => SyntaxFactory.SeparatedList<ArgumentSyntax>(CreateArguments(OmitTrailingComma(initializers.GetWithSeparators())));
+
+        private static SyntaxNodeOrTokenList OmitTrailingComma(SyntaxNodeOrTokenList list)
+        {
+            // Trailing comma is allowed in initializer list, but disallowed in method calls.
+            if (list.Count == 0 || list.Count % 2 == 1)
+            {
+                // The list is either empty, or does not end with a trailing comma.
+                return list;
+            }
+
+            return list
+                .Replace(
+                    list[^2],
+                    list[^2].AsNode()
+                        .WithAppendedTrailingTrivia(list[^1].GetLeadingTrivia())
+                        .WithAppendedTrailingTrivia(list[^1].GetTrailingTrivia()))
+                .RemoveAt(list.Count - 1);
+        }
 
         private SyntaxNodeOrTokenList CreateArguments(SyntaxNodeOrTokenList list)
             => new SyntaxNodeOrTokenList(list.Select(CreateArgumentOrComma));
@@ -51,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 ? declOrComma
                 : CreateArgument((AnonymousObjectMemberDeclaratorSyntax)declOrComma);
 
-        private ArgumentSyntax CreateArgument(AnonymousObjectMemberDeclaratorSyntax decl)
+        private static ArgumentSyntax CreateArgument(AnonymousObjectMemberDeclaratorSyntax decl)
             => SyntaxFactory.Argument(decl.Expression);
     }
 }

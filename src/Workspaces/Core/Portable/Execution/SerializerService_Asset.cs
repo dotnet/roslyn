@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)text.ChecksumAlgorithm);
-            WriteTo(text.Encoding, writer, cancellationToken);
+            writer.WriteEncoding(text.Encoding);
 
             // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
             //       rather than using enums
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             // REVIEW: why IDE services doesnt care about checksumAlgorithm?
-            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = ReadEncodingFrom(reader, cancellationToken);
+            _ = (SourceHashAlgorithm)reader.ReadInt32();
+            var encoding = (Encoding)reader.ReadValue();
 
             var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteBoolean(reference.EmbedInteropTypes);
         }
 
-        private ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
+        private static ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

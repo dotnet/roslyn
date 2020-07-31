@@ -2656,7 +2656,6 @@ Public Class C1
 End Class
 </Code>
 
-
             Await TestSetTypeProp(code, expected, "System.Int32")
         End Function
 

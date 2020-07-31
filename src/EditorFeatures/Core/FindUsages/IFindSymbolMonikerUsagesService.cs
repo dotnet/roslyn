@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.LanguageServiceIndexFormat;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,20 +22,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// </summary>
     internal interface IFindSymbolMonikerUsagesService : IWorkspaceService
     {
-        IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, CancellationToken cancellationToken);
-        IAsyncEnumerable<DefinitionItem> FindDefinitionsByMoniker(SymbolMoniker moniker, CancellationToken cancellationToken);
-        IAsyncEnumerable<DefinitionItem> FindImplementationsByMoniker(SymbolMoniker moniker, CancellationToken cancellationToken);
+        IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMonikerAsync(DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, CancellationToken cancellationToken);
+        IAsyncEnumerable<DefinitionItem> FindDefinitionsByMonikerAsync(SymbolMoniker moniker, CancellationToken cancellationToken);
+        IAsyncEnumerable<DefinitionItem> FindImplementationsByMonikerAsync(SymbolMoniker moniker, CancellationToken cancellationToken);
     }
 
     internal abstract class AbstractFindSymbolMonikerUsagesService : IFindSymbolMonikerUsagesService
     {
-        public virtual IAsyncEnumerable<DefinitionItem> FindDefinitionsByMoniker(SymbolMoniker moniker, CancellationToken cancellationToken)
+        public virtual IAsyncEnumerable<DefinitionItem> FindDefinitionsByMonikerAsync(SymbolMoniker moniker, CancellationToken cancellationToken)
             => EmptyAsyncEnumerable<DefinitionItem>.Instance;
 
-        public virtual IAsyncEnumerable<DefinitionItem> FindImplementationsByMoniker(SymbolMoniker moniker, CancellationToken cancellationToken)
+        public virtual IAsyncEnumerable<DefinitionItem> FindImplementationsByMonikerAsync(SymbolMoniker moniker, CancellationToken cancellationToken)
             => EmptyAsyncEnumerable<DefinitionItem>.Instance;
 
-        public virtual IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, CancellationToken cancellationToken)
+        public virtual IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMonikerAsync(DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, CancellationToken cancellationToken)
             => EmptyAsyncEnumerable<ExternalReferenceItem>.Instance;
     }
 

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new NewLineUserSettingFormattingRule(cachedOptions);
         }
 
-        private bool IsControlBlock(SyntaxNode node)
+        private static bool IsControlBlock(SyntaxNode node)
         {
             RoslynDebug.Assert(node != null);
 

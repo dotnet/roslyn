@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsReducedExtension([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension;
+            => symbol is IMethodSymbol method && method.MethodKind == MethodKind.ReducedExtension;
 
         public static bool IsEnumMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();

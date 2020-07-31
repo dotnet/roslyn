@@ -34,10 +34,10 @@ jobs:
       release_64:
         _configuration: Release
         _testKind: Test64
-  timeoutInMinutes: 90
+  timeoutInMinutes: 120
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -skipAnalyzers
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -62,10 +62,10 @@ jobs:
   pool:
     name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.ES.VS2017.Open
-  timeoutInMinutes: 90
+  timeoutInMinutes: 120
 
   steps:
-    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop -skipAnalyzers
+    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -99,7 +99,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr -skipAnalyzers
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -190,7 +190,7 @@ jobs:
 #        _configuration: Debug
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine --skipAnalyzers $(_args)
+    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
       displayName: Build and Test
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -216,7 +216,7 @@ jobs:
    queue: BuildPool.Ubuntu.1604.amd64.Open
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild --skipAnalyzers
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
       displayName: Build
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
@@ -233,7 +233,7 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr --skipAnalyzers
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
       displayName: Build and Test
 
     - task: PublishTestResults@2

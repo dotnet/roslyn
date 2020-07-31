@@ -148,14 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 properties: null));
         }
 
-        public bool TryGetPatternPieces(
+        public static bool TryGetPatternPieces(
             BinaryExpressionSyntax isExpression,
             out IfStatementSyntax ifStatement,
             out LocalDeclarationStatementSyntax localDeclarationStatement,
             out VariableDeclaratorSyntax declarator,
             out CastExpressionSyntax castExpression)
         {
-            ifStatement = null;
             localDeclarationStatement = null;
             declarator = null;
             castExpression = null;
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return true;
         }
 
-        private bool ContainsVariableDeclaration(
+        private static bool ContainsVariableDeclaration(
             SyntaxNode scope, VariableDeclaratorSyntax variable)
         {
             var variableName = variable.Identifier.ValueText;

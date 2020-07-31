@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -78,17 +80,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
+
+                case SyntaxKind.RecordDeclaration:
+                    return ((RecordDeclarationSyntax)syntax).ParameterList is object;
+
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
 
             }
         }
 
-        internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
+        internal static bool IsValidScopeDesignator(this ExpressionSyntax? expression)
         {
             // All these nodes are valid scope designators due to the pattern matching and out vars features.
-            CSharpSyntaxNode parent = expression?.Parent;
+            CSharpSyntaxNode? parent = expression?.Parent;
             switch (parent?.Kind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
@@ -132,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            SyntaxNode parentNode = node.Parent;
+            SyntaxNode? parentNode = node.Parent;
 
             if (parentNode is null)
             {
@@ -144,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In case of a declaration of a Span<T> variable
                 case SyntaxKind.EqualsValueClause:
                     {
-                        SyntaxNode variableDeclarator = parentNode.Parent;
+                        SyntaxNode? variableDeclarator = parentNode.Parent;
 
                         return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
                             variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
@@ -226,8 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
-            this ExpressionSyntax syntax,
+        internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
+            this ExpressionSyntax? syntax,
             DiagnosticBag diagnostics,
             out RefKind refKind)
         {

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        private Stream ValidateStream(Stream stream, string methodName)
+        private static Stream ValidateStream(Stream stream, string methodName)
         {
             if (stream != null && (!stream.CanRead || !stream.CanSeek))
             {

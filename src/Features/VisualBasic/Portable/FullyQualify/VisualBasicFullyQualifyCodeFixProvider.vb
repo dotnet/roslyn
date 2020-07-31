@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
             Return True
         End Function
 
-        Private Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
+        Private Shared Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
             While (qn IsNot Nothing)
                 Dim left = qn.Left
                 Dim simpleName = TryCast(left, SimpleNameSyntax)

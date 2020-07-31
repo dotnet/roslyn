@@ -19,12 +19,12 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        private ImmutableArray<PackageSource> _packageSources;
+        private JoinableTask<ImmutableArray<PackageSource>?> _packageSourcesAsync;
         private IVsPackage _nugetPackageManager;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
@@ -93,41 +93,75 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageSourceProvider = packageSourceProvider;
         }
 
-        public ImmutableArray<PackageSource> GetPackageSources()
+        public async ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
         {
-            // Only read from _packageSources once, since OnSourceProviderSourcesChanged could reset it to default at
-            // any time while this method is running.
-            var packageSources = _packageSources;
-            if (packageSources != null)
+            // Only read from _packageSourcesAsync once, since OnSourceProviderSourcesChanged could reset it to default
+            // at any time while this method is running.
+            JoinableTask<ImmutableArray<PackageSource>?> packageSourcesAsync;
+            lock (_gate)
             {
-                return packageSources;
+                if (_packageSourcesAsync is null)
+                {
+                    _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
+                }
+
+                packageSourcesAsync = _packageSourcesAsync;
+            }
+
+            if (packageSourcesAsync.IsCompleted)
+            {
+                // Since the task is already completed, we know this 'await' will complete synchronously.
+                return await packageSourcesAsync;
+            }
+            else if (allowSwitchToMainThread)
+            {
+                return await packageSourcesAsync.JoinAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // The result was not available and switching to the main thread is not allowed. Return without caching
+                // a result.
+                return null;
+            }
+        }
+
+        private async Task<ImmutableArray<PackageSource>?> GetPackageSourcesImplAsync()
+        {
+            CancellationToken cancellationToken;
+            lock (_gate)
+            {
+                // Read the current cancellation token within the gate to ensure the token source is not disposed at the
+                // time of the read.
+                cancellationToken = _tokenSource.Token;
             }
 
             try
             {
-                packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // The failure may have been caused by a workspace change. The task has already been invalidated at
+                // a higher level, so just return indicating the data is not complete.
+                return null;
+            }
+
+            try
+            {
+                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
                     .SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
             catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                return ImmutableArray<PackageSource>.Empty;
             }
             catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
             {
                 // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
                 // https://github.com/dotnet/roslyn/issues/40857
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                return ImmutableArray<PackageSource>.Empty;
             }
-
-            var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
-            if (previousPackageSources != null)
-            {
-                // Another thread already initialized _packageSources
-                packageSources = previousPackageSources;
-            }
-
-            return packageSources;
         }
 
         public event EventHandler PackageSourcesChanged;
@@ -186,7 +220,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
         {
-            _packageSources = default;
+            lock (_gate)
+            {
+                // Reset the task for loading package sources.
+                _packageSourcesAsync = null;
+            }
+
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -211,8 +250,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var dteProject = _workspace.TryGetDTEProject(projectId);
                 if (dteProject != null)
                 {
-                    var description = string.Format(ServicesVSResources.Install_0, packageName);
-
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
@@ -322,25 +359,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
-            {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
-            }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
 
             return null;
-        }
-
-        private bool IsKnownNugetIssue(ArgumentException exception)
-        {
-            // See https://github.com/NuGet/Home/issues/4706
-            // Nuget throws on legal projects.  We do not want to report this exception
-            // as it is known (and NFWs are expensive), but we do want to report if we 
-            // run into anything else.
-            return exception.Message.Contains("is not a valid version string");
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -478,7 +501,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             this.AssertIsForeground();
 
             // Remove anything we have associated with this project.
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var projectState);
+            _projectToInstalledPackageAndVersion.TryRemove(projectId, out _);
 
             var project = solution.GetProject(projectId);
             if (project == null)
@@ -522,12 +545,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 isEnabled = true;
             }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
-            {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
-            }
-            catch (InvalidOperationException e) when (e.StackTrace.Contains("NuGet.PackageManagement.VisualStudio.NetCorePackageReferenceProject.GetPackageSpecsAsync"))
+            catch (InvalidOperationException)
             {
                 // NuGet throws an InvalidOperationException if details
                 // for the project fail to load. We don't need to report

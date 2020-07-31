@@ -10,12 +10,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    [Shared]
     [Export(typeof(TestExperimentationService))]
-    [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared, PartNotDiscoverable]
     internal sealed class TestExperimentationService : IExperimentationService
     {
-        private Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

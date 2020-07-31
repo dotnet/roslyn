@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -649,11 +650,11 @@ class C {
         [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
         public void PublicViewOfPointerConversions()
         {
-            ValidateConversion(Conversion.PointerToVoid, ConversionKind.PointerToVoid);
-            ValidateConversion(Conversion.NullToPointer, ConversionKind.NullToPointer);
-            ValidateConversion(Conversion.PointerToPointer, ConversionKind.PointerToPointer);
-            ValidateConversion(Conversion.IntegerToPointer, ConversionKind.IntegerToPointer);
-            ValidateConversion(Conversion.PointerToInteger, ConversionKind.PointerToInteger);
+            ValidateConversion(Conversion.PointerToVoid, ConversionKind.ImplicitPointerToVoid);
+            ValidateConversion(Conversion.NullToPointer, ConversionKind.ImplicitNullToPointer);
+            ValidateConversion(Conversion.PointerToPointer, ConversionKind.ExplicitPointerToPointer);
+            ValidateConversion(Conversion.IntegerToPointer, ConversionKind.ExplicitIntegerToPointer);
+            ValidateConversion(Conversion.PointerToInteger, ConversionKind.ExplicitPointerToInteger);
             ValidateConversion(Conversion.IntPtr, ConversionKind.IntPtr);
         }
 
@@ -783,35 +784,35 @@ class C {
                     Assert.True(conv.IsExplicit);
                     Assert.True(conv.IsUserDefined);
                     break;
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToPointer:
+                case ConversionKind.ExplicitPointerToPointer:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitIntegerToPointer:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToInteger:
+                case ConversionKind.ExplicitPointerToInteger:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
@@ -1577,9 +1578,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
             var symbol = bindInfo.Symbol;
-            Assert.NotNull(symbol);
-            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
-            Assert.Equal("E", symbol.Name);
+            Assert.Null(symbol);
         }
 
         [WorkItem(542360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542360")]
@@ -4447,7 +4446,7 @@ public class B : A
             Assert.Equal(classAnother, rightInfo.CandidateSymbols.Single());
 
             compilation.VerifyDiagnostics(
-                // (12,14): error CS0060: Inconsistent accessibility: base class 'A' is less accessible than class 'B'
+                // (12,14): error CS0060: Inconsistent accessibility: base type 'A' is less accessible than class 'B'
                 // public class B : A
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "B").WithArguments("B", "A"),
                 // (14,12): error CS0122: 'A.Nested' is inaccessible due to its protection level

@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
-using Microsoft.CodeAnalysis.Remote.Shared;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -170,7 +171,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     .WithProjectFilePath(projectId, "FilePath" + version)
                     .WithProjectOutputFilePath(projectId, "OutputFilePath" + version)
                     .WithProjectOutputRefFilePath(projectId, "OutputRefFilePath" + version)
-                    .WithProjectCompilationOutputFilePaths(projectId, new CompilationOutputFilePaths("AssemblyPath" + version))
+                    .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version))
                     .WithProjectDefaultNamespace(projectId, "DefaultNamespace" + version)
                     .WithHasAllInformation(projectId, (version % 2) != 0)
                     .WithRunAnalyzers(projectId, (version % 2) != 0);
@@ -184,7 +185,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal("FilePath" + version, project.FilePath);
                 Assert.Equal("OutputFilePath" + version, project.OutputFilePath);
                 Assert.Equal("OutputRefFilePath" + version, project.OutputRefFilePath);
-                Assert.Equal("AssemblyPath" + version, project.CompilationOutputFilePaths.AssemblyPath);
+                Assert.Equal("AssemblyPath" + version, project.CompilationOutputInfo.AssemblyPath);
                 Assert.Equal("DefaultNamespace" + version, project.DefaultNamespace);
                 Assert.Equal((version % 2) != 0, project.State.HasAllInformation);
                 Assert.Equal((version % 2) != 0, project.State.RunAnalyzers);
@@ -266,14 +267,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestAnalyzerConfigDocument()
         {
+            var configPath = Path.Combine(Path.GetTempPath(), ".editorconfig");
             var code = @"class Test { void Method() { } }";
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var analyzerConfigDocumentId = DocumentId.CreateNewId(projectId);
                 var analyzerConfigDocumentInfo = DocumentInfo.Create(
-                    analyzerConfigDocumentId, ".editorconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())));
+                    analyzerConfigDocumentId,
+                    name: ".editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create(), filePath: configPath)),
+                    filePath: configPath);
 
                 await VerifySolutionUpdate(workspace, s =>
                 {

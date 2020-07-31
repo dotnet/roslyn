@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End If
 
-            Dim expression As ExpressionSyntax = Nothing
+            Dim expression As ExpressionSyntax
             If TypeOf node Is CollectionInitializerSyntax Then
                 expression = node.GetUnparenthesizedExpression()
                 Return semanticModel.GetTypeInfo(expression).ConvertedType

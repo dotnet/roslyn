@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Document()
         {
-            using var workspace = new TestWorkspace(EditorServicesUtil.ExportProvider, workspaceKind: "DiagnosticDataSerializerTest");
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestPersistentStorageServiceFactory)));
+
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
             var diagnostics = new[]
@@ -107,7 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Project()
         {
-            using var workspace = new TestWorkspace(EditorServicesUtil.ExportProvider, workspaceKind: "DiagnosticDataSerializerTest");
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestPersistentStorageServiceFactory)));
+
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
             var diagnostics = new[]
@@ -205,14 +209,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.NotSame(diagnostics1[0], diagnostics2[0]);
             Assert.NotSame(diagnostics1[1], diagnostics2[1]);
             Assert.Equal(diagnostics1, diagnostics2);
-            Assert.True(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
+            Assert.True(AnalyzerHelper.AreEquivalent(diagnostics1, diagnostics2));
 
             // Verify that not all collections are treated as equivalent.
             diagnostics1 = new[] { diagnostics1[0] };
             diagnostics2 = new[] { diagnostics2[1] };
 
             Assert.NotEqual(diagnostics1, diagnostics2);
-            Assert.False(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
+            Assert.False(AnalyzerHelper.AreEquivalent(diagnostics1, diagnostics2));
 #endif
         }
 
@@ -271,12 +275,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HelpLink, item2.HelpLink);
         }
 
-        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), "DiagnosticDataSerializerTest"), Shared]
-        public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
+        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), WorkspaceKind.Host), PartNotDiscoverable, Shared]
+        public class TestPersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public PersistentStorageServiceFactory()
+            public TestPersistentStorageServiceFactory()
             {
             }
 

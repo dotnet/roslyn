@@ -445,6 +445,9 @@
   <data name="Hide_base_member" xml:space="preserve">
     <value>Hide base member</value>
   </data>
+  <data name="Remove_new_modifier" xml:space="preserve">
+    <value>Remove 'new' modifier</value>
+  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
@@ -571,12 +574,6 @@
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
   </data>
-  <data name="_0_is_not_null_here" xml:space="preserve">
-    <value>'{0}' is not null here.</value>
-  </data>
-  <data name="_0_may_be_null_here" xml:space="preserve">
-    <value>'{0}' may be null here.</value>
-  </data>
   <data name="Assign_out_parameters" xml:space="preserve">
     <value>Assign 'out' parameters</value>
     <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
@@ -613,5 +610,13 @@
   </data>
   <data name="Compare_to_0" xml:space="preserve">
     <value>Compare to '{0}'</value>
+  </data>
+  <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
+    <value>Apply preferred 'using' placement preferences</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Remove_in_keyword" xml:space="preserve">
+    <value>Remove 'in' keyword</value>
+    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
   </data>
 </root>

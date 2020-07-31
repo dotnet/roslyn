@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -41,14 +40,6 @@ namespace Microsoft.CodeAnalysis
         public static PooledObject<StringBuilder> Create(ObjectPool<StringBuilder> pool)
         {
             return new PooledObject<StringBuilder>(
-                pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
-        }
-
-        public static PooledObject<Stopwatch> Create(ObjectPool<Stopwatch> pool)
-        {
-            return new PooledObject<Stopwatch>(
                 pool,
                 p => Allocator(p),
                 (p, sb) => Releaser(p, sb));
@@ -100,12 +91,6 @@ namespace Microsoft.CodeAnalysis
             => pool.AllocateAndClear();
 
         private static void Releaser(ObjectPool<StringBuilder> pool, StringBuilder sb)
-            => pool.ClearAndFree(sb);
-
-        private static Stopwatch Allocator(ObjectPool<Stopwatch> pool)
-            => pool.AllocateAndClear();
-
-        private static void Releaser(ObjectPool<Stopwatch> pool, Stopwatch sb)
             => pool.ClearAndFree(sb);
 
         private static Stack<TItem> Allocator<TItem>(ObjectPool<Stack<TItem>> pool)

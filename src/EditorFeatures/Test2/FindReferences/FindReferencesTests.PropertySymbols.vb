@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -911,6 +912,64 @@ interface IC
     </Project>
 </Workspace>
             Await TestStreamingFeature(input, host)
+        End Function
+
+        <WorkItem(538886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538886")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestProperty_ValueUsageInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+namespace ConsoleApplication22
+{
+    class Program
+    {
+        static public int {|Definition:G$$oo|}
+        {
+            get
+            {
+                return 1;
+            }
+            set
+            {
+            }
+        }
+        static void Main(string[] args)
+        {
+            Console.WriteLine(Program.{|ValueUsageInfo.Read:[|Goo|]|});
+            Program.{|ValueUsageInfo.Write:[|Goo|]|} = 0;
+            Program.{|ValueUsageInfo.ReadWrite:[|Goo|]|} += 1;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestPropertyReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~P:N.C.[|P|]")]
+
+namespace N
+{
+    class C
+    {
+        public int {|Definition:$$P|} { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var jsonFormatter = new JsonMessageFormatter();
 
+            // disable interpreting of strings as DateTime during deserialization:
+            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
+
             if (jsonConverters != null)
             {
                 jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters);
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(_startedListening);
 
             // if this end-point is already disconnected do not log more errors:
-            bool logError = _disconnectedReason == null;
+            var logError = _disconnectedReason == null;
 
             try
             {
@@ -119,12 +122,31 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public async Task TryInvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(_startedListening);
+
+            if (_rpc.IsDisposed)
+            {
+                return;
+            }
+
+            try
+            {
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
 
             // if this end-point is already disconnected do not log more errors:
-            bool logError = _disconnectedReason == null;
+            var logError = _disconnectedReason == null;
 
             try
             {
@@ -155,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(_startedListening);
 
             // if this end-point is already disconnected do not log more errors:
-            bool logError = _disconnectedReason == null;
+            var logError = _disconnectedReason == null;
 
             using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -213,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var pipe = new NamedPipeClientStream(serverName: ".", pipeName, PipeDirection.Out);
 
-                bool success = false;
+                var success = false;
                 try
                 {
                     await ConnectPipeAsync(pipe, cancellationToken).ConfigureAwait(false);
@@ -302,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
         {
             // check whether we are in cancellation mode
 
@@ -330,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
         {
             if (!cancellationToken.IsCancellationRequested)
             {
@@ -340,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        private void ReportNonFatalWatson(Exception exception)
+        private static void ReportNonFatalWatson(Exception exception)
         {
             FatalError.ReportWithoutCrash(exception);
         }
@@ -378,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// if there is an issue with the connection. E.g. the client end point might not receive
         /// a callback from server, or the server end point might not receive a call from client.
         /// </summary>
-        private void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        private void OnDisconnected(object? sender, JsonRpcDisconnectedEventArgs e)
         {
             _disconnectedReason = e;
 

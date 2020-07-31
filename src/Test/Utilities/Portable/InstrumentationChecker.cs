@@ -348,7 +348,10 @@ End Namespace
 
             return actualSpans.SelectAsArray((span, lines) =>
             {
-                if (span.StartLine >= lines.Length) { return null; }
+                if (span.StartLine >= lines.Length)
+                {
+                    return null;
+                }
                 return lines[span.StartLine].Substring(span.StartColumn).TrimEnd(new[] { '\r', '\n', ' ' });
             }, sourceLines);
         }

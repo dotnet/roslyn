@@ -8,12 +8,14 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
     {
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
-        private readonly IVsTextManager _textManager;
+        private readonly Lazy<IVsTextManager> _lazyTextManager;
 
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
@@ -60,10 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SVsServiceProvider serviceProvider)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
-            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
+            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
-            _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            _lazyTextManager = new Lazy<IVsTextManager>(() =>
+            {
+                _foregroundThreadAffinitization.AssertIsForeground();
+                return (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            });
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -103,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             LanguageInformation languageInformation = null;
 
-            if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+            if (ErrorHandler.Succeeded(_lazyTextManager.Value.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
             {
                 _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
             }
@@ -249,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _foregroundThreadAffinitization.AssertIsForeground();
 
-            if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer))
+            if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer()))
             {
                 // We already added it, so we will keep it excluded from the misc files workspace
                 return;
@@ -277,45 +283,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var fileExtension = PathUtilities.GetExtension(filePath);
 
             var languageServices = Services.GetLanguageServices(languageInformation.LanguageName);
-            var compilationOptionsOpt = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
+            var compilationOptions = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
 
             // Use latest language version which is more permissive, as we cannot find out language version of the project which the file belongs to
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/575761
-            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
+            var parseOptions = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
 
-            if (parseOptionsOpt != null &&
-                compilationOptionsOpt != null &&
+            if (parseOptions != null &&
+                compilationOptions != null &&
                 fileExtension == languageInformation.ScriptExtension)
             {
-                parseOptionsOpt = parseOptionsOpt.WithKind(SourceCodeKind.Script);
-
-                var metadataService = Services.GetService<IMetadataService>();
-                var scriptEnvironmentService = Services.GetService<IScriptEnvironmentService>();
-
-                // Misc files workspace always provides the service:
-                Contract.ThrowIfNull(scriptEnvironmentService);
-
-                var baseDirectory = PathUtilities.GetDirectoryName(filePath);
-
-                // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
-                // - Need to have a way to specify these somewhere in VS options.
-                // - Use RuntimeMetadataReferenceResolver like in InteractiveEvaluator.CreateMetadataReferenceResolver
-                // - Add default namespace imports, default metadata references to match csi.rsp
-                // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
-
-                var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    metadataService,
-                    new RelativePathResolver(scriptEnvironmentService.MetadataReferenceSearchPaths, baseDirectory));
-
-                compilationOptionsOpt = compilationOptionsOpt.
-                    WithMetadataReferenceResolver(referenceResolver).
-                    WithSourceReferenceResolver(new SourceFileResolver(scriptEnvironmentService.SourceReferenceSearchPaths, baseDirectory));
+                parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
+                compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(compilationOptions, filePath);
             }
 
             var projectId = ProjectId.CreateNewId(debugName: "Miscellaneous Files Project for " + filePath);
             var documentId = DocumentId.CreateNewId(projectId, debugName: filePath);
 
-            var sourceCodeKind = GetSourceCodeKind(parseOptionsOpt, fileExtension, languageInformation);
+            var sourceCodeKind = GetSourceCodeKind(parseOptions, fileExtension, languageInformation);
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 filePath,
@@ -333,14 +318,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 name: ServicesVSResources.Miscellaneous_Files,
                 assemblyName,
                 languageInformation.LanguageName,
-                compilationOptions: compilationOptionsOpt,
-                parseOptions: parseOptionsOpt,
+                compilationOptions: compilationOptions,
+                parseOptions: parseOptions,
                 documents: SpecializedCollections.SingletonEnumerable(documentInfo),
                 metadataReferences: _metadataReferences);
 
             // Miscellaneous files projects are never fully loaded since, by definition, it won't know
             // what the full set of information is except when the file is script code.
             return projectInfo.WithHasAllInformation(hasAllInformation: sourceCodeKind == SourceCodeKind.Script);
+        }
+
+        // Do not inline this to avoid loading Microsoft.CodeAnalysis.Scripting unless a script file is opened in the workspace.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private CompilationOptions GetCompilationOptionsWithScriptReferenceResolvers(CompilationOptions compilationOptions, string filePath)
+        {
+            var metadataService = Services.GetService<IMetadataService>();
+            var scriptEnvironmentService = Services.GetService<IScriptEnvironmentService>();
+
+            // Misc files workspace always provides the service:
+            Contract.ThrowIfNull(scriptEnvironmentService);
+
+            var baseDirectory = PathUtilities.GetDirectoryName(filePath);
+
+            // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
+            // - Need to have a way to specify these somewhere in VS options.
+            // - Add default namespace imports, default metadata references to match csi.rsp
+            // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
+
+            var referenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
+                searchPaths: scriptEnvironmentService.MetadataReferenceSearchPaths,
+                baseDirectory: baseDirectory,
+                fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
+
+            return compilationOptions
+                .WithMetadataReferenceResolver(referenceResolver)
+                .WithSourceReferenceResolver(new SourceFileResolver(scriptEnvironmentService.SourceReferenceSearchPaths, baseDirectory));
         }
 
         private SourceCodeKind GetSourceCodeKind(

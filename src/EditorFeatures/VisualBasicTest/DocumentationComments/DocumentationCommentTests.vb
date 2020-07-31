@@ -15,6 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
     Public Class DocumentationCommentTests
         Inherits AbstractDocumentationCommentTests
 
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(GetType(CommitConnectionListener))
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
@@ -1208,7 +1210,7 @@ End Class
         End Function
 
         Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code, exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
+            Return TestWorkspace.CreateVisualBasic(code, composition:=s_composition)
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

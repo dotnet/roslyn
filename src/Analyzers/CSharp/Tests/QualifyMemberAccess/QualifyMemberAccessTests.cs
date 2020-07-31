@@ -309,7 +309,6 @@ CodeStyleOptions2.QualifyFieldAccess);
 CodeStyleOptions2.QualifyFieldAccess);
         }
 
-
         [WorkItem(28091, "https://github.com/dotnet/roslyn/issues/28091")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInDictionaryInitializer()

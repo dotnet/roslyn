@@ -169,8 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
-                nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
                 nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
@@ -740,7 +741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                     nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                    nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                    nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
+                    nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                     nodeToBind.Kind() == SyntaxKind.GotoCaseStatement ||
@@ -767,9 +769,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var initializer = (ConstructorInitializerSyntax)_nodeToBind;
                         _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
                         break;
+                    case SyntaxKind.PrimaryConstructorBaseType:
+                        _nodeBinder.BindConstructorInitializer((PrimaryConstructorBaseTypeSyntax)_nodeToBind, diagnostics);
+                        break;
                     case SyntaxKind.ArgumentList:
-                        var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
-                        _nodeBinder.BindConstructorInitializer(invocation, diagnostics);
+                        switch (_nodeToBind.Parent)
+                        {
+                            case ConstructorInitializerSyntax ctorInitializer:
+                                _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);
+                                break;
+                            case PrimaryConstructorBaseTypeSyntax ctorInitializer:
+                                _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(_nodeToBind.Parent);
+                        }
                         break;
                     case SyntaxKind.CasePatternSwitchLabel:
                         _nodeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);

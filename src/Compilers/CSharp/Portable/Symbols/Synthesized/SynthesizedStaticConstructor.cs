@@ -292,6 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         public sealed override bool IsImplicitlyDeclared
         {
             get

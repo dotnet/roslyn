@@ -2,38 +2,195 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
     using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+    using static Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest;
+    using VerifyCS = CSharpCodeRefactoringVerifier<GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider>;
 
-    public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
+    [UseExportProvider]
+    public class GenerateEqualsAndGetHashCodeFromMembersTests
     {
+        private class Test : VerifyCS.Test
+        {
+            private static readonly TestComposition s_composition =
+                FeaturesTestCompositions.Features.AddParts(typeof(TestPickMembersService));
+
+            public bool UseDialog;
+            public ImmutableArray<string> MemberNames;
+            public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
+            public CompilationOptions CompilationOptions;
+
+            public override AdhocWorkspace CreateWorkspace()
+            {
+                if (!UseDialog)
+                    return base.CreateWorkspace();
+
+                // If we're a dialog test, then mixin our mock and initialize its values to the ones the test asked for.
+                var workspace = new AdhocWorkspace(s_composition.GetHostServices());
+
+                var service = (TestPickMembersService)workspace.Services.GetService<IPickMembersService>();
+                service.MemberNames = MemberNames;
+                service.OptionsCallback = OptionsCallback;
+
+                return workspace;
+            }
+
+            protected override CompilationOptions CreateCompilationOptions()
+                => CompilationOptions ?? base.CreateCompilationOptions();
+        }
+
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
         private static readonly TestParameters CSharpLatest =
             new TestParameters(parseOptions: TestOptions.Regular);
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+        private static readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> offWithInfo = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
 
-        private TestParameters CSharp6Implicit => CSharp6.WithOptions(this.PreferImplicitTypeWithInfo());
-        private TestParameters CSharp6Explicit => CSharp6.WithOptions(this.PreferExplicitTypeWithInfo());
-        private TestParameters CSharpLatestImplicit => CSharpLatest.WithOptions(this.PreferImplicitTypeWithInfo());
+        private static OptionsCollection PreferImplicitTypeWithInfo()
+            => new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
+
+        private static OptionsCollection PreferExplicitTypeWithInfo()
+            => new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
+
+        private static TestParameters CSharp6Implicit => CSharp6.WithOptions(PreferImplicitTypeWithInfo());
+        private static TestParameters CSharp6Explicit => CSharp6.WithOptions(PreferExplicitTypeWithInfo());
+        private static TestParameters CSharpLatestImplicit => CSharpLatest.WithOptions(PreferImplicitTypeWithInfo());
+
+        private static Task TestInRegularAndScriptAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            OptionsCollection options = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            return TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup, index, new TestParameters(options: options), fixedExpectedDiagnostics);
+        }
+
+        private static Task TestInRegularAndScript1Async(
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            TestParameters? parameters = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            return TestInRegularAndScript1Async(
+                new[] { initialMarkup }, new[] { expectedMarkup }, index, parameters, fixedExpectedDiagnostics);
+        }
+
+        private static Task TestWithPickMembersDialogAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            string[] chosenSymbols,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
+            int index = 0,
+            TestParameters parameters = default,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            return TestWithPickMembersDialogAsync(
+                new[] { initialMarkup },
+                new[] { expectedMarkup },
+                chosenSymbols,
+                optionsCallback,
+                index,
+                parameters,
+                fixedExpectedDiagnostics);
+        }
+
+        private static Task TestWithPickMembersDialogAsync(
+            string[] initialMarkup,
+            string[] expectedMarkup,
+            string[] chosenSymbols,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
+            int index = 0,
+            TestParameters parameters = default,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
+            return TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup,
+                index,
+                parameters.WithFixProviderData(pickMembersService),
+                fixedExpectedDiagnostics);
+        }
+
+        internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
+        {
+            var option = options.FirstOrDefault(o => o.Id == id);
+            if (option != null)
+            {
+                option.Value = true;
+            }
+        }
+
+        private static async Task TestInRegularAndScript1Async(
+            string[] initialMarkup,
+            string[] expectedMarkup,
+            int index = 0,
+            TestParameters? parameters = null,
+            List<DiagnosticResult> fixedExpectedDiagnostics = null)
+        {
+            var test = new Test
+            {
+                CodeActionIndex = index,
+            };
+
+            foreach (var source in initialMarkup)
+                test.TestState.Sources.Add(source);
+
+            foreach (var source in expectedMarkup)
+                test.FixedState.Sources.Add(source);
+
+            if (parameters?.parseOptions != null)
+                test.LanguageVersion = ((CSharpParseOptions)parameters.Value.parseOptions).LanguageVersion;
+
+            if (parameters?.options != null)
+                test.EditorConfig = CodeFixVerifierHelper.GetEditorConfigText(parameters.Value.options);
+
+            if (parameters?.fixProviderData is TestPickMembersService pickMembers)
+            {
+                test.UseDialog = true;
+                test.MemberNames = pickMembers.MemberNames;
+                test.OptionsCallback = pickMembers.OptionsCallback;
+            }
+
+            test.CompilationOptions = parameters?.compilationOptions;
+
+            foreach (var diagnostic in fixedExpectedDiagnostics ?? new List<DiagnosticResult>())
+                test.FixedState.ExpectedDiagnostics.Add(diagnostic);
+
+            await test.RunAsync();
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -96,7 +253,7 @@ parameters: CSharp6Explicit);
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -106,7 +263,7 @@ class Program
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -131,7 +288,7 @@ parameters: CSharp6Implicit);
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -142,7 +299,7 @@ class Program
 using System;
 using System.Collections.Generic;
 
-class S : IEquatable<S> { }
+class S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -158,7 +315,7 @@ class Program
     {
         return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
     }
-}", index: 1, options: this.PreferImplicitTypeWithInfo());
+}", index: 1, options: PreferImplicitTypeWithInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -169,7 +326,7 @@ class Program
 using System;
 using System.Collections.Generic;
 
-struct S : IEquatable<S> { }
+struct S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -179,7 +336,7 @@ class Program
 using System;
 using System.Collections.Generic;
 
-struct S : IEquatable<S> { }
+struct S : {|CS0535:IEquatable<S>|} { }
 
 class Program
 {
@@ -318,6 +475,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -333,6 +491,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -365,6 +524,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -384,6 +544,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -504,7 +665,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     [|int i;
 
@@ -513,7 +674,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     int i;
 
@@ -586,7 +747,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     [|int i;
 
@@ -598,7 +759,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
 @"using System;
 using System.Collections.Generic;
 
-struct ReallyLongName : IEquatable<ReallyLongName>
+struct ReallyLongName : {|CS0535:IEquatable<ReallyLongName>|}
 {
     int i;
 
@@ -845,7 +1006,10 @@ class Program
 }",
 index: 1,
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+    options: new OptionsCollection(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+    },
     parseOptions: CSharp6.parseOptions));
         }
 
@@ -953,7 +1117,7 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestSmartTagText1()
         {
             await TestSmartTagTextAsync(
@@ -972,7 +1136,14 @@ class Program
 FeaturesResources.Generate_Equals_object);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+#pragma warning disable IDE0060 // Remove unused parameter
+        private Task TestSmartTagTextAsync(string x, string y, int index = 0)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            throw new NotImplementedException();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestSmartTagText2()
         {
             await TestSmartTagTextAsync(
@@ -992,7 +1163,7 @@ FeaturesResources.Generate_Equals_and_GetHashCode,
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestSmartTagText3()
         {
             await TestSmartTagTextAsync(
@@ -1020,13 +1191,13 @@ index: 1);
 
 class C
 {
-    [|(int, string) a;|]
+    [|{|CS8059:(int, string)|} a;|]
 }",
 @"using System.Collections.Generic;
 
 class C
 {
-    (int, string) a;
+    {|CS8059:(int, string)|} a;
 
     public override bool Equals(object obj)
     {
@@ -1047,13 +1218,13 @@ parameters: CSharp6Implicit);
 
 class C
 {
-    [|(int, string) a;|]
+    [|{|CS8059:(int, string)|} a;|]
 }",
 @"using System.Collections.Generic;
 
 class C
 {
-    (int, string) a;
+    {|CS8059:(int, string)|} a;
 
     public override bool Equals(object obj)
     {
@@ -1073,13 +1244,13 @@ parameters: CSharp6Implicit);
 
 class C
 {
-    [|(int x, string y) a;|]
+    [|{|CS8059:(int x, string y)|} a;|]
 }",
 @"using System.Collections.Generic;
 
 class C
 {
-    (int x, string y) a;
+    {|CS8059:(int x, string y)|} a;
 
     public override bool Equals(object obj)
     {
@@ -1099,13 +1270,13 @@ parameters: CSharp6Implicit);
 
 class Program
 {
-    [|(int, string) i;|]
+    [|{|CS8059:(int, string)|} i;|]
 }",
 @"using System.Collections.Generic;
 
 class Program
 {
-    (int, string) i;
+    {|CS8059:(int, string)|} i;
 
     public override bool Equals(object obj)
     {
@@ -1131,13 +1302,13 @@ parameters: CSharp6Implicit);
 
 class Program
 {
-    [|(int x, string y) i;|]
+    [|{|CS8059:(int x, string y)|} i;|]
 }",
 @"using System.Collections.Generic;
 
 class Program
 {
-    (int x, string y) i;
+    {|CS8059:(int x, string y)|} i;
 
     public override bool Equals(object obj)
     {
@@ -1709,7 +1880,10 @@ class Program
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+    options: new OptionsCollection(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
+    },
     parseOptions: CSharp6.parseOptions));
         }
 
@@ -1725,7 +1899,7 @@ class Program
     public string s;
     [||]
 
-    public static bool operator ==(Program left, Program right) => true;
+    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
 }",
 @"
 using System.Collections.Generic;
@@ -1741,7 +1915,7 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program left, Program right) => true;
+    public static bool operator {|CS0216:==|}(Program left, Program right) => true;
 }",
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
@@ -1859,7 +2033,7 @@ struct Bar : IEquatable<Bar>
 {
     private readonly int value;
 
-    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+    public override bool Equals(object obj) => false;
 
     public bool Equals(Bar other) => value == other.value;
 
@@ -1891,7 +2065,7 @@ struct Bar : IEquatable<Bar>
 {
     private readonly int value;
 
-    public override bool Equals(object obj) => obj is Bar bar && Equals(bar);
+    public override bool Equals(object obj) => false;
 
     public bool Equals(Bar other) => value == other.value;
 
@@ -2030,9 +2204,7 @@ parameters: new TestParameters(TestOptions.Regular8));
         public async Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""false"">
-        <Document><![CDATA[
+@"
 #nullable enable
 
 using System;
@@ -2043,26 +2215,7 @@ struct Foo
     public bool Bar { get; }
     [||]
 }
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>",
+",
 @"
 #nullable enable
 
@@ -2082,22 +2235,6 @@ struct Foo : IEquatable<Foo>
     {
         return Bar == other.Bar;
     }
-}
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
 }
 ",
 chosenSymbols: null,
@@ -2180,9 +2317,7 @@ parameters: new TestParameters(TestOptions.Regular8));
         public async Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""false"">
-        <Document><![CDATA[
+@"
 #nullable enable
 
 using System;
@@ -2193,26 +2328,7 @@ class Foo
     public bool Bar { get; }
     [||]
 }
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>",
+",
 @"
 #nullable enable
 
@@ -2234,22 +2350,6 @@ class Foo : IEquatable<Foo?>
                Bar == other.Bar;
     }
 }
-
-namespace System
-{
-    public class Object { }
-    public struct Boolean { }
-
-    public interface IEquatable<T>
-    {
-        bool Equals([AllowNull] T other);
-    }
-}
-
-namespace System.Diagnostics.CodeAnalysis
-{
-    public sealed class AllowNullAttribute : Attribute { }
-}
 ",
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, ImplementIEquatableId),
@@ -2263,7 +2363,7 @@ parameters: new TestParameters(TestOptions.Regular8, retainNonFixableDiagnostics
 @"
 using System.Collections.Generic;
 
-class Program : System.IEquatable<Program>
+class Program : {|CS0535:System.IEquatable<Program>|}
 {
     public string s;
     [||]
@@ -2271,7 +2371,7 @@ class Program : System.IEquatable<Program>
 @"
 using System.Collections.Generic;
 
-class Program : System.IEquatable<Program>
+class Program : {|CS0535:System.IEquatable<Program>|}
 {
     public string s;
 
@@ -2288,48 +2388,107 @@ parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestMissingReferences()
+        public async Task TestMissingReferences1()
         {
-            await TestWithPickMembersDialogAsync(
-@"
-<Workspace>
-    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false' LanguageVersion='CSharp6'>
-        <Document FilePath='Test1.cs'>
-public class Class1
+            await new Test
+            {
+                LanguageVersion = LanguageVersion.CSharp6,
+                CodeActionIndex = 1,
+                TestState =
+                {
+                    Sources =
+                    {
+@"public class Class1
 {
-    int i;
-    [||]
+    [|int i;|]
 
     public void F()
     {
     }
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-public class Class1
+}",
+                    },
+                    ExpectedDiagnostics =
+                    {
+    // /0/Test0.cs(1,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(1, 14, 1, 20).WithArguments("System.Object"),
+    // /0/Test0.cs(1,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+    DiagnosticResult.CompilerError("CS1729").WithSpan(1, 14, 1, 20).WithArguments("object", "0"),
+    // /0/Test0.cs(3,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(3, 5, 3, 8).WithArguments("System.Int32"),
+    // /0/Test0.cs(5,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 12, 5, 16).WithArguments("System.Void"),
+                    },
+                },
+                FixedState =
+                {
+                    Sources = {
+@"public class Class1
 {
     int i;
 
-    public override global::System.Boolean Equals(global::System.Object obj)
+    public override System.Boolean Equals(System.Object obj)
     {
         Class1 @class = obj as Class1;
-        return @class != null;
+        return @class != null &&
+               i == @class.i;
     }
 
     public void F()
     {
     }
 
-    public override global::System.Int32 GetHashCode()
+    public override System.Int32 GetHashCode()
     {
-        return 0;
+        return 165851236 + EqualityComparer<System.Int32>.Default.GetHashCode(i);
     }
-}
-        ",
-chosenSymbols: new string[] { },
-index: 1);
+}",
+                    },
+                    ExpectedDiagnostics =
+                    {
+    // /0/Test0.cs(1,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(1, 14, 1, 20).WithArguments("System.Object"),
+    // /0/Test0.cs(1,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+    DiagnosticResult.CompilerError("CS1729").WithSpan(1, 14, 1, 20).WithArguments("object", "0"),
+    // /0/Test0.cs(3,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(3, 5, 3, 8).WithArguments("System.Int32"),
+    // /0/Test0.cs(5,21): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 21, 5, 27).WithArguments("System.Object"),
+    // /0/Test0.cs(5,28): error CS1069: The type name 'Boolean' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(5, 28, 5, 35).WithArguments("Boolean", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    // /0/Test0.cs(5,43): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 43, 5, 49).WithArguments("System.Object"),
+    // /0/Test0.cs(5,50): error CS1069: The type name 'Object' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(5, 50, 5, 56).WithArguments("Object", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    // /0/Test0.cs(7,9): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(7, 9, 7, 15).WithArguments("System.Object"),
+    // /0/Test0.cs(7,32): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(7, 32, 7, 38).WithArguments("System.Object"),
+    // /0/Test0.cs(8,16): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 16, 8, 30).WithArguments("System.Object"),
+    // /0/Test0.cs(9,16): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(9, 16, 9, 29).WithArguments("System.Boolean"),
+    // /0/Test0.cs(12,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(12, 12, 12, 16).WithArguments("System.Void"),
+    // /0/Test0.cs(16,21): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(16, 21, 16, 27).WithArguments("System.Object"),
+    // /0/Test0.cs(16,28): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(16, 28, 16, 33).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    // /0/Test0.cs(16,34): error CS0115: 'Class1.GetHashCode()': no suitable method found to override
+    DiagnosticResult.CompilerError("CS0115").WithSpan(16, 34, 16, 45).WithArguments("Class1.GetHashCode()"),
+    // /0/Test0.cs(18,16): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 16, 18, 25).WithArguments("System.Int32"),
+    // /0/Test0.cs(18,28): error CS0103: The name 'EqualityComparer' does not exist in the current context
+    DiagnosticResult.CompilerError("CS0103").WithSpan(18, 28, 18, 58).WithArguments("EqualityComparer"),
+    // /0/Test0.cs(18,28): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 28, 18, 58).WithArguments("System.Object"),
+    // /0/Test0.cs(18,45): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 45, 18, 51).WithArguments("System.Object"),
+    // /0/Test0.cs(18,52): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
+    DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+                    },
+                },
+                ReferenceAssemblies = ReferenceAssemblies.Default.WithAssemblies(ImmutableArray<string>.Empty),
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2469,11 +2628,16 @@ struct S : IEquatable<S>
     }
 }",
 index: 1,
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(21,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
+    DiagnosticResult.CompilerError("CS0117").WithSpan(21, 25, 21, 32).WithArguments("System.HashCode", "Combine"),
+});
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestPublicSystemHashCodeOtherProject()
         {
             await TestInRegularAndScript1Async(
@@ -2543,7 +2707,7 @@ parameters: CSharp6Implicit);
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46319"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestInternalSystemHashCode()
         {
             await TestInRegularAndScript1Async(
@@ -2665,7 +2829,12 @@ struct S : IEquatable<S>
     }
 }",
 index: 1,
-parameters: CSharp6Implicit);
+parameters: CSharp6Implicit,
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(28,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
+    DiagnosticResult.CompilerError("CS0117").WithSpan(28, 25, 28, 32).WithArguments("System.HashCode", "Combine"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2673,7 +2842,7 @@ parameters: CSharp6Implicit);
         {
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S
 {
@@ -2681,7 +2850,7 @@ struct S
 }",
 @"using System;
 using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S : IEquatable<S>
 {
@@ -2740,7 +2909,7 @@ parameters: CSharp6Implicit);
         {
             await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S
 {
@@ -2748,7 +2917,7 @@ struct S
 }",
 @"using System;
 using System.Collections.Generic;
-namespace System { public struct HashCode { } }
+namespace System { public struct HashCode { public void Add<T>(T value) { } public int ToHashCode() => 0; } }
 
 struct S : IEquatable<S>
 {
@@ -2874,6 +3043,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -2889,6 +3059,7 @@ class Base
 {
     public override bool Equals(object o)
     {
+        return false;
     }
 }
 
@@ -2913,13 +3084,19 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestPartialSelection()
         {
-            await TestMissingAsync(
+            var code =
 @"using System.Collections.Generic;
 
 class Program
 {
     int [|a|];
-}");
+}";
+
+            await new Test
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
         }
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
@@ -2968,7 +3145,14 @@ namespace N
 }",
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-parameters: CSharpLatestImplicit);
+parameters: CSharpLatestImplicit,
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(20,55): error CS8604: Possible null reference argument for parameter 'x' in 'bool EqualityComparer<C>.Equals(C x, C y)'.
+    DiagnosticResult.CompilerError("CS8604").WithSpan(20, 55, 20, 59).WithArguments("x", "bool EqualityComparer<C>.Equals(C x, C y)"),
+    // /0/Test0.cs(20,61): error CS8604: Possible null reference argument for parameter 'y' in 'bool EqualityComparer<C>.Equals(C x, C y)'.
+    DiagnosticResult.CompilerError("CS8604").WithSpan(20, 61, 20, 66).WithArguments("y", "bool EqualityComparer<C>.Equals(C x, C y)"),
+});
         }
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
@@ -3024,26 +3208,22 @@ parameters: CSharpLatestImplicit);
         public async Task TestPartialTypes1()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
     int bar;
     [||]
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
 
 
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}",
+},
+new[]
+{
+@"partial class Goo
 {
     int bar;
 
@@ -3057,8 +3237,13 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}",
+@"partial class Goo
+{
+
+
+}"
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
@@ -3068,26 +3253,27 @@ index: 1);
         public async Task TestPartialTypes2()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
     int bar;
 
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
 
 [||]
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}",
+},
+new[]
+{
+@"partial class Goo
+{
+    int bar;
+
+}",
+@"partial class Goo
 {
     public override bool Equals(object obj)
     {
@@ -3099,8 +3285,8 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}",
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
@@ -3110,26 +3296,22 @@ index: 1);
         public async Task TestPartialTypes3()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
 
 [||]
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
     int bar;
 
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}"
+},
+new[]
+{
+@"partial class Goo
 {
     public override bool Equals(object obj)
     {
@@ -3141,8 +3323,13 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}",
+@"partial class Goo
+{
+    int bar;
+
+}"
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
         }
@@ -3152,26 +3339,27 @@ index: 1);
         public async Task TestPartialTypes4()
         {
             await TestWithPickMembersDialogAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-partial class Goo
+new[]
+{
+@"partial class Goo
 {
 
 
-}
-        </Document>
-        <Document>
-partial class Goo
+}",
+@"partial class Goo
 {
     int bar;
 [||]
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-partial class Goo
+}"
+},
+new[]
+{
+@"partial class Goo
+{
+
+
+}",
+@"partial class Goo
 {
     int bar;
 
@@ -3185,10 +3373,67 @@ partial class Goo
     {
         return 999205674 + bar.GetHashCode();
     }
-}
-        ",
+}"
+},
 chosenSymbols: new[] { "bar" },
 index: 1);
+        }
+
+        [WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestAbstractBase()
+        {
+            await TestInRegularAndScript1Async(
+@"
+#nullable enable
+
+namespace System { public struct HashCode { } }
+
+abstract class Base
+{
+    public abstract override bool Equals(object? obj);
+    public abstract override int GetHashCode();
+}
+
+class {|CS0534:{|CS0534:Derived|}|} : Base
+{
+    [|public int P { get; }|]
+}",
+@"
+#nullable enable
+
+using System;
+
+namespace System { public struct HashCode { } }
+
+abstract class Base
+{
+    public abstract override bool Equals(object? obj);
+    public abstract override int GetHashCode();
+}
+
+class Derived : Base
+{
+    public int P { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Derived derived &&
+               P == derived.P;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(P);
+    }
+}",
+index: 1,
+parameters: CSharpLatest,
+fixedExpectedDiagnostics: new List<DiagnosticResult>
+{
+    // /0/Test0.cs(23,25): error CS0117: 'HashCode' does not contain a definition for 'Combine'
+    DiagnosticResult.CompilerError("CS0117").WithSpan(26, 25, 26, 32).WithArguments("System.HashCode", "Combine"),
+});
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             PredefinedTextViewRoles.Interactive,
             PredefinedTextViewRoles.Zoomable);
 
-        private readonly ExportProvider _exportProvider;
+        private readonly ExportProvider? _exportProvider;
         private HostLanguageServices? _languageServiceProvider;
         private readonly string _initialText;
         private IWpfTextView? _textView;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public SourceCodeKind SourceCodeKind { get; }
         public string? FilePath { get; }
 
-        public bool IsGenerated
+        public static bool IsGenerated
         {
             get
             {
@@ -138,12 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument(
-            string text = "", string displayName = "",
+            string text = "",
+            string displayName = "",
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            DocumentId? id = null, string? filePath = null,
-            IReadOnlyList<string>? folders = null)
+            DocumentId? id = null,
+            string? filePath = null,
+            IReadOnlyList<string>? folders = null,
+            ExportProvider? exportProvider = null)
         {
-            _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            _exportProvider = exportProvider;
             _id = id;
             _initialText = text;
             Name = displayName;
@@ -192,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (_textView == null)
             {
+                Contract.ThrowIfNull(_exportProvider, $"Can only create text view for {nameof(TestHostDocument)} created with {nameof(ExportProvider)}");
                 WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
                 var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();
@@ -243,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                             // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
                             workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
                         }
-                    };
+                    }
                 }
             }
 
@@ -307,6 +311,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public DocumentInfo ToDocumentInfo()
-            => DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
+            => DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: IsGenerated, _documentServiceProvider);
     }
 }

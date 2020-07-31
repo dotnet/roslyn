@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest.ToArray());
         }
 
-        protected DiagnosticDescriptor GetDiagnosticDescriptor(string id, LocalizableString messageFormat)
+        protected static DiagnosticDescriptor GetDiagnosticDescriptor(string id, LocalizableString messageFormat)
         {
             // it is not configurable diagnostic, title doesn't matter
             return new DiagnosticDescriptor(

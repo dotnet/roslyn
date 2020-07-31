@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
     internal static class EditorConfigDocumentOptionsProviderFactory
     {
-        public static IDocumentOptionsProvider Create(Workspace workspace)
+        public static IDocumentOptionsProvider Create()
             => new EditorConfigDocumentOptionsProvider();
 
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
         public static readonly Option2<bool> UseLegacyEditorConfigSupport =
             new Option2<bool>(nameof(EditorConfigDocumentOptionsProviderFactory), nameof(UseLegacyEditorConfigSupport), defaultValue: false,
-                storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport"));
+                storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport16.7"));
 
         public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)
             => !workspace.Options.GetOption(UseLegacyEditorConfigSupport);

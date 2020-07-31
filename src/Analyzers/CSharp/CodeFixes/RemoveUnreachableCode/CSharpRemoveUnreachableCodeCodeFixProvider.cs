@@ -73,8 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
-            var syntaxRoot = editor.OriginalRoot;
-
             foreach (var diagnostic in diagnostics)
             {
                 var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.Single();

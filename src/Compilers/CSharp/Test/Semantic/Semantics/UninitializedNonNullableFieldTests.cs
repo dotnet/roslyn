@@ -523,9 +523,6 @@ class C<T, U, V>
                 // (7,22): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     private static T P1 { get; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 22),
-                // (9,34): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
-                //     [MaybeNull] private static T P3 { get; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(9, 34),
                 // (10,48): warning CS8601: Possible null reference assignment.
                 //     [MaybeNull] private static T P4 { get; } = default;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(10, 48),
@@ -844,9 +841,6 @@ class C<T>
                 // (12,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     private C(T t)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(12, 13),
-                // (12,13): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
-                //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(12, 13),
                 // (12,13): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
                 //     private C(T t)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(12, 13),
@@ -941,29 +935,220 @@ class C<T> where T : struct
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
-                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version 'preview' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5)
-            );
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version 'preview' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5)
-            );
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
 
             // https://github.com/dotnet/roslyn/issues/29976: Test with [NonNullTypes(Warnings=false)].
         }
 
-        // https://github.com/dotnet/roslyn/issues/29976: Test `where T : unmanaged`.
+        [Fact]
+        public void GenericType_NoConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T>
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+#nullable disable
+    private T F3;
+    private T? F4;
+    private T P3 { get; }
+    private T? P4 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 15),
+                // (7,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 15),
+                // (11,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? F4;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 14),
+                // (13,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? P4 { get; }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 14));
+        }
+
+        [Fact]
+        public void GenericType_NullableClassConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T> where T : class?
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+#nullable disable
+    private T F3;
+    private T? F4;
+    private T P3 { get; }
+    private T? P4 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 15),
+                // (7,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 15),
+                // (11,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? F4;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 14),
+                // (13,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? P4 { get; }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 14));
+        }
+
+        [Fact]
+        public void GenericType_NotNullConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T> where T : notnull
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+#nullable disable
+    private T F3;
+    private T? F4;
+    private T P3 { get; }
+    private T? P4 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 15),
+                // (7,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 15),
+                // (11,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? F4;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 14),
+                // (13,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? P4 { get; }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 14));
+        }
+
+        [Fact]
+        public void GenericType_UnmanagedConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T> where T : unmanaged
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+#nullable disable
+    private T F3;
+    private T? F4;
+    private T P3 { get; }
+    private T? P4 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericType_InterfaceConstraint_01()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+interface I { }
+class C<T> where T : I
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+#nullable disable
+    private T F3;
+    private T? F4;
+    private T P3 { get; }
+    private T? P4 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(6, 15),
+                // (8,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(8, 15),
+                // (12,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? F4;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 14),
+                // (14,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? P4 { get; }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 14));
+        }
+
+        [Fact]
+        public void GenericType_InterfaceConstraint_02()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+interface I { }
+class C<T> where T : I?
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+#nullable disable
+    private T F3;
+    private T? F4;
+    private T P3 { get; }
+    private T? P4 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(6, 15),
+                // (8,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(8, 15),
+                // (12,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? F4;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 14),
+                // (14,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     private T? P4 { get; }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 14));
+        }
+
         [Fact]
         public void TypeParameterConstraints()
         {
@@ -1382,6 +1567,87 @@ class C
                 //         P2 += "";
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P2").WithArguments("C.P2").WithLocation(12, 9)
             );
+        }
+
+        [Fact]
+        public void MaybeNullT_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C<T>
+{
+    [MaybeNull] public T F;
+    [MaybeNull] public T P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_ClassT_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C<T> where T : class
+{
+    [MaybeNull] public T F;
+    [MaybeNull] public T P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_NotNullT_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C<T> where T : notnull
+{
+    [MaybeNull] public T F;
+    [MaybeNull] public T P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C
+{
+    [MaybeNull] public string F;
+    [MaybeNull] public string P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_NullInitializer()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C
+{
+    [MaybeNull] public string F = null;
+    [MaybeNull] public string P { get; set; } = null;
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     [MaybeNull] public string F = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 35),
+                // (5,49): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     [MaybeNull] public string P { get; set; } = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 49)
+                );
         }
     }
 }

@@ -736,13 +736,13 @@ public class C2 : B<object>.C<A> { }
 public class C3 : B<A>.C<object> { }
 public class C4 : B<B<A>>.C<object> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,14): error CS0060: Inconsistent accessibility: base class 'B<A>' is less accessible than class 'C1'
+                // (6,14): error CS0060: Inconsistent accessibility: base type 'B<A>' is less accessible than class 'C1'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "B<A>").WithLocation(6, 14),
-                // (7,14): error CS0060: Inconsistent accessibility: base class 'B<object>.C<A>' is less accessible than class 'C2'
+                // (7,14): error CS0060: Inconsistent accessibility: base type 'B<object>.C<A>' is less accessible than class 'C2'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C2").WithArguments("C2", "B<object>.C<A>").WithLocation(7, 14),
-                // (8,14): error CS0060: Inconsistent accessibility: base class 'B<A>.C<object>' is less accessible than class 'C3'
+                // (8,14): error CS0060: Inconsistent accessibility: base type 'B<A>.C<object>' is less accessible than class 'C3'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C3").WithArguments("C3", "B<A>.C<object>").WithLocation(8, 14),
-                // (9,14): error CS0060: Inconsistent accessibility: base class 'B<B<A>>.C<object>' is less accessible than class 'C4'
+                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<B<A>>.C<object>' is less accessible than class 'C4'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C4").WithArguments("C4", "B<B<A>>.C<object>").WithLocation(9, 14));
         }
 
@@ -760,7 +760,7 @@ public class C4 : B<B<A>>.C<object> { }";
 public class B<T> : A { }
 public class C : B<A.B.C> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,14): error CS0060: Inconsistent accessibility: base class 'B<A.B.C>' is less accessible than class 'C'
+                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<A.B.C>' is less accessible than class 'C'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("C", "B<A.B.C>").WithLocation(9, 14));
         }
 
@@ -2113,10 +2113,10 @@ class B : A
     // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),
-    // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract class 'B'
+    // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
-    // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract class 'B'
+    // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
         }
@@ -3801,7 +3801,7 @@ namespace N
         }
 
         /// <summary>
-        /// Class1.dll: error CS0268: Imported type 'C1' is invalid. It contains a circular base class dependency.
+        /// Class1.dll: error CS0268: Imported type 'C1' is invalid. It contains a circular base type dependency.
         /// </summary>
         [Fact()]
         public void CS0268ERR_ImportedCircularBase01()
@@ -3817,10 +3817,10 @@ namespace N
 
             var comp = CreateCompilation(text, new[] { ref1, ref2 });
             comp.VerifyDiagnostics(
-                // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.
+                // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.
                 //     public class C3 : C1 { }
                 Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2", "C1"),
-                // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base class dependency.
+                // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.
                 //     public interface I3 : I1 { }
                 Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2", "I1")
                 );
@@ -7211,9 +7211,9 @@ extern alias FT1;
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (3,25): error CS0441: 'NS.Test': a class cannot be both static and sealed
+                // (3,25): error CS0441: 'NS.Test': a type cannot be both static and sealed
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "Test").WithArguments("NS.Test"),
-                // (11,25): error CS0441: 'NS.StaticClass': a class cannot be both static and sealed
+                // (11,25): error CS0441: 'NS.StaticClass': a type cannot be both static and sealed
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "StaticClass").WithArguments("NS.StaticClass"),
 
                 //CONSIDER: Dev10 skips these cascading errors
@@ -7721,9 +7721,26 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 3, Column = 24, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 9, Column = 25 });
+            var comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,24): warning CS1957: Member 'D.F(int)' overrides 'C<int>.F(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //    public virtual void F(T t) {}
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "F").WithArguments("C<int>.F(int)", "D.F(int)").WithLocation(3, 24),
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -8326,19 +8343,19 @@ namespace N2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'
+                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("NS.clx.P.get", "NS.clx").WithLocation(8, 36),
-                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'
+                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("NS.clx.P.set", "NS.clx").WithLocation(8, 41),
-                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'
+                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract type 'clx'
                 //         internal abstract object M2();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M2").WithArguments("NS.clx.M2()", "NS.clx").WithLocation(6, 34),
-                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'
+                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract type 'clx'
                 //         protected abstract internal void M3(sbyte p);
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("NS.clx.M3(sbyte)", "NS.clx").WithLocation(7, 42),
-                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'
+                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract type 'clx'
                 //         abstract public void M1();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("NS.clx.M1()", "NS.clx").WithLocation(5, 30));
         }
@@ -8354,13 +8371,13 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract class 'C'
+                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract event System.Action E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("C.E", "C"),
-                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract class 'C'
+                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract int this[int x] { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.this[int].get", "C"),
-                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract class 'C'
+                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract type 'C'
                 //     public abstract int this[int x] { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.this[int].set", "C"));
         }
@@ -10139,16 +10156,16 @@ public sealed class C
             // events themselves.  On the other hand, property accessors can have modifiers,
             // whereas event accessors cannot.
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,40): error CS0549: 'C.E' is a new virtual member in sealed class 'C'
+                // (4,40): error CS0549: 'C.E' is a new virtual member in sealed type 'C'
                 //     public virtual event System.Action E;
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "E").WithArguments("C.E", "C"),
-                // (5,40): error CS0549: 'C.F' is a new virtual member in sealed class 'C'
+                // (5,40): error CS0549: 'C.F' is a new virtual member in sealed type 'C'
                 //     public virtual event System.Action F { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "F").WithArguments("C.F", "C"),
-                // (6,38): error CS0549: 'C.this[int].get' is a new virtual member in sealed class 'C'
+                // (6,38): error CS0549: 'C.this[int].get' is a new virtual member in sealed type 'C'
                 //     public virtual int this[int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "get").WithArguments("C.this[int].get", "C"),
-                // (6,56): error CS0549: 'C.this[int].set' is a new virtual member in sealed class 'C'
+                // (6,56): error CS0549: 'C.this[int].set' is a new virtual member in sealed type 'C'
                 //     public virtual int this[int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "set").WithArguments("C.this[int].set", "C"),
 
@@ -10264,10 +10281,10 @@ public struct C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (5,37): error CS0553: 'D.implicit operator B(D)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'D.implicit operator B(D)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator B(D d) // CS0553
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "B").WithArguments("D.implicit operator B(D)"),
-                // (12,37): error CS0553: 'C.implicit operator C?(object)': user-defined conversions to or from a base class are not allowed
+                // (12,37): error CS0553: 'C.implicit operator C?(object)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator C?(object c) // CS0553
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "C?").WithArguments("C.implicit operator C?(object)"));
         }
@@ -10287,7 +10304,7 @@ public class D : B {}
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived class are not allowed
+// (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived type are not allowed
 //     public static implicit operator B(D d) // CS0554
 Diagnostic(ErrorCode.ERR_ConversionWithDerived, "B").WithArguments("B.implicit operator B(D)")
                 );
@@ -10577,22 +10594,22 @@ interface IA
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-    // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
-    //         clx a = new clx();   // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
-    // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
-    //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
-    // (12,13): warning CS0169: The field 'cly.a' is never used
-    //         clx a = new clx();   // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
-    // (13,13): warning CS0169: The field 'cly.i' is never used
-    //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
-    // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
-    //         static int s = 2;    // no error
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
-    );
+                // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
+                // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
+                // (12,13): warning CS0169: The field 'cly.a' is never used
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+                // (13,13): warning CS0169: The field 'cly.i' is never used
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
+                //         static int s = 2;    // no error
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
+            );
         }
 
         [Fact]
@@ -12568,19 +12585,13 @@ public partial class C
     public partial void M<T>() where T : IA<T>;
     public partial void M<T>() where T : IA<T> { }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
                 // (6,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
                 //     public partial class B<T, U> where U : IB<U, IA<T>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 44),
                 // (7,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
                 //     public partial class B<T, U> where U : IB<U, IA<T>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(7, 44),
-                // (11,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     public partial void M<T>() where T : IA<T>;
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(11, 25),
-                // (12,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     public partial void M<T>() where T : IA<T> { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(12, 25),
                 // (11,42): error CS07: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
                 //     public partial void M<T>() where T : IA<T>;
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 42),
@@ -12893,9 +12904,10 @@ static class C
         [Fact]
         public void CS7023ERR_StaticInIsAsOrIs()
         {
-            // BREAKING CHANGE: The C# specification states that it is always illegal
-            // BREAKING CHANGE: to use a static type with "is" and "as". The native
-            // BREAKING CHANGE: compiler allows it in some cases; Roslyn does not.
+            // The C# specification states that it is always illegal
+            // to use a static type with "is" and "as". The native
+            // compiler allows it in some cases; Roslyn gives a warning
+            // at level '/warn:5' or higher.
 
             var text = @"
 static class C
@@ -12916,55 +12928,63 @@ static class C
     }
 }
 ";
-            var regularComp = CreateCompilation(text);
-
-            // these diagnostics correspond to those produced by the native compiler.
-            regularComp.VerifyDiagnostics(
+            var strictDiagnostics = new[]
+            {
+                // (6,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(o as C);            // legal in native
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o as C").WithArguments("C").WithLocation(6, 11),
+                // (7,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(new object() as C); // legal in native
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "new object() as C").WithArguments("C").WithLocation(7, 11),
+                // (8,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(null as C);         // legal in native
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "null as C").WithArguments("C").WithLocation(8, 11),
+                // (9,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(1 as C);
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "1 as C").WithArguments("C").WithLocation(9, 11),
                 // (9,11): error CS0039: Cannot convert type 'int' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         M(1 as C);
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "1 as C").WithArguments("int", "C").WithLocation(9, 11),
+                // (10,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M("a" as C);
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, @"""a"" as C").WithArguments("C").WithLocation(10, 11),
                 // (10,11): error CS0039: Cannot convert type 'string' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         M("a" as C);
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"""a"" as C").WithArguments("string", "C").WithLocation(10, 11),
+                // (12,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(o is C);            // legal in native, no warning
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o is C").WithArguments("C").WithLocation(12, 11),
+                // (13,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(new object() is C); // legal in native, no warning
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "new object() is C").WithArguments("C").WithLocation(13, 11),
+                // (14,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(null is C);         // legal in native, warns
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "null is C").WithArguments("C").WithLocation(14, 11),
                 // (14,11): warning CS0184: The given expression is never of the provided ('C') type
                 //         M(null is C);         // legal in native, warns
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null is C").WithArguments("C").WithLocation(14, 11),
+                // (15,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M(1 is C);            // legal in native, warns
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "1 is C").WithArguments("C").WithLocation(15, 11),
                 // (15,11): warning CS0184: The given expression is never of the provided ('C') type
                 //         M(1 is C);            // legal in native, warns
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is C").WithArguments("C").WithLocation(15, 11),
+                // (16,11): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'C'
+                //         M("a" is C);        // legal in native, warns
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, @"""a"" is C").WithArguments("C").WithLocation(16, 11),
                 // (16,11): warning CS0184: The given expression is never of the provided ('C') type
                 //         M("a" is C);        // legal in native, warns
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, @"""a"" is C").WithArguments("C").WithLocation(16, 11)
-                );
+            };
 
-            // in strict mode we also diagnose "is" and "as" operators with a static type.
-            var strictComp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithStrictFeature());
-            strictComp.VerifyDiagnostics(
-                // In the native compiler these three produce no errors.
+            // in /warn:5 we diagnose "is" and "as" operators with a static type.
+            var strictComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            strictComp.VerifyDiagnostics(strictDiagnostics);
 
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "o as C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "new object() as C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "null as C").WithArguments("C"),
-
-                // In the native compiler these two produce:
-                // error CS0039: Cannot convert type 'int' to 'C' via a reference conversion, boxing conversion, 
-                // unboxing conversion, wrapping conversion, or null type conversion
-
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "1 as C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" as C").WithArguments("C"),
-
-                // In the native compiler these two produce no errors:
-
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "o is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "new object() is C").WithArguments("C"),
-
-                // In the native compiler these three produce:
-                // warning CS0184: The given expression is never of the provided ('C') type
-
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "null is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "1 is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" is C").WithArguments("C")
-                );
+            // these rest of the diagnostics correspond to those produced by the native compiler.
+            var regularDiagnostics = strictDiagnostics.Where(d => !d.Code.Equals((int)ErrorCode.WRN_StaticInAsOrIs)).ToArray();
+            var regularComp = CreateCompilation(text);
+            regularComp.VerifyDiagnostics(regularDiagnostics);
         }
 
         [Fact]
@@ -13258,11 +13278,11 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (4,23): error CS0722: 'S': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("S").WithLocation(4, 23),
-                // (4,23): error CS0513: 'C.F()' is abstract but it is contained in non-abstract class 'C'
+                // (4,23): error CS0513: 'C.F()' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "F").WithArguments("C.F()", "C").WithLocation(4, 23),
-                // (5,27): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract class 'C'
+                // (5,27): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.P.get", "C").WithLocation(5, 27),
-                // (6,27): error CS0513: 'C.Q.set' is abstract but it is contained in non-abstract class 'C'
+                // (6,27): error CS0513: 'C.Q.set' is abstract but it is contained in non-abstract type 'C'
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.Q.set", "C").WithLocation(6, 27),
                 // (5,27): error CS0722: 'S': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("S").WithLocation(5, 27),
@@ -13521,29 +13541,49 @@ public partial class C : Base
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (19,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartA"),
-                // (20,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartB"),
-                // (21,28): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartC"),
-                // (22,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartD"),
-                // (23,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartE"),
-                // (24,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF"),
-                // (25,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartG"),
-                // (26,22): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartH"),
-                // (274): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartI"),
-                // (29,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartJ"),
+            CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
+                // (19,25): error CS8793: Partial method 'C.PartA()' must have an implementation part because it has accessibility modifiers.
+                //     public partial void PartA();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartA").WithArguments("C.PartA()").WithLocation(19, 25),
+                // (20,26): error CS8793: Partial method 'C.PartB()' must have an implementation part because it has accessibility modifiers.
+                //     private partial void PartB();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartB").WithArguments("C.PartB()").WithLocation(20, 26),
+                // (21,28): error CS8793: Partial method 'C.PartC()' must have an implementation part because it has accessibility modifiers.
+                //     protected partial void PartC();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartC").WithArguments("C.PartC()").WithLocation(21, 28),
+                // (22,27): error CS8793: Partial method 'C.PartD()' must have an implementation part because it has accessibility modifiers.
+                //     internal partial void PartD();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartD").WithArguments("C.PartD()").WithLocation(22, 27),
+                // (29,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.PartJ()'
+                //     extern partial void PartJ();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
+                // (23,26): error CS8796: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     virtual partial void PartE();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
+                // (24,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                //     abstract partial void PartF();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF").WithLocation(24, 27),
+                // (25,27): error CS8796: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     override partial void PartG();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
+                // (26,22): error CS8796: Partial method 'C.PartH()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     new partial void PartH();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartH").WithArguments("C.PartH()").WithLocation(26, 22),
+                // (27,34): error CS8796: Partial method 'C.PartI()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     sealed override partial void PartI();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartI").WithArguments("C.PartI()").WithLocation(27, 34),
+                // (29,25): error CS8796: Partial method 'C.PartJ()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     extern partial void PartJ();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
+                // (25,27): error CS0507: 'C.PartG()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartG()'
+                //     override partial void PartG();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartG").WithArguments("C.PartG()", "protected", "Base.PartG()").WithLocation(25, 27),
+                // (27,34): error CS0507: 'C.PartI()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartI()'
+                //     sealed override partial void PartI();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartI").WithArguments("C.PartI()", "protected", "Base.PartI()").WithLocation(27, 34),
                 // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
-                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport"));
+                //     [System.Runtime.InteropServices.DllImport("none")]
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport").WithLocation(28, 6));
         }
 
         [Fact]
@@ -13577,11 +13617,10 @@ namespace NS
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodCannotHaveOutParameters, Line = 7, Column = 22 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
+                // (7,22): error CS8795: Partial method 'C.F(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //         partial void F(out int x);
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "F").WithArguments("NS.C.F(out int)").WithLocation(7, 22));
         }
 
         [Fact]
@@ -13601,13 +13640,13 @@ partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial object P { get { return null; } }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial int this[int index]
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
                 // (4,17): warning CS0169: The field 'C.f' is never used
@@ -13671,7 +13710,10 @@ public partial class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (5,18): error CS0756: A partial method may not have multiple defining declarations
                 //     partial void Part(); // CS0756
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "Part").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "Part").WithLocation(5, 18),
+                // (5,18): error CS0111: Type 'C' already defines a member called 'Part' with the same parameter types
+                //     partial void Part(); // CS0756
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Part").WithArguments("Part", "C").WithLocation(5, 18));
         }
 
         [Fact]
@@ -13957,8 +13999,8 @@ namespace N
 
 public partial class C
 {
-    partial int Part(); // CS0766
-    partial int Part() //CS0766
+    partial int Part();
+    partial int Part()
     {
         return 1;
     }
@@ -13970,9 +14012,13 @@ public partial class C
 
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 5, Column = 17 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 6, Column = 17 });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,17): error CS8794: Partial method 'C.Part()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Part();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Part").WithArguments("C.Part()").WithLocation(5, 17),
+                // (6,17): error CS8794: Partial method 'C.Part()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Part()
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Part").WithArguments("C.Part()").WithLocation(6, 17));
         }
 
         [Fact]
@@ -14132,10 +14178,10 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,23): error CS1014: A get or set accessor expected
+                // (3,23): error CS1014: A get, set or init accessor expected
                 //     public object P { partial get; set; }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 23),
-                // (4,34): error CS1014: A get or set accessor expected
+                // (4,34): error CS1014: A get, set or init accessor expected
                 //     object Q { get { return 0; } add { } }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 34));
         }
@@ -14428,7 +14474,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(source, new[] { TestMetadata.Net40.mscorlib });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -14677,16 +14723,16 @@ class C
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-// (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+// (5,5): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
 //     ArgIterator M(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (11,12): error CS1599: Method or delegate cannot return type 'System.RuntimeArgumentHandle'
+// (11,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.RuntimeArgumentHandle'
 //     public RuntimeArgumentHandle Test2() // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle"),
-// (17,19): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+// (17,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
 //     public static ArgIterator operator +(C c1, C c2) // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (9,21): error CS1599: Method or delegate cannot return type 'System.TypedReference'
+// (9,21): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.TypedReference'
 //     public delegate TypedReference Test1(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference")
                 );
@@ -14721,13 +14767,13 @@ class C
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (6,9): error CS1599: Method or delegate cannot return type 'TypedReference'
+                // (6,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //         System.TypedReference local1() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(6, 9),
-                // (12,9): error CS1599: Method or delegate cannot return type 'RuntimeArgumentHandle'
+                // (12,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
                 //         System.RuntimeArgumentHandle local2() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 9),
-                // (18,9): error CS1599: Method or delegate cannot return type 'ArgIterator'
+                // (18,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
                 //         System.ArgIterator local3() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
         }
@@ -15034,7 +15080,7 @@ class AAttribute : Attribute { }
                 // (4,34): error CS1001: Identifier expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "2"),
-                // (4,36): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
                 // (3,30): error CS7092: A fixed buffer may only have one dimension.
@@ -15361,12 +15407,15 @@ public class Derived : Base
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.get not impl
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.set not impl
-                                                                                                                        // COMPARE: InheritanceBindingTests.TestNoPropertyToOverride
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 13, Column = 28 } //key error, property type changed
+            // The set accessor has the wrong parameter type so is not implemented.
+            // The override get accessor has the right signature (no parameters) so is implemented, though with the wrong return type.
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,14): error CS0534: 'Derived' does not implement inherited abstract member 'Base.myProperty.set'
+                // public class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.myProperty.set").WithLocation(10, 14),
+                // (13,28): error CS1715: 'Derived.myProperty': type must be 'int' to match overridden member 'Base.myProperty'
+                //     public override double myProperty  // CS1715
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "myProperty").WithArguments("Derived.myProperty", "Base.myProperty", "int").WithLocation(13, 28)
                 );
         }
 
@@ -16293,6 +16342,31 @@ namespace N1
             };
 
             CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void CS8050ERR_InitializerOnNonAutoProperty()
+        {
+            var source =
+@"public class C
+{
+    int A { get; set; } = 1;
+    
+    int I { get { throw null; } set {  } } = 1;
+    static int S { get { throw null; } set {  } } = 1;
+    protected int P { get { throw null; } set {  } } = 1;
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,9): error CS8050: Only auto-implemented properties can have initializers.
+                //     int I { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("C.I").WithLocation(5, 9),
+                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     static int S { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithArguments("C.S").WithLocation(6, 16),
+                // (7,19): error CS8050: Only auto-implemented properties can have initializers.
+                //     protected int P { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(7, 19)
+            );
         }
 
         [Fact]
@@ -17559,13 +17633,13 @@ sealed class D : C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,21): warning CS0628: 'D.Nested': new protected member declared in sealed class
+                // (13,21): warning CS0628: 'D.Nested': new protected member declared in sealed type
                 //     protected class Nested {} // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Nested").WithArguments("D.Nested"),
-                // (11,28): warning CS0628: 'D.Q': new protected member declared in sealed class
+                // (11,28): warning CS0628: 'D.Q': new protected member declared in sealed type
                 //     protected internal int Q { get { return 0; } } // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Q").WithArguments("D.Q"),
-                // (10,20): warning CS0628: 'D.N()': new protected member declared in sealed class
+                // (10,20): warning CS0628: 'D.N()': new protected member declared in sealed type
                 //     protected void N() { } // CS0628
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "N").WithArguments("D.N()")
                 );
@@ -17581,7 +17655,7 @@ sealed class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,35): warning CS0628: 'C.E': new protected member declared in sealed class
+                // (4,35): warning CS0628: 'C.E': new protected member declared in sealed type
                 //     protected event System.Action E;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "E").WithArguments("C.E"),
                 // (4,35): warning CS0067: The event 'C.E' is never used
@@ -17611,13 +17685,13 @@ sealed class D : C
                 // (9,24): error CS0106: The modifier 'override' is not valid for this item
                 //     protected override D() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("override").WithLocation(9, 24),
-                // (10,15): warning CS0628: 'D.D(byte)': new protected member declared in sealed class
+                // (10,15): warning CS0628: 'D.D(byte)': new protected member declared in sealed type
                 //     protected D(byte b) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(byte)").WithLocation(10, 15),
-                // (11,24): warning CS0628: 'D.D(short)': new protected member declared in sealed class
+                // (11,24): warning CS0628: 'D.D(short)': new protected member declared in sealed type
                 //     protected internal D(short s) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(short)").WithLocation(11, 24),
-                // (12,24): warning CS0628: 'D.D(int)': new protected member declared in sealed class
+                // (12,24): warning CS0628: 'D.D(int)': new protected member declared in sealed type
                 //     internal protected D(int i) { }
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(int)").WithLocation(12, 24));
         }
@@ -18211,7 +18285,8 @@ class Derived : Base<int, int>, IFace
         [Fact]
         public void CS1957WRN_MultipleRuntimeOverrideMatches()
         {
-            var text = @"class Base<TString>
+            var text =
+@"class Base<TString>
 {
     public virtual void Test(TString s, out int x)
     {
@@ -18226,8 +18301,21 @@ class Derived : Base<string>
     public override void Test(string s, ref int x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 8, Column = 25, IsWarning = true });
+            // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
+            CSharpCompilation comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (8,25): warning CS1957: Member 'Derived.Test(string, ref int)' overrides 'Base<string>.Test(string, ref int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Test(string s, ref int x) { } // CS1957
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Test").WithArguments("Base<string>.Test(string, ref int)", "Derived.Test(string, ref int)").WithLocation(8, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -19861,13 +19949,13 @@ internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
-                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract object P { get; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
-                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
@@ -19883,13 +19971,13 @@ internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
             var submission = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
             submission.VerifyDiagnostics(
-                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
-                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract object P { get; }
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
-                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
@@ -20498,11 +20586,11 @@ partial class C {
     partial void M(int i);
     partial void M(out int i) { i = 0; }  
 }").VerifyDiagnostics(
-                // (4,18): error CS0752: A partial method cannot have out parameters
-                //     partial void M(out int i) { i = 0; }  
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS8795: Partial method 'C.M(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //     partial void M(out int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(4, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
-                //     partial void M(out int i) { i = 0; }  
+                //     partial void M(out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
         }
 
@@ -20525,7 +20613,7 @@ partial class C {
             CreateCompilation(@"
 partial class C {
     partial void M(ref int i);
-    partial void M(in int i) {}  
+    partial void M(in int i) {}
 }").VerifyDiagnostics(
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
                 //     partial void M(in int i) {}  
@@ -20538,13 +20626,13 @@ partial class C {
             CreateCompilation(@"
 partial class C {
     partial void M(ref int i);
-    partial void M(out int i) { i = 0; }  
+    partial void M(out int i) { i = 0; }
 }").VerifyDiagnostics(
-                // (4,18): error CS0752: A partial method cannot have out parameters
-                //     partial void M(out int i) { i = 0; }  
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS8795: Partial method 'C.M(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //     partial void M(out int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(4, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
-                //     partial void M(out int i) { i = 0; }  
+                //     partial void M(out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
         }
 
@@ -20582,11 +20670,11 @@ partial class C {
     partial void M(in int i);
     partial void M(out int i) { i = 0; }  
 }").VerifyDiagnostics(
-                // (4,18): error CS0752: A partial method cannot have out parameters
-                //     partial void M(out int i) { i = 0; }  
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS8795: Partial method 'C.M(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //     partial void M(out int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(4, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
-                //     partial void M(out int i) { i = 0; }  
+                //     partial void M(out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
         }
 
@@ -20598,9 +20686,9 @@ partial class C {
     partial void M(out int i);
     partial void M(int i) {}  
 }").VerifyDiagnostics(
-                // (3,18): error CS0752: A partial method cannot have out parameters
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
                 //     partial void M(int i) {}  
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(int)").WithLocation(4, 18));
@@ -20612,13 +20700,13 @@ partial class C {
             CreateCompilation(@"
 partial class C {
     partial void M(out int i);
-    partial void M(ref int i) {}  
+    partial void M(ref int i) {}
 }").VerifyDiagnostics(
-                // (3,18): error CS0752: A partial method cannot have out parameters
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
-                //     partial void M(ref int i) {}  
+                //     partial void M(ref int i) {}
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref int)").WithLocation(4, 18));
         }
 
@@ -20630,9 +20718,9 @@ partial class C {
     partial void M(out int i);
     partial void M(in int i) {}  
 }").VerifyDiagnostics(
-                // (3,18): error CS0752: A partial method cannot have out parameters
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
                 //     partial void M(in int i) {}  
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));

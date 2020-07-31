@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 
     public class ConvertSwitchStatementToExpressionTests
     {
-        private static readonly LanguageVersion CSharp9 = LanguageVersionExtensions.CSharp9;
+        private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public void TestStandardProperties()
@@ -1889,6 +1889,87 @@ class Program
         };
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TopLevelStatement()
+        {
+            var source = @"
+int i = 0;
+[|switch|] (i)
+{
+    case 1:
+        return 4;
+    default:
+        return 7;
+}";
+
+            var fixedSource = @"
+int i = 0;
+return i switch
+{
+    1 => 4,
+    _ => 7,
+};
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805"));
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(44449, "https://github.com/dotnet/roslyn/issues/44449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TopLevelStatement_FollowedWithThrow()
+        {
+            // We should be rewriting the declaration for 'j' to get 'var j = i switch ...'
+            var source = @"
+int i = 0;
+int j;
+[|switch|] (i)
+{
+    case 1:
+        j = 4;
+        break;
+    case 2:
+        j = 5;
+        break;
+}
+throw null;
+";
+
+            var fixedSource = @"
+int i = 0;
+int j;
+j = i switch
+{
+    1 => 4,
+    2 => 5,
+    _ => throw null,
+};
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805"));
+
+            await test.RunAsync();
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
 
             while (current != null)
             {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<TNode> GetAncestors<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode? GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)

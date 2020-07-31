@@ -503,11 +503,11 @@ public abstract class C
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
-  IL_000d:  ldloc.0
-  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  stfld      ""Script <<Initialize>>d__0.<>4__this""
   IL_0018:  ldloc.0
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
@@ -563,11 +563,11 @@ public abstract class C
   IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
-  IL_000d:  ldloc.0
-  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  stfld      ""Script <<Initialize>>d__0.<>4__this""
   IL_0018:  ldloc.0
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
@@ -646,7 +646,7 @@ void I1.M() {}
             var s = CreateSubmission(test);
 
             s.VerifyDiagnostics(
-                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, struct or interface
+                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, record, struct or interface
                 // void I1.M() {}
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("M()").WithLocation(7, 9)
                 );

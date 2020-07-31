@@ -17,23 +17,27 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class EmbeddedStatementBinder : LocalScopeBinder
     {
-        private readonly SyntaxList<StatementSyntax> _statements;
+        private readonly StatementSyntax _statement;
 
         public EmbeddedStatementBinder(Binder enclosing, StatementSyntax statement)
             : base(enclosing, enclosing.Flags)
         {
             Debug.Assert(statement != null);
-            _statements = new SyntaxList<StatementSyntax>(statement);
+            _statement = statement;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(_statements, this);
+            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
+            BuildLocals(this, _statement, locals);
+            return locals.ToImmutableAndFree();
         }
 
         protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
-            return BuildLocalFunctions(_statements);
+            ArrayBuilder<LocalFunctionSymbol> locals = null;
+            BuildLocalFunctions(_statement, ref locals);
+            return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
         internal override bool IsLocalFunctionsScopeBinder
@@ -47,8 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             ArrayBuilder<LabelSymbol> labels = null;
-            base.BuildLabels(_statements, ref labels);
-            return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
+            var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda;
+            BuildLabels(containingMethod, _statement, ref labels);
+            return labels?.ToImmutableAndFree() ?? ImmutableArray<LabelSymbol>.Empty;
         }
 
         internal override bool IsLabelsScopeBinder
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _statements.First();
+                return _statement;
             }
         }
 

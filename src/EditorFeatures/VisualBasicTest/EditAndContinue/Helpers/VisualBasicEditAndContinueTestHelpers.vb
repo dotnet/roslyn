@@ -14,26 +14,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
     Friend NotInheritable Class VisualBasicEditAndContinueTestHelpers
         Inherits EditAndContinueTestHelpers
 
+        Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer(New TestActiveStatementSpanTracker())
+
         Private ReadOnly _fxReferences As ImmutableArray(Of PortableExecutableReference)
 
-        Friend Shared ReadOnly Instance As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
-            ImmutableArray.Create(TestReferences.NetFx.v4_0_30319_17626.mscorlib, TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v4_0_30319.System_Core))
+        Friend Shared Function CreateInstance() As VisualBasicEditAndContinueTestHelpers
+            Return New VisualBasicEditAndContinueTestHelpers(
+                ImmutableArray.Create(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore))
+        End Function
 
-        Friend Shared ReadOnly Instance40 As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
-            ImmutableArray.Create(TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core))
+        Friend Shared Function CreateInstance40() As VisualBasicEditAndContinueTestHelpers
+            Return New VisualBasicEditAndContinueTestHelpers(
+                ImmutableArray.Create(TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore))
+        End Function
 
-        Friend Shared ReadOnly InstanceMinAsync As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
-            ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync))
+        Friend Shared Function CreateInstanceMinAsync() As VisualBasicEditAndContinueTestHelpers
+            Return New VisualBasicEditAndContinueTestHelpers(
+                ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync))
+        End Function
 
-        Private Shared ReadOnly s_analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
-
-        Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
+        Public Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
             _fxReferences = fxReferences
         End Sub
 
         Public Overrides ReadOnly Property Analyzer As AbstractEditAndContinueAnalyzer
             Get
-                Return s_analyzer
+                Return _analyzer
             End Get
         End Property
 

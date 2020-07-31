@@ -141,6 +141,11 @@ namespace Microsoft.CodeAnalysis
         bool IsReadOnly { get; }
 
         /// <summary>
+        /// Returns true for 'init' set accessors, and false otherwise.
+        /// </summary>
+        bool IsInitOnly { get; }
+
+        /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another
         /// symbol by (say) type substitution, this gets the original symbol, as it was defined in
         /// source or metadata.

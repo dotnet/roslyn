@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal sealed class SymbolSpecification : IEquatable<SymbolSpecification>
+    internal sealed class SymbolSpecification : IEquatable<SymbolSpecification>, IObjectWritable
     {
         private static readonly SymbolSpecification DefaultSymbolSpecificationTemplate = CreateDefaultSymbolSpecification();
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return true;
         }
 
-        private DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
+        private static DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
         {
             if (requiredModifierList == default)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return result;
         }
 
-        private bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
+        private static bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
             where TSymbolMatcher : ISymbolMatcher
         {
             foreach (var matcher in matchers)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return false;
         }
 
-        private bool AnyMatches(ImmutableArray<Accessibility> matchers, ISymbol symbol)
+        private static bool AnyMatches(ImmutableArray<Accessibility> matchers, ISymbol symbol)
         {
             foreach (var matcher in matchers)
             {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return false;
         }
 
-        private bool AllMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
+        private static bool AllMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
         where TSymbolMatcher : ISymbolMatcher
         {
             foreach (var matcher in matchers)
@@ -216,6 +216,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 CreateSymbolKindsXElement(),
                 CreateAccessibilitiesXElement(),
                 CreateModifiersXElement());
+        }
+
+        public bool ShouldReuseInSerialization => false;
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteGuid(ID);
+            writer.WriteString(Name);
+            writer.WriteArray(ApplicableSymbolKindList, (w, v) => v.WriteTo(w));
+            writer.WriteArray(ApplicableAccessibilityList, (w, v) => w.WriteInt32((int)v));
+            writer.WriteArray(RequiredModifierList, (w, v) => v.WriteTo(w));
+        }
+
+        public static SymbolSpecification ReadFrom(ObjectReader reader)
+        {
+            return new SymbolSpecification(
+                reader.ReadGuid(),
+                reader.ReadString(),
+                reader.ReadArray(r => SymbolKindOrTypeKind.ReadFrom(r)),
+                reader.ReadArray(r => (Accessibility)r.ReadInt32()),
+                reader.ReadArray(r => ModifierKind.ReadFrom(r)));
         }
 
         private XElement CreateSymbolKindsXElement()
@@ -309,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             bool MatchesSymbol(ISymbol symbol);
         }
 
-        public struct SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>, ISymbolMatcher
+        public struct SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>, ISymbolMatcher, IObjectWritable
         {
             public SymbolKind? SymbolKind { get; }
             public TypeKind? TypeKind { get; }
@@ -344,9 +365,72 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             internal XElement CreateXElement()
                 => SymbolKind.HasValue ? new XElement(nameof(SymbolKind), SymbolKind) :
-                   TypeKind.HasValue ? new XElement(nameof(TypeKind), TypeKind) :
-                   MethodKind.HasValue ? new XElement(nameof(MethodKind), MethodKind) :
+                   TypeKind.HasValue ? new XElement(nameof(TypeKind), GetTypeKindString(TypeKind.Value)) :
+                   MethodKind.HasValue ? new XElement(nameof(MethodKind), GetMethodKindString(MethodKind.Value)) :
                    throw ExceptionUtilities.Unreachable;
+
+            private static string GetTypeKindString(TypeKind typeKind)
+            {
+                // We have two members in TypeKind that point to the same value, Struct and Structure. Because of this,
+                // Enum.ToString(), which under the covers uses a binary search, isn't stable which one it will pick and it can
+                // change if other TypeKinds are added. This ensures we keep using the same string consistently.
+                return typeKind switch
+                {
+                    CodeAnalysis.TypeKind.Structure => nameof(CodeAnalysis.TypeKind.Struct),
+                    _ => typeKind.ToString()
+                };
+            }
+
+            private static string GetMethodKindString(MethodKind methodKind)
+            {
+                // We ehave some members in TypeKind that point to the same value. Because of this,
+                // Enum.ToString(), which under the covers uses a binary search, isn't stable which one it will pick and it can
+                // change if other MethodKinds are added. This ensures we keep using the same string consistently.
+                return methodKind switch
+                {
+
+                    CodeAnalysis.MethodKind.SharedConstructor => nameof(CodeAnalysis.MethodKind.StaticConstructor),
+                    CodeAnalysis.MethodKind.AnonymousFunction => nameof(CodeAnalysis.MethodKind.LambdaMethod),
+                    _ => methodKind.ToString()
+                };
+            }
+
+            public bool ShouldReuseInSerialization => false;
+
+            public void WriteTo(ObjectWriter writer)
+            {
+                if (SymbolKind != null)
+                {
+                    writer.WriteInt32(1);
+                    writer.WriteInt32((int)SymbolKind);
+                }
+                else if (TypeKind != null)
+                {
+                    writer.WriteInt32(2);
+                    writer.WriteInt32((int)TypeKind);
+                }
+                else if (MethodKind != null)
+                {
+                    writer.WriteInt32(3);
+                    writer.WriteInt32((int)MethodKind);
+                }
+                else
+                {
+                    writer.WriteInt32(0);
+                }
+            }
+
+            public static SymbolKindOrTypeKind ReadFrom(ObjectReader reader)
+            {
+                return reader.ReadInt32() switch
+                {
+                    0 => default,
+                    1 => new SymbolKindOrTypeKind((SymbolKind)reader.ReadInt32()),
+                    2 => new SymbolKindOrTypeKind((TypeKind)reader.ReadInt32()),
+                    3 => new SymbolKindOrTypeKind((MethodKind)reader.ReadInt32()),
+                    var v => throw ExceptionUtilities.UnexpectedValue(v),
+                };
+            }
 
             internal static SymbolKindOrTypeKind AddSymbolKindFromXElement(XElement symbolKindElement)
                 => new SymbolKindOrTypeKind((SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value));
@@ -370,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        public struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>
+        public struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>, IObjectWritable
         {
             public ModifierKindEnum ModifierKindWrapper;
 
@@ -457,6 +541,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             internal static ModifierKind FromXElement(XElement modifierElement)
                 => new ModifierKind((ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierElement.Value));
+
+            public bool ShouldReuseInSerialization => false;
+
+            public void WriteTo(ObjectWriter writer)
+                => writer.WriteInt32((int)ModifierKindWrapper);
+
+            public static ModifierKind ReadFrom(ObjectReader reader)
+                => new ModifierKind((ModifierKindEnum)reader.ReadInt32());
 
             public override bool Equals(object obj)
                 => obj is ModifierKind kind && Equals(kind);

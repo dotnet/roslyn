@@ -16,7 +16,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var cache = new DebuggeeModuleInfoCache();
             var mvid = Guid.NewGuid();
 
-            Assert.Null(cache.GetOrAdd(mvid, m => { Assert.Equal(mvid, m); return null; }));
+            Assert.Null(cache.GetOrAdd(mvid, m =>
+            {
+                Assert.Equal(mvid, m);
+                return null;
+            }));
         }
 
         [Fact]

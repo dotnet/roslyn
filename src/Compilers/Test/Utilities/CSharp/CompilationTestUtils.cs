@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -265,6 +267,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 summary.ImplicitConversion = semanticModel.GetConversion(initializer);
                 summary.MemberGroup = semanticModel.GetMemberGroup(initializer);
             }
+            else if (node is PatternSyntax pattern)
+            {
+                symbolInfo = semanticModel.GetSymbolInfo(pattern);
+                var typeInfo = semanticModel.GetTypeInfo(pattern);
+                summary.Type = typeInfo.Type;
+                summary.ConvertedType = typeInfo.ConvertedType;
+                summary.Nullability = typeInfo.Nullability;
+                summary.ConvertedNullability = typeInfo.ConvertedNullability;
+                summary.ImplicitConversion = semanticModel.GetConversion(pattern);
+                summary.MemberGroup = semanticModel.GetMemberGroup(pattern);
+            }
             else
             {
                 throw ExceptionUtilities.UnexpectedValue(node);
@@ -336,6 +349,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return symbols.Select(s => s.Name).Distinct().ToList();
         }
 
+        internal static TypeInfo GetTypeInfoAndVerifyIOperation(this SemanticModel model, SyntaxNode expression)
+        {
+            var typeInfo = model.GetTypeInfo(expression);
+            var iop = getOperation(model, expression);
+            if (typeInfo.Type is null)
+            {
+                assertTypeInfoNull(iop, typeInfo);
+            }
+            else if (iop is { Type: { } })
+            {
+                Assert.Equal(typeInfo.Type.NullableAnnotation, iop.Type.NullableAnnotation);
+            }
+            else
+            {
+                Assert.True(isValidDeclaration(expression));
+
+                static bool isValidDeclaration(SyntaxNode expression)
+                    => (expression.Parent is VariableDeclarationSyntax decl && decl.Type == expression) ||
+                       (expression.Parent is ForEachStatementSyntax forEach && forEach.Type == expression) ||
+                       (expression.Parent is DeclarationExpressionSyntax declExpr && declExpr.Type == expression) ||
+                       (expression.Parent is RefTypeSyntax refType && isValidDeclaration(refType));
+            }
+
+            if (iop is { Parent: IConversionOperation parentConversion })
+            {
+                iop = parentConversion;
+            }
+
+            if (typeInfo.ConvertedType is null)
+            {
+                Assert.Null(iop?.Type);
+            }
+            else if (iop is { Type: { } })
+            {
+                Assert.Equal(typeInfo.ConvertedType.NullableAnnotation, iop.Type.NullableAnnotation);
+            }
+
+            return typeInfo;
+
+            static IOperation getOperation(SemanticModel model, SyntaxNode expression)
+            {
+                while (true)
+                {
+                    // Nullable suppressions and parenthesized expressions are not directly represented in the bound tree.
+                    // Rather, they are set as flags on the bound node underlying the node. Therefore, there is similarly
+                    // no representation in the IOperation tree, and we should retrieve the IOperation node underlying
+                    // the expression.
+                    switch (expression)
+                    {
+                        case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression, Operand: { } operand }:
+                            expression = operand;
+                            continue;
+
+                        case ParenthesizedExpressionSyntax { Expression: { } nested }:
+                            expression = nested;
+                            continue;
+
+                        default:
+                            goto getOperation;
+                    }
+                }
+
+getOperation:
+                return model.GetOperation(expression);
+            }
+
+            static void assertTypeInfoNull(IOperation iop, TypeInfo typeInfo)
+            {
+                switch (iop)
+                {
+                    // For both of these types, their `IOperation.Type` property represents the converted type,
+                    // because any conversions that need to occur are pushed into the branches. However, the
+                    // `TypeInfo.Type` property represents the natural type of the switch expression.
+                    case ITupleOperation { NaturalType: null }:
+                    case ISwitchExpressionOperation _:
+                        Assert.True(iop.Type?.NullableAnnotation == typeInfo.ConvertedType?.NullableAnnotation);
+                        break;
+
+                    default:
+                        Assert.Null(iop?.Type);
+                        break;
+                }
+            }
+        }
+
         /// <summary>
         /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
         /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
@@ -371,12 +469,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation =>
                     {
-                        var typeInfo = model.GetTypeInfo(annotation.Expression);
+                        var typeInfo = model.GetTypeInfoAndVerifyIOperation(annotation.Expression);
                         Assert.NotEqual(CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
                         // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
                         var type = TypeWithState.Create(
                             (annotation.IsConverted ? typeInfo.ConvertedType : typeInfo.Type).GetSymbol(),
-                            (annotation.IsConverted ? typeInfo.ConvertedNullability : typeInfo.Nullability).FlowState.ToInternalFlowState()).ToTypeWithAnnotations();
+                            (annotation.IsConverted ? typeInfo.ConvertedNullability : typeInfo.Nullability).FlowState.ToInternalFlowState()).ToTypeWithAnnotations(compilation);
                         return type.ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
                     });
                 // Consider reporting the correct source with annotations on mismatch.

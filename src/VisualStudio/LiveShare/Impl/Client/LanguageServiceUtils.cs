@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -26,16 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public static bool IsContentTypeRemote(string contentType)
             => contentType.EndsWith("-remote");
-
-        public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
-        {
-            if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
-            {
-                return vsClientCapabilities.SupportsVisualStudioExtensions;
-            }
-
-            return false;
-        }
 
         public static bool TryParseJson<T>(object json, out T t)
         {

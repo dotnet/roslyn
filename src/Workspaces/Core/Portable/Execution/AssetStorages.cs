@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _storages = new ConcurrentDictionary<int, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
-        public Storage CreateStorage(SolutionState solutionState)
+        public static Storage CreateStorage(SolutionState solutionState)
             => new Storage(solutionState);
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)

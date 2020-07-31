@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return editor.GetChangedRoot();
         }
 
-        private bool CanBeMergedWithParent(
+        private static bool CanBeMergedWithParent(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    ContainEquivalentStatements(syntaxFacts, ifOrElseIf, parentIfOrElseIf, out _);
         }
 
-        private bool CanBeMergedWithElseIf(
+        private static bool CanBeMergedWithElseIf(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    ContainEquivalentStatements(syntaxFacts, ifOrElseIf, elseIfClause, out _);
         }
 
-        private Task<bool> CanBeMergedWithPreviousStatementAsync(
+        private static Task<bool> CanBeMergedWithPreviousStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 : Task.FromResult(false);
         }
 
-        private Task<bool> CanBeMergedWithNextStatementAsync(
+        private static Task<bool> CanBeMergedWithNextStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 : Task.FromResult(false);
         }
 
-        private async Task<bool> CanStatementsBeMergedAsync(
+        private static async Task<bool> CanStatementsBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,

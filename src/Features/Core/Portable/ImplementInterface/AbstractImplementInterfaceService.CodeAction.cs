@@ -136,29 +136,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var assemblyName = interfaceType.ContainingAssembly.Name;
 
-                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, onlyRemaining, throughMember, codeActionTypeName);
-            }
-
-            private static string GetCodeActionEquivalenceKey(
-                string interfaceTypeAssemblyName,
-                string interfaceTypeFullyQualifiedName,
-                bool explicitly,
-                bool abstractly,
-                bool onlyRemaining,
-                ISymbol throughMember,
-                string codeActionTypeName)
-            {
-                if (throughMember != null)
-                {
-                    return null;
-                }
-
+                // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
+                // in the same manner.  Note: 'implement through member' means implementing the same interface through
+                // an applicable member with the same name in the destination.
                 return explicitly.ToString() + ";" +
-                    abstractly.ToString() + ";" +
-                    onlyRemaining.ToString() + ":" +
-                    interfaceTypeAssemblyName + ";" +
-                    interfaceTypeFullyQualifiedName + ";" +
-                    codeActionTypeName;
+                   abstractly.ToString() + ";" +
+                   onlyRemaining.ToString() + ":" +
+                   typeName + ";" +
+                   assemblyName + ";" +
+                   codeActionTypeName + ";" +
+                   throughMember?.Name;
             }
 
             public override string EquivalenceKey => _equivalenceKey;
@@ -204,7 +191,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
                 var memberDefinitions = GenerateMembers(
-                    compilation, unimplementedMembers, propertyGenerationBehavior, cancellationToken);
+                    compilation, unimplementedMembers, propertyGenerationBehavior);
 
                 // Only group the members in the destination if the user wants that *and* 
                 // it's not a ComImport interface.  Member ordering in ComImport interfaces 
@@ -219,15 +206,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     new CodeGenerationOptions(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
+                        sortMembers: groupMembers,
+                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<ISymbol> GenerateMembers(
                 Compilation compilation,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // As we go along generating members we may end up with conflicts.  For example, say
                 // you have "interface IGoo { string Bar { get; } }" and "interface IQuux { int Bar
@@ -243,8 +230,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // That's because later members won't conflict with it even if they have the same
                 // signature otherwise.  i.e. if we chose to implement IGoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
-                var implementedVisibleMembers = new List<ISymbol>();
-                var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
+                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var implementedVisibleMembers);
+                using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var implementedMembers);
 
                 foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
@@ -252,7 +239,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     {
                         var member = GenerateMember(
                             compilation, unimplementedInterfaceMember, implementedVisibleMembers,
-                            propertyGenerationBehavior, cancellationToken);
+                            propertyGenerationBehavior);
                         if (member != null)
                         {
                             implementedMembers.Add(member);
@@ -265,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return implementedMembers.ToImmutableAndFree();
+                return implementedMembers.ToImmutable();
             }
 
             private bool IsReservedName(string name)
@@ -275,7 +262,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     State.ClassOrStructType.TypeParameters.Any(t => IdentifiersMatch(t.Name, name));
             }
 
-            private string DetermineMemberName(ISymbol member, List<ISymbol> implementedVisibleMembers)
+            private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
             {
                 if (HasConflictingMember(member, implementedVisibleMembers))
                 {
@@ -294,9 +281,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private ISymbol GenerateMember(
                 Compilation compilation,
                 ISymbol member,
-                List<ISymbol> implementedVisibleMembers,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ArrayBuilder<ISymbol> implementedVisibleMembers,
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // First check if we already generate a member that matches the member we want to
                 // generate.  This can happen in C# when you have interfaces that have the same
@@ -334,7 +320,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return GenerateMember(
                     compilation, member, memberName, generateInvisibleMember, generateAbstractly,
-                    addNew, addUnsafe, propertyGenerationBehavior, cancellationToken);
+                    addNew, addUnsafe, propertyGenerationBehavior);
             }
 
             private bool GenerateInvisibleMember(ISymbol member, string memberName)
@@ -366,7 +352,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return false;
             }
 
-            private bool HasUnexpressibleConstraint(ISymbol member)
+            private static bool HasUnexpressibleConstraint(ISymbol member)
             {
                 // interface IGoo<T> { void Bar<U>() where U : T; }
                 //
@@ -402,8 +388,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool addNew,
                 bool addUnsafe,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
@@ -416,7 +401,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return member switch
                 {
                     IMethodSymbol method => GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName),
-                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken),
+                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior),
                     IEventSymbol @event => GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event),
                     _ => null,
                 };
@@ -505,7 +490,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            private bool HasMatchingMember(List<ISymbol> implementedVisibleMembers, ISymbol member)
+            private bool HasMatchingMember(ArrayBuilder<ISymbol> implementedVisibleMembers, ISymbol member)
             {
                 // If this is a language that doesn't support implicit implementation then no
                 // implemented members will ever match.  For example, if you have:

@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         private readonly HubClient _client;
 
         // this is lazy to get around circular MEF dependency issue
-        private Lazy<ICodeLensCallbackService> _lazyCodeLensCallbackService;
+        private readonly Lazy<ICodeLensCallbackService> _lazyCodeLensCallbackService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -200,7 +200,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     nameof(ICodeLensContext.FindReferenceLocationsAsync),
                     new object[] { Descriptor, descriptorContext },
                     cancellationToken).ConfigureAwait(false);
-
 
                 var details = new CodeLensDetailsDescriptor
                 {

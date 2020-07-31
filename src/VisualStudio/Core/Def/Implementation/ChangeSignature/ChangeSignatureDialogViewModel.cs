@@ -38,30 +38,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
         private readonly ExistingParameterViewModel? _paramsParameter;
-        private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
+        private readonly HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
-
-        private readonly Dictionary<string, List<ParameterViewModel>> _parameterNameOverlapMap = new Dictionary<string, List<ParameterViewModel>>();
 
         /// <summary>
         /// The document where the symbol we are changing signature is defined.
         /// </summary>
         private readonly Document _document;
-        private readonly int _insertPosition;
+        private readonly int _positionForTypeBinding;
 
         internal ChangeSignatureDialogViewModel(
             ParameterConfiguration parameters,
             ISymbol symbol,
             Document document,
-            int insertPosition,
+            int positionForTypeBinding,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
             _document = document;
-            _insertPosition = insertPosition;
+            _positionForTypeBinding = positionForTypeBinding;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
@@ -147,9 +145,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
-            => new AddParameterDialogViewModel(_document, _insertPosition);
+            => new AddParameterDialogViewModel(_document, _positionForTypeBinding);
 
-        List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
+        private List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
         {
             var list = new List<ParameterViewModel>();
             foreach (ExistingParameter existingParameter in parameters)

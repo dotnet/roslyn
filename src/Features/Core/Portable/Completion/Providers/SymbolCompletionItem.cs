@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (item.Properties.TryGetValue("Symbols", out var symbolIds))
             {
                 var idList = symbolIds.Split(s_symbolSplitters, StringSplitOptions.RemoveEmptyEntries).ToList();
-                var symbols = new List<ISymbol>();
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 DecodeSymbols(idList, compilation, symbols);
@@ -121,13 +122,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                return symbols.ToImmutableArray();
+                return symbols.ToImmutable();
             }
 
             return ImmutableArray<ISymbol>.Empty;
         }
 
-        private static void DecodeSymbols(List<string> ids, Compilation compilation, List<ISymbol> symbols)
+        private static void DecodeSymbols(List<string> ids, Compilation compilation, ArrayBuilder<ISymbol> symbols)
         {
             for (var i = 0; i < ids.Count;)
             {
@@ -322,8 +323,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var position = GetDescriptionPosition(item);
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
-
-            var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
             if (symbols.Length != 0)
             {

@@ -172,7 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 token = previousToken;
             }
 
-            startToken = token;
             modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed);
             return overrideToken.IsKind(SyntaxKind.OverrideKeyword) && IsOnStartLine(overrideToken.Parent.SpanStart, text, startLine);
         }

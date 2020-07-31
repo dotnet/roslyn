@@ -298,7 +298,6 @@ public class Program3
             await TestInRegularAndScriptAsync(input, expected);
         }
 
-
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]

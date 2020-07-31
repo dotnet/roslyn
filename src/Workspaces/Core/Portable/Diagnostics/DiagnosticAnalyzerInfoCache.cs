@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <see cref="DiagnosticAnalyzer"/> instance, <see cref="DiagnosticDescriptor"/>s.
     /// Thread-safe.
     /// </summary>
-    internal sealed class DiagnosticAnalyzerInfoCache
+    internal sealed partial class DiagnosticAnalyzerInfoCache
     {
         /// <summary>
         /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
             }
 
-            bool telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
+            var telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
             return new DiagnosticDescriptorsInfo(descriptors, telemetryAllowed);
         }
 

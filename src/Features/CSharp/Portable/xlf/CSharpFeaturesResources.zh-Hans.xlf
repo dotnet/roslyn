@@ -57,6 +57,11 @@
         <target state="translated">应用 “this.” 资格首选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="translated">应用首选的 "using" 放置首选项</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="translated">分配 "out" 参数</target>
@@ -69,17 +74,17 @@
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="new">Assign to '{0}'</target>
+        <target state="translated">分配给 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
-        <target state="new">Autoselect disabled due to potential pattern variable declaration.</target>
+        <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
-        <target state="new">Compare to '{0}'</target>
+        <target state="translated">与 "{0}" 比较</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -89,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">转换为正则字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -104,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
+        <target state="translated">转换为逐字字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -136,6 +141,16 @@
         <source>Make 'ref struct'</source>
         <target state="translated">生成 "ref struct"</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">删除 "in" 关键字</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">删除 "new" 修饰符</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -179,17 +194,7 @@
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
-        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_is_not_null_here">
-        <source>'{0}' is not null here.</source>
-        <target state="translated">“{0}”在此处不为 null。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_may_be_null_here">
-        <source>'{0}' may be null here.</source>
-        <target state="translated">“{0}”可能在此处为 null。</target>
+        <target state="translated">警告: 内联临时变量可能会更改代码含义。</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
@@ -239,7 +244,7 @@
       </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
-        <target state="new">&lt;pattern variable&gt;</target>
+        <target state="translated">&lt;模式变量&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

@@ -198,7 +198,7 @@ namespace Roslyn.Utilities
                 return str.Length == 0;
             }
 
-            foreach (var t in source)
+            foreach (var _ in source)
             {
                 return false;
             }

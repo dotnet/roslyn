@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
             Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected))
         End Function
 
-        Function CreateTreeText(initial As String) As String
+        Public Shared Function CreateTreeText(initial As String) As String
             Return "
 Module Module1
     Sub Main()
@@ -81,7 +81,6 @@ End Module
 
             Await TestMissingAsync(markup)
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAndAlso() As Task

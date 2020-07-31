@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpIntelliSense))
+        public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpIntelliSense))
         {
         }
 
@@ -47,8 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.Verify.CurrentLineText("using$$", assertCaretPosition: true);
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/43627")]
-        [CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SpeculativeTInList(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -105,8 +104,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/43627")]
-        [CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpace(bool showCompletionInArgumentLists)
         {
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
@@ -156,15 +154,14 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/43627")]
-        [CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption(bool showCompletionInArgumentLists)
         {
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam");
+            VisualStudio.Editor.SendKeys("names");
             Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.Editor.SendKeys(" Goo");
@@ -287,8 +284,7 @@ class Class1
             VisualStudio.Editor.Verify.CurrentParameter("args", "");
         }
 
-        // 🐛 The async completion controller in 16.0 Preview 4 fails to account for brace completion sessions.
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/33825"), CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33825, "https://github.com/dotnet/roslyn/issues/33825")]
         public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion(bool showCompletionInArgumentLists)
         {

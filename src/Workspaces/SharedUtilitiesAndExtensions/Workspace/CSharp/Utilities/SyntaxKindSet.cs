@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -68,26 +69,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
+            SyntaxKindEx.RecordDeclaration,
             SyntaxKind.StructDeclaration,
-            SyntaxKind.EnumDeclaration
+            SyntaxKind.EnumDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassInterfaceStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        public static readonly ISet<SyntaxKind> ClassInterfaceStructRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
+            SyntaxKindEx.RecordDeclaration,
             SyntaxKind.StructDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassInterfaceTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
+            SyntaxKindEx.RecordDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        public static readonly ISet<SyntaxKind> ClassStructRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ClassDeclaration,
+            SyntaxKindEx.RecordDeclaration,
             SyntaxKind.StructDeclaration,
         };
 

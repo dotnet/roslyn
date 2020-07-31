@@ -172,7 +172,6 @@ namespace Roslyn.Test.Utilities
                     return false;
                 }
 
-
                 HashSet<XElement> children2Used = new HashSet<XElement>(ReferenceEqualityComparer.Instance);
                 foreach (XElement child1 in children1)
                 {

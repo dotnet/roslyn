@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
                 var unrootedSymbolSet = state.UnrootedSymbolSet;
-                return unrootedSymbolSet != null && unrootedSymbolSet.TryGetValue(symbol, out _);
+                return unrootedSymbolSet?.Contains(symbol) ?? false;
             }
 
             /// <summary>
@@ -700,16 +700,18 @@ namespace Microsoft.CodeAnalysis
                             compilationFactory.CreateGeneratorDriver(
                                 this.ProjectState.ParseOptions!,
                                 generators,
+                                this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                 additionalTexts));
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    // PROTOTYPE: allow finalize compilation to incrementally update a prior version
+                    // TODO: allow finalize compilation to incrementally update a prior version
+                    // https://github.com/dotnet/roslyn/issues/46418
                     var compilationWithoutGeneratedFiles = compilation;
 
                     if (generatorDriver.GeneratorDriver != null)
                     {
-                        // PROTOTYPE: make an API to expose these diagnostics
+                        // https://github.com/dotnet/roslyn/issues/44163: make an API to expose these diagnostics
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunFullGeneration(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 

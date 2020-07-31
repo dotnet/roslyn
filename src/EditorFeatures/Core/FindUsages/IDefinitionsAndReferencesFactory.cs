@@ -115,8 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var properties = GetProperties(definition, isPrimary);
 
-            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
-
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
             // root definition node for it.  That node won't be navigable.
@@ -161,6 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     DefinitionItem.GetOriginationParts(definition),
                     properties, displayIfNoReferences);
             }
+
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             return DefinitionItem.Create(
                 tags, displayParts, sourceLocations.ToImmutable(),

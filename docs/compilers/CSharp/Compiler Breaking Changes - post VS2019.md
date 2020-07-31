@@ -120,4 +120,3 @@ public class Derived : Base<string?>
     public override string? M() { ... } // Derived.M doesn't honor the nullability declaration made by Base.M with its [NotNull] attribute
 }
 ```
-

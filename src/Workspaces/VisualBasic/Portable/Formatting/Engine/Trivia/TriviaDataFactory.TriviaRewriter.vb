@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart)
             End Function
 
-            Private Function GetIndexForEndOfLeadingTrivia(triviaList As SyntaxTriviaList) As Integer
+            Private Shared Function GetIndexForEndOfLeadingTrivia(triviaList As SyntaxTriviaList) As Integer
                 For i As Integer = 0 To triviaList.Count - 1
                     Dim trivia = triviaList(i)
                     If trivia.Kind = SyntaxKind.EndOfLineTrivia Or
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return triviaList.Count - 1
             End Function
 
-            Private Function GetSyntaxTriviaList(textSpan As TextSpan, triviaData As TriviaData, cancellationToken As CancellationToken) As SyntaxTriviaList
+            Private Shared Function GetSyntaxTriviaList(textSpan As TextSpan, triviaData As TriviaData, cancellationToken As CancellationToken) As SyntaxTriviaList
                 Dim vbTriviaData = TryCast(triviaData, TriviaDataWithList)
                 If vbTriviaData IsNot Nothing Then
                     Return SyntaxFactory.TriviaList(vbTriviaData.GetTriviaList(cancellationToken))
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return token
             End Function
 
-            Private Function CreateNewToken(leadingTrivia As SyntaxTriviaList, token As SyntaxToken, trailingTrivia As SyntaxTriviaList) As SyntaxToken
+            Private Shared Function CreateNewToken(leadingTrivia As SyntaxTriviaList, token As SyntaxToken, trailingTrivia As SyntaxTriviaList) As SyntaxToken
                 Return token.With(leadingTrivia, trailingTrivia)
             End Function
         End Class

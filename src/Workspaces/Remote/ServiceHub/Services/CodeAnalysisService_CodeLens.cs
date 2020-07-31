@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         maxResultCount,
                         cancellationToken).ConfigureAwait(false);
                 }
-
             }, cancellationToken);
         }
 
@@ -241,15 +240,15 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    // fire and forget.
-                    // ignore any exception such as rpc already disposed (disconnected)
-
                     _lastVersion = newVersion;
 
-                    await _endPoint.InvokeAsync(
+                    // fire and forget.
+                    // ignore any exception such as rpc already disposed (disconnected)
+                    // fire and forget:
+                    _ = _endPoint.TryInvokeAsync(
                         nameof(IRemoteCodeLensDataPoint.Invalidate),
                         Array.Empty<object>(),
-                        CancellationToken.None).ConfigureAwait(false);
+                        _cancellationToken);
                 }
             }
         }

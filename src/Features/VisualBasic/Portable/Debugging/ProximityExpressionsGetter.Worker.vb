@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 Return False
             End Function
 
-            Private Sub AddExpressionTerms(e As ExpressionSyntax, terms As List(Of String))
+            Private Shared Sub AddExpressionTerms(e As ExpressionSyntax, terms As List(Of String))
                 If e Is Nothing Then
                     Return
                 End If

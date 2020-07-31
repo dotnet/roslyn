@@ -530,7 +530,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -1450,9 +1450,9 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal("<invalid-global-code>", errSymbol.Name);
+            Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
-            Assert.True(errSymbol.IsImplicitClass, "ImplicitClass");
+            Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }
 
         #region "Nullable"

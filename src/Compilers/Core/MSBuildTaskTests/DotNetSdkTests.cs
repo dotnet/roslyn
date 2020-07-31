@@ -4,23 +4,31 @@
 
 #nullable enable
 
+using System;
 using System.IO;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class DotNetSdkTests : DotNetSdkTestBase
     {
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46304")]
+        [WorkItem(22835, "https://github.com/dotnet/roslyn/issues/22835")]
         public void TestSourceLink()
         {
-            var sourcePackageDir = Temp.CreateDirectory();
-            // TODO: test escaping (https://github.com/dotnet/roslyn/issues/22835): .CreateDirectory("a=b, c");
-
+            var sourcePackageDir = Temp.CreateDirectory().CreateDirectory("a=b, c");
             var libFile = sourcePackageDir.CreateFile("lib.cs").WriteAllText("class Lib { public void M() { } }");
 
-            var root1 = Path.GetFullPath(ProjectDir.Path + "\\");
-            var root2 = Path.GetFullPath(sourcePackageDir.Path + "\\");
+            var root1 = Path.GetFullPath(ProjectDir.Path + Path.DirectorySeparatorChar);
+            var root2 = Path.GetFullPath(sourcePackageDir.Path + Path.DirectorySeparatorChar);
+            var root3 = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+            root3 ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+            root3 += Path.DirectorySeparatorChar;
+
+            var escapedRoot1 = root1.Replace(",", ",,").Replace("=", "==");
+            var escapedRoot2 = root2.Replace(",", ",,").Replace("=", "==");
+            var escapedRoot3 = root3.Replace(",", ",,").Replace("=", "==");
 
             var sourceLinkJsonPath = Path.Combine(ObjDir.Path, ProjectName + ".sourcelink.json");
 
@@ -38,8 +46,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
   <Target Name=""_InitializeSourceControlProperties"" BeforeTargets=""InitializeSourceControlInformation"">
     <ItemGroup>
       <SourceRoot Include=""{root1}"" SourceControl=""git"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*""/>
-      <SourceRoot Include=""{root1}sub1\"" SourceControl=""git"" NestedRoot=""sub1"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M1/*""/>
-      <SourceRoot Include=""{root1}sub2\"" SourceControl=""git"" NestedRoot=""sub2"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M2/*""/>
+      <SourceRoot Include=""{root1}sub1{Path.DirectorySeparatorChar}"" SourceControl=""git"" NestedRoot=""sub1"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M1/*""/>
+      <SourceRoot Include=""{root1}sub2{Path.DirectorySeparatorChar}"" SourceControl=""git"" NestedRoot=""sub2"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M2/*""/>
     </ItemGroup>
   </Target>
   <Target Name=""_GenerateSourceLinkFile""
@@ -81,17 +89,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
-                    $@"{root2}: /_1/",
+                    $@"{root3}: /_1/",
+                    $@"{root2}: /_2/",
                     $@"{root1}: /_/",
-                    $@"{root1}sub1\: /_/sub1/",
-                    $@"{root1}sub2\: /_/sub2/",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: /_/sub1/",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: /_/sub2/",
                     "true",
-                    $@"{root2}=/_1/,{root1}=/_/,PreviousPathMap",
+                    $@"{escapedRoot3}=/_1/,{escapedRoot2}=/_2/,{escapedRoot1}=/_/,PreviousPathMap",
                     "true"
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                "[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]," +
+                "[/_1/]=[]," +
+                "[/_2/]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 "[/_/]=[https://raw.githubusercontent.com/R1/*]," +
                 "[/_/sub1/]=[https://raw.githubusercontent.com/M1/*]," +
                 "[/_/sub2/]=[https://raw.githubusercontent.com/M2/*]",
@@ -119,19 +129,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
+                    $@"{root3}: {root3}",
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"",
                     $@""
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                $@"[{root3}]=[]," +
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // deterministic local build:
@@ -155,19 +167,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
+                    $@"{root3}: {root3}",
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"",
                     $@""
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                $@"[{root3}]=[]," +
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // DeterministicSourcePaths override:
@@ -191,19 +205,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
+                    $@"{root3}: {root3}",
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"false",
                     $@""
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                $@"[{root3}]=[]," +
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // SourceControlInformationFeatureSupported = false:
@@ -233,15 +249,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
-                    $@"{root1}: /_/",
-                    $@"{root2}: /_1/",
+                    $@"{root3}: /_/",
+                    $@"{root1}: /_1/",
+                    $@"{root2}: /_2/",
                     @"true",
-                    $@"{root1}=/_/,{root2}=/_1/"
+                    $@"{escapedRoot3}=/_/,{escapedRoot1}=/_1/,{escapedRoot2}=/_2/,"
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"[/_/]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]",
+                $@"[/_/]=[]," +
+                $@"[/_1/]=[https://raw.githubusercontent.com/R1/*]," +
+                $@"[/_2/]=[https://raw.githubusercontent.com/Source/Package/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // No SourceLink package:
@@ -271,16 +289,60 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
-                    $@"{root1}: /_/",
-                    $@"{root2}: /_1/",
+                    $@"{root3}: /_/",
+                    $@"{root1}: /_1/",
+                    $@"{root2}: /_2/",
                     @"true",
-                    $@"{root1}=/_/,{root2}=/_1/"
+                    $@"{escapedRoot3}=/_/,{escapedRoot1}=/_1/,{escapedRoot2}=/_2/,"
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"[/_/]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]",
+                $@"[/_/]=[]," +
+                $@"[/_1/]=[https://raw.githubusercontent.com/R1/*]," +
+                $@"[/_2/]=[https://raw.githubusercontent.com/Source/Package/*]",
                 File.ReadAllText(sourceLinkJsonPath));
+        }
+
+        [ConditionalTheory(typeof(DotNetSdkAvailable))]
+        [CombinatorialData]
+        [WorkItem(43476, "https://github.com/dotnet/roslyn/issues/43476")]
+        public void InitializeSourceRootMappedPathsReturnsSourceMap(bool deterministicSourcePaths)
+        {
+            ProjectDir.CreateFile("Project2.csproj").WriteAllText($@"
+<Project Sdk='Microsoft.NET.Sdk'>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DeterministicSourcePaths>{deterministicSourcePaths}</DeterministicSourcePaths>
+  </PropertyGroup>
+  <ItemGroup>
+    <SourceRoot Include=""X\""/>
+    <SourceRoot Include=""Y\"" ContainingRoot=""X\"" NestedRoot=""A""/>
+    <SourceRoot Include=""Z\"" ContainingRoot=""X\"" NestedRoot=""B""/>
+  </ItemGroup>
+</Project>
+");
+
+            VerifyValues(
+                customProps: $@"
+<ItemGroup>
+<ProjectReference Include=""Project2.csproj"" Targets=""InitializeSourceRootMappedPaths"" OutputItemType=""ReferencedProjectSourceRoots"" ReferenceOutputAssembly=""false"" />
+</ItemGroup>
+",
+                customTargets: null,
+                targets: new[]
+                {
+                    "ResolveProjectReferences;_BeforeVBCSCoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencedProjectSourceRoots)",
+                },
+                expectedResults: new[]
+                {
+                    $"X{Path.DirectorySeparatorChar}",
+                    $"Y{Path.DirectorySeparatorChar}",
+                    $"Z{Path.DirectorySeparatorChar}",
+                });
         }
 
         /// <summary>

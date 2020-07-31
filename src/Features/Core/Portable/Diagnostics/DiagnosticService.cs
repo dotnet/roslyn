@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -21,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
-        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
-
         private readonly EventMap _eventMap;
         private readonly TaskQueue _eventQueue;
 
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticService(
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
@@ -40,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // queue to serialize events.
             _eventMap = new EventMap();
 
-            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
-            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), s_eventScheduler);
+            _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
@@ -345,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
+        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
         {
             if (key == null)
             {
@@ -367,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
+        private static void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
@@ -376,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull<T>(T obj) where T : class
+        private static void AssertIfNull<T>(T obj) where T : class
         {
             if (obj == null)
             {
@@ -405,6 +402,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Id = args.Id;
                 Diagnostics = diagnostics;
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly DiagnosticService _diagnosticService;
+
+            internal TestAccessor(DiagnosticService diagnosticService)
+                => _diagnosticService = diagnosticService;
+
+            internal ref readonly EventListenerTracker<IDiagnosticService> EventListenerTracker
+                => ref _diagnosticService._eventListenerTracker;
         }
     }
 }

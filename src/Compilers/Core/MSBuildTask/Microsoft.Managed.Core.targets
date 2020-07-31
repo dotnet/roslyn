@@ -69,63 +69,63 @@
     Property/metadata global .editorconfig Support
     ========================
     
-    Generates a global analyzer config that contains the evaluation of requested MSBuild properties and item metadata
+    Generates a global editor config that contains the evaluation of requested MSBuild properties and item metadata
     
     Requested properties/items are requested via item groups like:
    
-      <AnalyzerProperty Include="PropertyNameToEval" />
-      <AnalyzerItemMetadata Include="ItemType" MetadataName="MetadataToRetrieve" />
+      <CompilerVisibleProperty Include="PropertyNameToEval" />
+      <CompilerVisibleItemMetadata Include="ItemType" MetadataName="MetadataToRetrieve" />
     -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildAnalyzerConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <PropertyGroup>
-    <GeneratedMSBuildAnalyzerConfigFile Condition="'$(GeneratedMSBuildAnalyzerConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildAnalyzerConfig.editorconfig</GeneratedMSBuildAnalyzerConfigFile>
-    <GenerateMSBuildAnalyzerConfigFile Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == ''">true</GenerateMSBuildAnalyzerConfigFile>
+    <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
+    <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
   </PropertyGroup>
 
-  <Target Name="GenerateMSBuildAnalyzerConfigFile"
+  <Target Name="GenerateMSBuildEditorConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
-          DependsOnTargets="PrepareForBuild;GenerateMSBuildAnalyzerConfigFileShouldRun;GenerateMSBuildAnalyzerConfigFileCore" />
+          DependsOnTargets="PrepareForBuild;GenerateMSBuildEditorConfigFileShouldRun;GenerateMSBuildEditorConfigFileCore" />
 
-  <Target Name="GenerateMSBuildAnalyzerConfigFileShouldRun">
+  <Target Name="GenerateMSBuildEditorConfigFileShouldRun">
     <PropertyGroup>
-      <_GeneratedAnalyzerConfigHasItems Condition="'@(AnalyzerItemMetadata->Count())' != '0'">true</_GeneratedAnalyzerConfigHasItems>
-      <_GeneratedAnalyzerConfigShouldRun Condition="'$(GenerateMSBuildAnalyzerConfigFile)' == 'true' and ('$(_GeneratedAnalyzerConfigHasItems)' == 'true' or '@(AnalyzerProperty->Count())' != '0')">true</_GeneratedAnalyzerConfigShouldRun>
+      <_GeneratedEditorConfigHasItems Condition="'@(CompilerVisibleItemMetadata->Count())' != '0'">true</_GeneratedEditorConfigHasItems>
+      <_GeneratedEditorConfigShouldRun Condition="'$(GenerateMSBuildEditorConfigFile)' == 'true' and ('$(_GeneratedEditorConfigHasItems)' == 'true' or '@(CompilerVisibleProperty->Count())' != '0')">true</_GeneratedEditorConfigShouldRun>
     </PropertyGroup>
   </Target>
 
-  <Target Name="GenerateMSBuildAnalyzerConfigFileCore"
-          Condition="'$(_GeneratedAnalyzerConfigShouldRun)' == 'true'"
-          Outputs="$(GeneratedMSBuildAnalyzerConfigFile)">
+  <Target Name="GenerateMSBuildEditorConfigFileCore"
+          Condition="'$(_GeneratedEditorConfigShouldRun)' == 'true'"
+          Outputs="$(GeneratedMSBuildEditorConfigFile)">
 
     <ItemGroup>
       <!-- Collect requested properties, and eval their value -->
-      <_GeneratedAnalyzerConfigProperty Include="@(AnalyzerProperty)">
-        <Value>$(%(AnalyzerProperty.Identity))</Value>
-      </_GeneratedAnalyzerConfigProperty>
+      <_GeneratedEditorConfigProperty Include="@(CompilerVisibleProperty)">
+        <Value>$(%(CompilerVisibleProperty.Identity))</Value>
+      </_GeneratedEditorConfigProperty>
 
       <!-- Collect the requested items and remember which metadata is wanted -->
-      <_GeneratedAnalyzerConfigMetadata Include="@(%(AnalyzerItemMetadata.Identity))" Condition="'$(_GeneratedAnalyzerConfigHasItems)' == 'true'">
+      <_GeneratedEditorConfigMetadata Include="@(%(CompilerVisibleItemMetadata.Identity))" Condition="'$(_GeneratedEditorConfigHasItems)' == 'true'">
         <ItemType>%(Identity)</ItemType>
-        <MetadataName>%(MetadataName)</MetadataName>
-      </_GeneratedAnalyzerConfigMetadata>
+        <MetadataName>%(CompilerVisibleItemMetadata.MetadataName)</MetadataName>
+      </_GeneratedEditorConfigMetadata>
 
-      <!-- Record that we'll write a file, and add it to the editorconfig inputs -->
-      <FileWrites Include="$(GeneratedMSBuildAnalyzerConfigFile)" />
-      <EditorConfigFiles Include="$(GeneratedMSBuildAnalyzerConfigFile)" />
+      <!-- Record that we'll write a file, and add it to the analyzerconfig inputs -->
+      <FileWrites Include="$(GeneratedMSBuildEditorConfigFile)" />
+      <EditorConfigFiles Include="$(GeneratedMSBuildEditorConfigFile)" />
     </ItemGroup>
 
     <!-- Transform the collected properties and items into an editor config file -->
-    <GenerateMSBuildAnalyzerConfig
-      PropertyItems="@(_GeneratedAnalyzerConfigProperty)"
-      MetadataItems="@(_GeneratedAnalyzerConfigMetadata)">
+    <GenerateMSBuildEditorConfig
+      PropertyItems="@(_GeneratedEditorConfigProperty)"
+      MetadataItems="@(_GeneratedEditorConfigMetadata)">
 
       <Output TaskParameter="ConfigFileContents"
-          PropertyName="_GeneratedAnalyzerConfigFileContent" />
-    </GenerateMSBuildAnalyzerConfig>
+          PropertyName="_GeneratedEditorConfigFileContent" />
+    </GenerateMSBuildEditorConfig>
 
     <!-- Write the output to the generated file, if it's changed -->
-    <WriteLinesToFile Lines="$(_GeneratedAnalyzerConfigFileContent)" File="$(GeneratedMSBuildAnalyzerConfigFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
+    <WriteLinesToFile Lines="$(_GeneratedEditorConfigFileContent)" File="$(GeneratedMSBuildEditorConfigFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
   </Target>
 
   <!--
@@ -159,7 +159,8 @@
   -->
 
   <Target Name="InitializeSourceRootMappedPaths"
-          DependsOnTargets="_InitializeSourceRootMappedPathsFromSourceControl">
+          DependsOnTargets="_InitializeSourceRootMappedPathsFromSourceControl"
+          Returns="@(SourceRoot)">
 
     <ItemGroup Condition="'@(_MappedSourceRoot)' != ''">
       <_MappedSourceRoot Remove="@(_MappedSourceRoot)" />
@@ -207,27 +208,38 @@
           Condition="'$(DeterministicSourcePaths)' == 'true'">
 
     <ItemGroup>
-      <_TopLevelSourceRoot Include="@(SourceRoot)" Condition="'%(SourceRoot.NestedRoot)' == ''"/>
+      <_TopLevelSourceRoot Include="@(SourceRoot)" Condition="'%(SourceRoot.NestedRoot)' == ''">
+        <EscapedKey>$([MSBuild]::ValueOrDefault('%(Identity)', '').Replace(',', ',,').Replace('=', '=='))</EscapedKey>
+        <EscapedValue>$([MSBuild]::ValueOrDefault('%(MappedPath)', '').Replace(',', ',,').Replace('=', '=='))</EscapedValue>
+      </_TopLevelSourceRoot>
     </ItemGroup>
 
     <PropertyGroup Condition="'@(_TopLevelSourceRoot)' != ''">
-      <!-- TODO: Report error/warning if /pathmap doesn't cover all emitted source paths: https://github.com/dotnet/roslyn/issues/23969 -->
-
-      <!-- TODO: PathMap should accept and ignore empty mapping: https://github.com/dotnet/roslyn/issues/23523 -->
-      <PathMap Condition="'$(PathMap)' != ''">,$(PathMap)</PathMap>
-
       <!--
         Prepend the SourceRoot.MappedPath values to PathMap, if it already has a value.
         For each emitted source path the compiler applies the first mapping that matches the path.
         PathMap values set previously will thus only be applied if the mapping provided by 
         SourceRoot.MappedPath doesn't match. Since SourceRoot.MappedPath is also used by SourceLink 
         preferring it over manually set PathMap ensures that PathMap is consistent with SourceLink.
-      
-        TODO: quote the paths to avoid misinterpreting ',' and '=' in them as separators, 
-        but quoting doesn't currently work (see https://github.com/dotnet/roslyn/issues/22835).
       -->
-      <PathMap>@(_TopLevelSourceRoot->'%(Identity)=%(MappedPath)', ',')$(PathMap)</PathMap>
+      <PathMap>@(_TopLevelSourceRoot->'%(EscapedKey)=%(EscapedValue)', ','),$(PathMap)</PathMap>
     </PropertyGroup>
+  </Target>
+
+  <!--
+    =======
+    CopyAdditionalFiles
+    =======
+
+    If a user requests that any @(AdditionalFiles) items are copied to the output directory
+    we add them to the @(None) group to ensure they will be copied.
+ -->
+ 
+   <Target Name="CopyAdditionalFiles" 
+           BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <None Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.CopyToOutputDirectory)' != ''" />
+    </ItemGroup>
   </Target>
 
 </Project>

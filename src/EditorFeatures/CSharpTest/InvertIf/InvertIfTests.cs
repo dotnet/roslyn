@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInvertIfCodeRefactoringProvider();
 
-        private string CreateTreeText(string initial)
+        private static string CreateTreeText(string initial)
         {
             return
 @"class A
@@ -232,7 +232,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"[||]if (a & b) { a(); } else { b(); }",
 @"if (!a | !b) { b(); } else { a(); }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSingleLine_ParenthesizeAndForPrecedence()

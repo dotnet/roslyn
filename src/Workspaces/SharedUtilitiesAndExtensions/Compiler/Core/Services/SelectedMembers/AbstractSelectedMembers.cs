@@ -102,7 +102,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 if (!(member is TFieldDeclarationSyntax) &&
                     !(member is TPropertyDeclarationSyntax))
+                {
                     return;
+                }
 
                 // first, check if entire member is selected.  If so, we definitely include this member.
                 if (textSpan.Contains(member.Span))

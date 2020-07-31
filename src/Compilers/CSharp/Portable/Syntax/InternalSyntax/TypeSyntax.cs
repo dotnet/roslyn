@@ -13,5 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public bool IsNuint => IsIdentifierName("nuint");
 
         private bool IsIdentifierName(string id) => this is IdentifierNameSyntax name && name.Identifier.ToString() == id;
+
+        public bool IsRef => Kind == SyntaxKind.RefType;
     }
 }

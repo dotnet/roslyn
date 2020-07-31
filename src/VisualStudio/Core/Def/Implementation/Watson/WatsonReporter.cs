@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             // We also must set the FailFast handler for the compiler layer as well
             var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalErrorType = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true);
-            var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public);
-            var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public);
+            var compilerFatalErrorType = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true)!;
+            var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
+            var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public)!;
             compilerFatalErrorHandlerProperty.SetValue(null, fatalReporter);
             compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalReporter);
         }
@@ -93,16 +93,19 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
-                    // add current process dump
-                    faultUtility.AddProcessDump(currentProcess.Id);
-
-                    // add ServiceHub log files:
-                    foreach (var path in CollectServiceHubLogFilePaths())
+                    if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                     {
-                        faultUtility.AddFile(path);
+                        // add ServiceHub log files:
+                        foreach (var path in CollectServiceHubLogFilePaths())
+                        {
+                            faultUtility.AddFile(path);
+                        }
                     }
 
-                    // Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+                    // Returning "0" signals that, if sampled, we should send data to Watson. 
+                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
+                    // we'll let TargetedNotifications determine if a dump should be collected.
+                    // See https://aka.ms/roslynnfwdocs for more details
                     return 0;
                 });
 
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
                 foreach (var frame in new StackTrace(exception).GetFrames())
                 {
-                    var method = frame.GetMethod();
+                    var method = frame?.GetMethod();
                     var methodName = method?.Name;
                     if (methodName == null)
                         continue;
@@ -173,9 +176,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // name our services more consistently to simplify filtering
 
                         // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + WellKnownServiceHubServices.NamePrefix) &&
+                        if (!name.Contains("-" + RemoteServiceName.Prefix) &&
+                            !name.Contains("-" + RemoteServiceName.IntelliCodeServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.RazorServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.UnitTestingAnalysisServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.LiveUnitTestingBuildServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.UnitTestingSourceLookupServiceName) &&
                             !name.Contains("-CodeLens") &&
-                            !name.Contains("-pythia") &&
                             !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
                             !name.Contains("-hub"))
                         {

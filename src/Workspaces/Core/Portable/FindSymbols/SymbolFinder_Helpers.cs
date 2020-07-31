@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -30,44 +33,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static bool OriginalSymbolsMatch(
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
-            Solution solution,
-            CancellationToken cancellationToken)
+            Solution solution)
         {
             if (ReferenceEquals(searchSymbol, symbolToMatch))
-            {
                 return true;
-            }
 
             if (searchSymbol == null || symbolToMatch == null)
-            {
                 return false;
-            }
 
-            if (!TryGetCompilation(symbolToMatch, solution, out var symbolToMatchCompilation, cancellationToken))
-            {
-                return false;
-            }
-
-            return OriginalSymbolsMatch(searchSymbol, symbolToMatch, solution, null, symbolToMatchCompilation, cancellationToken);
+            return OriginalSymbolsMatch(
+                searchSymbol, symbolToMatch, solution,
+                searchSymbolCompilation: null,
+                symbolToMatchCompilation: null);
         }
 
         internal static bool OriginalSymbolsMatch(
             ISymbol searchSymbol,
-            ISymbol symbolToMatch,
+            ISymbol? symbolToMatch,
             Solution solution,
-            Compilation searchSymbolCompilation,
-            Compilation symbolToMatchCompilation,
-            CancellationToken cancellationToken)
+            Compilation? searchSymbolCompilation,
+            Compilation? symbolToMatchCompilation)
         {
             if (symbolToMatch == null)
-            {
                 return false;
-            }
 
-            if (OriginalSymbolsMatchCore(searchSymbol, symbolToMatch, solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken))
-            {
+            if (OriginalSymbolsMatchCore(searchSymbol, symbolToMatch, solution, searchSymbolCompilation, symbolToMatchCompilation))
                 return true;
-            }
 
             if (searchSymbol.Kind == SymbolKind.Namespace && symbolToMatch.Kind == SymbolKind.Namespace)
             {
@@ -79,9 +70,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (namespace1Count != namespace2Count)
                 {
                     if ((namespace1Count > 1 &&
-                         namespace1.ConstituentNamespaces.Any(n => NamespaceSymbolsMatch(n, namespace2, solution, cancellationToken))) ||
+                         namespace1.ConstituentNamespaces.Any(n => NamespaceSymbolsMatch(n, namespace2, solution))) ||
                         (namespace2Count > 1 &&
-                         namespace2.ConstituentNamespaces.Any(n2 => NamespaceSymbolsMatch(namespace1, n2, solution, cancellationToken))))
+                         namespace2.ConstituentNamespaces.Any(n2 => NamespaceSymbolsMatch(namespace1, n2, solution))))
                     {
                         return true;
                     }
@@ -95,9 +86,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
             Solution solution,
-            Compilation searchSymbolCompilation,
-            Compilation symbolToMatchCompilation,
-            CancellationToken cancellationToken)
+            Compilation? searchSymbolCompilation,
+            Compilation? symbolToMatchCompilation)
         {
             if (searchSymbol == null || symbolToMatch == null)
             {
@@ -126,21 +116,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //          forwarded from reference assembly A (version v2) to assembly B in compilation C2.
             //      (b) Otherwise, if no such named type pairs were encountered, symbols ARE equivalent.
 
-            using var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().GetPooledObject();
+            using var _ = PooledDictionary<INamedTypeSymbol, INamedTypeSymbol>.GetInstance(out var equivalentTypesWithDifferingAssemblies);
 
             // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
-            if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies.Object))
+            if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies))
             {
                 // 2) If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
                 return false;
             }
 
             // 3) If the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent if containing assemblies are NOT ignored.
-            if (equivalentTypesWithDifferingAssemblies.Object.Count > 0)
+            if (equivalentTypesWithDifferingAssemblies.Count > 0)
             {
                 // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
-                return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies.Object, searchSymbol, symbolToMatch,
-                    solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
+                return VerifyForwardedTypes(
+                    equivalentTypesWithDifferingAssemblies, searchSymbol, symbolToMatch,
+                    solution, searchSymbolCompilation, symbolToMatchCompilation);
             }
 
             // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
@@ -150,10 +141,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static bool NamespaceSymbolsMatch(
             INamespaceSymbol namespace1,
             INamespaceSymbol namespace2,
-            Solution solution,
-            CancellationToken cancellationToken)
+            Solution solution)
         {
-            return OriginalSymbolsMatch(namespace1, namespace2, solution, cancellationToken);
+            return OriginalSymbolsMatch(namespace1, namespace2, solution);
         }
 
         // Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
@@ -162,16 +152,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
             Solution solution,
-            Compilation searchSymbolCompilation,
-            Compilation symbolToMatchCompilation,
-            CancellationToken cancellationToken)
+            Compilation? searchSymbolCompilation,
+            Compilation? symbolToMatchCompilation)
         {
-            var verifiedKeys = new HashSet<INamedTypeSymbol>();
+            using var _ = PooledHashSet<INamedTypeSymbol>.GetInstance(out var verifiedKeys);
             var count = equivalentTypesWithDifferingAssemblies.Count;
             var verifiedCount = 0;
 
             // First check forwarded types in searchSymbolCompilation.
-            if (searchSymbolCompilation != null || TryGetCompilation(searchSymbol, solution, out searchSymbolCompilation, cancellationToken))
+            if (searchSymbolCompilation != null || TryGetCompilation(searchSymbol, solution, out searchSymbolCompilation))
             {
                 verifiedCount = VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, searchSymbolCompilation, verifiedKeys, isSearchSymbolCompilation: true);
                 if (verifiedCount == count)
@@ -181,7 +170,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            if (symbolToMatchCompilation != null || TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation, cancellationToken))
+            if (symbolToMatchCompilation != null || TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation))
             {
                 // Now check forwarded types in symbolToMatchCompilation.
                 verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
@@ -253,13 +242,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return verifiedCount;
         }
 
-        private static bool TryGetCompilation(
+        internal static bool TryGetCompilation(
             ISymbol symbol,
             Solution solution,
-            out Compilation definingCompilation,
-            CancellationToken cancellationToken)
+            [NotNullWhen(true)] out Compilation? definingCompilation)
         {
-            var definitionProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
+            var definitionProject = solution.GetProject(symbol.ContainingAssembly);
             if (definitionProject == null)
             {
                 definingCompilation = null;

@@ -559,4 +559,10 @@
   <data name="Symbols_project_could_not_be_found_in_the_provided_solution" xml:space="preserve">
     <value>Symbol's project could not be found in the provided solution</value>
   </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename '{0}' to '{1}'</value>
+  </data>
+  <data name="Sync_namespace_to_folder_structure" xml:space="preserve">
+    <value>Sync namespace to folder structure</value>
+  </data>
 </root>

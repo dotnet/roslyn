@@ -403,17 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 walker.Free();
             }
-
-            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() && compilation.ShouldRunNullableWalker)
-            {
-                NullableWalker.Analyze(compilation, member, node, diagnostics);
-            }
-#if DEBUG
-            else
-            {
-                NullableWalker.Analyze(compilation, member, node, new DiagnosticBag());
-            }
-#endif
         }
 
         /// <summary>
@@ -584,11 +573,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // unless the written value is always a constant. The reasons for this
                     // unusual behavior are:
                     //
-                    // * The debugger does not make it easy to see the returned value of 
+                    // * The debugger does not make it easy to see the returned value of
                     //   a method. Often a call whose returned value would normally be
                     //   discarded is written into a local variable so that it can be
                     //   easily inspected in the debugger.
-                    // 
+                    //
                     // * An otherwise unread local variable that contains a reference to an
                     //   object can keep the object alive longer, particularly if the jitter
                     //   is not optimizing the lifetimes of locals. (Because, for example,
@@ -597,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   the developer to more easily examine its state.
                     //
                     // * A developer who wishes to deliberately discard a value returned by
-                    //   a method can do so in a self-documenting manner via 
+                    //   a method can do so in a self-documenting manner via
                     //   "var unread = M();"
                     //
                     // We suppress the "written but not read" message on locals unless what is
@@ -623,9 +612,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value.ConstantValue != ConstantValue.Null;
             }
 
-            if ((object)type != null && type.IsPointerType())
+            if ((object)type != null && type.IsPointerOrFunctionPointer())
             {
-                // We always suppress the warning for pointer types. 
+                // We always suppress the warning for pointer types.
                 return true;
             }
 
@@ -798,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.CurrentSymbol))
                         {
                             var propSymbol = propAccess.PropertySymbol;
-                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            member = (propSymbol as SourcePropertySymbolBase)?.BackingField;
                             if (member is null)
                             {
                                 return false;
@@ -1023,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol))
                         {
                             var property = propertyAccess.PropertySymbol;
-                            var backingField = (property as SourcePropertySymbol)?.BackingField;
+                            var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                             if (backingField != null)
                             {
                                 if (!MayRequireTracking(propertyAccess.ReceiverOpt, backingField) || IsAssigned(propertyAccess.ReceiverOpt, out unassignedSlot))
@@ -1695,10 +1684,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
+            LocalSymbol localSymbol = node.LocalSymbol;
+            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                // Since we've already reported a use of the variable where not permitted, we
+                // suppress the diagnostic that the variable may not be assigned where used.
+                int slot = GetOrCreateSlot(node.LocalSymbol);
+                _alreadyReported[slot] = true;
+            }
+
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
             // an assignment (if a simple variable or this-qualified or deconstruction variables) or an out parameter.
             // That's because this code assumes the variable is being read, not written.
-            LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
 
             if (localSymbol.IsFixed && this.CurrentSymbol is MethodSymbol currentMethod &&
@@ -1879,6 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+#nullable enable
         protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
         {
             if (refKind == RefKind.Ref)
@@ -1895,11 +1893,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we assume that external method may write and/or read all of its fields (recursively).
             // Strangely, the native compiler requires the "ref", even for reference types, to exhibit
             // this behavior.
-            if (refKind != RefKind.None && ((object)method == null || method.IsExtern))
+            if (refKind != RefKind.None && ((object)method == null || method.IsExtern) && arg.Type is TypeSymbol type)
             {
-                MarkFieldsUsed(arg.Type);
+                MarkFieldsUsed(type);
             }
         }
+#nullable restore
 
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
@@ -1936,6 +1935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private void MarkFieldsUsed(TypeSymbol type)
         {
             switch (type.TypeKind)
@@ -1951,9 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    var namedType = (NamedTypeSymbol)type;
-                    var assembly = type.ContainingAssembly as SourceAssemblySymbol;
-                    if ((object)assembly == null)
+                    if (!(type.ContainingAssembly is SourceAssemblySymbol assembly))
                     {
                         return; // could be retargeting assembly
                     }
@@ -1961,6 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var seen = assembly.TypesReferencedInExternalMethods;
                     if (seen.Add(type))
                     {
+                        var namedType = (NamedTypeSymbol)type;
                         foreach (var symbol in namedType.GetMembersUnordered())
                         {
                             if (symbol.Kind != SymbolKind.Field)
@@ -1976,6 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
         }
+#nullable restore
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
@@ -2033,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (Binder.AccessingAutoPropertyFromConstructor(node, this.CurrentSymbol))
             {
                 var property = node.PropertySymbol;
-                var backingField = (property as SourcePropertySymbol)?.BackingField;
+                var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)
                 {
                     if (MayRequireTracking(node.ReceiverOpt, backingField))

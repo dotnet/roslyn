@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -15,41 +17,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            var result = await TryFindAndCacheRemoteTypesAsync(
+            var result = await TryFindRemoteTypesAsync(
                 type, solution, projects, transitive,
                 FunctionId.DependentTypeFinder_FindAndCacheDerivedInterfacesAsync,
-                nameof(IRemoteDependentTypeFinder.FindAndCacheDerivedInterfacesAsync),
+                nameof(IRemoteDependentTypeFinder.FindDerivedInterfacesAsync),
                 cancellationToken).ConfigureAwait(false);
 
             if (result.HasValue)
                 return result.Value;
 
-            return await FindAndCacheDerivedInterfacesInCurrentProcessAsync(
+            return await FindDerivedInterfacesInCurrentProcessAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects,
-                transitive ? s_typeToTransitivelyDerivedInterfacesMap : s_typeToImmediatelyDerivedInterfacesMap,
-                c => FindWithoutCachingDerivedInterfacesAsync(type, solution, projects, transitive, c),
-                cancellationToken);
-        }
-
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingDerivedInterfacesAsync(
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,

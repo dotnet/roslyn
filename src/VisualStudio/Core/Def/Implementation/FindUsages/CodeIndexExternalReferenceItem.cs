@@ -25,10 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 VisualStudioFindSymbolMonikerUsagesService service,
                 DefinitionItem definition,
                 JObject resultObject,
+                string repository,
+                ExternalScope scope,
                 string projectName,
                 string displayPath,
                 LinePositionSpan span,
-                string text) : base(definition, projectName, displayPath, span, text)
+                string text) : base(definition, repository, scope, projectName, displayPath, span, text)
             {
                 _service = service;
                 ResultObject = resultObject;

@@ -37,6 +37,31 @@
         <target state="translated">Möchten Sie dennoch fortfahren? Möglicherweise wird fehlerhafter Code generiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Downloading_IntelliSense_index_for_0">
+        <source>Downloading IntelliSense index for {0}</source>
+        <target state="new">Downloading IntelliSense index for {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed">
+        <source>Downloading index failed</source>
+        <target state="new">Downloading index failed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed_0">
+        <source>Downloading index failed:{0}</source>
+        <target state="new">Downloading index failed:{0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="new">Error creating instance of CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">Elemente aus nicht importierten Namespaces</target>
@@ -65,6 +90,11 @@
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">Zu Basis wechseln</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Parameter_Name_Hints">
+        <source>Inline Parameter Name Hints</source>
+        <target state="new">Inline Parameter Name Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -112,11 +142,6 @@
         <target state="translated">Das Entfernen des Dokuments wird nicht unterstützt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="translated">_Datei umbenennen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">_Datei umbenennen (Typ entspricht nicht dem Dateinamen)</target>
@@ -126,6 +151,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">_Datei umbenennen (bei partiellen Typen nicht zulässig)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="translated">_Datei des Symbols umbenennen</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -384,12 +414,12 @@
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
         <source>You cannot rename this element because it is contained in a read-only file.</source>
-        <target state="new">You cannot rename this element because it is contained in a read-only file.</target>
+        <target state="translated">Dieses Element kann nicht umbenannt werden, weil es in einer schreibgeschützten Datei enthalten ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
-        <target state="new">You cannot rename this element because it is in a location that cannot be navigated to.</target>
+        <target state="translated">Dieses Element kann nicht umbenannt werden, weil es sich an einem Speicherort befindet, zu dem nicht navigiert werden kann.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -404,7 +434,7 @@
       </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
-        <target state="new">'{0}' implemented members</target>
+        <target state="translated">{0} implementierte Member</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -485,11 +515,6 @@
       <trans-unit id="Given_Workspace_doesn_t_support_Undo">
         <source>Given Workspace doesn't support Undo</source>
         <target state="translated">Angegebener Arbeitsbereich unterstützt die Funktion "Rückgängig" nicht</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
-        <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">Dokument muss in dem Arbeitsbereich enthalten sein, der diesen Dienst erstellt hat</target>
         <note />
       </trans-unit>
       <trans-unit id="Searching">
@@ -654,12 +679,7 @@
       </trans-unit>
       <trans-unit id="external">
         <source>(external)</source>
-        <target state="new">(external)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="from_metadata">
-        <source>from metadata</source>
-        <target state="translated">aus Metadaten</target>
+        <target state="translated">(extern)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -1014,12 +1034,7 @@
       </trans-unit>
       <trans-unit id="Peek">
         <source>Peek</source>
-        <target state="translated">Vorschau</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="symbol_cannot_be_a_namespace">
-        <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'"symbol" kann kein Namespace sein.</target>
+        <target state="translated">Einsehen</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">

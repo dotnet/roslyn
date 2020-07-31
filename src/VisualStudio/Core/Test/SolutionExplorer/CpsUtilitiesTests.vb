@@ -18,9 +18,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub ExtractAnalyzerFilePath_WithoutProjectPath()
+        Public Sub ExtractAnalyzerFilePath_WithoutProjectPath_WithTfmAndProviderType()
             Dim projectDirectoryFullPath = "C:\users\me\Solution\Project"
             Dim analyzerCanonicalName = "netstandard2.0\analyzerdependency\C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll"
+
+            Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
+            Assert.Equal(expected:="C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll", actual:=analyzerFileFullPath)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub ExtractAnalyzerFilePath_WithoutProjectPath_WithoutTfmAndProviderType()
+            Dim projectDirectoryFullPath = "C:\users\me\Solution\Project"
+            Dim analyzerCanonicalName = "C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll"
 
             Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
             Assert.Equal(expected:="C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll", actual:=analyzerFileFullPath)

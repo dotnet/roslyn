@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline parameter name hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -87,11 +88,11 @@ Ungültige reguläre Ausdrücke melden;
 Vollständige Lösungsanalyse aktivieren;
 Editor-Funktionsanalyse in externem Prozess ausführen ;
 Navigation zu dekompilierten Quellen aktivieren;
-Using-Anweisungen;
-Systemanweisungen beim Sortieren von Using-Anweisungen an erster Stelle platzieren;
-Using-Anweisungsgruppen trennen;
-Using-Anweisungen für Typen in Verweisassemblys vorschlagen;
-Using-Anweisungen für Typen in NuGet-Paketen vorschlagen;
+using-Direktiven;
+Systemanweisungen beim Sortieren von using-Direktiven an erster Stelle platzieren;
+Gruppen von using-Direktiven trennen;
+using-Direktiven für Typen in Verweisassemblys vorschlagen;
+using-Direktiven für Typen in NuGet-Paketen vorschlagen;
 Hervorhebung;
 Verweise auf Symbol unter Cursor hervorheben;
 Verwandte Schlüsselbegriffe unter Cursor anzeigen;
@@ -103,7 +104,7 @@ Gliederung für Konstrukte auf Codeebene anzeigen;
 Gliederung für Kommentare und Präprozessorregionen anzeigen;
 #regions beim Reduzieren auf Definitionen zuklappen;
 Ausblenden;
-Nicht verwendete Using-Anweisungen ausblenden;
+Nicht verwendete using-Direktiven ausblenden;
 Unerreichbaren Code ausblenden;
 Führungslinien für Blockstruktur;
 Führungslinien für Konstrukte auf Deklarationsebene anzeigen;
@@ -125,7 +126,8 @@ ausgelöste Eigenschaften bevorzugen;
 automatische Eigenschaften bevorzugen;
 regex;
 regulärer Ausdruck;
-Erweiterte Farben verwenden;</target>
+Erweiterte Farben verwenden;
+Editor-Farbschema;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -286,10 +288,11 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Einstellungen der Vervollständigungsliste ändern;Vorauswahl des zuletzt verwendeten Members; Vervollständigungslisten;
-Vervoll­ständigungsliste nach Eingabe eines Zeichens anzeigen;
+        <target state="translated">Einstellungen der Vervollständigungsliste ändern;Vorauswahl des zuletzt verwendeten Members; Vervollständigungslisten;
+Vervollständigungsliste nach Eingabe eines Zeichens anzeigen;
 Vervollständigungsliste nach Löschen eines Zeichens anzeigen;
-Übereinstimmende Teile der Vervollständigungslistenelemente anzeigen;
+Vervollständigungsliste in Argumentlisten automatisch anzeigen (experimentell);
+\Übereinstimmende Teile der Vervollständigungslistenelemente anzeigen;
 Vervollständigungselementfilter anzeigen;
 Ausschnittverhalten;
 Ausschnitte nie einschließen;
@@ -299,7 +302,8 @@ Verhalten der EINGABETASTE;
 Nie neue Zeile beim Drücken der EINGABETASTE einfügen;
 Neue Zeile beim Drücken der EINGABETASTE nur nach einem vollständig eingegebenen Wort einfügen;
 Immer neue Zeile beim Drücken der EINGABETASTE einfügen;
-Namensvorschläge anzeigen;</target>
+Namensvorschläge anzeigen;
+Elemente aus nicht importierten Namespaces anzeigen (experimentell);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

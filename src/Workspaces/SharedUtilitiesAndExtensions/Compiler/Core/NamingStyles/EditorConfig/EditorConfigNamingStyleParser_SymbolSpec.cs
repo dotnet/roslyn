@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IReadOnlyDictionary<string, string> conventionsDictionary,
             out string symbolSpecName)
         {
-            symbolSpecName = null;
             if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.symbols", out symbolSpecName))
             {
                 return symbolSpecName != null;

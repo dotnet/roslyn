@@ -13,13 +13,16 @@ namespace Microsoft.CodeAnalysis.Storage
 {
     internal static class StorageOptions
     {
+        internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
+
         public const string OptionName = "FeatureManager/Storage";
 
         public static readonly Option<StorageDatabase> Database = new Option<StorageDatabase>(
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
 
         public static readonly Option<bool> SQLiteInMemoryWriteCache = new Option<bool>(
-            OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false);
+            OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SQLiteInMemoryWriteCache)));
     }
 
     [ExportOptionProvider, Shared]

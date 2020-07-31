@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
-        public async Task FindReferencesAsync(
+        async Task IFindUsagesService.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
@@ -48,7 +48,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        private async Task FindLiteralOrSymbolReferencesAsync(
+        Task IFindUsagesLSPService.FindReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            // We don't need to get third party definitions when finding references in LSP.
+            // Currently, 3rd party definitions = XAML definitions, and XAML will provide
+            // references via LSP instead of hooking into Roslyn.
+            // This also means that we don't need to be on the UI thread.
+            return FindLiteralOrSymbolReferencesAsync(document, position, new DefinitionTrackingContext(context));
+        }
+
+        private static async Task FindLiteralOrSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             // First, see if we're on a literal.  If so search for literals in the solution with
@@ -65,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 document, position, context).ConfigureAwait(false);
         }
 
-        private ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
+        private static ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
             Solution solution,
             ImmutableArray<DefinitionItem> definitions,
             CancellationToken cancellationToken)
@@ -76,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                               .ToImmutableArray();
         }
 
-        private async Task FindSymbolReferencesAsync(
+        private static async Task FindSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -139,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindUsagesServerCallback(solution, context);
 
-                var success = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteFindUsagesService.FindReferencesAsync),
                     solution,
                     new object[]
@@ -150,14 +160,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     },
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
-
-                if (success)
-                    return;
             }
-
-            // Couldn't effectively search in OOP. Perform the search in-process.
-            await FindReferencesInCurrentProcessAsync(
-                context, symbol, project, options).ConfigureAwait(false);
+            else
+            {
+                // Couldn't effectively search in OOP. Perform the search in-process.
+                await FindReferencesInCurrentProcessAsync(
+                    context, symbol, project, options).ConfigureAwait(false);
+            }
         }
 
         private static Task FindReferencesInCurrentProcessAsync(
@@ -171,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 symbol, project.Solution, progress, documents: null, options, context.CancellationToken);
         }
 
-        private async Task<bool> TryFindLiteralReferencesAsync(
+        private static async Task<bool> TryFindLiteralReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;

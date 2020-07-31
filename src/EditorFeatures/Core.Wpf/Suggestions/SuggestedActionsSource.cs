@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
+            private static ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
                 TextSpan? selectionOpt, ImmutableArray<SuggestedActionSet> fixes, ImmutableArray<SuggestedActionSet> refactorings)
             {
                 // First, order refactorings based on the order the providers actually gave for
@@ -272,10 +272,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private SuggestedActionSet WithPriority(SuggestedActionSet set, SuggestedActionSetPriority priority)
+            private static SuggestedActionSet WithPriority(SuggestedActionSet set, SuggestedActionSetPriority priority)
                 => new SuggestedActionSet(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
-            private ImmutableArray<SuggestedActionSet> OrderActionSets(
+            private static ImmutableArray<SuggestedActionSet> OrderActionSets(
                 ImmutableArray<SuggestedActionSet> actionSets, TextSpan? selectionOpt)
             {
                 return actionSets.OrderByDescending(s => s.Priority)
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                  .ToImmutableArray();
             }
 
-            private ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
+            private static ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
             {
                 using var resultDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var result);
                 var seenTitles = new HashSet<string>();
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return result.ToImmutable();
             }
 
-            private SuggestedActionSet? FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
+            private static SuggestedActionSet? FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
             {
                 using var actionsDisposer = ArrayBuilder<ISuggestedAction>.GetInstance(out var actions);
 
@@ -426,17 +426,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return action.IsApplicable(workspace);
             }
 
-            private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, Workspace workspace)
-                => refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
+            private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, TextSpan selection, bool filterOutsideSelection, Workspace workspace)
+                => refactorings.Select(r => FilterOnUIThread(r, selection, filterOutsideSelection, workspace)).WhereNotNull().ToImmutableArray();
 
-            private CodeRefactoring? FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
+            private CodeRefactoring? FilterOnUIThread(CodeRefactoring refactoring, TextSpan selection, bool filterOutsideSelection, Workspace workspace)
             {
-                var actions = refactoring.CodeActions.WhereAsArray(a => IsApplicable(a.action, workspace));
+                var actions = refactoring.CodeActions.WhereAsArray(IsActionAndSpanApplicable);
                 return actions.Length == 0
                     ? null
                     : actions.Length == refactoring.CodeActions.Length
                         ? refactoring
                         : new CodeRefactoring(refactoring.Provider, actions);
+
+                bool IsActionAndSpanApplicable((CodeAction action, TextSpan? applicableSpan) actionAndSpan)
+                {
+                    if (!IsApplicable(actionAndSpan.action, workspace))
+                    {
+                        return false;
+                    }
+
+                    if (filterOutsideSelection)
+                    {
+                        // Filter out refactorings with applicable span outside the selection span.
+                        if (!actionAndSpan.applicableSpan.HasValue ||
+                            !selection.IntersectsWith(actionAndSpan.applicableSpan.Value))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
             }
 
             /// <summary>
@@ -664,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // to avoid clutter in the light bulb menu.
                     var wrappingSuggestedAction = new SuggestedActionWithNestedActions(
                         ThreadingContext, _owner, workspace, _subjectBuffer, this,
-                        codeAction: new NoChangeAction(EditorFeaturesWpfResources.Suppress_or_Configure_issues),
+                        codeAction: new NoChangeAction(CodeFixesResources.Suppress_or_Configure_issues),
                         nestedActionSets: suppressionSets.ToImmutable());
 
                     // Combine the spans and the category of each of the nested suggested actions
@@ -673,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var wrappingSet = new SuggestedActionSet(
                         category,
                         actions: SpecializedCollections.SingletonEnumerable(wrappingSuggestedAction),
-                        title: EditorFeaturesWpfResources.Suppress_or_Configure_issues,
+                        title: CodeFixesResources.Suppress_or_Configure_issues,
                         priority: SuggestedActionSetPriority.None,
                         applicableToSpan: span);
                     sets = sets.Add(wrappingSet);
@@ -752,7 +772,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return PredefinedSuggestedActionCategoryNames.ErrorFix;
                     default:
                         throw ExceptionUtilities.Unreachable;
-                };
+                }
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)
@@ -787,8 +807,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
-                    supportsFeatureService.SupportsRefactorings(_subjectBuffer) &&
-                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                    supportsFeatureService.SupportsRefactorings(_subjectBuffer))
                 {
                     // It may seem strange that we kick off a task, but then immediately 'Wait' on 
                     // it. However, it's deliberate.  We want to make sure that the code runs on 
@@ -799,7 +818,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             document, selection, isBlocking: true, addOperationScope, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
-                    var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
+                    // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
+                    // then we want to filter out refactorings outside the selection span.
+                    var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
+
+                    var filteredRefactorings = FilterOnUIThread(refactorings, selection, filterOutsideSelection, workspace);
 
                     return filteredRefactorings.SelectAsArray(
                         r => OrganizeRefactorings(workspace, r));
@@ -1144,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var selection = await GetSpanAsync(range, linkedToken).ConfigureAwait(false);
 
                 var refactoringTask = SpecializedTasks.Null<string>();
-                if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                if (selection != null)
                 {
                     refactoringTask = Task.Run(
                         () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken), linkedToken);

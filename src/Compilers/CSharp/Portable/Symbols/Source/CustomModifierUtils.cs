@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)); // Same custom modifiers as source type.
 
-            Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic, nullability and tuple names as destination type.
+            // Same object/dynamic, nullability and tuple names as destination type.
+            Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
 
             return resultType;
         }
@@ -153,6 +154,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool HasInAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
         {
             return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
+        }
+
+        internal static bool HasIsExternalInitModifier(this ImmutableArray<CustomModifier> modifiers)
+        {
+            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());
+        }
+
+        internal static bool HasOutAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
+        {
+            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeOutAttribute());
         }
     }
 }

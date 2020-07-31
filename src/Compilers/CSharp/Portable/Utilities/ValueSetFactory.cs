@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IValueSetFactory? ForType(TypeSymbol type)
         {
+            type = type.EnumUnderlyingTypeOrSelf();
             return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
         }
     }

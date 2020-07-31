@@ -16,23 +16,23 @@
         "group": "build"
     },
     {
-        "label": "build skip analyzers",
+        "label": "build with analyzers",
         "command": "./build.sh",
         "type": "shell",
         "args": [
-          "--skipAnalyzers"
+          "--runAnalyzers"
         ],
         "windows": {
           "command": "./build.cmd",
           "args": [
-            "-skipAnalyzers"
+            "-runAnalyzers"
           ],
         },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
     {
-        "label": "build csc skip analyzers",
+        "label": "build csc",
         "command": "./.dotnet/dotnet",
         "type": "shell",
         "args": [
@@ -45,7 +45,7 @@
         "group": "build"
     },
     {
-        "label": "build current project skip analyzers",
+        "label": "build current project",
         "type": "shell",
         "command": "./.dotnet/dotnet",
         "args": [
@@ -70,7 +70,7 @@
         "group": "build"
     },
     {
-        "label": "msbuild current project skip analyzers",
+        "label": "msbuild current project",
         "type": "shell",
         "command": "echo 'Task not supported on this OS'",
         "windows": {
@@ -101,14 +101,8 @@
         "label": "update xlf files",
         "command": "./build.sh",
         "type": "shell",
-        "args": [
-          "--skipAnalyzers"
-        ],
         "windows": {
-          "command": "./build.cmd",
-          "args": [
-            "-skipAnalyzers"
-          ],
+          "command": "./build.cmd"
         },
         "options": {
           "env": { "UpdateXlfOnBuild": "true" }

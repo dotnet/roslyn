@@ -19,6 +19,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     public class AutomaticBraceCompletionTests : AbstractAutomaticBraceCompletionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithExpressionBracesSameLine()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with { }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithExpressionBracesSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with $$
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with
+        {
+
+        }
+    }
+}";
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
             using var session = CreateSession("$$");
@@ -390,9 +444,9 @@ class C
     void M()
     {
         _ = this is { Name:
-            {
+        {
 
-            } }
+        } }
     }
 }";
             using var session = CreateSession(code);
@@ -400,7 +454,7 @@ class C
 
             CheckStart(session.Session);
             CheckText(session.Session, expectedBeforeReturn);
-            CheckReturn(session.Session, 16, expectedAfterReturn);
+            CheckReturn(session.Session, 12, expectedAfterReturn);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -1094,7 +1148,7 @@ $$
             CheckReturn(session.Session, 8, expectedAfterReturn);
         }
 
-        internal Holder CreateSession(string code, Dictionary<OptionKey2, object> optionSet = null)
+        internal static Holder CreateSession(string code, Dictionary<OptionKey2, object> optionSet = null)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

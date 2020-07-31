@@ -91,12 +91,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // you need to know all bases before you can ask this question... (asking this causes a cycle)
-            if (this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
-            {
-                var baseLocation = FindBaseRefSyntax(localBase);
-                Debug.Assert(baseLocation != null);
+            Location baseLocation = null;
+            bool baseContainsErrorTypes = localBase.ContainsErrorType();
 
+            if (!baseContainsErrorTypes)
+            {
+                baseLocation = FindBaseRefSyntax(localBase);
+                Debug.Assert(!this.IsClassType() || localBase.IsObjectType() || baseLocation != null);
+            }
+
+            // you need to know all bases before you can ask this question... (asking this causes a cycle)
+            if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
+            {
                 // A generic type cannot derive from '{0}' because it is an attribute class
                 diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
             }
@@ -110,6 +116,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = singleDeclaration.NameLocation;
 
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+            }
+
+            // Records can only inherit from other records or object
+            if (this.IsClassType() && !localBase.IsObjectType() && !baseContainsErrorTypes)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                if (declaration.Kind == DeclarationKind.Record)
+                {
+                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+                    }
+                }
+                else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is object)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
+                }
+
+                diagnostics.Add(baseLocation, useSiteDiagnostics);
             }
         }
 
@@ -305,6 +331,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            if (declaration.Kind == DeclarationKind.Record)
+            {
+                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
+                {
+                    baseInterfaces.Add(type);
+                    type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+            }
 
             if ((object)baseType != null)
             {

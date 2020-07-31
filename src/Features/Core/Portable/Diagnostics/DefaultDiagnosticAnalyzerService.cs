@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -59,15 +58,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
             => DiagnosticsUpdated?.Invoke(this, state);
 
-        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer2
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public DefaultDiagnosticIncrementalAnalyzer(DefaultDiagnosticAnalyzerService service, Workspace workspace)
             {
                 _service = service;
                 _workspace = workspace;
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache, workspace);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -82,18 +83,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+                => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
+
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                => AnalyzeSyntaxOrNonSourceDocumentAsync(textDocument, cancellationToken);
+
+            private async Task AnalyzeSyntaxOrNonSourceDocumentAsync(TextDocument textDocument, CancellationToken cancellationToken)
             {
-                Debug.Assert(document.Project.Solution.Workspace == _workspace);
+                Debug.Assert(textDocument.Project.Solution.Workspace == _workspace);
 
                 // right now, there is no way to observe diagnostics for closed file.
-                if (!_workspace.IsDocumentOpen(document.Id) ||
+                if (!_workspace.IsDocumentOpen(textDocument.Id) ||
                     !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
                 {
                     return;
                 }
 
-                await AnalyzeForKindAsync(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -124,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private async Task AnalyzeForKindAsync(Document document, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task AnalyzeForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
@@ -140,13 +147,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// 
             /// The intended audience for this API is for ones that pefer simplicity over performance such as document that belong to misc project.
             /// this doesn't cache nor use cache for anything. it will re-caculate new diagnostics every time for the given document.
-            /// it will not persist any data on disk nor use OOP to calcuate the data.
+            /// it will not persist any data on disk nor use OOP to calculate the data.
             /// 
             /// This should never be used when performance is a big concern. for such context, use much complex API from IDiagnosticAnalyzerService
             /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.
             /// </summary>
             private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-               Document document, AnalysisKind kind, CancellationToken cancellationToken)
+               TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
@@ -156,31 +163,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
+                if (analyzers.IsEmpty)
+                {
+                    return ImmutableArray<DiagnosticData>.Empty;
+                }
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
                 var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
                 {
-                    builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, _service._analyzerInfoCache, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
+                    builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
             }
 
-            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
+            private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
             {
                 // C# or VB document that supports compiler
                 var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null)
                 {
-                    return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
+                    return ImmutableArray.Create(compilerAnalyzer);
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
+                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v).ToImmutableArrayOrEmpty();
             }
 
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -203,8 +215,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
+            public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            {
+                // no closed file diagnostic and file is not opened, remove any existing diagnostics
+                return RemoveDocumentAsync(textDocument.Id, cancellationToken);
+            }
+
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
                 => DocumentResetAsync(document, cancellationToken);
+
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => NonSourceDocumentResetAsync(textDocument, cancellationToken);
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
@@ -216,6 +237,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)

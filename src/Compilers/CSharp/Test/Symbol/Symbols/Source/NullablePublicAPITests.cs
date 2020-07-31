@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -48,7 +50,7 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
 
             var arrayAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToList();
-            var arrayTypes = arrayAccesses.Select(arr => model.GetTypeInfo(arr.Expression).Type).Cast<IArrayTypeSymbol>().ToList();
+            var arrayTypes = arrayAccesses.Select(arr => model.GetTypeInfoAndVerifyIOperation(arr.Expression).Type).Cast<IArrayTypeSymbol>().ToList();
 
             Assert.Equal(PublicNullableAnnotation.Annotated, arrayTypes[0].ElementNullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.Annotated, arrayTypes[0].ElementType.NullableAnnotation);
@@ -82,7 +84,7 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
 
             var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
-            var expressionTypes = invocations.Select(inv => model.GetTypeInfo(inv).Type).Cast<INamedTypeSymbol>().ToList();
+            var expressionTypes = invocations.Select(inv => model.GetTypeInfoAndVerifyIOperation(inv).Type).Cast<INamedTypeSymbol>().ToList();
 
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentNullableAnnotations.Single());
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, expressionTypes[0].TypeArgumentNullableAnnotations().Single());
@@ -1089,7 +1091,7 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
 
             var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
-            var typeInfo = model.GetTypeInfo(((MemberAccessExpressionSyntax)invocation.Expression).Expression);
+            var typeInfo = model.GetTypeInfoAndVerifyIOperation(((MemberAccessExpressionSyntax)invocation.Expression).Expression);
             Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
             // https://github.com/dotnet/roslyn/issues/34993: This is incorrect. o should be Annotated, as you can assign
             // null without a warning.
@@ -1115,7 +1117,7 @@ enum E2
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
-            _ = model.GetTypeInfo(root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value);
+            _ = model.GetTypeInfoAndVerifyIOperation(root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value);
         }
 
         [Fact]
@@ -1160,9 +1162,9 @@ class C
                 context.RegisterSyntaxNodeAction(syntaxContext =>
                 {
                     if (syntaxContext.Node.ToString() != "o") return;
-                    var info = syntaxContext.SemanticModel.GetTypeInfo(syntaxContext.Node);
+                    var info = syntaxContext.SemanticModel.GetTypeInfoAndVerifyIOperation(syntaxContext.Node);
                     Assert.True(syntaxContext.SemanticModel.TryGetSpeculativeSemanticModel(syntaxContext.Node.SpanStart, newSource, out var specModel));
-                    var specInfo = specModel.GetTypeInfo(oReference);
+                    var specInfo = specModel.GetTypeInfoAndVerifyIOperation(oReference);
                     syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor1, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation, specInfo.Nullability.FlowState));
                 }, SyntaxKind.IdentifierName);
 
@@ -1212,21 +1214,21 @@ class E
             var notNullable = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
 
             var dCast = (CastExpressionSyntax)root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
-            var dInfo = model.GetTypeInfo(dCast);
+            var dInfo = model.GetTypeInfoAndVerifyIOperation(dCast);
             Assert.Equal(dType, dInfo.Type);
             Assert.Equal(dType, dInfo.ConvertedType);
             Assert.Equal(nullable, dInfo.Nullability);
             Assert.Equal(nullable, dInfo.ConvertedNullability);
 
             var cCast = (CastExpressionSyntax)dCast.Expression;
-            var cInfo = model.GetTypeInfo(cCast);
+            var cInfo = model.GetTypeInfoAndVerifyIOperation(cCast);
             Assert.Equal(cType, cInfo.Type);
             Assert.Equal(cType, cInfo.ConvertedType);
             Assert.Equal(nullable, cInfo.Nullability);
             Assert.Equal(nullable, cInfo.ConvertedNullability);
 
             var objectCreation = cCast.Expression;
-            var creationInfo = model.GetTypeInfo(objectCreation);
+            var creationInfo = model.GetTypeInfoAndVerifyIOperation(objectCreation);
             Assert.Equal(bType, creationInfo.Type);
             Assert.Equal(aType, creationInfo.ConvertedType);
             Assert.Equal(notNullable, creationInfo.Nullability);
@@ -1260,8 +1262,8 @@ class C
             var notNull = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
             var @null = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
 
-            var leftInfo = model.GetTypeInfo(conditional.WhenTrue);
-            var rightInfo = model.GetTypeInfo(conditional.WhenFalse);
+            var leftInfo = model.GetTypeInfoAndVerifyIOperation(conditional.WhenTrue);
+            var rightInfo = model.GetTypeInfoAndVerifyIOperation(conditional.WhenFalse);
 
             Assert.Equal(notNull, leftInfo.Nullability);
             Assert.Equal(notNull, leftInfo.ConvertedNullability);
@@ -1389,10 +1391,10 @@ class C
             {
                 Assert.True(model.TryGetSpeculativeSemanticModel(spanStart, newSource, out var speculativeModel));
 
-                var speculativeTypeInfo = speculativeModel.GetTypeInfo(inCondition);
+                var speculativeTypeInfo = speculativeModel.GetTypeInfoAndVerifyIOperation(inCondition);
                 Assert.Equal(conditionFlowState, speculativeTypeInfo.Nullability.FlowState);
 
-                speculativeTypeInfo = speculativeModel.GetTypeInfo(whenTrue);
+                speculativeTypeInfo = speculativeModel.GetTypeInfoAndVerifyIOperation(whenTrue);
                 Assert.Equal(PublicNullableFlowState.NotNull, speculativeTypeInfo.Nullability.FlowState);
 
                 var referenceTypeInfo = speculativeModel.GetSpeculativeTypeInfo(whenTrue.SpanStart, newReference, SpeculativeBindingOption.BindAsExpression);
@@ -1400,7 +1402,7 @@ class C
                 var coalesceTypeInfo = speculativeModel.GetSpeculativeTypeInfo(whenTrue.SpanStart, newCoalesce, SpeculativeBindingOption.BindAsExpression);
                 Assert.Equal(PublicNullableFlowState.NotNull, coalesceTypeInfo.Nullability.FlowState);
 
-                speculativeTypeInfo = speculativeModel.GetTypeInfo(whenFalse);
+                speculativeTypeInfo = speculativeModel.GetTypeInfoAndVerifyIOperation(whenFalse);
                 Assert.Equal(conditionFlowState, speculativeTypeInfo.Nullability.FlowState);
                 referenceTypeInfo = speculativeModel.GetSpeculativeTypeInfo(whenFalse.SpanStart, newReference, SpeculativeBindingOption.BindAsExpression);
                 Assert.Equal(conditionFlowState, referenceTypeInfo.Nullability.FlowState);
@@ -1437,7 +1439,7 @@ class C
             var newSource = (BlockSyntax)SyntaxFactory.ParseStatement("{ var y = x ?? new object(); y.ToString(); }");
             var yReference = ((MemberAccessExpressionSyntax)newSource.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression).Expression;
             Assert.True(model.TryGetSpeculativeSemanticModel(returnStatement.SpanStart, newSource, out var specModel));
-            var speculativeTypeInfo = specModel.GetTypeInfo(yReference);
+            var speculativeTypeInfo = specModel.GetTypeInfoAndVerifyIOperation(yReference);
             Assert.Equal(PublicNullableFlowState.NotNull, speculativeTypeInfo.Nullability.FlowState);
         }
 
@@ -1530,6 +1532,135 @@ class C
             }
         }
 
+        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        public void VarInLambda_GetTypeInfo()
+        {
+            var source = @"
+#nullable enable
+using System;
+class C
+{
+    private static string s_data;
+    static void Main()
+    {
+        Action a = () => {
+            var v = s_data;
+            v = GetNullableString();
+        };
+    }
+    static string? GetNullableString() => null;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var varDecl = lambda.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+
+            var type = model.GetTypeInfo(varDecl.Type);
+            Assert.Equal(PublicNullableFlowState.MaybeNull, type.Nullability.FlowState);
+            Assert.Equal(PublicNullableAnnotation.Annotated, type.Nullability.Annotation);
+        }
+
+        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        public void VarInLambda_ParameterMismatch_GetTypeInfo()
+        {
+            var source = @"
+#nullable enable
+using System;
+class C
+{
+    private static string s_data;
+    static void Main()
+    {
+        Action<string> a = () => {
+            var v = s_data;
+            v = GetNullableString();
+        };
+    }
+    static string? GetNullableString() => null;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27),
+                // (9,28): error CS1593: Delegate 'Action<string>' does not take 0 arguments
+                //         Action<string> a = () => {
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, @"() => {
+            var v = s_data;
+            v = GetNullableString();
+        }").WithArguments("System.Action<string>", "0").WithLocation(9, 28));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var varDecl = lambda.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+
+            var type = model.GetTypeInfo(varDecl.Type);
+            Assert.Equal(PublicNullableFlowState.None, type.Nullability.FlowState);
+            Assert.Equal(PublicNullableAnnotation.None, type.Nullability.Annotation);
+        }
+
+        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        public void VarInLambda_ErrorDelegateType_GetTypeInfo()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+    static void Main()
+    {
+        NonexistentDelegateType a = () => {
+            var v = s_data;
+            v = GetNullableString();
+        };
+    }
+    static string? GetNullableString() => null;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27),
+                // (9,9): error CS0246: The type or namespace name 'NonexistentDelegateType' could not be found (are you missing a using directive or an assembly reference?)
+                //         NonexistentDelegateType a = () => {
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NonexistentDelegateType").WithArguments("NonexistentDelegateType").WithLocation(9, 9));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var varDecl = lambda.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+
+            var type = model.GetTypeInfo(varDecl.Type);
+            Assert.Equal(PublicNullableFlowState.None, type.Nullability.FlowState);
+            Assert.Equal(PublicNullableAnnotation.None, type.Nullability.Annotation);
+        }
+
         [Fact]
         public void FeatureFlagTurnsOffNullableAnalysis()
         {
@@ -1538,6 +1669,8 @@ class C
 #nullable enable
 class C
 {
+    object field = null;
+
     void M()
     {
         object o = null;
@@ -1549,14 +1682,74 @@ class C
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: featureFlagOff);
             comp.VerifyDiagnostics(
-                    // (7,16): warning CS0219: The variable 'o' is assigned but its value is never used
-                    //         object o = null;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(7, 16),
-                    // (7,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                    //         object o = null;
-                    Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 20));
+                // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field").WithLocation(5, 12),
+                // (5,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 20),
+                // (9,16): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(9, 16),
+                // (9,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
             Assert.False(comp.NullableSemanticAnalysisEnabled);
+        }
+
+        private class CSharp73ProvidesNullableSemanticInfo_Analyzer : DiagnosticAnalyzer
+        {
+            public int HitCount;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
+            }
+
+            private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
+            {
+                var node = (MemberAccessExpressionSyntax)context.Node;
+                var model = context.SemanticModel;
+                var info = model.GetTypeInfo(node.Expression);
+
+                Assert.Equal(PublicNullableAnnotation.Annotated, info.Nullability.Annotation);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, info.Nullability.FlowState);
+
+                Interlocked.Increment(ref HitCount);
+            }
+        }
+
+        [Fact]
+        public void CSharp73ProvidesNullableSemanticInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string s)
+    {
+        if (s == null)
+        {
+            s.ToString();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                );
+
+            var analyzer = new CSharp73ProvidesNullableSemanticInfo_Analyzer();
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }).Verify();
+            Assert.Equal(1, analyzer.HitCount);
         }
 
         [Fact]
@@ -1683,7 +1876,7 @@ class C
                 Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
                 Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
 
-                var typeInfo = model.GetTypeInfo(((VariableDeclarationSyntax)variable.Parent).Type);
+                var typeInfo = model.GetTypeInfoAndVerifyIOperation(((VariableDeclarationSyntax)variable.Parent).Type);
                 Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
                 Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.ConvertedNullability.FlowState);
                 Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
@@ -2024,7 +2217,7 @@ class C
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
 
-                var typeInfo = model.GetTypeInfo(((DeclarationExpressionSyntax)variable.Parent).Type);
+                var typeInfo = model.GetTypeInfoAndVerifyIOperation(((DeclarationExpressionSyntax)variable.Parent).Type);
                 Assert.Equal("System.Object?", typeInfo.Type.ToTestDisplayString());
                 Assert.Equal("System.Object?", typeInfo.ConvertedType.ToTestDisplayString());
                 Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
@@ -2198,7 +2391,7 @@ class C
                 Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
                 Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
 
-                var typeInfo = model.GetTypeInfo(foreachStatement.Type);
+                var typeInfo = model.GetTypeInfoAndVerifyIOperation(foreachStatement.Type);
                 Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
                 Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
                 Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Type.NullableAnnotation);
@@ -2297,7 +2490,7 @@ class C
                 var type = ((DeclarationExpressionSyntax)variable.Parent).Type;
                 if (type.IsVar)
                 {
-                    var typeInfo = model.GetTypeInfo(type);
+                    var typeInfo = model.GetTypeInfoAndVerifyIOperation(type);
                     Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
                     Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.ConvertedNullability.FlowState);
                     Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
@@ -2871,19 +3064,19 @@ class C<T, U>
 {
     public T this[U u] { get => throw null!; set => throw null!; }
     
-    public static void M(object? o1, object o2)
+    public static void M(bool b, object? o1, object o2)
     {
         var c1 = CExt.Create(o1, o2);
-        c1[o1] = o2;
-        _ = c1[o1];
+        if (b) c1[o1] = o2;
+        if (b) _ = c1[o1];
         
         var c2 = CExt.Create(o2, o1);
-        c2[o2] = o1;
-        _ = c2[o2];
+        if (b) c2[o2] = o1;
+        if (b) _ = c2[o2];
         
         var c3 = CExt.Create(o1 ?? o2, o2);
-        c3[o1] = o2;
-        _ = c3[o1];
+        if (b) c3[o1] = o2;
+        if (b) _ = c3[o1];
     }
 }
 static class CExt
@@ -2893,21 +3086,21 @@ static class CExt
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (9,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
-                //         c1[o1] = o2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(9, 12),
-                // (10,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
-                //         _ = c1[o1];
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(10, 16),
-                // (13,18): warning CS8601: Possible null reference assignment.
-                //         c2[o2] = o1;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o1").WithLocation(13, 18),
-                // (17,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
-                //         c3[o1] = o2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(17, 12),
-                // (18,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
-                //         _ = c3[o1];
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(18, 16));
+                // (9,19): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         if (b) c1[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(9, 19),
+                // (10,23): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         if (b) _ = c1[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(10, 23),
+                // (13,25): warning CS8601: Possible null reference assignment.
+                //         if (b) c2[o2] = o1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o1").WithLocation(13, 25),
+                // (17,19): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         if (b) c3[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(17, 19),
+                // (18,23): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         if (b) _ = c3[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(18, 23));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -3327,6 +3520,76 @@ class C
 
             Assert.Equal(lambdaSymbol, localFunctionSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
             Assert.Equal(localFunctionSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LocalFunctionReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        local();
+        return null!;
+        string local()
+        {
+            s.ToString();
+            return s;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Body!.OpenBraceToken.SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String!' because we are speculating within the local function.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LambdaReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        System.Func<string> local = () =>
+        {
+            s.ToString();
+            return s;
+        };
+        local();
+        return null!;
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Block!.OpenBraceToken.SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String!' because we are speculating within the local function.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C!", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -3831,12 +4094,12 @@ class B2 : A<int?>
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ToArray();
-            verify(exprs[0], PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.MaybeNull);
+            verify(exprs[0], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
             verify(exprs[1], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
 
             void verify(DefaultExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation, PublicNullableFlowState expectedState)
             {
-                var info = model.GetTypeInfo(expr).Nullability;
+                var info = model.GetTypeInfoAndVerifyIOperation(expr).Nullability;
                 Assert.Equal(expectedAnnotation, info.Annotation);
                 Assert.Equal(expectedState, info.FlowState);
             }
@@ -4199,6 +4462,83 @@ class C
             var expression = SyntaxFactory.ParseExpression(@"M(out C c)");
             var symbol2 = (IMethodSymbol)model.GetSpeculativeSymbolInfo(initializer.Position, expression, SpeculativeBindingOption.BindAsExpression).Symbol;
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol2.Parameters.Single().Type.NullableAnnotation);
+        }
+
+        [Fact]
+        public void GetOperationOnNullableSuppression()
+        {
+            var source = @"
+#pragma warning disable CS0219 // Unused local
+#nullable enable
+class C
+{
+    void M(string p)
+    {
+        string l1 = default!;
+        M(null!);
+        C c = new C();
+        string l2 = c.M2()!;
+    }
+
+    string? M2() => null;
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var suppressions = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Where(p => p.IsKind(SyntaxKind.SuppressNullableWarningExpression)).ToList();
+            Assert.Equal(3, suppressions.Count);
+
+            foreach (var s in suppressions)
+            {
+                Assert.Null(model.GetOperation(s));
+            }
+        }
+
+        [Fact]
+        public void UnconstrainedTypeParameter()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static T F<T>(T t) => t;
+    static T F1<T>(T? x1)
+    {
+        T y1 = F(x1);
+        if (x1 == null) throw null!;
+        T z1 = F(x1);
+        return z1;
+    }
+    static T F2<T>(T x2)
+    {
+        T y2 = F(x2);
+        x2 = default;
+        T z2 = F(x2);
+        return z2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (17,16): warning CS8603: Possible null reference return.
+                //         return z2; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "z2").WithLocation(17, 16));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var invocations = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>();
+            var actualAnnotations = invocations.Select(inv => (((IMethodSymbol)model.GetSymbolInfo(inv).Symbol)).TypeArguments[0].NullableAnnotation).ToArray();
+            var expectedAnnotations = new[]
+            {
+                PublicNullableAnnotation.Annotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.NotAnnotated,
+                PublicNullableAnnotation.Annotated,
+            };
+            AssertEx.Equal(expectedAnnotations, actualAnnotations);
         }
     }
 }

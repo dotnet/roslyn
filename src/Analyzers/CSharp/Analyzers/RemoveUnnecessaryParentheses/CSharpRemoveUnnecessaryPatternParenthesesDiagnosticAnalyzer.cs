@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             out PrecedenceKind precedence, out bool clarifiesPrecedence)
         {
             return CanRemoveParenthesesHelper(
-                parenthesizedExpression, semanticModel,
+                parenthesizedExpression,
                 out precedence, out clarifiesPrecedence);
         }
 
         public static bool CanRemoveParenthesesHelper(
-            ParenthesizedPatternSyntax parenthesizedPattern, SemanticModel semanticModel,
+            ParenthesizedPatternSyntax parenthesizedPattern,
             out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence)
         {
-            var result = parenthesizedPattern.CanRemoveParentheses(semanticModel);
+            var result = parenthesizedPattern.CanRemoveParentheses();
             if (!result)
             {
                 parentPrecedenceKind = default;

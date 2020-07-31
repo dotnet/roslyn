@@ -264,7 +264,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             return true;
         }
 
-
         public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
         {
             // same key should always return same checksum

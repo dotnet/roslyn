@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3098,16 +3099,16 @@ public class X
                 // (9,33): error CS1002: ; expected
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "x1").WithLocation(9, 33),
-                // (9,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,36): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 36),
-                // (9,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (9,36): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 36),
-                // (9,39): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (9,39): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(9, 39),
-                // (9,39): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (9,39): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     void Test1(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(9, 39),
                 // (11,33): error CS1002: ; expected
@@ -3225,10 +3226,10 @@ public class X
     // (9,23): error CS1002: ; expected
     //     bool Test1 => let x1 = 11;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "x1").WithLocation(9, 23),
-    // (9,26): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+    // (9,26): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
     //     bool Test1 => let x1 = 11;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 26),
-    // (9,26): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+    // (9,26): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
     //     bool Test1 => let x1 = 11;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(9, 26),
     // (11,29): error CS1002: ; expected
@@ -6009,9 +6010,6 @@ public class X
                 // (12,47): error CS0841: Cannot use local variable 'x1' before it is declared
                 //         using (var x1 = Dummy(true is var x1, x1))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 47),
-                // (12,47): error CS0165: Use of unassigned local variable 'x1'
-                //         using (var x1 = Dummy(true is var x1, x1))
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 47),
                 // (20,58): error CS0128: A local variable named 'x2' is already defined in this scope
                 //         using (System.IDisposable x2 = Dummy(true is var x2, x2))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 58),
@@ -6337,9 +6335,6 @@ public class X
     // (13,40): error CS0841: Cannot use local variable 'x1' before it is declared
     //                  Dummy(true is var x1, x1);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 40),
-    // (13,40): error CS0165: Use of unassigned local variable 'x1'
-    //                  Dummy(true is var x1, x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 40),
     // (20,39): error CS0128: A local variable named 'x2' is already defined in this scope
     //                     Dummy(true is var x2, x2);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 39),
@@ -6745,9 +6740,6 @@ public class X
                 // (13,42): error CS0841: Cannot use local variable 'x1' before it is declared
                 //                       ((true is var x1), x1);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 42),
-                // (13,42): error CS0165: Use of unassigned local variable 'x1'
-                //                       ((true is var x1), x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 42),
                 // (20,40): error CS0128: A local variable named 'x2' is already defined in this scope
                 //                          ((true is var x2), x2);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 40),
@@ -8885,9 +8877,6 @@ public class X
     // (13,38): error CS0841: Cannot use local variable 'x1' before it is declared
     //              Dummy(true is var x1 && x1)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 38),
-    // (13,38): error CS0165: Use of unassigned local variable 'x1'
-    //              Dummy(true is var x1 && x1)
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 38),
     // (21,32): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //              Dummy(true is var x2 && x2)
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(21, 32),

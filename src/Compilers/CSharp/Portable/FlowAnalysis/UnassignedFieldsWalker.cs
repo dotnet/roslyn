@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                if (!fieldType.NullableAnnotation.IsNotAnnotated() && !fieldType.Type.IsTypeParameterDisallowingAnnotation())
+                if (!fieldType.NullableAnnotation.IsNotAnnotated())
                 {
                     continue;
                 }
@@ -280,6 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
                     _ => member
                 };
+                if ((symbol.GetFlowAnalysisAnnotations() & FlowAnalysisAnnotations.MaybeNull) != 0)
+                {
+                    continue;
+                }
                 var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrNone();
                 diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
             }

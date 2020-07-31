@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     [ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ObjectInitializerCompletionProvider))]
+    [ExtensionOrder(After = nameof(ObjectAndWithInitializerCompletionProvider))]
     [Shared]
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = tree
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                     return null;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return null;
         }
 
-        private bool IsAnonymousObjectCreation(SyntaxToken token)
+        private static bool IsAnonymousObjectCreation(SyntaxToken token)
         {
             if (token.Parent is AnonymousObjectCreationExpressionSyntax)
             {
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return false;
         }
 
-        private bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
+        private static bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
             // Not after `new`
             if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
@@ -192,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
         }
 
-        private ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
+        private static ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
         {
             var typeSymbol = typeInferenceInfo.InferredType;
             if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
@@ -203,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return typeSymbol.GetDelegateType(compilation);
         }
 
-        private bool IsPotentialPatternVariableDeclaration(SyntaxToken token)
+        private static bool IsPotentialPatternVariableDeclaration(SyntaxToken token)
         {
             var patternSyntax = token.GetAncestor<PatternSyntax>();
             if (patternSyntax == null)

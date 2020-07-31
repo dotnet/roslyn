@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this INamespaceSymbol globalNamespace,
             string namespaceName)
         {
-            INamespaceSymbol? namespaceSymbol = globalNamespace;
+            var namespaceSymbol = globalNamespace;
             foreach (var name in namespaceName.Split('.'))
             {
                 var members = namespaceSymbol.GetMembers(name);

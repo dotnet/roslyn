@@ -3410,6 +3410,8 @@ print Goodbye, World"
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
         Public Sub PathMapParser()
+            Dim s = PathUtilities.DirectorySeparatorStr
+
             Dim parsedArgs = DefaultParse({"/pathmap:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pathmap:").WithLocation(1, 1)
@@ -3418,23 +3420,28 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
 
-            parsedArgs = DefaultParse({"/pathmap:C:\goo\=/", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({$"/pathmap:abc{s}=/", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("C:\goo\", "/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("abc" & s, "/"), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1,K2=V2", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K1\", "V1\"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K2\", "V2\"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K2" & s, "V2" & s), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:,", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(ImmutableArray.Create(Of KeyValuePair(Of String, String))(), parsedArgs.PathMap)
+
+            parsedArgs = DefaultParse({"/pathmap:,,", "a.vb"}, _baseDirectory)
+            Assert.Equal(1, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
 
             parsedArgs = DefaultParse({"/pathmap:,,,", "a.vb"}, _baseDirectory)
-            Assert.Equal(4, parsedArgs.Errors.Count())
+            Assert.Equal(1, parsedArgs.Errors.Count())
             Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
-            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(1).Code)
-            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(2).Code)
-            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(3).Code)
 
             parsedArgs = DefaultParse({"/pathmap:k=,=v", "a.vb"}, _baseDirectory)
             Assert.Equal(2, parsedArgs.Errors.Count())
@@ -3445,19 +3452,32 @@ print Goodbye, World"
             Assert.Equal(1, parsedArgs.Errors.Count())
             Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
 
+            parsedArgs = DefaultParse({"/pathmap:k=", "a.vb"}, _baseDirectory)
+            Assert.Equal(1, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:=v", "a.vb"}, _baseDirectory)
+            Assert.Equal(1, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+
             parsedArgs = DefaultParse({"/pathmap:""supporting spaces=is hard""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("supporting spaces\", "is hard\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("supporting spaces" & s, "is hard" & s), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1=V 1"",""K 2=V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1""=""V 1"",""K 2""=""V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:""a ==,,b""=""1,,== 2"",""x ==,,y""=""3 4"",", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePairUtil.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
         End Sub
 
         ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
@@ -3472,7 +3492,7 @@ print Goodbye, World"
         <InlineData("/temp/", "C:\temp\", "/temp/", "C:\temp\")>
         Public Sub PathMapKeepsCrossPlatformRoot(expectedFrom As String, expectedTo As String, sourceFrom As String, sourceTo As String)
             Dim pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}"
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({pathmapArg, "a.cs"}, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
+            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({pathmapArg, "a.vb"}, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
             parsedArgs.Errors.Verify()
             Dim expected = New KeyValuePair(Of String, String)(expectedFrom, expectedTo)
             Assert.Equal(expected, parsedArgs.PathMap(0))
@@ -3486,9 +3506,9 @@ print Goodbye, World"
                             Return parsedArgs
                         End Function
             Dim sep = PathUtilities.DirectorySeparatorChar
-            Assert.Equal(New KeyValuePair(Of String, String)("C:\temp/goo" + sep, "/temp\goo" + sep), Parse({"/pathmap:C:\temp/goo=/temp\goo", "a.cs"}).PathMap(0))
-            Assert.Equal(New KeyValuePair(Of String, String)("noslash" + sep, "withoutslash" + sep), Parse({"/pathmap:noslash=withoutslash", "a.cs"}).PathMap(0))
-            Dim doublemap = Parse({"/pathmap:/temp=/goo,/temp/=/bar", "a.cs"}).PathMap
+            Assert.Equal(New KeyValuePair(Of String, String)("C:\temp/goo" + sep, "/temp\goo" + sep), Parse({"/pathmap:C:\temp/goo=/temp\goo", "a.vb"}).PathMap(0))
+            Assert.Equal(New KeyValuePair(Of String, String)("noslash" + sep, "withoutslash" + sep), Parse({"/pathmap:noslash=withoutslash", "a.vb"}).PathMap(0))
+            Dim doublemap = Parse({"/pathmap:/temp=/goo,/temp/=/bar", "a.vb"}).PathMap
             Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/goo/"), doublemap(0))
             Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/bar/"), doublemap(1))
         End Sub
@@ -4867,7 +4887,7 @@ End Class
 
         <Fact()>
         Public Sub BinaryFile()
-            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path
+            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestMetadata.ResourcesNet451.mscorlib).Path
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", binaryPath}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
@@ -9916,7 +9936,7 @@ End Class"
                 defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog
 
             ' We use an analyzer that throws an exception on every analyzer callback.
-            ' So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            ' So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
             Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=True)
 
             Dim dir = Temp.CreateDirectory()
@@ -9939,6 +9959,31 @@ End Class")
             Else
                 Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'", output, StringComparison.Ordinal)
             End If
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub TestAdditionalFileAnalyzer(registerFromInitialize As Boolean)
+            Dim srcDirectory = Temp.CreateDirectory()
+
+            Dim source = "
+Class C
+End Class"
+            Dim srcFile = srcDirectory.CreateFile("a.vb")
+            srcFile.WriteAllText(source)
+
+            Dim additionalText = "Additional Text"
+            Dim additionalFile = srcDirectory.CreateFile("b.txt")
+            additionalFile.WriteAllText(additionalText)
+
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer As DiagnosticAnalyzer = New AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan)
+
+            Dim output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags:={"/additionalfile:" & additionalFile.Path},
+                                      analyzers:=ImmutableArray.Create(analyzer))
+            Assert.Contains("b.txt(1) : warning ID0001", output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(srcDirectory.Path)
         End Sub
     End Class
 

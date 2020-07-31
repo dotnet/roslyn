@@ -47,5 +47,4 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             EditorComponentOnOffOptions.CodeRefactorings,
             EditorComponentOnOffOptions.ShowCodeRefactoringsWhenQueriedForCodeFixes);
     }
-
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -14,41 +16,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            var result = await TryFindAndCacheRemoteTypesAsync(
+            var result = await TryFindRemoteTypesAsync(
                 type, solution, projects, transitive,
                 FunctionId.DependentTypeFinder_FindAndCacheImplementingTypesAsync,
-                nameof(IRemoteDependentTypeFinder.FindAndCacheImplementingTypesAsync),
+                nameof(IRemoteDependentTypeFinder.FindImplementingTypesAsync),
                 cancellationToken).ConfigureAwait(false);
 
             if (result.HasValue)
                 return result.Value;
 
-            return await FindAndCacheImplementingTypesInCurrentProcessAsync(
+            return await FindImplementingTypesInCurrentProcessAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects,
-                transitive ? s_typeToTransitivelyImplementingTypesMap : s_typeToImmediatelyImplementingTypesMap,
-                c => FindWithoutCachingImplementingTypesAsync(type, solution, projects, transitive, c),
-                cancellationToken);
-        }
-
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingImplementingTypesAsync(
+        private static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementingTypesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,

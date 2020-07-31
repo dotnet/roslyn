@@ -1025,7 +1025,6 @@ class $$C { void M() { } }
             TestChildren(code, IsElement("Obsolete"), IsElement("M"))
         End Sub
 
-
 #End Region
 
 #Region "ClassKind tests"
@@ -2188,11 +2187,7 @@ class C
 {
     string Name
     {
-        get
-        {
-            return default;
-        }
-
+        get =&gt; default;
         set
         {
         }
@@ -2203,10 +2198,11 @@ class C
             Await TestAddProperty(
                 code, expected,
                 New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
-                New Dictionary(Of OptionKey2, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement}
-                })
+editorConfig:="
+[*]
+csharp_style_expression_bodied_accessors=false:silent
+csharp_style_expression_bodied_properties=false:silent
+")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2242,22 +2238,17 @@ class C$$
 <Code>
 class C
 {
-    string Name
-    {
-        get
-        {
-            return default;
-        }
-    }
+    string Name =&gt; default;
 }
 </Code>
 
             Await TestAddProperty(
                 code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
-                New Dictionary(Of OptionKey2, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement}
-                })
+editorConfig:="
+[*]
+csharp_style_expression_bodied_accessors=false:silent
+csharp_style_expression_bodied_properties=false:silent
+")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

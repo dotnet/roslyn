@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 new CodeGenerationOptions(
                     contextLocation: typeDeclaration.GetLocation(),
                     options: options,
-                    parseOptions: typeDeclaration.SyntaxTree.Options)).ConfigureAwait(false);
+                    parseOptions: typeDeclaration.SyntaxTree.Options), cancellationToken).ConfigureAwait(false);
         }
 
         private static SyntaxNode GenerateLeftExpression(

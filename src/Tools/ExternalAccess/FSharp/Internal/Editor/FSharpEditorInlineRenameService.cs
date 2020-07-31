@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
@@ -130,6 +131,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public Glyph Glyph => FSharpGlyphHelpers.ConvertTo(_info.Glyph);
 
+        // This property isn't currently supported in F# since it would involve modifying the IFSharpInlineRenameInfo interface.
+        public ImmutableArray<DocumentSpan> DefinitionLocations => default;
+
         public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
             var set = await _info.FindRenameLocationsAsync(optionSet, cancellationToken).ConfigureAwait(false);
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             }
         }
 
-        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
+        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
         {
             return _info.GetConflictEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), replacementText, cancellationToken);
         }
@@ -153,7 +157,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return _info.GetFinalSymbolName(replacementText);
         }
 
-        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
+        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
         {
             return _info.GetReferenceEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), cancellationToken);
         }

@@ -313,6 +313,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// omitted, the object will not be returned to the pool. The behavior of this type if <see cref="Dispose"/> is
         /// called multiple times is undefined.</para>
         /// </remarks>
+        [NonCopyable]
         public struct Releaser : IDisposable
         {
             private readonly Poolable _pooledObject;
@@ -415,6 +416,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             protected override Func<T1, T2, T3, TResult> Bind()
                 => (arg1, arg2, arg3) => UnboundDelegate(arg1, arg2, arg3, Argument);
+        }
+
+        [AttributeUsage(AttributeTargets.Struct)]
+        private sealed class NonCopyableAttribute : Attribute
+        {
         }
     }
 }

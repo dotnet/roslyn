@@ -5,8 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -15,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(ResourcesNet40.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace1(assembly.Modules(0).GlobalNamespace)
 
             Dim baseLine = XElement.Load(New MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes))
@@ -28,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test2()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(ResourcesNet40.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace2(assembly.Modules(0).GlobalNamespace)
 
             Dim baseLine = XElement.Load(New MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes))
@@ -105,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test3()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(ResourcesNet40.mscorlib)
             Dim module0 = assembly.Modules(0)
             Dim globalNS = module0.GlobalNamespace
 
@@ -150,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact()>
         Public Sub Test4()
-            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(ResourcesNet40.mscorlib)
             TestGetMembersOfName(assembly.Modules(0))
 
             Dim assembly2 = LoadFromBytes(TestResources.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase)
