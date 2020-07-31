@@ -81,9 +81,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
         {
-
+            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
+#if !CODE_STYLE
+            // test layer overrides all other layers and workspace kind:
+            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
+            {
+                return service;
+            }
+#endif
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out var service))
+            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
             {
                 return service;
             }

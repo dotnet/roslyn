@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticsClassificationTaggerProviderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/46463"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task Test_FadingSpans()
         {
             var analyzer = new Analyzer();
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {  LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) }
             };
 
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default);
+            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsClassificationTaggerProvider, ClassificationTag>(workspace, analyzerMap);
             var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;

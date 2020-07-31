@@ -2405,7 +2405,7 @@ End Class";
         {
         }
 
-        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default), Shared]
+        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default), Shared, PartNotDiscoverable]
         private class TestLanguageServiceA : ITestLanguageService
         {
             [ImportingConstructor]
@@ -2415,7 +2415,7 @@ End Class";
             }
         }
 
-        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, "Quasimodo"), Shared]
+        [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, "Quasimodo"), Shared, PartNotDiscoverable]
         private class TestLanguageServiceB : ITestLanguageService
         {
             [ImportingConstructor]

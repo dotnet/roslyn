@@ -23,7 +23,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(CSharpVSResources).Assembly,
                 GetType(BasicVSResources).Assembly).
             AddParts(
-                GetType(MockWorkspaceEventListenerProvider),         ' avoid running Solution Crawler
                 GetType(StubVsEditorAdaptersFactoryService)).
             AddExcludedPartTypes(
                 GetType(ServiceHubRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
