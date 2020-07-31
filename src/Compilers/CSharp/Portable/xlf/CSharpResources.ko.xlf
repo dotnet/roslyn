@@ -3197,7 +3197,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract type '{0}'</source>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
         <target state="needs-review-translation">{0}' 추상 클래스 또는 인터페이스의 인스턴스를 만들 수 없습니다.</target>
         <note />
       </trans-unit>

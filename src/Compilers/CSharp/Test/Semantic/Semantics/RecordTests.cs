@@ -19200,10 +19200,10 @@ abstract record C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0144: Cannot create an instance of the abstract type 'C'
+                // (6,16): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         C x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
-                // (7,21): error CS0144: Cannot create an instance of the abstract type 'C'
+                // (7,21): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         var x1 = (C)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
                 );
@@ -19221,10 +19221,10 @@ record B<T> : A<B<T>> {
 ";
             var comp = CreateCompilation(text);
             comp.GetDeclarationDiagnostics().Verify(
-                // (2,8): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
+                // (2,8): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
                 // record A<T> : B<A<T>> { }
                 Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>").WithLocation(2, 8),
-                // (3,8): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
+                // (3,8): error CS0146: Circular base type dependency involving 'A<B<T>>' and 'B<T>'
                 // record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>").WithLocation(3, 8),
                 // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override

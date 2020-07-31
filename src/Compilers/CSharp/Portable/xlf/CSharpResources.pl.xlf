@@ -3197,7 +3197,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract type '{0}'</source>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
         <target state="needs-review-translation">Nie można utworzyć wystąpienia klasy lub interfejsu abstrakcyjnego „{0}”</target>
         <note />
       </trans-unit>
