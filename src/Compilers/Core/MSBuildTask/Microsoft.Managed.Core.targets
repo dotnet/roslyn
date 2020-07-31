@@ -66,12 +66,14 @@
       <!-- Determine if this is a design time build: https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build -->
       <_IsAnyDesignTimeBuild Condition="'$(DesignTimeBuild)' == 'true' or '$(BuildingProject)' != 'true'">true</_IsAnyDesignTimeBuild>
 
-      <!-- Fallback 'RunAnalyzers' to 'RunAnalyzersDuringBuild', the latter property allows users to disable analyzers only for non-design time builds. -->
-      <RunAnalyzers Condition="'$(RunAnalyzers)' == '' and '$(_IsAnyDesignTimeBuild)' != 'true'">$(RunAnalyzersDuringBuild)</RunAnalyzers>
+      <_RunAnalyzers>$(RunAnalyzers)</_RunAnalyzers>
+      
+      <!-- Fallback '_RunAnalyzers' to 'RunAnalyzersDuringBuild', the latter property allows users to disable analyzers only for non-design time builds. -->
+      <_RunAnalyzers Condition="'$(_RunAnalyzers)' == ''">$(RunAnalyzersDuringBuild)</_RunAnalyzers>
     </PropertyGroup>
 
     <!-- Remove all analyzers for non-design time builds. -->
-    <ItemGroup Condition="'$(RunAnalyzers)' == 'false' and '$(_IsAnyDesignTimeBuild)' != 'true'">
+    <ItemGroup Condition="'$(_RunAnalyzers)' == 'false' and '$(_IsAnyDesignTimeBuild)' != 'true'">
       <Analyzer Remove="@(Analyzer)" />
     </ItemGroup>
   </Target>
