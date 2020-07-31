@@ -646,7 +646,7 @@
     <value>Member hides inherited member; missing new keyword</value>
   </data>
   <data name="WRN_NewRequired_Description" xml:space="preserve">
-    <value>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
+    <value>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
   </data>
   <data name="WRN_NewNotRequired" xml:space="preserve">
     <value>The member '{0}' does not hide an accessible member. The new keyword is not required.</value>
@@ -742,13 +742,13 @@
     <value>The type '{0}' has no constructors defined</value>
   </data>
   <data name="ERR_NoNewAbstract" xml:space="preserve">
-    <value>Cannot create an instance of the abstract class or interface '{0}'</value>
+    <value>Cannot create an instance of the abstract type or interface '{0}'</value>
   </data>
   <data name="ERR_ConstValueRequired" xml:space="preserve">
     <value>A const field requires a value to be provided</value>
   </data>
   <data name="ERR_CircularBase" xml:space="preserve">
-    <value>Circular base class dependency involving '{0}' and '{1}'</value>
+    <value>Circular base type dependency involving '{0}' and '{1}'</value>
   </data>
   <data name="ERR_BadDelegateConstructor" xml:space="preserve">
     <value>The delegate '{0}' does not have a valid constructor</value>
@@ -1057,7 +1057,7 @@
     <value>Do not override object.Finalize. Instead, provide a destructor.</value>
   </data>
   <data name="ERR_CallingBaseFinalizeDeprecated" xml:space="preserve">
-    <value>Do not directly call your base class Finalize method. It is called automatically from your destructor.</value>
+    <value>Do not directly call your base type Finalize method. It is called automatically from your destructor.</value>
   </data>
   <data name="WRN_NegativeArrayIndex" xml:space="preserve">
     <value>Indexing an array with a negative index (array indices always start at zero)</value>
@@ -1108,10 +1108,10 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
-    <value>Imported type '{0}' is invalid. It contains a circular base class dependency.</value>
+    <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
   </data>
   <data name="ERR_UseDefViolationOut" xml:space="preserve">
     <value>Use of unassigned out parameter '{0}'</value>
@@ -1264,7 +1264,7 @@
     <value>'{0}': cannot provide arguments when creating an instance of a variable type</value>
   </data>
   <data name="ERR_AbstractSealedStatic" xml:space="preserve">
-    <value>'{0}': an abstract class cannot be sealed or static</value>
+    <value>'{0}': an abstract type cannot be sealed or static</value>
   </data>
   <data name="WRN_AmbiguousXMLReference" xml:space="preserve">
     <value>Ambiguous reference in cref attribute: '{0}'. Assuming '{1}', but could have also matched other overloads including '{2}'.</value>
@@ -1345,7 +1345,7 @@
     <value>Defining an alias named 'global' is ill-advised</value>
   </data>
   <data name="ERR_SealedStaticClass" xml:space="preserve">
-    <value>'{0}': a class cannot be both static and sealed</value>
+    <value>'{0}': a type cannot be both static and sealed</value>
   </data>
   <data name="ERR_PrivateAbstractAccessor" xml:space="preserve">
     <value>'{0}': abstract properties cannot have private accessors</value>
@@ -1494,7 +1494,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot derive from sealed type '{1}'</value>
   </data>
   <data name="ERR_AbstractInConcreteClass" xml:space="preserve">
-    <value>'{0}' is abstract but it is contained in non-abstract class '{1}'</value>
+    <value>'{0}' is abstract but it is contained in non-abstract type '{1}'</value>
   </data>
   <data name="ERR_StaticConstructorWithExplicitConstructorCall" xml:space="preserve">
     <value>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</value>
@@ -1566,7 +1566,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': containing type does not implement interface '{1}'</value>
   </data>
   <data name="ERR_ExplicitInterfaceImplementationInNonClassOrStruct" xml:space="preserve">
-    <value>'{0}': explicit interface declaration can only be declared in a class, struct or interface</value>
+    <value>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</value>
   </data>
   <data name="ERR_MemberNameSameAsType" xml:space="preserve">
     <value>'{0}': member names cannot be the same as their enclosing type</value>
@@ -1593,7 +1593,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>__arglist cannot have an argument of void type</value>
   </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
-    <value>'{0}' is a new virtual member in sealed class '{1}'</value>
+    <value>'{0}' is a new virtual member in sealed type '{1}'</value>
   </data>
   <data name="ERR_ExplicitPropertyAddingAccessor" xml:space="preserve">
     <value>'{0}' adds an accessor not found in interface member '{1}'</value>
@@ -1608,10 +1608,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': user-defined conversions to or from an interface are not allowed</value>
   </data>
   <data name="ERR_ConversionWithBase" xml:space="preserve">
-    <value>'{0}': user-defined conversions to or from a base class are not allowed</value>
+    <value>'{0}': user-defined conversions to or from a base type are not allowed</value>
   </data>
   <data name="ERR_ConversionWithDerived" xml:space="preserve">
-    <value>'{0}': user-defined conversions to or from a derived class are not allowed</value>
+    <value>'{0}': user-defined conversions to or from a derived type are not allowed</value>
   </data>
   <data name="ERR_IdentityConversion" xml:space="preserve">
     <value>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</value>
@@ -1662,7 +1662,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot have instance property or field initializers in structs</value>
   </data>
   <data name="ERR_BadDestructorName" xml:space="preserve">
-    <value>Name of destructor must match name of class</value>
+    <value>Name of destructor must match name of type</value>
   </data>
   <data name="ERR_OnlyClassesCanContainDestructors" xml:space="preserve">
     <value>Only class types can contain destructors</value>
@@ -1785,10 +1785,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Method, operator, or accessor is marked external and has no attributes on it</value>
   </data>
   <data name="WRN_ProtectedInSealed" xml:space="preserve">
-    <value>'{0}': new protected member declared in sealed class</value>
+    <value>'{0}': new protected member declared in sealed type</value>
   </data>
   <data name="WRN_ProtectedInSealed_Title" xml:space="preserve">
-    <value>New protected member declared in sealed class</value>
+    <value>New protected member declared in sealed type</value>
   </data>
   <data name="ERR_InterfaceImplementedByConditional" xml:space="preserve">
     <value>Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'</value>
@@ -2124,7 +2124,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>A partial method cannot have the 'abstract' modifier</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
+    <value>A partial method must be declared within a partial type</value>
   </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
@@ -2501,7 +2501,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid preprocessor expression</value>
   </data>
   <data name="ERR_InvalidMemberDecl" xml:space="preserve">
-    <value>Invalid token '{0}' in class, struct, or interface member declaration</value>
+    <value>Invalid token '{0}' in class, record, struct, or interface member declaration</value>
   </data>
   <data name="ERR_MemberNeedsType" xml:space="preserve">
     <value>Method must have a return type</value>
@@ -2573,7 +2573,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find '{0}' specified for Main method</value>
   </data>
   <data name="ERR_MainClassNotClass" xml:space="preserve">
-    <value>'{0}' specified for Main method must be a non-generic class, struct, or interface</value>
+    <value>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</value>
   </data>
   <data name="ERR_NoMainInClass" xml:space="preserve">
     <value>'{0}' does not have a suitable static 'Main' method</value>
@@ -2894,7 +2894,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonly" xml:space="preserve">
-    <value>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</value>
+    <value>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</value>
   </data>
   <data name="ERR_AssgReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>

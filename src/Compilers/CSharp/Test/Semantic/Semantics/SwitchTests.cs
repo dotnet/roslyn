@@ -997,11 +997,11 @@ class Conv
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator object(Conv C)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 37));
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator object(Conv C)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 37));
         }

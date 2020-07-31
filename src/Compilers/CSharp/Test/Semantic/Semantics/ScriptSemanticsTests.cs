@@ -756,7 +756,7 @@ public E e4;
             CreateSubmission(@"protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"internal A x;", previous: c1).VerifyDiagnostics(
@@ -766,7 +766,7 @@ public E e4;
             CreateSubmission(@"internal protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public A x;", previous: c1).VerifyDiagnostics(
@@ -780,7 +780,7 @@ public E e4;
             CreateSubmission(@"internal protected B x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'B' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public B x;", previous: c1).VerifyDiagnostics(
