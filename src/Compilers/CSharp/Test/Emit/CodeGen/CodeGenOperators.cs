@@ -2277,7 +2277,7 @@ class P
         int errCount = 0;
         var src = new X();
         // QE is not 'executed'
-        var b = false && from x in src select x; // WRN CS0429
+        var b = false && from x in src select x;
         if (src.selectCount == 1)
             errCount++;
 
@@ -2285,19 +2285,17 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
-            // the grammar does not allow a query on the right-hand-side of &&, but we allow it except in strict mode.
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
-                // (23,26): error CS1525: Invalid expression term 'from'
-                //         var b = false && from x in src select x; // WRN CS0429
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from x in src").WithArguments("from").WithLocation(23, 26),
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1),
                 // (4,1): hidden CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(4, 1),
-                // (3,1): hidden CS8019: Unnecessary using directive.
-                // using System.Linq;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
+                // (23,26): warning CS8848: Operator 'from' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var b = false && from x in src select x;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "from x in src").WithArguments("from").WithLocation(23, 26)
                 );
-            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543109")]

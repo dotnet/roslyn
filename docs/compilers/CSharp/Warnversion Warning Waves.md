@@ -21,3 +21,4 @@ The table below describes all of the warnings controlled by warning levels `5` o
 |------------|---------|-------------|
 | CS7023 | 5 | [A static type is used in an 'is' or 'as' expression](https://github.com/dotnet/roslyn/issues/30198) |
 | CS8073 | 5 | [Expression always true (or false) when comparing a struct to null](https://github.com/dotnet/roslyn/issues/45744) |
+| CS8848 | 5 | [Diagnose precedence error with query expression](https://github.com/dotnet/roslyn/issues/30231) |
