@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static RefKind GetRefKindForHashCode(RefKind refKind)
             => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
-        
+
         /// <summary>
         /// Return true if the given type is valid as a calling convention modifier type.
         /// </summary>
