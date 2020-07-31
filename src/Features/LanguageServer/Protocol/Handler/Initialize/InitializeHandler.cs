@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         RangeProvider = true,
                         Legend = new LSP.SemanticTokensLegend
                         {
-                            TokenTypes = SemanticTokensHelpers.TokenTypes,
-                            TokenModifiers = SemanticTokensHelpers.TokenModifiers
+                            TokenTypes = SemanticTokenTypes.AllTypes.ToArray(),
+                            TokenModifiers = SemanticTokensHelpers.GetOrderedSemanticTokenModifiers()
                         }
                     },
                     ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),

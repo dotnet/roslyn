@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
@@ -26,29 +27,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// for limitations in the edits application logic.
     /// </remarks>
     [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName), Shared]
-    internal class SemanticTokensHandler : AbstractSemanticTokensRequestHandler<LSP.SemanticTokensParams, LSP.SemanticTokens>
+    internal class SemanticTokensHandler : AbstractRequestHandler<LSP.SemanticTokensParams, LSP.SemanticTokens>
     {
+        private readonly SemanticTokensCache _tokensCache;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public SemanticTokensHandler(
+            ILspSolutionProvider solutionProvider,
+            SemanticTokensCache tokensCache) : base(solutionProvider)
         {
+            _tokensCache = tokensCache;
         }
 
         public override async Task<LSP.SemanticTokens> HandleRequestAsync(
-            SemanticTokensParams request,
-            SemanticTokensCache tokensCache,
-            ClientCapabilities clientCapabilities,
+            LSP.SemanticTokensParams request,
+            LSP.ClientCapabilities clientCapabilities,
             string? clientName,
             CancellationToken cancellationToken)
         {
-            var previousResultId = tokensCache.Tokens.ResultId == null ? 0 : int.Parse(tokensCache.Tokens.ResultId);
-
-            // Since whole document requests are usually sent upon opening a file, previousRequestId is usually 0.
-            // However, we can't always make this assumption since whole document requests can also be sent in the
-            // case of errors or if LSP finds an edit we sent them too difficult to apply.
-            return await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                request.TextDocument, previousResultId, clientName, SolutionProvider, range: null,
+            Contract.ThrowIfNull(request.TextDocument);
+            var requestId = await _tokensCache.GetNextResultIdAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var tokens = await SemanticTokensHelpers.ComputeSemanticTokensAsync(
+                request.TextDocument, requestId, clientName, SolutionProvider, range: null,
                 cancellationToken).ConfigureAwait(false);
+
+            await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, tokens, cancellationToken).ConfigureAwait(false);
+            return tokens;
         }
     }
 }

@@ -7,7 +7,5 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol
     internal static class RoslynMethods
     {
         public const string ProjectsName = "roslyn/projects";
-        public const string ClassificationsName = "roslyn/classifications";
-        public const string CodeActionPreviewName = "roslyn/codeactionpreview";
     }
 }

@@ -46,26 +46,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken);
         }
-
-        /// <summary>
-        /// Special handler for semantic tokens. Should only be needed to execute handlers that require caching, i.e.
-        /// <see cref="SemanticTokensHandler"/> and <see cref="SemanticTokensEditsHandler"/>.
-        /// </summary>
-        public Task<ResponseType> ExecuteSemanticTokensRequestAsync<RequestType, ResponseType>(
-            string methodName,
-            RequestType request,
-            SemanticTokensCache tokensCache,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken) where RequestType : class
-        {
-            Contract.ThrowIfNull(request);
-            Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
-
-            var handler = (ISemanticTokensRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
-            Contract.ThrowIfNull(handler, string.Format("Semantic request handler not found for method {0}", methodName));
-
-            return handler.HandleRequestAsync(request, tokensCache, clientCapabilities, clientName, cancellationToken);
-        }
     }
 }

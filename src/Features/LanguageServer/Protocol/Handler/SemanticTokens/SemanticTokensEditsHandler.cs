@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
@@ -21,55 +22,61 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// or every time an edit is made by the user.
     /// </summary>
     [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName), Shared]
-    internal class SemanticTokensEditsHandler : AbstractSemanticTokensRequestHandler<LSP.SemanticTokensEditsParams, SemanticTokensEditsResult>
+    internal class SemanticTokensEditsHandler : AbstractRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
     {
+        private readonly SemanticTokensCache _tokensCache;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensEditsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public SemanticTokensEditsHandler(
+            ILspSolutionProvider solutionProvider,
+            SemanticTokensCache tokensCache) : base(solutionProvider)
         {
+            _tokensCache = tokensCache;
         }
 
-        public override async Task<SemanticTokensEditsResult> HandleRequestAsync(
-            SemanticTokensEditsParams request,
-            SemanticTokensCache tokensCache,
-            ClientCapabilities clientCapabilities,
+        public override async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> HandleRequestAsync(
+            LSP.SemanticTokensEditsParams request,
+            LSP.ClientCapabilities clientCapabilities,
             string? clientName,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(request.TextDocument);
+            var resultId = await _tokensCache.GetNextResultIdAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
-            var previousResultId = tokensCache.Tokens.ResultId == null ? 0 : int.Parse(tokensCache.Tokens.ResultId);
             var updatedTokens = await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                request.TextDocument, previousResultId, clientName, SolutionProvider,
+                request.TextDocument, resultId, clientName, SolutionProvider,
                 range: null, cancellationToken).ConfigureAwait(false);
 
-            // If any of the following is true, we do not return any edits and instead only return the fully
-            // computed semantic tokens:
-            // - Previous resultId does not match the cached resultId, or either is null
-            // - Previous document's URI does not match the current document's URI, or either is null
-            // - Previous tokens data or updated tokens data is null
-            if (request.PreviousResultId == null || tokensCache.Tokens.ResultId == null ||
-                request.PreviousResultId != tokensCache.Tokens.ResultId ||
-                request.TextDocument == null || tokensCache.Document == null ||
-                request.TextDocument.Uri != tokensCache.Document.Uri ||
-                tokensCache.Tokens.Data == null || updatedTokens.Data == null)
+            // Getting the cached tokens for the document. If we don't have an applicable cached token set,
+            // we can't calculate edits, so we must return all semantic tokens instead.
+            var cachedTokens = await _tokensCache.GetCachedTokensAsync(
+                request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
+            if (cachedTokens == null)
             {
-                return new SemanticTokensEditsResult(updatedTokens);
+                return updatedTokens;
             }
 
-            var edits = ComputeSemanticTokensEdits(previousResultId, tokensCache.Tokens.Data, updatedTokens.Data);
-            return new SemanticTokensEditsResult(updatedTokens, edits);
+            // The Data property is always populated on the server side, so it should never be null.
+            Contract.ThrowIfNull(cachedTokens.Data);
+            Contract.ThrowIfNull(updatedTokens.Data);
+
+            var edits = ComputeSemanticTokensEdits(resultId, cachedTokens.Data, updatedTokens.Data);
+            await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+            return edits;
         }
 
         /// <summary>
         /// Compares two sets of SemanticTokens and returns the edits between them.
         /// </summary>
         private static LSP.SemanticTokensEdits ComputeSemanticTokensEdits(
-            int previousResultId,
+            string resultId,
             int[] cachedSemanticTokens,
             int[] updatedSemanticTokens)
         {
-            using var _ = ArrayBuilder<SemanticTokensEdit>.GetInstance(out var edits);
+            using var _1 = ArrayBuilder<SemanticTokensEdit>.GetInstance(out var edits);
             var index = 0;
 
             // There are three cases where we might need to create an edit:
@@ -77,15 +84,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             //     Case 2: Cached tokens set is longer than updated tokens set - need to make deletion
             //     Case 3: Updated tokens set is longer than cached tokens set - need to make insertion
 
+            using var _2 = ArrayBuilder<int>.GetInstance(out var currentEdit);
             while (index < cachedSemanticTokens.Length && index < updatedSemanticTokens.Length)
             {
-                // Case 1: Both cached and updated tokens have values at index, but the tokens don't match
+                // Case 1: Both cached and updated tokens have values at index, but the tokens don't match.
+                // We want to make the least number of edits possible, so we keep track of consecutive changes
+                // and report them as a singular edit.
                 if (cachedSemanticTokens[index] != updatedSemanticTokens[index])
                 {
-                    edits.Add(GenerateEdit(start: index, deleteCount: 1, data: new int[] { updatedSemanticTokens[index] }));
+                    currentEdit.Add(updatedSemanticTokens[index]);
+                }
+                else if (!currentEdit.IsEmpty())
+                {
+                    edits.Add(GenerateEdit(
+                        start: index - currentEdit.Count, deleteCount: currentEdit.Count, data: currentEdit.ToArray()));
+                    currentEdit.Clear();
                 }
 
-                index++;
+                index += 1;
+            }
+
+            // Report any edit in progress
+            if (!currentEdit.IsEmpty())
+            {
+                edits.Add(GenerateEdit(
+                    start: index - currentEdit.Count, deleteCount: currentEdit.Count, data: currentEdit.ToArray()));
             }
 
             // Case 2: Cached token set is longer than updated tokens - need to make deletion edit
@@ -100,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 edits.Add(GenerateEdit(start: index, deleteCount: 0, data: updatedSemanticTokens.Skip(index).ToArray()));
             }
 
-            return new SemanticTokensEdits { Edits = edits.ToArray(), ResultId = (previousResultId + 1).ToString() };
+            return new SemanticTokensEdits { Edits = edits.ToArray(), ResultId = resultId };
         }
 
         internal static SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)

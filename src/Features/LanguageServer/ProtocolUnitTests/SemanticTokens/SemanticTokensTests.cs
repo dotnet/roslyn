@@ -9,12 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 {
-    public class SemanticTokensTests : AbstractSemanticTokensTests
+    public class SemanticTokensTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetSemanticTokensAsync()
@@ -29,15 +30,15 @@ static class C { }";
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                               | Modifier
-                       0,     0,     10,   GetTypeIndex(SemanticTokenTypes.Comment),  0,       // '// Comment'
-                       1,     0,     6,    GetTypeIndex(SemanticTokenTypes.Keyword),  0,       // 'static'
-                       0,     7,     5,    GetTypeIndex(SemanticTokenTypes.Keyword),  0,       // 'class'
-                       0,     6,     1,    GetTypeIndex(SemanticTokenTypes.Class),    GetModifierBits(SemanticTokenModifiers.Static, 0), // 'C'
-                       0,     2,     1,    GetTypeIndex(SemanticTokenTypes.Operator), 0,       // '{'
-                       0,     2,     1,    GetTypeIndex(SemanticTokenTypes.Operator), 0,       // '}'
+                    // Line | Char | Len | Token type                                                          | Modifier
+                       0,     0,     10,   SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Comment),  0, // '// Comment'
+                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Keyword),  0, // 'static'
+                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Keyword),  0, // 'class'
+                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Operator), 0, // '{'
+                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Operator), 0, // '}'
                 },
-                ResultId = "1"
+                ResultId = "0"
             };
 
             Assert.Equal(results.Data, expectedResults.Data);
@@ -45,9 +46,9 @@ static class C { }";
         }
 
         private static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(Solution solution, LSP.Location caret)
-            => await GetLanguageServer(solution).ExecuteSemanticTokensRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(
                 LSP.SemanticTokensMethods.TextDocumentSemanticTokensName,
-                CreateSemanticTokensParams(caret), new SemanticTokensCache(), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+                CreateSemanticTokensParams(caret), new LSP.VSClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.SemanticTokensParams CreateSemanticTokensParams(LSP.Location caret)
             => new LSP.SemanticTokensParams
