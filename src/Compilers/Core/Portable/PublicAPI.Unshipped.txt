@@ -1,3 +1,4 @@
+*REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 44 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AdditionalFile.get -> Microsoft.CodeAnalysis.AdditionalText
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
