@@ -228,10 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Full_Asset_Serialization_Desktop()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -272,10 +269,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task MetadataReference_RoundTrip_Test()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            var workspace = new AdhocWorkspace(hostServices);
+            var workspace = new AdhocWorkspace();
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -327,10 +321,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Workspace_RoundTrip_Test_Desktop()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -441,10 +432,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Missing_Analyzer_Serialization_Desktop_Test()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            var workspace = new AdhocWorkspace(hostServices);
+            var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
@@ -479,10 +467,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task RoundTrip_Analyzer_Serialization_Desktop_Test()
         {
             using var tempRoot = new TempRoot();
-            var hostServices = MefHostServices.Create(
-MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
-            var workspace = new AdhocWorkspace(hostServices);
+            var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // actually shadow copy content
@@ -501,11 +487,8 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [Fact]
         public async Task ShadowCopied_Analyzer_Serialization_Desktop_Test()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
             using var tempRoot = new TempRoot();
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
             var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
 
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -521,10 +504,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
         public async Task SnapshotWithIdenticalAnalyzerFiles()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
             using var temp = new TempRoot();
@@ -549,10 +529,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
             var metadata = new MissingMetadataReference();
@@ -571,8 +548,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly));
-
+            var hostServices = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
             using var workspace = new AdhocWorkspace(hostServices);
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 
@@ -613,19 +589,49 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [Fact]
         public async Task TestMetadataXmlDocComment()
         {
-            // portable layer doesn't support xml doc comments
-            // this depends on which layer supports IDocumentationProviderService
-            var xmlDocComment = await GetXmlDocumentAsync(MefHostServices.Create(MefHostServices.DefaultAssemblies));
+            using var tempRoot = new TempRoot();
+            // get original assembly location
+            var mscorlibLocation = typeof(object).Assembly.Location;
+
+            // set up dll and xml doc content
+            var tempDir = tempRoot.CreateDirectory();
+            var tempCorlib = tempDir.CopyFile(mscorlibLocation);
+            var tempCorlibXml = tempDir.CreateFile(Path.ChangeExtension(tempCorlib.Path, "xml"));
+            tempCorlibXml.WriteAllText(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<doc>
+  <assembly>
+    <name>mscorlib</name>
+  </assembly>
+  <members>
+    <member name=""T:System.Object"">
+      <summary>Supports all classes in the .NET Framework class hierarchy and provides low-level services to derived classes. This is the ultimate base class of all classes in the .NET Framework; it is the root of the type hierarchy.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
+    </member>
+  </members>
+</doc>");
+
+            using var workspace = new AdhocWorkspace();
+            var solution = workspace.CurrentSolution
+                .AddProject("Project", "Project.dll", LanguageNames.CSharp)
+                .AddMetadataReference(MetadataReference.CreateFromFile(tempCorlib.Path))
+                .Solution;
+
+            var validator = new SerializationValidator(workspace.Services);
+
+            using var scope = await validator.RemotableDataService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None);
+            // recover solution from given snapshot
+            var recovered = await validator.GetSolutionAsync(scope);
+
+            var compilation = await recovered.Projects.First().GetCompilationAsync(CancellationToken.None);
+            var objectType = compilation.GetTypeByMetadataName("System.Object");
+            var xmlDocComment = objectType.GetDocumentationCommentXml();
+
             Assert.False(string.IsNullOrEmpty(xmlDocComment));
         }
 
         [Fact]
         public void TestEncodingSerialization()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
-
-            var workspace = new AdhocWorkspace(hostServices);
+            var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // test with right serializable encoding
@@ -669,9 +675,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(NullableContextOptions.Warnings).WithMetadataImportOptions(MetadataImportOptions.All);
             var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
 
-            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies);
-
-            var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             VerifyOptions(csharpOptions);
@@ -694,48 +698,6 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
                 Assert.Equal(original, recovered);
             }
-        }
-
-        private static async Task<string> GetXmlDocumentAsync(HostServices services)
-        {
-            using var tempRoot = new TempRoot();
-            // get original assembly location
-            var mscorlibLocation = typeof(object).Assembly.Location;
-
-            // set up dll and xml doc content
-            var tempDir = tempRoot.CreateDirectory();
-            var tempCorlib = tempDir.CopyFile(mscorlibLocation);
-            var tempCorlibXml = tempDir.CreateFile(Path.ChangeExtension(tempCorlib.Path, "xml"));
-            tempCorlibXml.WriteAllText(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<doc>
-  <assembly>
-    <name>mscorlib</name>
-  </assembly>
-  <members>
-    <member name=""T:System.Object"">
-      <summary>Supports all classes in the .NET Framework class hierarchy and provides low-level services to derived classes. This is the ultimate base class of all classes in the .NET Framework; it is the root of the type hierarchy.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
-    </member>
-  </members>
-</doc>");
-
-            // currently portable layer doesn't support xml documment
-            using var workspace = new AdhocWorkspace(services);
-            var solution = workspace.CurrentSolution
-                .AddProject("Project", "Project.dll", LanguageNames.CSharp)
-                .AddMetadataReference(MetadataReference.CreateFromFile(tempCorlib.Path))
-                .Solution;
-
-            var validator = new SerializationValidator(workspace.Services);
-
-            using var scope = await validator.RemotableDataService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None);
-            // recover solution from given snapshot
-            var recovered = await validator.GetSolutionAsync(scope);
-
-            var compilation = await recovered.Projects.First().GetCompilationAsync(CancellationToken.None);
-            var objectType = compilation.GetTypeByMetadataName("System.Object");
-            var xmlDocComment = objectType.GetDocumentationCommentXml();
-
-            return xmlDocComment;
         }
 
         private static async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)

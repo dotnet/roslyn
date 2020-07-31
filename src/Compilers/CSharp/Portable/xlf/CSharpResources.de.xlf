@@ -722,6 +722,16 @@
         <target state="translated">Relationale Muster dürfen nicht für Gleitkomma-NaNs verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Die Zugriffsoptionen "protected", "protected internal" oder "private protected" werden von der Zielruntime für einen Member einer Schnittstelle nicht unterstützt.</target>
@@ -1259,6 +1269,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">Zusammenfügungszuweisung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -2406,6 +2421,16 @@
         <target state="translated">Der Parameter muss beim Beenden einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion">
+        <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
+        <target state="new">Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion_Title">
+        <source>Operator cannot be used here due to precedence.</source>
+        <target state="new">Operator cannot be used here due to precedence.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Eine mit [DoesNotReturn] gekennzeichnete Methode darf nicht zurückgegeben werden.</target>
@@ -2436,9 +2461,29 @@
         <target state="translated">Einige NULL-Eingaben werden vom switch-Ausdruck nicht verarbeitet (nicht umfassender Ausdruck). Das Muster "{0}" wird beispielsweise nicht abgedeckt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="new">The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="new">The switch expression does not handle some null inputs.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
         <target state="translated">Der switch-Ausdruck verarbeitet einige NULL-Eingaben nicht.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="new">The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen_Title">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="new">The switch expression does not handle all possible values of its input type (it is not exhaustive).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
@@ -3017,8 +3062,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">Eine Variable wurde mit demselben Namen deklariert wie eine Variable in einer Basisklasse. Das new-Schlüsselwort wurde jedoch nicht verwendet. Diese Warnung informiert Sie darüber, dass Sie "new" verwenden müssen; die Variable wird deklariert, als wäre "new" in der Deklaration verwendet worden.</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="needs-review-translation">Eine Variable wurde mit demselben Namen deklariert wie eine Variable in einer Basisklasse. Das new-Schlüsselwort wurde jedoch nicht verwendet. Diese Warnung informiert Sie darüber, dass Sie "new" verwenden müssen; die Variable wird deklariert, als wäre "new" in der Deklaration verwendet worden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -3177,8 +3222,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">Es konnte keine Instanz der abstrakten Klasse oder Schnittstelle "{0}" erstellt werden.</target>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
+        <target state="needs-review-translation">Es konnte keine Instanz der abstrakten Klasse oder Schnittstelle "{0}" erstellt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3187,8 +3232,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">Basisklassen-Ringabhängigkeit zwischen "{0}" und "{1}"</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="needs-review-translation">Basisklassen-Ringabhängigkeit zwischen "{0}" und "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">
@@ -3687,8 +3732,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
-        <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">Rufen Sie die Finalize-Methode Ihrer Basisklasse nicht direkt auf, da sie automatisch vom Destruktor aufgerufen wird.</target>
+        <source>Do not directly call your base type Finalize method. It is called automatically from your destructor.</source>
+        <target state="needs-review-translation">Rufen Sie die Finalize-Methode Ihrer Basisklasse nicht direkt auf, da sie automatisch vom Destruktor aufgerufen wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">
@@ -3772,13 +3817,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Der "partial"-Modifizierer kann nur unmittelbar vor "class", "struct", "interface" oder "void" verwendet werden.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <target state="needs-review-translation">Der "partial"-Modifizierer kann nur unmittelbar vor "class", "struct", "interface" oder "void" verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">Der importierte Typ "{0}" ist ungültig. Er enthält eine Basisklassen-Ringabhängigkeit.</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="needs-review-translation">Der importierte Typ "{0}" ist ungültig. Er enthält eine Basisklassen-Ringabhängigkeit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
@@ -4032,8 +4077,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
-        <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'"{0}": Eine abstrakte Klasse kann nicht versiegelt oder statisch sein.</target>
+        <source>'{0}': an abstract type cannot be sealed or static</source>
+        <target state="needs-review-translation">'"{0}": Eine abstrakte Klasse kann nicht versiegelt oder statisch sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -4167,8 +4212,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
-        <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'"{0}": Eine Klasse kann nicht gleichzeitig statisch und versiegelt sein.</target>
+        <source>'{0}': a type cannot be both static and sealed</source>
+        <target state="needs-review-translation">'"{0}": Eine Klasse kann nicht gleichzeitig statisch und versiegelt sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -4406,8 +4451,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'"{0}" ist abstrakt, ist aber in der nicht abstrakten Klasse "{1}" enthalten.</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="needs-review-translation">'"{0}" ist abstrakt, ist aber in der nicht abstrakten Klasse "{1}" enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
@@ -4526,8 +4571,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">{0}: Eine explizite Schnittstellendeklaration kann nur in einer Klasse, einer Struktur oder einer Schnittstelle erfolgen.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">{0}: Eine explizite Schnittstellendeklaration kann nur in einer Klasse, einer Struktur oder einer Schnittstelle erfolgen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -4566,8 +4611,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
-        <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'"{0}" ist ein neuer virtueller Member in einer versiegelten Klasse "{1}".</target>
+        <source>'{0}' is a new virtual member in sealed type '{1}'</source>
+        <target state="needs-review-translation">'"{0}" ist ein neuer virtueller Member in einer versiegelten Klasse "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -4586,13 +4631,13 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'"{0}": Benutzerdefinierte Konvertierungen in eine oder aus einer Basisklasse sind nicht zulässig.</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="needs-review-translation">'"{0}": Benutzerdefinierte Konvertierungen in eine oder aus einer Basisklasse sind nicht zulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'"{0}": Benutzerdefinierte Konvertierungen in eine oder aus einer abgeleiteten Klasse sind nicht zulässig.</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="needs-review-translation">'"{0}": Benutzerdefinierte Konvertierungen in eine oder aus einer abgeleiteten Klasse sind nicht zulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
@@ -4671,8 +4716,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">Der Name des Destruktors muss mit dem Namen der Klasse übereinstimmen.</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">Der Name des Destruktors muss mit dem Namen der Klasse übereinstimmen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">
@@ -4876,13 +4921,13 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'"{0}": In der versiegelten Klasse wurde ein neuer geschützter Member deklariert.</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'"{0}": In der versiegelten Klasse wurde ein neuer geschützter Member deklariert.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">Neues geschütztes Element deklariert in versiegelter Klasse</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">Neues geschütztes Element deklariert in versiegelter Klasse</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -5426,8 +5471,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">Eine partielle Methode muss innerhalb einer partiellen Klasse, einer partiellen Struktur oder einer partiellen Schnittstelle deklariert sein.</target>
+        <source>A partial method must be declared within a partial type</source>
+        <target state="needs-review-translation">Eine partielle Methode muss innerhalb einer partiellen Klasse, einer partiellen Struktur oder einer partiellen Schnittstelle deklariert sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -6050,8 +6095,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">Ungültiges Token "{0}" in Klassen-, Struktur- oder Schnittstellenmemberdeklaration.</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">Ungültiges Token "{0}" in Klassen-, Struktur- oder Schnittstellenmemberdeklaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -6170,8 +6215,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">'"{0}", angegeben für die Main-Methode, muss eine nicht generische Klasse, Struktur oder Schnittstelle sein.</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">'"{0}", angegeben für die Main-Methode, muss eine nicht generische Klasse, Struktur oder Schnittstelle sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -6650,8 +6695,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Einem schreibgeschützten Feld kann nichts zugewiesen werden (außer in einem Konstruktor oder init-only-Setter der Klasse, in der das Feld definiert ist, oder in einem Variableninitialisierer).</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">Einem schreibgeschützten Feld kann nichts zugewiesen werden (außer in einem Konstruktor oder init-only-Setter der Klasse, in der das Feld definiert ist, oder in einem Variableninitialisierer).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -7433,8 +7478,8 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Der Member "{1}" überschreibt "{0}". Zur Laufzeit sind mehrere Kandidaten zum Überschreiben verfügbar. Die aufgerufene Methode ist implementierungsabhängig.</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="needs-review-translation">Der Member "{1}" überschreibt "{0}". Zur Laufzeit sind mehrere Kandidaten zum Überschreiben verfügbar. Die aufgerufene Methode ist implementierungsabhängig.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
