@@ -125,5 +125,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
         Protected Overrides Function IsArrayCreationExpressionOrImplicitArrayCreationExpression(syntaxNode As SyntaxNode) As Boolean
             Throw New NotImplementedException()
         End Function
+
+        Protected Overrides Function GenerateTypeSyntax(symbol As ITypeSymbol) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace

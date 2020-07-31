@@ -154,5 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override bool IsArrayCreationExpressionOrImplicitArrayCreationExpression(SyntaxNode syntaxNode)
             => syntaxNode.IsKind(SyntaxKind.ArrayCreationExpression) || syntaxNode.IsKind(SyntaxKind.ImplicitArrayCreationExpression);
+
+        protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)
+            => symbol.GenerateTypeSyntax(allowVar: false);
     }
 }

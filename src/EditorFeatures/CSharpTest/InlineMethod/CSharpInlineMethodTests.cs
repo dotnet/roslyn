@@ -488,5 +488,37 @@ public class TestClass
         return 1 + 2 + j;
     }
 }");
+        [Fact]
+        public Task TestInlineMethodWithGenericsArguments()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller<U>()
+    {
+        Ca[||]llee<int, U>(1, 2, 3);
+    }
+    private void Callee<T, U>(params T[] i)
+    {
+        System.Console.WriteLine(typeof(T).Name.Length + i.Length + typeof(U).Name.Length);
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller<U>()
+    {
+        int[] i = {
+            1,
+            2,
+            3
+        };
+        System.Console.WriteLine(typeof(int).Name.Length + i.Length + typeof(U).Name.Length);
+    }
+    private void Callee<T, U>(params T[] i)
+    {
+        System.Console.WriteLine(typeof(T).Name.Length + i.Length + typeof(U).Name.Length);
+    }
+}");
     }
 }

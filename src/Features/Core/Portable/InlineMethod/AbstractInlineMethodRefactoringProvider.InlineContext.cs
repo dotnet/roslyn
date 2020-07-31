@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract SyntaxNode GenerateLocalDeclarationStatementWithRightHandExpression(string identifierTokenName, ITypeSymbol type, SyntaxNode expression);
         protected abstract SyntaxNode GenerateLocalDeclarationStatement(string identifierTokenName, ITypeSymbol type);
         protected abstract SyntaxNode GenerateIdentifierNameSyntaxNode(string name);
+        protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
         protected abstract bool IsEmbeddedStatementOwner(SyntaxNode syntaxNode);
         protected abstract bool IsArrayCreationExpressionOrImplicitArrayCreationExpression(SyntaxNode syntaxNode);
 
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpressionSyntaxNode)> LiteralArgumentsInfo { get; }
 
             /// <summary>
-            /// Tracks all the local variables & parameters of callee needed to be replaced by another identifier.
+            /// Tracks all the symbol needs to be replaced by a syntax node.
             /// </summary>
             public ImmutableDictionary<ISymbol, SyntaxNode> ReplacementTable { get; }
 
@@ -99,13 +101,17 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 var paramArguments = argumentsInfo
                     .Where(info => info.parameterSymbol!.IsParams)
                     .ToImmutableArray();
-                // Two cases:
-                // 1. If there is only one input argument array
-                // 2. Arguments are passed separately and they map to one parameter.
-                var isParamArrayHasOneIdentiferArgument =
-                     paramArguments.Length == 1
-                     && semanticModel.GetTypeInfo(paramArguments[0].argumentExpression, cancellationToken).Type.IsArrayType()
-                     && syntaxFacts.IsIdentifierName(paramArguments[0].argumentExpression);
+
+                var isParamArrayHasOneIdentiferArgument = false;
+                var isParamArrayHasOneArrayCreationArgument = false;
+                if (paramArguments.Length == 1)
+                {
+                    isParamArrayHasOneIdentiferArgument =
+                         semanticModel.GetTypeInfo(paramArguments[0].argumentExpression, cancellationToken).Type.IsArrayType()
+                         && syntaxFacts.IsIdentifierName(paramArguments[0].argumentExpression);
+                    isParamArrayHasOneArrayCreationArgument = service.IsArrayCreationExpressionOrImplicitArrayCreationExpression(paramArguments[0].argumentExpression);
+                }
+
                 argumentsInfo = argumentsInfo
                     .Where(info => !info.parameterSymbol!.IsParams)
                     .ToImmutableArray();
@@ -137,17 +143,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     identifierArguments = identifierArguments.Concat(paramArguments[0]);
                 }
 
-                // Find the expression argument (Method call, object creation..)
-                // TODO: Should add all the scenarios here?
+                // Find the expression argument (Method call, object creation, array creation..)
+                // TODO: Should add all the scenarios here? Is there an existing way to find all the scenarios? Like
+                // Conditional expression, CoalesceExpression
                 var expressionArguments = argumentsInfo
-                    .Where(info => syntaxFacts.IsInvocationExpression(info.argumentExpression) || syntaxFacts.IsObjectCreationExpression(info.argumentExpression))
+                    .Where(info =>
+                        syntaxFacts.IsInvocationExpression(info.argumentExpression)
+                        || syntaxFacts.IsObjectCreationExpression(info.argumentExpression)
+                        || service.IsArrayCreationExpressionOrImplicitArrayCreationExpression(info.argumentExpression))
                     .ToImmutableArray();
-                if (!paramArguments.IsEmpty && !isParamArrayHasOneIdentiferArgument)
+
+                if (!paramArguments.IsEmpty && !isParamArrayHasOneIdentiferArgument && !isParamArrayHasOneArrayCreationArgument)
                 {
-                    var arrayInitializer = paramArguments.Length == 1 && service.IsArrayCreationExpressionOrImplicitArrayCreationExpression(paramArguments[0].argumentExpression)
-                        ? paramArguments[0].argumentExpression
-                        : service.GenerateArrayInitializerExpression(paramArguments.Select(info => info.argumentExpression).ToImmutableArray());
+                    var arrayInitializer = service.GenerateArrayInitializerExpression(paramArguments.Select(info => info.argumentExpression).ToImmutableArray());
                     expressionArguments = expressionArguments.Concat((paramArguments[0].parameterSymbol, arrayInitializer, null));
+                }
+                else if (isParamArrayHasOneArrayCreationArgument)
+                {
+                    expressionArguments = expressionArguments.Concat((paramArguments[0].parameterSymbol, paramArguments[0].argumentExpression, null));
                 }
 
                 // Find the out variable declaration argument
@@ -186,9 +199,18 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     variableDeclarationArguments,
                     cancellationToken);
 
-                var replacementTable = renameTable.ToImmutableDictionary(
+                var typeParametersReplacement = calleeMethodSymbol.TypeParameters
+                    .Zip(calleeMethodSymbol.TypeArguments, (parameter, argument) => (parameter, service.GenerateTypeSyntax(argument)))
+                    .ToImmutableArray();
+
+                var replacementTable = renameTable.ToDictionary(
                     keySelector: kvp => kvp.Key,
                     elementSelector: kvp => service.GenerateIdentifierNameSyntaxNode(kvp.Value));
+
+                foreach (var (parameter, syntaxNode) in typeParametersReplacement)
+                {
+                    replacementTable[parameter] = syntaxNode;
+                }
 
                 // Generate the declaration statements needed.
                 var statementsShouldBeInserted = expressionArguments
@@ -206,11 +228,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         .Select(info => service.GenerateLocalDeclarationStatement(info.argumentSymbol!.Name, info.parameterSymbol!.Type)))
                     .ToImmutableArray();
 
-
                 return new InlineMethodContext(
                     statementsShouldBeInserted,
                     literalArgumentsInfo,
-                    replacementTable,
+                    replacementTable.ToImmutableDictionary(),
                     shouldDeclareTempVariableForReturnValue,
                     statementInvokesCallee);
             }
