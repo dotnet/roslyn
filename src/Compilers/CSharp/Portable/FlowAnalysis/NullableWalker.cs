@@ -8026,7 +8026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? false
                 : CheckPossibleNullReceiver(expr);
 
-            SetAnalyzedNullability(node.Expression, new VisitResult(convertedResult, convertedResult.ToTypeWithAnnotations()));
+            SetAnalyzedNullability(node.Expression, new VisitResult(convertedResult, convertedResult.ToTypeWithAnnotations(compilation)));
 
             TypeWithState currentPropertyGetterTypeWithState;
 
@@ -8076,7 +8076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // ResultType should have been set by VisitForEachExpression, called just before this.
             var sourceState = node.EnumeratorInfoOpt == null ? default : ResultType;
-            TypeWithAnnotations sourceType = sourceState.ToTypeWithAnnotations();
+            TypeWithAnnotations sourceType = sourceState.ToTypeWithAnnotations(compilation);
 
 #pragma warning disable IDE0055 // Fix formatting
             var variableLocation = node.Syntax switch
