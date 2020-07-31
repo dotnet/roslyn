@@ -3,7 +3,10 @@
     "Visual Studio Extension": {
       "commandName": "Executable",
       "executablePath": "$(DevEnvDir)devenv.exe",
-      "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log"
+      "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log",
+      "environmentVariables": {
+        " COMPLUS_ZapDisable": "1"
+      }
     },
     "Visual Studio Extension (with Native Debugging)": {
       "commandName": "Executable",

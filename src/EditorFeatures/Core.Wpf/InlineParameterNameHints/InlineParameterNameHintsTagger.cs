@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
         private readonly IThreadingContext _threadingContext;
         private readonly IToolTipService _toolTipService;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingFindUsagesPresenter;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
             _toolTipService = taggerProvider.ToolTipService;
+            _streamingFindUsagesPresenter = taggerProvider.StreamingFindUsagesPresenter;
             _textView = textView;
             _buffer = buffer;
             _tagAggregator = tagAggregator;
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight, Format, _toolTipService, _textView, dataTagSpan, textTag.Key, _threadingContext)));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight, Format, _toolTipService, _textView, dataTagSpan, textTag.Key, _threadingContext, _streamingFindUsagesPresenter)));
                     }
                 }
             }

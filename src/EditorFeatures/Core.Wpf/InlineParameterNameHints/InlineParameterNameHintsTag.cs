@@ -24,6 +24,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 {
@@ -37,22 +38,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
         private SnapshotSpan _span;
-        private SymbolKey _key;
-        private IThreadingContext _threadingContext;
+        private readonly SymbolKey _key;
+        private readonly IThreadingContext _threadingContext;
 
-        [Import]
-        public Lazy<IStreamingFindUsagesPresenter> streamingPresenter { get; }
-
+        public Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
         /// <summary>
         /// Creates the UIElement on call
         /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
         /// </summary>
         /// <param name="text">The name of the parameter associated with the argument</param>
+        [ImportingConstructor]
         private InlineParameterNameHintsTag(FrameworkElement adornment,
                                            IToolTipService toolTipService, ITextView textView,
-                                           SnapshotSpan span, SymbolKey key, IThreadingContext threadingContext)
+                                           SnapshotSpan span, SymbolKey key, IThreadingContext threadingContext,
+                                           Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
             : base(adornment, removalCallback: null, PositionAffinity.Successor)
         {
+            _streamingPresenter = streamingPresenter;
             _textView = textView;
             _key = key;
             _toolTipService = toolTipService;
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 }
             }
 
-            var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(), document, _threadingContext, streamingPresenter);
+            var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(), document, _threadingContext, _streamingPresenter);
             return uiCollection;
         }
 
@@ -105,9 +107,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         }
 
         public static InlineParameterNameHintsTag Create(string text, double lineHeight, TextFormattingRunProperties format, IToolTipService toolTipService, ITextView textView,
-                                           SnapshotSpan span, SymbolKey key, IThreadingContext threadingContext)
+                                           SnapshotSpan span, SymbolKey key, IThreadingContext threadingContext, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
-            return new InlineParameterNameHintsTag(CreateElement(text, lineHeight, format), toolTipService, textView, span, key, threadingContext);
+            return new InlineParameterNameHintsTag(CreateElement(text, lineHeight, format), toolTipService, textView, span, key, threadingContext, streamingPresenter);
         }
 
         private static FrameworkElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format)
@@ -147,13 +149,31 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             var border = sender as Border;
             var uiList = CreateDescriptionAsync().Result;
-            _toolTipService.CreatePresenter(_textView, new ToolTipParameters(false, false, null)).StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
-            e.Handled = true;
-        }
-
-        private void Adornment_ToolTipClosing(object sender, ToolTipEventArgs e)
-        {
-            _toolTipService.CreatePresenter(_textView, new ToolTipParameters(false, false, null)).Dismiss();
+            /*
+            var stackPanel = new StackPanel();
+            foreach (var element in uiList)
+            {
+                var container = element as ContainerElement;
+                foreach (var textElement in container.Elements)
+                {
+                    stackPanel.Children.Add(textElement);
+                }
+            }
+            */
+            //var containerElement = uiList.ElementAt(0) as ContainerElement;
+            //var what = containerElement.GetType();
+            //var tooltip = _viewElementFactoryService.CreateViewElement<UIElement>(_textView, containerElement);
+            //border.ToolTip = tooltip;
+            bool KeepOpen()
+            {
+                var mousePoint = Mouse.GetPosition(border);
+                if (mousePoint.X > border.ActualWidth || mousePoint.X < 0 || mousePoint.Y > border.ActualHeight || mousePoint.Y < 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+            _toolTipService.CreatePresenter(_textView, new ToolTipParameters(true, false, KeepOpen)).StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
             e.Handled = true;
         }
     }

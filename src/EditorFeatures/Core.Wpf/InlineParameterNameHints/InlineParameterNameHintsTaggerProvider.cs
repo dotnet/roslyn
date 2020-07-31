@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
         public readonly IToolTipService ToolTipService;
-        public readonly IViewElementFactoryService ViewElementFactoryService;
+        public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,14 +40,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                                                        IClassificationTypeRegistryService classificationTypeRegistryService,
                                                        IThreadingContext threadingContext,
                                                        IToolTipService toolTipService,
-                                                       IViewElementFactoryService viewElementFactoryService)
+                                                       Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter
+                                                       )
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;
             this.ClassificationTypeRegistryService = classificationTypeRegistryService;
             this.ThreadingContext = threadingContext;
             this.ToolTipService = toolTipService;
-            this.ViewElementFactoryService = viewElementFactoryService;
+            this.StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
