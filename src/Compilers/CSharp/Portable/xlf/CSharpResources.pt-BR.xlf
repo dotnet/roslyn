@@ -3772,7 +3772,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">Declarações parciais de "{0}" não devem especificar classes base diferentes</target>
+        <target state="translated">Declarações parciais de "{0}" não devem especificar classes base diferentes</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3982,7 +3982,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">Não é possível aplicar classe de atributo "{0}" porque ela é genérica</target>
+        <target state="translated">Não é possível aplicar classe de atributo "{0}" porque ela é genérica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4991,7 +4991,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">Não é possível aplicar classe de atributo "{0}" porque ela é abstract</target>
+        <target state="translated">Não é possível aplicar classe de atributo "{0}" porque ela é abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5251,22 +5251,22 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'"{0}": não pode declarar membros de instância em uma classe estática</target>
+        <target state="translated">'"{0}": não pode declarar membros de instância em uma classe estática</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'"{1}": não pode derivar da classe static "{0}"</target>
+        <target state="translated">'"{1}": não pode derivar da classe static "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">Classes static não podem ter construtores de instância</target>
+        <target state="translated">Classes static não podem ter construtores de instância</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">Classes static não podem conter destruidores</target>
+        <target state="translated">Classes static não podem conter destruidores</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7155,12 +7155,12 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">Classe "{0}" não pode ter várias classes base: "{1}" e "{2}"</target>
+        <target state="translated">Classe "{0}" não pode ter várias classes base: "{1}" e "{2}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">Classe base "{0}" deve vir antes de quaisquer interfaces</target>
+        <target state="translated">Classe base "{0}" deve vir antes de quaisquer interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

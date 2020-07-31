@@ -3773,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">{0}' の partial 宣言では、異なる基底クラスを指定してはいけません。</target>
+        <target state="translated">{0}' の partial 宣言では、異なる基底クラスを指定してはいけません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3983,7 +3983,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">ジェネリックであるため属性クラス '{0}' を適用できません</target>
+        <target state="translated">ジェネリックであるため属性クラス '{0}' を適用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4992,7 +4992,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">抽象であるため属性クラス '{0}' を適用できません。</target>
+        <target state="translated">抽象であるため属性クラス '{0}' を適用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5252,22 +5252,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'{0}': 静的クラスでインスタンスのメンバーを宣言することはできません。</target>
+        <target state="translated">'{0}': 静的クラスでインスタンスのメンバーを宣言することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'{1}': 静的クラス '{0}' から派生することはできません。</target>
+        <target state="translated">'{1}': 静的クラス '{0}' から派生することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">静的クラスにはコンストラクターを指定できません。</target>
+        <target state="translated">静的クラスにはコンストラクターを指定できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">静的クラスにデストラクターを含めることはできません。</target>
+        <target state="translated">静的クラスにデストラクターを含めることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7156,12 +7156,12 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">クラス '{0}' は複数の基底クラス ('{1}' と '{2}') を持つことができません。</target>
+        <target state="translated">クラス '{0}' は複数の基底クラス ('{1}' と '{2}') を持つことができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">基底クラス '{0}' は、すべてのインターフェイスより前に指定する必要があります。</target>
+        <target state="translated">基底クラス '{0}' は、すべてのインターフェイスより前に指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

@@ -3773,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">{0}'의 partial 선언에는 서로 다른 기본 클래스를 지정할 수 없습니다.</target>
+        <target state="translated">{0}'의 partial 선언에는 서로 다른 기본 클래스를 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3983,7 +3983,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">제네릭이므로 '{0}' 특성 클래스를 적용할 수 없습니다.</target>
+        <target state="translated">제네릭이므로 '{0}' 특성 클래스를 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4992,7 +4992,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">{0}' 특성 클래스는 abstract이므로 적용할 수 없습니다.</target>
+        <target state="translated">{0}' 특성 클래스는 abstract이므로 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5252,22 +5252,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'{0}': 정적 클래스에 인스턴스 멤버를 선언할 수 없습니다.</target>
+        <target state="translated">'{0}': 정적 클래스에 인스턴스 멤버를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'{1}': 정적 클래스 '{0}'에서 파생될 수 없습니다.</target>
+        <target state="translated">'{1}': 정적 클래스 '{0}'에서 파생될 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">정적 클래스는 인스턴스 생성자를 포함할 수 없습니다.</target>
+        <target state="translated">정적 클래스는 인스턴스 생성자를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">정적 클래스는 소멸자를 포함할 수 없습니다.</target>
+        <target state="translated">정적 클래스는 소멸자를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7156,12 +7156,12 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">{0}' 클래스는 기본 클래스('{1}', '{2}')를 여러 개 포함할 수 없습니다.</target>
+        <target state="translated">{0}' 클래스는 기본 클래스('{1}', '{2}')를 여러 개 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">기본 클래스 '{0}'은(는) 다른 모든 인터페이스보다 앞에 와야 합니다.</target>
+        <target state="translated">기본 클래스 '{0}'은(는) 다른 모든 인터페이스보다 앞에 와야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

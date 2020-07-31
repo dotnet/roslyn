@@ -3773,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">Разделяемые объявления "{0}" не должны указывать различные базовые классы.</target>
+        <target state="translated">Разделяемые объявления "{0}" не должны указывать различные базовые классы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3983,7 +3983,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">Класс атрибута "{0}" не может использоваться, так как он является универсальным.</target>
+        <target state="translated">Класс атрибута "{0}" не может использоваться, так как он является универсальным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4992,7 +4992,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">Не удается использовать класс атрибута "{0}", так как он является абстрактным.</target>
+        <target state="translated">Не удается использовать класс атрибута "{0}", так как он является абстрактным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5252,22 +5252,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'{0}": нельзя объявлять члены экземпляра в статическом классе.</target>
+        <target state="translated">'{0}": нельзя объявлять члены экземпляра в статическом классе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'"{1}": не может быть производным от статического класса "{0}"</target>
+        <target state="translated">'"{1}": не может быть производным от статического класса "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">Статические классы не могут иметь конструкторы экземпляров.</target>
+        <target state="translated">Статические классы не могут иметь конструкторы экземпляров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">Статические классы не могут содержать деструкторы.</target>
+        <target state="translated">Статические классы не могут содержать деструкторы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7156,12 +7156,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">Класс "{0}" не может иметь несколько базовых классов: '{1}" и "{2}"</target>
+        <target state="translated">Класс "{0}" не может иметь несколько базовых классов: '{1}" и "{2}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">Перед интерфейсом должен быть указан базовый класс "{0}".</target>
+        <target state="translated">Перед интерфейсом должен быть указан базовый класс "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

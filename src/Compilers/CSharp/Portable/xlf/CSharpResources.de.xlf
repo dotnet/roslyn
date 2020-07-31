@@ -3773,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">Partielle Deklarationen von "{0}" dürfen keine unterschiedlichen Basisklassen angeben.</target>
+        <target state="translated">Partielle Deklarationen von "{0}" dürfen keine unterschiedlichen Basisklassen angeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3983,7 +3983,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">Die Attributklasse "{0}" kann nicht angewendet werden, da sie generisch ist.</target>
+        <target state="translated">Die Attributklasse "{0}" kann nicht angewendet werden, da sie generisch ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4992,7 +4992,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">Die Attributklasse "{0}" kann nicht angewendet werden, da sie abstrakt ist.</target>
+        <target state="translated">Die Attributklasse "{0}" kann nicht angewendet werden, da sie abstrakt ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5252,22 +5252,22 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'"{0}": Instanzmember können nicht in einer statischen Klasse deklariert werden.</target>
+        <target state="translated">'"{0}": Instanzmember können nicht in einer statischen Klasse deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'"{1}": Von der statischen {0}-Klasse kann nicht abgeleitet werden.</target>
+        <target state="translated">'"{1}": Von der statischen {0}-Klasse kann nicht abgeleitet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">Statische Klassen können keine Instanzenkonstruktoren haben.</target>
+        <target state="translated">Statische Klassen können keine Instanzenkonstruktoren haben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">Statische Klassen können keine Destruktoren enthalten.</target>
+        <target state="translated">Statische Klassen können keine Destruktoren enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7156,12 +7156,12 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">Die {0}-Klasse kann nicht mehrere Basisklassen aufweisen: "{1}" und "{2}"</target>
+        <target state="translated">Die {0}-Klasse kann nicht mehrere Basisklassen aufweisen: "{1}" und "{2}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">Die Basisklasse "{0}" muss vor den Schnittstellen angegeben werden.</target>
+        <target state="translated">Die Basisklasse "{0}" muss vor den Schnittstellen angegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

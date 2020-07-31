@@ -3773,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">“{0}”的分部声明一定不能指定不同的基类</target>
+        <target state="translated">“{0}”的分部声明一定不能指定不同的基类</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3983,7 +3983,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">无法应用特性类“{0}”，因为它是泛型的</target>
+        <target state="translated">无法应用特性类“{0}”，因为它是泛型的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4992,7 +4992,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">无法应用特性类“{0}”，因为它是抽象的</target>
+        <target state="translated">无法应用特性类“{0}”，因为它是抽象的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5252,22 +5252,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'“{0}”: 不能在静态类中声明实例成员</target>
+        <target state="translated">'“{0}”: 不能在静态类中声明实例成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'“{0}”: 无法从静态类“{1}”派生</target>
+        <target state="translated">'“{0}”: 无法从静态类“{1}”派生</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">静态类不能有实例构造函数</target>
+        <target state="translated">静态类不能有实例构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">静态类不能包含析构函数</target>
+        <target state="translated">静态类不能包含析构函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7156,12 +7156,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">类“{0}”不能具有多个基类:“{1}”和“{2}”</target>
+        <target state="translated">类“{0}”不能具有多个基类:“{1}”和“{2}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">基类“{0}”必须在任何接口之前</target>
+        <target state="translated">基类“{0}”必须在任何接口之前</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

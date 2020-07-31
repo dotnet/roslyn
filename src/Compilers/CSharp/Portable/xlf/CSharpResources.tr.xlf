@@ -3773,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">{0}' öğesinin kısmi bildirimleri farklı temel sınıflar belirtmemelidir</target>
+        <target state="translated">{0}' öğesinin kısmi bildirimleri farklı temel sınıflar belirtmemelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3983,7 +3983,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">Genel olduğundan '{0}' öznitelik sınıfı uygulanamaz</target>
+        <target state="translated">Genel olduğundan '{0}' öznitelik sınıfı uygulanamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4992,7 +4992,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">Soyut olduğu için '{0}' öznitelik sınıfı uygulanamıyor</target>
+        <target state="translated">Soyut olduğu için '{0}' öznitelik sınıfı uygulanamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5252,22 +5252,22 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'{0}': bir statik sınıftaki örnek üyeleri ifade edemez</target>
+        <target state="translated">'{0}': bir statik sınıftaki örnek üyeleri ifade edemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'{1}': '{0}' statik sınıfından türetilemiyor</target>
+        <target state="translated">'{1}': '{0}' statik sınıfından türetilemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">Statik sınıflarda örnek oluşturucular olamaz</target>
+        <target state="translated">Statik sınıflarda örnek oluşturucular olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">Statik sınıflar yıkıcı içeremez</target>
+        <target state="translated">Statik sınıflar yıkıcı içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7156,12 +7156,12 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">{0}' sınıfının birden çok temel sınıfı olamaz: '{1}' ve '{2}'</target>
+        <target state="translated">{0}' sınıfının birden çok temel sınıfı olamaz: '{1}' ve '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">Temel sınıf '{0}' tüm arabirimlerden önce gelmelidir</target>
+        <target state="translated">Temel sınıf '{0}' tüm arabirimlerden önce gelmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">

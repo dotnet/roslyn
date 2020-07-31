@@ -3773,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
         <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="needs-review-translation">Částečné deklarace {0} nesmí určovat různé základní třídy.</target>
+        <target state="translated">Částečné deklarace {0} nesmí určovat různé základní třídy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -3983,7 +3983,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCantBeGeneric">
         <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="needs-review-translation">Nejde použít třídu atributů {0}, protože je obecná.</target>
+        <target state="translated">Nejde použít třídu atributů {0}, protože je obecná.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
@@ -4992,7 +4992,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_AbstractAttributeClass">
         <source>Cannot apply attribute class '{0}' because it is abstract</source>
-        <target state="needs-review-translation">Nejde použít třídu atributů {0}, protože je abstraktní.</target>
+        <target state="translated">Nejde použít třídu atributů {0}, protože je abstraktní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
@@ -5252,22 +5252,22 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="needs-review-translation">'{0}: Nejde deklarovat členy instance ve statické třídě.</target>
+        <target state="translated">'{0}: Nejde deklarovat členy instance ve statické třídě.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="needs-review-translation">'{1}: Nejde odvodit ze statické třídy {0}.</target>
+        <target state="translated">'{1}: Nejde odvodit ze statické třídy {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
         <source>Static classes cannot have instance constructors</source>
-        <target state="needs-review-translation">Statické třídy nemůžou mít konstruktory instancí.</target>
+        <target state="translated">Statické třídy nemůžou mít konstruktory instancí.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
         <source>Static classes cannot contain destructors</source>
-        <target state="needs-review-translation">Statické třídy nemůžou obsahovat destruktory.</target>
+        <target state="translated">Statické třídy nemůžou obsahovat destruktory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstantiatingStaticClass">
@@ -7156,12 +7156,12 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_NoMultipleInheritance">
         <source>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</source>
-        <target state="needs-review-translation">Třída {0} nemůže mít víc základních tříd: {1} a {2}.</target>
+        <target state="translated">Třída {0} nemůže mít víc základních tříd: {1} a {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseClassMustBeFirst">
         <source>Base class '{0}' must come before any interfaces</source>
-        <target state="needs-review-translation">Základní třída {0} musí předcházet všem rozhraním.</target>
+        <target state="translated">Základní třída {0} musí předcházet všem rozhraním.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefTypeVar">
