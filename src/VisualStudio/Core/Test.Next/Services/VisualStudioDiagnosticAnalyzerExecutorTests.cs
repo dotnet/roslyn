@@ -242,7 +242,7 @@ End Class";
 
         private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
-            var composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(InProcRemoteHostClientProvider.Factory));
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
             var workspace = (language == LanguageNames.CSharp) ?
                 TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
