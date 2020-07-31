@@ -722,6 +722,16 @@
         <target state="translated">Relační vzory se nedají použít pro hodnotu Není číslo s plovoucí desetinnou čárkou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Cílový modul runtime nepodporuje pro člena rozhraní přístupnost na úrovni Protected, Protected internal nebo Private protected.</target>
@@ -1259,6 +1269,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">slučovací přiřazení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -7463,8 +7478,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Člen {1} potlačuje člen {0}. Za běhu existuje víc kandidátů na potlačení. Volaná metoda závisí na konkrétní implementaci.</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="needs-review-translation">Člen {1} potlačuje člen {0}. Za běhu existuje víc kandidátů na potlačení. Volaná metoda závisí na konkrétní implementaci.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">

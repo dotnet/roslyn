@@ -722,6 +722,16 @@
         <target state="translated">关系模式可能不能用于浮点 NaN。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">目标运行时不支持对接口的成员使用 "protected"、"protected internal" 或 "private protected" 辅助功能。</target>
@@ -1259,6 +1269,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">合并赋值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -7463,8 +7478,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">成员“{1}”重写“{0}”。在运行时有多个重写候选项。此实现取决于将要调用的方法。</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="needs-review-translation">成员“{1}”重写“{0}”。在运行时有多个重写候选项。此实现取决于将要调用的方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">

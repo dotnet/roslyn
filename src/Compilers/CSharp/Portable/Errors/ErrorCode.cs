@@ -1834,6 +1834,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
 
+        ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
+        ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
+
         WRN_SwitchExpressionNotExhaustiveWithWhen = 8846,
         WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
         WRN_PrecedenceInversion = 8848,

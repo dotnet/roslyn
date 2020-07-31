@@ -722,6 +722,16 @@
         <target state="translated">İlişkisel desenler, kayan noktalı NaN için kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Hedef çalışma zamanı, bir arabirim üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemez.</target>
@@ -1259,6 +1269,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">birleştirme ataması</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -7463,8 +7478,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">{1}' üyesi '{0}' öğesini geçersiz kılıyor. Çalışma zamanında birden fazla geçersiz kılma adayı var. Hangi yöntemin çağrılacağı uygulamaya bağımlıdır.</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="needs-review-translation">{1}' üyesi '{0}' öğesini geçersiz kılıyor. Çalışma zamanında birden fazla geçersiz kılma adayı var. Hangi yöntemin çağrılacağı uygulamaya bağımlıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
