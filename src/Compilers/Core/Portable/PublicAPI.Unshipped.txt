@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CommandLineArguments.SkipAnalyzers.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AdditionalFile.get -> Microsoft.CodeAnalysis.AdditionalText
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken

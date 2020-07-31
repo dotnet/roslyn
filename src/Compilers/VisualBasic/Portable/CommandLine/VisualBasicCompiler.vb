@@ -255,10 +255,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
             messageProvider As CommonMessageProvider,
+            skipAnalyzers As Boolean,
             ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
             ByRef generators As ImmutableArray(Of ISourceGenerator))
 
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, analyzers, generators)
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators)
         End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(

@@ -445,5 +445,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
             Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.vb", vbc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void SkipAnalyzersFlag()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.SkipAnalyzers = true;
+            Assert.Equal("/optionstrict:custom /out:test.exe /skipanalyzers+ test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.SkipAnalyzers = false;
+            Assert.Equal("/optionstrict:custom /out:test.exe /skipanalyzers- test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
     }
 }

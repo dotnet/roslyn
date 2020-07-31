@@ -9130,6 +9130,64 @@ public class C { }
         }
 
         [Fact]
+        public void SkipAnalyzersParse()
+        {
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/SKIPANALYZERS+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers- /skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers /skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+        }
+
+        [Theory, CombinatorialData]
+        public void SkipAnalyzersSemantics(bool skipAnalyzers)
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var skipAnalyzersFlag = "/skipanalyzers" + (skipAnalyzers ? "+" : "-");
+            var csc = CreateCSharpCompiler(null, srcDirectory, new[] { skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            if (skipAnalyzers)
+            {
+                Assert.DoesNotContain(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.DoesNotContain(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         [WorkItem(24835, "https://github.com/dotnet/roslyn/issues/24835")]
         public void TestCompilationSuccessIfOnlySuppressedDiagnostics()
         {
@@ -12228,8 +12286,8 @@ generated_code = auto");
             }
         }
 
-        [Fact]
-        public void SourceGenerators_EmbeddedSources()
+        [Theory, CombinatorialData]
+        public void SourceGenerators_EmbeddedSources(bool skipAnalyzers)
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText(@"
@@ -12240,7 +12298,10 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            // Skip analyzers should have no impact on source generator execution.
+            var skipAnalyzersFlag = "/skipAnalyzers" + (skipAnalyzers ? "+" : "-");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe", skipAnalyzersFlag }, generators: new[] { generator }, analyzers: null);
 
             var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
             ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
