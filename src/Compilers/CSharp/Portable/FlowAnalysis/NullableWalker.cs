@@ -2689,7 +2689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = objectInitializer.MemberSymbol;
                         if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                         {
-                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol)symbol!, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
+                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol?)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
                         }
 
                         if (symbol is object)
@@ -3792,6 +3792,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression originalConsequence,
             BoundExpression originalAlternative)
         {
+            Debug.Assert(node.Type is object);
+
             VisitCondition(condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
@@ -3809,7 +3811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, originalAlternative);
                 Join(ref this.State, ref consequenceState);
 
-                TypeSymbol refResultType = node.Type!.SetUnknownNullabilityForReferenceTypes();
+                TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
                 if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
@@ -3886,7 +3888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState;
             if (resultType is null)
             {
-                resultType = node.Type!.SetUnknownNullabilityForReferenceTypes();
+                resultType = node.Type.SetUnknownNullabilityForReferenceTypes();
                 resultState = NullableFlowState.NotNull;
 
                 var resultTypeWithState = TypeWithState.Create(resultType, resultState);
@@ -6694,6 +6696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool fromExplicitCast,
             Location diagnosticLocation)
         {
+            Debug.Assert(operandType.Type is object);
             Debug.Assert(diagnosticLocation != null);
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.Type, targetType.Type, ref useSiteDiagnostics);
@@ -6701,11 +6704,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (assignmentKind == AssignmentKind.Argument)
                 {
-                    ReportNullabilityMismatchInArgument(diagnosticLocation, operandType.Type!, parameterOpt, targetType.Type, forOutput: false);
+                    ReportNullabilityMismatchInArgument(diagnosticLocation, operandType.Type, parameterOpt, targetType.Type, forOutput: false);
                 }
                 else
                 {
-                    ReportNullabilityMismatchInAssignment(diagnosticLocation, operandType.Type!, targetType.Type);
+                    ReportNullabilityMismatchInAssignment(diagnosticLocation, operandType.Type, targetType.Type);
                 }
             }
 
@@ -7198,6 +7201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(invocation is object);
                 Debug.Assert(invocation.BinderOpt is object);
+                Debug.Assert(rightResult.Type is object);
+
                 int n = variables.Count;
                 if (!invocation.InvokedAsExtensionMethod)
                 {
@@ -7206,7 +7211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // update the deconstruct method with any inferred type parameters of the containing type
                     if (deconstructMethod.OriginalDefinition != deconstructMethod)
                     {
-                        deconstructMethod = deconstructMethod.OriginalDefinition.AsMember((NamedTypeSymbol)rightResult.Type!);
+                        deconstructMethod = deconstructMethod.OriginalDefinition.AsMember((NamedTypeSymbol)rightResult.Type);
                     }
                 }
                 else
@@ -8345,7 +8350,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitAwaitExpression(node);
             var awaitableInfo = node.AwaitableInfo;
-            var placeholder = awaitableInfo.AwaitableInstancePlaceholder!;
+            var placeholder = awaitableInfo.AwaitableInstancePlaceholder;
+            Debug.Assert(placeholder is object);
 
             _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>.GetInstance();
             _awaitablePlaceholdersOpt.Add(placeholder, (node.Expression, _visitResult));
