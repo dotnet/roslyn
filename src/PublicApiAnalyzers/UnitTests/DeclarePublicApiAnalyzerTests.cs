@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
 #pragma warning disable CA1305
 
 using System.Globalization;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
+        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, params DiagnosticResult[] expected)
         {
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>
             {
@@ -113,22 +114,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText)
+        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
         {
             await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText);
         }
 
-        private async Task VerifyAdditionalFileFixAsync(string language, string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText)
+        private async Task VerifyAdditionalFileFixAsync(string language, string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
         {
             var test = language == LanguageNames.CSharp
                 ? new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
                 : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
 
             test.TestState.Sources.Add(source);
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, oldUnshippedApiText));
+            if (shippedApiText != null)
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+            if (oldUnshippedApiText != null)
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, oldUnshippedApiText));
 
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText ?? string.Empty));
             test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, newUnshippedApiText));
 
             await test.RunAsync();
@@ -137,7 +140,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         #region Diagnostic tests
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Shipped()
         {
@@ -148,13 +151,15 @@ public class C
 }
 ";
 
-            string shippedText = null;
-            string unshippedText = @"";
+            string? shippedText = null;
+            string? unshippedText = @"";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFileMissing)
+                .WithArguments(DeclarePublicApiAnalyzer.ShippedFileName);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Unshipped()
         {
@@ -165,13 +170,15 @@ public class C
 }
 ";
 
-            string shippedText = @"";
-            string unshippedText = null;
+            string? shippedText = @"";
+            string? unshippedText = null;
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFileMissing)
+                .WithArguments(DeclarePublicApiAnalyzer.UnshippedFileName);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Both()
         {
@@ -182,8 +189,8 @@ public class C
 }
 ";
 
-            string shippedText = null;
-            string unshippedText = null;
+            string? shippedText = null;
+            string? unshippedText = null;
 
             await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
         }
@@ -1248,6 +1255,24 @@ C<T>.Nested.Nested() -> void
         #endregion
 
         #region Fix tests
+
+        [Fact]
+        [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
+        public async Task AnalyzerFileMissing_Both_Fix()
+        {
+            var source = @"
+public class {|RS0016:C|}
+{
+    private C() { }
+}
+";
+
+            string? shippedText = null;
+            string? unshippedText = null;
+            var fixedUnshippedText = @"C";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         [Fact]
         public async Task TestSimpleMissingMember_Fix()
