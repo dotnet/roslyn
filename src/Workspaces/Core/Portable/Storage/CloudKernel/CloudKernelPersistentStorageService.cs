@@ -131,19 +131,19 @@ namespace Microsoft.CodeAnalysis.Storage.CloudKernel
 
         public async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
         {
-            return await WriteChecksumStreamWorkerAsync(GetSolutionKey("checksum", name), checksum, cancellationToken).ConfigureAwait(false) &&
+            return //await WriteChecksumStreamWorkerAsync(GetSolutionKey("checksum", name), checksum, cancellationToken).ConfigureAwait(false) &&
                    await WriteStreamWorkerAsync(GetSolutionKey(checksum.ToString(), name), stream, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
         {
-            return await WriteChecksumStreamWorkerAsync(GetProjectKey(project, "checksum", name), checksum, cancellationToken).ConfigureAwait(false) &&
+            return //await WriteChecksumStreamWorkerAsync(GetProjectKey(project, "checksum", name), checksum, cancellationToken).ConfigureAwait(false) &&
                    await WriteStreamWorkerAsync(GetProjectKey(project, checksum.ToString(), name), stream, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
         {
-            return await WriteChecksumStreamWorkerAsync(GetDocumentKey(document, "checksum", name), checksum, cancellationToken).ConfigureAwait(false) &&
+            return //await WriteChecksumStreamWorkerAsync(GetDocumentKey(document, "checksum", name), checksum, cancellationToken).ConfigureAwait(false) &&
                    await WriteStreamWorkerAsync(GetDocumentKey(document, checksum.ToString(), name), stream, cancellationToken).ConfigureAwait(false);
         }
 

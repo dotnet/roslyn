@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -122,6 +126,124 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await index.SaveAsync(document, cancellationToken).ConfigureAwait(false);
 
             return index;
+        }
+    }
+
+    internal class ProjectSyntaxTreeIndex
+    {
+        private const string PersistenceName = "<ProjectSyntaxTreeIndex>";
+
+        private static readonly ConditionalWeakTable<Project, AsyncLazy<ProjectSyntaxTreeIndex>> _projectToIndex =
+            new ConditionalWeakTable<Project, AsyncLazy<ProjectSyntaxTreeIndex>>();
+
+        private readonly Dictionary<Document, SyntaxTreeIndex> _map;
+
+        public ProjectSyntaxTreeIndex(Dictionary<Document, SyntaxTreeIndex> map)
+        {
+            _map = map;
+        }
+
+        internal static async Task<SyntaxTreeIndex> GetIndexAsync(Document document, CancellationToken cancellationToken)
+        {
+            var indexTask = _projectToIndex.GetValue(document.Project, p => new AsyncLazy<ProjectSyntaxTreeIndex>(c => LoadOrCreateIndexAsync(p, c), cacheResult: true));
+            var index = await indexTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return index._map[document];
+        }
+
+        private static int s_index;
+
+        private static async Task<ProjectSyntaxTreeIndex> LoadOrCreateIndexAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            Console.WriteLine(Interlocked.Increment(ref s_index) + " " + project.Name);
+            var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+
+            var index = await LoadIndexAsync(project, checksum, cancellationToken).ConfigureAwait(false);
+            if (index == null)
+            {
+                index = await CreateIndexAsync(project, cancellationToken).ConfigureAwait(false);
+                await SaveIndexAsync(project, index, checksum, cancellationToken).ConfigureAwait(false);
+            }
+
+            return index;
+        }
+
+        private static async Task<ProjectSyntaxTreeIndex> CreateIndexAsync(Project project, CancellationToken cancellationToken)
+        {
+            var map = new Dictionary<Document, SyntaxTreeIndex>();
+
+            foreach (var document in project.Documents)
+                map.Add(document, await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false));
+
+            return new ProjectSyntaxTreeIndex(map);
+        }
+
+        private static async Task<ProjectSyntaxTreeIndex> LoadIndexAsync(
+            Project project,
+            Checksum checksum,
+            CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+
+            // attempt to load from persisted state
+            using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
+            using var stream = await storage.ReadStreamAsync(project, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
+            using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
+            if (reader != null)
+            {
+                return ReadFrom(project, reader);
+            }
+
+            return null;
+        }
+
+        private static ProjectSyntaxTreeIndex ReadFrom(Project project, ObjectReader reader)
+        {
+            var map = new Dictionary<Document, SyntaxTreeIndex>();
+
+            var count = reader.ReadInt32();
+            for (var i = 0; i < count; i++)
+            {
+                var docId = DocumentId.ReadFrom(reader);
+                var document = project.GetDocument(docId);
+                Contract.ThrowIfNull(document);
+
+                var checksum = Checksum.ReadFrom(reader);
+                var index = SyntaxTreeIndex.ReadFrom(project, reader, checksum);
+                map.Add(document, index);
+            }
+
+            return new ProjectSyntaxTreeIndex(map);
+        }
+
+        private static async Task<bool> SaveIndexAsync(
+            Project project, ProjectSyntaxTreeIndex index, Checksum checksum, CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+
+            using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            {
+                index.WriteTo(writer);
+            }
+
+            stream.Position = 0;
+            return await storage.WriteStreamAsync(project, PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
+        }
+
+        private void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteInt32(_map.Count);
+            foreach (var (doc, docIndex) in _map)
+            {
+                doc.Id.WriteTo(writer);
+                docIndex.Checksum.WriteTo(writer);
+                docIndex.WriteTo(writer);
+            }
         }
     }
 }

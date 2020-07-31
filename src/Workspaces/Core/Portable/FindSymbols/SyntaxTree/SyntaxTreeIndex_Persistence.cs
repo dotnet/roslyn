@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<SyntaxTreeIndex> LoadAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
+            var project = document.Project;
+            var solution = project.Solution;
             var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             try
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
                 if (reader != null)
                 {
-                    return ReadFrom(GetStringTable(document.Project), reader, checksum);
+                    return ReadFrom(project, reader, checksum);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
@@ -68,6 +69,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<bool> SaveAsync(
             Document document, CancellationToken cancellationToken)
         {
+            return false;
+
             var solution = document.Project.Solution;
             var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
@@ -128,9 +131,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _extensionMethodInfo.WriteTo(writer);
         }
 
-        private static SyntaxTreeIndex ReadFrom(
-            StringTable stringTable, ObjectReader reader, Checksum checksum)
+        public static SyntaxTreeIndex ReadFrom(
+            Project project, ObjectReader reader, Checksum checksum)
         {
+            var stringTable = GetStringTable(project);
+
             var literalInfo = LiteralInfo.TryReadFrom(reader);
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
             var contextInfo = ContextInfo.TryReadFrom(reader);
