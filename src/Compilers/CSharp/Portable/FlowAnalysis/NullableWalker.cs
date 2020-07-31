@@ -5656,13 +5656,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (tryAsMemberOfSingleType(containingType, out var result))
                 {
-                    return result!;
+                    return result;
                 }
                 foreach (var @interface in containingType.AllInterfacesNoUseSiteDiagnostics)
                 {
                     if (tryAsMemberOfSingleType(@interface, out result))
                     {
-                        return result!;
+                        return result;
                     }
                 }
             }
@@ -5672,7 +5672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (tryAsMemberOfSingleType(containingType, out var result))
                     {
-                        return result!;
+                        return result;
                     }
                     containingType = containingType.BaseTypeNoUseSiteDiagnostics;
                     if ((object)containingType == null)
@@ -5684,7 +5684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(false); // If this assert fails, add an appropriate test.
             return symbol;
 
-            bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, out Symbol? result)
+            bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, [NotNullWhen(true)] out Symbol? result)
             {
                 if (!singleType.Equals(symbolContainer, TypeCompareKind.AllIgnoreOptions))
                 {
