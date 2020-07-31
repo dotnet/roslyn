@@ -5251,22 +5251,22 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static type</source>
+        <source>'{0}': cannot declare instance members in a static class</source>
         <target state="needs-review-translation">'{0}' : impossible de déclarer des membres d'instance dans une classe static</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static type '{0}'</source>
+        <source>'{1}': cannot derive from static class '{0}'</source>
         <target state="needs-review-translation">'{1}' : dérivation impossible à partir de la classe static '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static types cannot have instance constructors</source>
+        <source>Static classes cannot have instance constructors</source>
         <target state="needs-review-translation">Les classes static ne peuvent pas avoir de constructeurs d'instance</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static types cannot contain destructors</source>
+        <source>Static classes cannot contain destructors</source>
         <target state="needs-review-translation">Les classes static ne peuvent pas contenir de destructeurs</target>
         <note />
       </trans-unit>

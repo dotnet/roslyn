@@ -5251,22 +5251,22 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static type</source>
+        <source>'{0}': cannot declare instance members in a static class</source>
         <target state="needs-review-translation">'{0}': 정적 클래스에 인스턴스 멤버를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static type '{0}'</source>
+        <source>'{1}': cannot derive from static class '{0}'</source>
         <target state="needs-review-translation">'{1}': 정적 클래스 '{0}'에서 파생될 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static types cannot have instance constructors</source>
+        <source>Static classes cannot have instance constructors</source>
         <target state="needs-review-translation">정적 클래스는 인스턴스 생성자를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static types cannot contain destructors</source>
+        <source>Static classes cannot contain destructors</source>
         <target state="needs-review-translation">정적 클래스는 소멸자를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>

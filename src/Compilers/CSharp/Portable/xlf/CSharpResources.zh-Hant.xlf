@@ -5251,22 +5251,22 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static type</source>
+        <source>'{0}': cannot declare instance members in a static class</source>
         <target state="needs-review-translation">'{0}': 不可在靜態類別中宣告執行個體成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static type '{0}'</source>
+        <source>'{1}': cannot derive from static class '{0}'</source>
         <target state="needs-review-translation">'{1}': 不可衍生自靜態類別 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static types cannot have instance constructors</source>
+        <source>Static classes cannot have instance constructors</source>
         <target state="needs-review-translation">靜態類別不能有執行個體建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static types cannot contain destructors</source>
+        <source>Static classes cannot contain destructors</source>
         <target state="needs-review-translation">靜態類別不能包含解構函式</target>
         <note />
       </trans-unit>

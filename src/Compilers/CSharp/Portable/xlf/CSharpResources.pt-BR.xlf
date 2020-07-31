@@ -5250,22 +5250,22 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static type</source>
+        <source>'{0}': cannot declare instance members in a static class</source>
         <target state="needs-review-translation">'"{0}": não pode declarar membros de instância em uma classe estática</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
-        <source>'{1}': cannot derive from static type '{0}'</source>
+        <source>'{1}': cannot derive from static class '{0}'</source>
         <target state="needs-review-translation">'"{1}": não pode derivar da classe static "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
-        <source>Static types cannot have instance constructors</source>
+        <source>Static classes cannot have instance constructors</source>
         <target state="needs-review-translation">Classes static não podem ter construtores de instância</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DestructorInStaticClass">
-        <source>Static types cannot contain destructors</source>
+        <source>Static classes cannot contain destructors</source>
         <target state="needs-review-translation">Classes static não podem conter destruidores</target>
         <note />
       </trans-unit>

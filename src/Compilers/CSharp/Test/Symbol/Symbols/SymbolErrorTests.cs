@@ -12607,25 +12607,25 @@ public partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (5,13): error CS0708: 'NS.Goo.i': cannot declare instance members in a static type
+                // (5,13): error CS0708: 'NS.Goo.i': cannot declare instance members in a static class
                 //         int i;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "i").WithArguments("NS.Goo.i"),
-                // (7,25): error CS0708: 'NS.Goo.P': cannot declare instance members in a static type
+                // (7,25): error CS0708: 'NS.Goo.P': cannot declare instance members in a static class
                 //         internal object P { get; set; }
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P").WithArguments("NS.Goo.P"),
-                // (8,29): error CS0708: 'E': cannot declare instance members in a static type
+                // (8,29): error CS0708: 'E': cannot declare instance members in a static class
                 //         event System.Action E;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E"),
-                // (6,14): error CS0708: 'M': cannot declare instance members in a static type
+                // (6,14): error CS0708: 'M': cannot declare instance members in a static class
                 //         void M() { }
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M"),
-                // (13,11): error CS0708: 'NS.Bar<T>.field': cannot declare instance members in a static type
+                // (13,11): error CS0708: 'NS.Bar<T>.field': cannot declare instance members in a static class
                 //         T field;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "field").WithArguments("NS.Bar<T>.field"),
-                // (15,13): error CS0708: 'NS.Bar<T>.Q': cannot declare instance members in a static type
+                // (15,13): error CS0708: 'NS.Bar<T>.Q': cannot declare instance members in a static class
                 //         int Q { get { return 0; } }
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "Q").WithArguments("NS.Bar<T>.Q"),
-                // (16,32): error CS0708: 'E': cannot declare instance members in a static type
+                // (16,32): error CS0708: 'E': cannot declare instance members in a static class
                 //         event System.Action<T> E;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E"),
                 // (16,32): warning CS0067: The event 'NS.Bar<T>.E' is never used
@@ -12634,7 +12634,7 @@ public partial class C
                 // (8,29): warning CS0067: The event 'NS.Goo.E' is never used
                 //         event System.Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.Goo.E"),
-                // (14,11): error CS0708: 'M': cannot declare instance members in a static type
+                // (14,11): error CS0708: 'M': cannot declare instance members in a static class
                 //         T M(T x) { return x; }
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M"),
                 // (5,13): warning CS0169: The field 'NS.Goo.i' is never used

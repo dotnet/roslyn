@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(baseTypeLocation != null);
                 if (baseType.IsStatic)
                 {
-                    // '{1}': cannot derive from static type '{0}'
+                    // '{1}': cannot derive from static class '{0}'
                     diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
                 }
 
