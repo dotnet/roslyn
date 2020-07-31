@@ -5004,7 +5004,7 @@ namespace A
 
     class C
     {
-        C Instance { get; } => null;
+        C Instance { get; }
 
         async Task M() => await Instance.[|Foo|]();
     }
@@ -5030,7 +5030,7 @@ namespace A
 
     class C
     {
-        C Instance { get; } => null;
+        C Instance { get; }
 
         async Task M() => await Instance.Foo();
     }
@@ -5045,6 +5045,504 @@ namespace B
     static class Extensions
     {
         public static Task Foo(this C instance) => null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningIEnumerator()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IEnumerator<int> GetEnumerator(this C instance) => null;
+    }
+}",
+@"
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IEnumerator<int> GetEnumerator(this C instance) => null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumerator()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}",
+@"
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMissingForExtensionInvalidGetEnumerator()
+        {
+            await TestMissingAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static bool GetEnumerator(this C instance) => null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumeratorWrongAsync()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; };
+
+        void M() { foreach (var i in [|Instance|]); }
+
+        public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+        {
+            return new Enumerator();
+        }
+        public sealed class Enumerator
+        {
+            public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+            public int Current => throw null;
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}",
+@"
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; };
+
+        void M() { foreach (var i in Instance); }
+
+        public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+        {
+            return new Enumerator();
+        }
+        public sealed class Enumerator
+        {
+            public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+            public int Current => throw null;
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMissingForExtensionGetAsyncEnumeratorOnForeach()
+        {
+            await TestMissingAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IAsyncEnumerator<int> GetAsyncEnumerator(this C instance) => null;
+    }
+}" + IAsyncEnumerable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningIAsyncEnumerator()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IAsyncEnumerator<int> GetAsyncEnumerator(this C instance) => null;
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IAsyncEnumerator<int> GetAsyncEnumerator(this C instance) => null;
+    }
+}" + IAsyncEnumerable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumerator()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public Task<bool> MoveNextAsync();
+    }
+}",
+@"
+using System.Threading.Tasks;
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public Task<bool> MoveNextAsync();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMissingForExtensionInvalidGetAsyncEnumerator()
+        {
+            await TestMissingAsync(
+@"
+using System.Threading.Tasks;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static bool GetAsyncEnumerator(this C instance) => null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumeratorWrongAsync()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        Task M() { await foreach (var i in [|Instance|]); }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator();
+        }
+
+        public class Enumerator
+        {
+            public int Current { get; }
+            public bool MoveNext();
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+        public int Current => throw null;
+    }
+}",
+@"
+using System.Threading.Tasks;
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        Task M() { await foreach (var i in Instance); }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator();
+        }
+
+        public class Enumerator
+        {
+            public int Current { get; }
+            public bool MoveNext();
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+        public int Current => throw null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMissingForExtensionGetEnumeratorOnAsyncForeach()
+        {
+            await TestMissingAsync(
+@"
+using System.Threading.Tasks;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IEnumerator<int> GetEnumerator(this C instance) => null;
     }
 }");
         }
