@@ -51,6 +51,32 @@
   </Target>
 
   <!--
+      Target to disable analyzers via an MSBuild property 'RunAnalyzers'. 
+      Note that we remove analyzers only for non-design time builds.
+      Design time builds are background builds inside Visual Studio,
+      see details here: https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md
+      We do not remove analyzers for design time builds to allow users to view the installed analyzers
+      in 'Analyzers' node in the solution explorer and also execute analyzers on-demand with "Run Code Analysis" command.
+      Instead, for design time builds, the VS IDE will read this MSBuild property and skip analyzer execution if it is 'false'.
+  -->
+  <Target Name="_DisableAnalyzers"
+          BeforeTargets="CoreCompile"
+          Condition="'$(RunAnalyzers)' != 'true'">
+    <PropertyGroup>
+      <!-- Determine if this is a design time build: https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build -->
+      <_IsAnyDesignTimeBuild Condition="'$(DesignTimeBuild)' == 'true' or '$(BuildingProject)' != 'true'">true</_IsAnyDesignTimeBuild>
+
+      <!-- Fallback 'RunAnalyzers' to 'RunAnalyzersDuringBuild', the latter property allows users to disable analyzers only for non-design time builds. -->
+      <RunAnalyzers Condition="'$(RunAnalyzers)' == '' and '$(_IsAnyDesignTimeBuild)' != 'true'">$(RunAnalyzersDuringBuild)</RunAnalyzers>
+    </PropertyGroup>
+
+    <!-- Remove all analyzers for non-design time builds. -->
+    <ItemGroup Condition="'$(RunAnalyzers)' == 'false' and '$(_IsAnyDesignTimeBuild)' != 'true'">
+      <Analyzer Remove="@(Analyzer)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
     ========================
     .editorconfig Support
     ========================

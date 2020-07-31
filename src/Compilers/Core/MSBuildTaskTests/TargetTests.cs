@@ -515,6 +515,75 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("Never", noneItems[2].GetMetadataValue("CopyToOutputDirectory"));
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void TestDisableAnalyzers(
+            [CombinatorialValues(true, false, null)] bool? runAnalyzers,
+            [CombinatorialValues(true, false, null)] bool? runAnalyzersDuringBuild,
+            [CombinatorialValues(true, false, null)] bool? designTimeBuild,
+            [CombinatorialValues(true, false, null)] bool? buildingProject)
+        {
+            var runAnalyzersPropertyGroupString = getPropertyGroup("RunAnalyzers", runAnalyzers);
+            var runAnalyzersDuringBuildPropertyGroupString = getPropertyGroup("RunAnalyzersDuringBuild", runAnalyzersDuringBuild);
+            var designTimeBuildPropertyGroupString = getPropertyGroup("DesignTimeBuild", designTimeBuild);
+            var buildingPropertyGroupString = getPropertyGroup("BuildingProject", buildingProject);
+
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+
+{runAnalyzersPropertyGroupString}
+{runAnalyzersDuringBuildPropertyGroupString}
+{designTimeBuildPropertyGroupString}
+{buildingPropertyGroupString}
+
+    <ItemGroup>
+        <Analyzer Include=""Analyzer1.dll"" />
+    </ItemGroup>
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "_DisableAnalyzers", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            // Determine if this is any design time build
+            // https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build
+            var isAnyDesignTimeBuild = designTimeBuild == true || buildingProject != true;
+
+            bool analyzersEnabled;
+            if (isAnyDesignTimeBuild)
+            {
+                // Verify analyzers are never disabled by the target for design time builds.
+                analyzersEnabled = true;
+            }
+            else
+            {
+                // Verify "RunAnalyzers" overrides "RunAnalyzersDuringBuild".
+                // If neither properties are set, analyzers are enabled by default.
+                analyzersEnabled = runAnalyzers ?? runAnalyzersDuringBuild ?? true;
+            }
+
+            var expectedAnalyzerCount = analyzersEnabled ? 1 : 0;
+            var actualAnalyzerCount = instance.GetItems("Analyzer").Count;
+            Assert.Equal(expectedAnalyzerCount, actualAnalyzerCount);
+            return;
+
+            static string getPropertyGroup(string propertyName, bool? propertyValue)
+            {
+                if (!propertyValue.HasValue)
+                {
+                    return string.Empty;
+                }
+
+                return $@"
+    <PropertyGroup>
+        <{propertyName}>{propertyValue.Value}</{propertyName}>
+    </PropertyGroup>";
+            }
+        }
+
         private ProjectInstance CreateProjectInstance(XmlReader reader)
         {
             Project proj = new Project(reader);
