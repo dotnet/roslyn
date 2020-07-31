@@ -153,6 +153,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces,
         System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses,
 
+        System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
+
         Count
     }
 }

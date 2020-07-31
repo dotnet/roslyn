@@ -1015,6 +1015,13 @@ namespace Microsoft.CodeAnalysis
                 (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
+
+                // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,                              // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1141,6 +1148,7 @@ namespace Microsoft.CodeAnalysis
                 "op_Explicit",                              // System_Nullable_T__op_Explicit_ToT
                 "DefaultImplementationsOfInterfaces",       // System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                 "CovariantReturnsOfClasses",                // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

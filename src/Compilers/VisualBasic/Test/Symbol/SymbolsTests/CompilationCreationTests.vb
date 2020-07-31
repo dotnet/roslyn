@@ -95,7 +95,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             For i As Integer = 1 To SpecialType.Count Step 1
                 Dim type As NamedTypeSymbol = c1.Assembly.GetSpecialType(CType(i, SpecialType))
 
-                If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Then
+                If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Or
+                    i = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
                     Assert.Equal(type.Kind, SymbolKind.ErrorType) ' Not available
                 Else
                     Assert.NotEqual(type.Kind, SymbolKind.ErrorType)
