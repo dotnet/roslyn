@@ -527,7 +527,7 @@ namespace System.Runtime.CompilerServices
             var source = @"
 public class Base
 {
-    public virtual string M() => null;
+    public virtual object M() => null;
 }
 public class Derived : Base
 {
@@ -538,7 +538,11 @@ public class Derived : Base
                 source,
                 parseOptions: TestOptions.WithCovariantReturns,
                 references: new[] { CorelibraryWithCovariantReturnSupportButWithoutPreserveBaseOverridesAttribute },
-                targetFramework: TargetFramework.Empty).VerifyDiagnostics(
+                targetFramework: TargetFramework.Empty)
+                .VerifyDiagnostics(
+                    // (8,28): error CS8830: 'Derived.M()': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base.M()'
+                    //     public override string M() => null;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
                 );
         }
 
