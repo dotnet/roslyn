@@ -427,9 +427,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
             // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
             DiagnosticBag compatDiagnostics = analyze(strictAnalysis: false);
+
+            // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
+            // So we just report the compat ones including that error.
+            if (compatDiagnostics.AsEnumerable().Any(d => (ErrorCode)d.Code == ErrorCode.ERR_InsufficientStack))
+            {
+                diagnostics.AddRangeAndFree(compatDiagnostics);
+                strictDiagnostics.Free();
+                return;
+            }
+
+            // If the compat diagnostics did not overflow and we have the same number of diagnostics, we just report the stricter set.
+            // It is OK if the strict analysis had an overflow here, causing the sets to be incomparable: the reported diagnostics will
+            // include the error reporting that fact.
+            if (strictDiagnostics.Count == compatDiagnostics.Count)
+            {
+                diagnostics.AddRangeAndFree(strictDiagnostics);
+                compatDiagnostics.Free();
+                return;
+            }
+
             HashSet<Diagnostic> compatDiagnosticSet = new HashSet<Diagnostic>(compatDiagnostics.AsEnumerable(), SameDiagnosticComparer.Instance);
             compatDiagnostics.Free();
-
             foreach (var diagnostic in strictDiagnostics.AsEnumerable())
             {
                 // If it is a warning (e.g. WRN_AsyncLacksAwaits), or an error that would be reported by the compatible analysis, just report it.
@@ -452,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
                     ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
-                    _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only
+                    _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
 #pragma warning restore format
                 };
 
