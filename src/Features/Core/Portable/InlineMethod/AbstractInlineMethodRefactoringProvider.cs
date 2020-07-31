@@ -3,17 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,6 +19,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal abstract partial class AbstractInlineMethodRefactoringProvider : CodeRefactoringProvider
     {
+        private readonly ISyntaxFacts _syntaxFacts;
+
         protected abstract Task<SyntaxNode?> GetInvocationExpressionSyntaxNodeAsync(CodeRefactoringContext context);
 
         /// <summary>
@@ -28,17 +28,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// </summary>
         protected abstract bool IsMethodContainsOneStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
 
-        /// <summary>
-        /// Extract the expression from the single one statement or Arrow Expression in <param name="calleeMethodDeclarationSyntaxNode"/>.
-        /// </summary>
-        protected abstract SyntaxNode GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
+        protected abstract SyntaxNode GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode, bool shouldGenerateTempVariableForReturnValue);
 
-        protected abstract ImmutableArray<IInlineChange> ComputeInlineChanges(
-            SyntaxNode calleeInvocationExpressionSyntaxNode,
-            SemanticModel semanticModel,
-            IMethodSymbol calleeMethodSymbol,
-            SyntaxNode calleeMethodDeclarationSyntaxNode,
-            CancellationToken cancellationToken);
+        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts)
+        {
+            _syntaxFacts = syntaxFacts;
+        }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -55,7 +50,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var methodSymbol = TryGetBestMatchSymbol(calleeMethodInvocationSyntaxNode, semanticModel, cancellationToken);
+            var methodSymbol = TryGetBestMatchSymbol(semanticModel, calleeMethodInvocationSyntaxNode, cancellationToken);
             if (methodSymbol == null
                 || methodSymbol.DeclaredAccessibility != Accessibility.Private
                 || !methodSymbol.IsOrdinaryMethod())
@@ -101,9 +96,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
         }
 
-        protected static ISymbol? TryGetBestMatchSymbol(
-            SyntaxNode node,
+        public static ISymbol? TryGetBestMatchSymbol(
             SemanticModel semanticModel,
+            SyntaxNode node,
             CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
@@ -120,100 +115,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return null;
         }
 
-        protected static Dictionary<ISymbol, string> ComputeRenameTable(
-            SyntaxNode calleeInvocationExpressionSyntaxNode,
-            SemanticModel semanticModel,
-            SyntaxNode calleeDeclarationSyntaxNode,
-            IParameterSymbol? paramArrayParameter,
-            ImmutableArray<(IParameterSymbol parameterSymbol, string argumentName)> renameParameters,
-            ImmutableArray<IParameterSymbol> expressionParameters,
-            CancellationToken cancellationToken)
-        {
-            var operationVisitor = new VariableDeclaratorOperationVisitor(cancellationToken);
-            var calleeOperation = semanticModel.GetOperation(calleeDeclarationSyntaxNode, cancellationToken);
-            var invocationSpanEnd = calleeInvocationExpressionSyntaxNode.Span.End;
-            var localSymbolNamesOfCaller = semanticModel.LookupSymbols(invocationSpanEnd)
-                .Where(symbol => !symbol.IsInaccessibleLocal(invocationSpanEnd))
-                .Select(symbol => symbol.Name)
-                .ToImmutableHashSet();
-
-            var renameTable = new Dictionary<ISymbol, string>();
-            foreach (var (parameter, argumentName) in renameParameters)
-            {
-                renameTable[parameter] = argumentName;
-            }
-
-            // 1. Make sure after replacing the parameters with the identifier from Caller, there is no variable conflict in callee
-            var calleeParameterNames = renameParameters
-                .Select(parameterAndArgument => parameterAndArgument.argumentName).ToSet();
-            var localSymbolsOfCallee = operationVisitor.FindAllLocalSymbols(calleeOperation);
-
-            foreach (var localSymbol in localSymbolsOfCallee)
-            {
-                var localSymbolName = localSymbol.Name;
-                while (calleeParameterNames.Contains(localSymbolName))
-                {
-                    localSymbolName = GenerateNewName(localSymbolName);
-                }
-
-                renameTable[localSymbol] = localSymbolName;
-                calleeParameterNames.Add(localSymbolName);
-            }
-
-            // 2. Make sure no variable conflict after the parameter is moved to caller
-            //     I. For expression argument, use the parameter name from the callee.
-            foreach (var parameterSymbol in expressionParameters)
-            {
-                var parameterName = parameterSymbol.Name;
-                while (localSymbolNamesOfCaller.Contains(parameterName) || calleeParameterNames.Contains(parameterName))
-                {
-                    parameterName = GenerateNewName(parameterName);
-                }
-
-                renameTable[parameterSymbol] = parameterName;
-                calleeParameterNames.Add(parameterName);
-            }
-
-            //    II. For param array, use the
-            if (paramArrayParameter != null)
-            {
-                var parameterName = paramArrayParameter.Name;
-                while (localSymbolNamesOfCaller.Contains(parameterName) || calleeParameterNames.Contains(parameterName))
-                {
-                    parameterName = GenerateNewName(parameterName);
-                }
-
-                renameTable[paramArrayParameter] = parameterName;
-                calleeParameterNames.Add(parameterName);
-            }
-
-            return renameTable;
-        }
-
-        /// <summary>
-        /// Generate a new identifier name. If <param name="identifierName"/> has a number suffix,
-        /// increase it by 1. Otherwise, append 1 to it.
-        /// </summary>
-        private static string GenerateNewName(string identifierName)
-        {
-            var stack = new Stack<char>();
-            for (var i = identifierName.Length - 1; i >= 0; i--)
-            {
-                var currentCharacter = identifierName[i];
-                if (char.IsNumber(currentCharacter))
-                {
-                    stack.Push(currentCharacter);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            var suffixNumber = stack.IsEmpty() ? 1 : int.Parse(new string(stack.ToArray())) + 1;
-            return identifierName.Substring(0, identifierName.Length - stack.Count) + suffixNumber;
-        }
-
         private async Task<Document> InlineMethodAsync(
             Document document,
             SemanticModel semanticModel,
@@ -223,44 +124,48 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             SyntaxNode root,
             CancellationToken cancellationToken)
         {
-            var replacementChanges = ComputeInlineChanges(
-                calleeMethodInvocationSyntaxNode, semanticModel, calleeMethodSymbol, calleeMethodDeclarationSyntaxNode, cancellationToken);
-
-            var calleeMethodDeclarationNodeEditor = new SyntaxEditor(
+            var inlineContext = InlineMethodContext.GetInlineContext(
+                this,
+                _syntaxFacts,
+                semanticModel,
+                calleeMethodInvocationSyntaxNode,
+                calleeMethodSymbol,
                 calleeMethodDeclarationSyntaxNode,
-                document.Project.Solution.Workspace);
+                cancellationToken);
 
-            foreach (var change in replacementChanges.OfType<ReplaceVariableChange>())
+            var calleeMethodDeclarationNodeEditor = new SyntaxEditor(calleeMethodDeclarationSyntaxNode, document.Project.Solution.Workspace);
+
+            foreach (var (symbol, identifierNameSyntaxNode) in inlineContext.ReplacementTable)
             {
                 await ReplaceAllSyntaxNodesForSymbolAsync(
                     document.Project.Solution,
                     root,
                     calleeMethodDeclarationNodeEditor,
-                    change.Symbol,
-                    change.ReplacementLiteralExpression,
+                    symbol,
+                    identifierNameSyntaxNode,
                     cancellationToken).ConfigureAwait(false);
             }
 
-            foreach (var change in replacementChanges.OfType<IdentifierRenameVariableChange>())
+            foreach (var (parameterSymbol, literalExpressionSyntaxNode) in inlineContext.LiteralArgumentsInfo)
             {
                 await ReplaceAllSyntaxNodesForSymbolAsync(
                     document.Project.Solution,
                     root,
                     calleeMethodDeclarationNodeEditor,
-                    change.Symbol,
-                    change.IdentifierSyntaxNode,
+                    parameterSymbol,
+                    literalExpressionSyntaxNode,
                     cancellationToken).ConfigureAwait(false);
             }
 
-            var inlineMethodBody = GetInlineStatement(calleeMethodDeclarationNodeEditor.GetChangedRoot());
+            var inlineStatement = GetInlineStatement(calleeMethodDeclarationNodeEditor.GetChangedRoot(), inlineContext.ShouldGenerateTempVariableForReturnValue);
 
             var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            foreach (var change in replacementChanges.OfType<ExtractDeclarationChange>())
+            foreach (var statement in inlineContext.StatementsShouldBeInserted)
             {
-                documentEditor.InsertBefore(calleeMethodInvocationSyntaxNode.Parent, change.DeclarationStatement);
+                documentEditor.InsertBefore(inlineContext.StatementInvokesCallee, statement);
             }
 
-            documentEditor.ReplaceNode(calleeMethodInvocationSyntaxNode, inlineMethodBody);
+            documentEditor.ReplaceNode(calleeMethodInvocationSyntaxNode, inlineStatement);
             return documentEditor.GetChangedDocument();
         }
 
@@ -286,39 +191,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         .WithTrailingTrivia(nodeToReplace.GetTrailingTrivia());
                     editor.ReplaceNode(nodeToReplace, replacementNodeWithTrivia);
                 }
-            }
-        }
-
-        private class VariableDeclaratorOperationVisitor : OperationWalker
-        {
-            private readonly CancellationToken _cancellationToken;
-            private readonly HashSet<ILocalSymbol> _localSymbols;
-
-            public VariableDeclaratorOperationVisitor(CancellationToken cancellationToken)
-            {
-                _cancellationToken = cancellationToken;
-                _localSymbols = new HashSet<ILocalSymbol>();
-            }
-
-            public ImmutableArray<ILocalSymbol> FindAllLocalSymbols(IOperation? operation)
-            {
-                if (operation != null)
-                {
-                    Visit(operation);
-                }
-
-                return _localSymbols.ToImmutableArray();
-            }
-
-            public override void Visit(IOperation operation)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                if (operation is IVariableDeclaratorOperation variableDeclaratorOperation)
-                {
-                    _localSymbols.Add(variableDeclaratorOperation.Symbol);
-                }
-
-                base.Visit(operation);
             }
         }
     }

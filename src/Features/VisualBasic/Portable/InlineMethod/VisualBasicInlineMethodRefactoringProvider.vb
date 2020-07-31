@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
@@ -19,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
+            MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
         Protected Overrides Async Function GetInvocationExpressionSyntaxNodeAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode)
@@ -46,7 +48,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return Nothing
         End Function
 
-        Protected Overrides Function GetInlineStatement(calleeMethodDeclarationSyntaxNode As SyntaxNode) As SyntaxNode
+        Protected Overrides Function GetParameterSymbol(semanticModel As SemanticModel, argumentSyntaxNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function IsExpressionStatement(syntaxNode As SyntaxNode) As Boolean
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function GenerateLiteralExpression(typeSymbol As ITypeSymbol, value As Object) As SyntaxNode
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function IsExpressionSyntax(syntaxNode As SyntaxNode) As Boolean
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function GetIdentifierTokenTextFromIdentifierNameSyntax(syntaxNode As SyntaxNode) As String
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function GenerateArrayInitializerExpression(arguments As ImmutableArray(Of SyntaxNode)) As SyntaxNode
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function GenerateLocalDeclarationStatementWithRightHandExpression(identifierTokenName As String, type As ITypeSymbol, expression As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function GenerateLocalDeclarationStatement(identifierTokenName As String, type As ITypeSymbol) As SyntaxNode
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function GenerateIdentifierNameSyntaxNode(name As String) As SyntaxNode
+            Throw New NotImplementedException
+        End Function
+
+        Protected Overrides Function GetInlineStatement(calleeMethodDeclarationSyntaxNode As SyntaxNode, shouldGenerateTempVariableForReturnValue As Boolean) As SyntaxNode
             Dim methodStatementSyntaxNode = TryCast(calleeMethodDeclarationSyntaxNode, MethodStatementSyntax)
             Dim inlineSyntaxNode As SyntaxNode = Nothing
             If methodStatementSyntaxNode IsNot Nothing Then
@@ -80,7 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Return inlineSyntaxNode
         End Function
 
-        Protected Overrides Function ComputeInlineChanges(calleeInvocationExpressionSyntaxNode As SyntaxNode, semanticModel As SemanticModel, calleeMethodSymbol As IMethodSymbol, calleeMethodDeclarationSyntaxNode As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of IInlineChange)
+        Protected Overrides Function IsEmbeddedStatementOwner(syntaxNode As SyntaxNode) As Boolean
+            Throw New NotImplementedException()
+        End Function
+
+        Protected Overrides Function IsArrayCreationExpressionOrImplicitArrayCreationExpression(syntaxNode As SyntaxNode) As Boolean
             Throw New NotImplementedException()
         End Function
     End Class

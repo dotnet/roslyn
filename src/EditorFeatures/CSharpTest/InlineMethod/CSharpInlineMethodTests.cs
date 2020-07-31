@@ -61,7 +61,6 @@ public class TestClass
     private void Callee(int i, int j)
         => System.Console.WriteLine(i + j);
 }",
-                // TODO: Handle the indentation correctly. 
                 @"
 public class TestClass
 {
@@ -157,6 +156,32 @@ public class TestClass
 }");
 
         [Fact]
+        public Task TestInlineMethodWithLiteralValue()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(1, 'y', true, ""Hello"");
+    }
+
+    private void Callee(int i, char c, bool x, string y) =>
+        System.Console.WriteLine(i + (int)c + (x ? 1 : y.Length));
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        System.Console.WriteLine(1 + (int)'y' + (true ? 1 : ""Hello"".Length));
+    }
+
+    private void Callee(int i, char c, bool x, string y) =>
+        System.Console.WriteLine(i + (int)c + (x ? 1 : y.Length));
+}");
+
+        [Fact]
         public Task TestInlineMethodWithIdentiferReplacement()
             => TestInRegularAndScript1Async(
                 @"
@@ -194,7 +219,7 @@ public class TestClass
 {
     private void Caller(float r1, float r2)
     {
-        Cal[||]lee(SomeCaculation(r1), SomeCaculation(r2))
+        Cal[||]lee(SomeCaculation(r1), SomeCaculation(r2));
     }
 
     private void Callee(float s1, float s2)
@@ -236,7 +261,7 @@ public class TestClass
 {
     private void Caller(float s1, float s2)
     {
-        Ca[||]llee(SomeCaculation(s1), SomeCaculation(s2))
+        Ca[||]llee(SomeCaculation(s1), SomeCaculation(s2));
     }
 
     private void Callee(float s1, float s2)
@@ -254,8 +279,8 @@ public class TestClass
 {
     private void Caller(float s1, float s2)
     {
-        float s3 = SomeCaculation(r1);
-        float s4 = SomeCaculation(r2);
+        float s3 = SomeCaculation(s1);
+        float s4 = SomeCaculation(s2);
         System.Console.WriteLine(""This is s1"" + s3 + ""This is s2"" + s4);
     }
 
@@ -271,7 +296,139 @@ public class TestClass
 }");
 
         [Fact]
-        public Task InlineMethodWithVariableExtrationForOut()
+        public Task TestInlineParamsArrayWithArrayImplicitInitializerExpression()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(new int[] {1, 2, 3, 4, 5, 6});
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}"
+,
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int[] x = new int[] {1, 2, 3, 4, 5, 6};
+        System.Console.WriteLine(x.Length);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}");
+
+        [Fact]
+        public Task TestInlineParamsArrayWithArrayInitializerExpression()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(new int[6] {1, 2, 3, 4, 5, 6});
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}"
+,
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int[] x = new int[6] {1, 2, 3, 4, 5, 6};
+        System.Console.WriteLine(x.Length);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}");
+
+        [Fact]
+        public Task TestInlineParamsArrayMethodWithIdentifier()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private void Caller()
+    {
+        var i = new int[] {1, 2, 3, 4, 5};
+        Cal[||]lee(i);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        var i = new int[] {1, 2, 3, 4, 5};
+        System.Console.WriteLine(i.Length);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithParamsArray()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Ca[||]llee(1, 2, 3, 4, 5, 6);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}",
+                // TODO: Is this is the intentional array format?
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int[] x = {
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+        };
+        System.Console.WriteLine(x.Length);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithVariableDeclaration()
             => TestInRegularAndScript1Async(
                 @"
 public class TestClass
@@ -285,8 +442,7 @@ public class TestClass
     {
         z = 10;
     }
-}
-",
+}",
                 @"
 public class TestClass
 {
@@ -300,7 +456,37 @@ public class TestClass
     {
         z = 10;
     }
-}
-");
+}");
+
+        [Fact]
+        public Task TestInlineMethodAsArgument()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        var x = Callee1(Cal[||]lee1(Callee1(Callee1(10))));
+    }
+
+    private int Callee1(int j)
+    {
+        return 1 + 2 + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int j = Callee1(Callee1(10));
+        var x = Callee1(1 + 2 + j);
+    }
+
+    private int Callee1(int j)
+    {
+        return 1 + 2 + j;
+    }
+}");
     }
 }
