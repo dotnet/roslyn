@@ -5,17 +5,15 @@
 #nullable enable
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 {
-    public class SemanticTokensRangeTests : AbstractLanguageServerProtocolTests
+    public class SemanticTokensRangeTests : AbstractSemanticTokensTests
     {
         [Fact]
         public async Task TestGetSemanticTokensRangeAsync()
@@ -33,30 +31,18 @@ static class C { }
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                                         | Modifier
-                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Keyword),  0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Keyword),  0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Operator), 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(SemanticTokenTypes.Operator), 0, // '}'
+                    // Line | Char | Len | Token type                                                              | Modifier
+                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'static'
+                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'class'
+                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '{'
+                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '}'
                 },
                 ResultId = "0"
             };
 
-            Assert.Equal(results.Data, expectedResults.Data);
-            Assert.Equal(results.ResultId, expectedResults.ResultId);
+            Assert.Equal(expectedResults.Data, results.Data);
+            Assert.Equal(expectedResults.ResultId, results.ResultId);
         }
-
-        private static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(Solution solution, LSP.Location caret, LSP.Range range)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(
-                LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
-                CreateSemanticTokensRangeParams(caret, range), new LSP.VSClientCapabilities(), null, CancellationToken.None);
-
-        private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
-            => new LSP.SemanticTokensRangeParams
-            {
-                TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
-                Range = range
-            };
     }
 }

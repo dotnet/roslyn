@@ -26,10 +26,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName), Shared]
     internal class SemanticTokensRangeHandler : AbstractRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
+        private readonly SemanticTokensCache _tokensCache;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensRangeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public SemanticTokensRangeHandler(
+            ILspSolutionProvider solutionProvider,
+            SemanticTokensCache tokensCache) : base(solutionProvider)
         {
+            _tokensCache = tokensCache;
         }
 
         public override async Task<LSP.SemanticTokens> HandleRequestAsync(
@@ -39,14 +44,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument);
+            var requestId = await _tokensCache.GetNextResultIdAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
 
-            // The range handler should not be involved in caching. We don't want to cache partial token results.
-            // In addition, a range request is only ever called with a whole document request, so caching range
-            // results is unnecessary since the whole document handler will cache the results anyway.
-            // We pass in 0 for the previousResultId argument in the call below, but it doesn't really matter
-            // what we pass in since we won't update the cache with these results.
+            // The results from the range handler should not be involved in caching since we don't
+            // want to cache partial token results. In addition, a range request is only ever called
+            // with a whole document request, so caching range results is unnecessary since the whole
+            // document handler will cache the results anyway.
             return await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                request.TextDocument, resultId: "0", clientName, SolutionProvider, request.Range,
+                request.TextDocument, resultId: requestId, clientName, SolutionProvider, request.Range,
                 cancellationToken).ConfigureAwait(false);
         }
     }

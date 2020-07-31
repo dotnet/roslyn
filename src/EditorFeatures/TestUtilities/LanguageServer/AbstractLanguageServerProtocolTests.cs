@@ -292,7 +292,7 @@ namespace Roslyn.Test.Utilities
             UpdateSolutionProvider((TestWorkspace)workspace, newSolution);
         }
 
-        private static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
+        protected static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
         {
             var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
             provider.UpdateSolution(solution);

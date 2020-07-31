@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             int[] cachedSemanticTokens,
             int[] updatedSemanticTokens)
         {
-            using var _1 = ArrayBuilder<SemanticTokensEdit>.GetInstance(out var edits);
+            using var _1 = ArrayBuilder<LSP.SemanticTokensEdit>.GetInstance(out var edits);
             var index = 0;
 
             // There are three cases where we might need to create an edit:
@@ -104,8 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 index += 1;
             }
 
-            // Report any edit in progress
-            if (!currentEdit.IsEmpty())
+            // Report any edit in progress. If step 3 applies, we skip this step since we can just report
+            // one giant edit later on.
+            if (!currentEdit.IsEmpty() && index >= updatedSemanticTokens.Length)
             {
                 edits.Add(GenerateEdit(
                     start: index - currentEdit.Count, deleteCount: currentEdit.Count, data: currentEdit.ToArray()));
@@ -120,14 +121,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // Case 3: Updated tokens set is longer than cached tokens set - need to make insertion edit
             else if (index < updatedSemanticTokens.Length)
             {
-                edits.Add(GenerateEdit(start: index, deleteCount: 0, data: updatedSemanticTokens.Skip(index).ToArray()));
+                // If there are any leftover edits that we haven't reported from case 1, report them
+                // in one giant edit.
+                var data = updatedSemanticTokens.Skip(index - currentEdit.Count).ToArray();
+                edits.Add(GenerateEdit(start: index, deleteCount: 0, data: data));
             }
 
-            return new SemanticTokensEdits { Edits = edits.ToArray(), ResultId = resultId };
+            return new LSP.SemanticTokensEdits { Edits = edits.ToArray(), ResultId = resultId };
         }
 
-        internal static SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)
-            => new SemanticTokensEdit
+        internal static LSP.SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)
+            => new LSP.SemanticTokensEdit
             {
                 Start = start,
                 DeleteCount = deleteCount,
