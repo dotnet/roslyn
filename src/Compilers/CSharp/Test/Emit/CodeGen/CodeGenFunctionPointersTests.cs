@@ -818,7 +818,6 @@ public unsafe class C
         [Fact]
         public void CustomModifierOnReturnType()
         {
-
             var ilSource = @"
 .class public auto ansi beforefieldinit C
        extends[mscorlib] System.Object
@@ -1245,45 +1244,47 @@ class Caller
 }}");
         }
 
-        [ConditionalFact(typeof(x86), typeof(DesktopOnly))]
+        [Fact]
         public void FastCall()
         {
             // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelegate>(TDelegate delegate) to
             // get a function pointer around a native calling convention
-            var source = $@" 
+            var source = @" 
 using System;
 using System.Runtime.InteropServices;
 public unsafe class UnmanagedFunctionPointer 
-{{
+{
     [UnmanagedFunctionPointer(CallingConvention.FastCall)]
     private delegate string CombineStrings(string s1, string s2);
     
     private static string CombineStringsImpl(string s1, string s2)
-    {{
+    {
         return s1 + s2;
-    }}
+    }
 
     public static delegate* unmanaged[Fastcall]<string, string, string> GetFuncPtr()
-    {{
+    {
         var ptr = Marshal.GetFunctionPointerForDelegate((CombineStrings)CombineStringsImpl);
         GC.KeepAlive(ptr);
         return (delegate* unmanaged[Fastcall]<string, string, string>)ptr;
-    }}
-}}
+    }
+}
 class Caller
-{{
+{
     public unsafe static void Main()
-    {{
+    {
         Call(UnmanagedFunctionPointer.GetFuncPtr());
-    }}
+    }
 
     public unsafe static void Call(delegate* unmanaged[Fastcall]<string, string, string> ptr)
-    {{
+    {
         Console.WriteLine(ptr(""Hello"", "" World""));
-    }}
-}}";
+    }
+}";
 
-            var verifier = CompileAndVerifyFunctionPointers(source, expectedOutput: "Hello World");
+            // Fastcall is only supported by Mono on Windows x86, which we do not have a test leg for.
+            // Therefore, we just verify that the emitted IL is what we expect.
+            var verifier = CompileAndVerifyFunctionPointers(source);
             verifier.VerifyIL($"Caller.Call(delegate* unmanaged[Fastcall]<string, string, string>)", @"
 {
   // Code size       24 (0x18)
@@ -1850,41 +1851,42 @@ unsafe class C
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (S V_0, //s
-                delegate*<S*, IntWrapper> V_1)
+                delegate* unmanaged[Thiscall]<S*, IntWrapper> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*, IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
+  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate*<S*, IntWrapper>""
+  IL_001a:  calli      ""delegate* unmanaged[Thiscall]<S*, IntWrapper>""
   IL_001f:  ldfld      ""int IntWrapper.i""
   IL_0024:  call       ""void System.Console.WriteLine(int)""
   IL_0029:  ret
-}");
+}
+");
 
             verifier.VerifyIL("C.TestMultiple()", @"
 {
   // Code size       58 (0x3a)
   .maxstack  3
   .locals init (S V_0, //s
-                delegate*<S*, float, ReturnWrapper> V_1)
+                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
+  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldc.r4     3.5
   IL_001e:  ldloc.1
-  IL_001f:  calli      ""delegate*<S*, float, ReturnWrapper>""
+  IL_001f:  calli      ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>""
   IL_0024:  dup
   IL_0025:  ldfld      ""int ReturnWrapper.i1""
   IL_002a:  call       ""void System.Console.Write(int)""
