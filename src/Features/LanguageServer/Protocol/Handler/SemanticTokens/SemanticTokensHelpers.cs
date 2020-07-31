@@ -206,6 +206,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var tokenLength = textSpan.Length;
 
             // Getting the classified spans that are modifiers.
+            // Since a TextSpan can have multiple ClassifiedSpans, all of the ClassifiedSpans except one (the token)
+            // should be a modifier.
             var modifiers = textSpanToClassifiedSpans.Where(
                 s => ClassificationTypeNames.AdditiveTypeNames.Contains(s.ClassificationType));
 
