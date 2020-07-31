@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -29,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     [UseExportProvider]
     public class SnapshotSerializationTests
     {
+        private static Workspace CreateWorkspace()
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
+
         internal static Solution CreateFullSolution(Workspace workspace)
         {
             var solution = workspace.CurrentSolution;
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Empty()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
 
             var validator = new SerializationValidator(workspace.Services);
@@ -87,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Empty_Serialization()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
 
             var validator = new SerializationValidator(workspace.Services);
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Project()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Project_Serialization()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -139,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var code = "class A { }";
 
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var document = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp).AddDocument("Document", SourceText.From(code));
 
             var validator = new SerializationValidator(workspace.Services);
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var code = "class A { }";
 
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
             var document = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp).AddDocument("Document", SourceText.From(code));
 
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Full()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var firstProjectChecksum = await solution.GetProject(solution.ProjectIds[0]).State.GetChecksumAsync(CancellationToken.None);
@@ -202,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Full_Serialization()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -214,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Full_Asset_Serialization()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -227,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Full_Asset_Serialization_Desktop()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -240,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task CreateSolutionSnapshotId_Duplicate()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = CreateFullSolution(workspace);
 
             // this is just data, one can hold the id outside of using statement. but
@@ -268,7 +272,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task MetadataReference_RoundTrip_Test()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
+
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -281,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task Workspace_RoundTrip_Test()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -320,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task Workspace_RoundTrip_Test_Desktop()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = CreateFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -359,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task OptionSet_Serialization()
         {
-            using var workspace = new AdhocWorkspace()
+            using var workspace = CreateWorkspace()
                 .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
                 .Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic)
                 .Solution.Workspace;
@@ -369,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task OptionSet_Serialization_CustomValue()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
 
             var newQualifyFieldAccessValue = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
             var newQualifyMethodAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
@@ -405,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task Missing_Metadata_Serialization_Test()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new MissingMetadataReference();
@@ -419,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task Missing_Analyzer_Serialization_Test()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
@@ -433,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task Missing_Analyzer_Serialization_Desktop_Test()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
@@ -448,7 +453,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task RoundTrip_Analyzer_Serialization_Test()
         {
             using var tempRoot = new TempRoot();
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
+
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // actually shadow copy content
@@ -469,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var tempRoot = new TempRoot();
 
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // actually shadow copy content
@@ -489,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task ShadowCopied_Analyzer_Serialization_Desktop_Test()
         {
             using var tempRoot = new TempRoot();
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
 
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -505,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
         public async Task SnapshotWithIdenticalAnalyzerFiles()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
             using var temp = new TempRoot();
@@ -530,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
             var metadata = new MissingMetadataReference();
@@ -549,7 +555,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            var hostServices = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
+            var hostServices = FeaturesTestCompositions.Features
+                .WithTestHostParts(TestHost.OutOfProcess)
+                .AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
+
             using var workspace = new AdhocWorkspace(hostServices);
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 
@@ -575,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task EmptyAssetChecksumTest()
         {
-            var document = new AdhocWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
+            var document = CreateWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
             var serializer = document.Project.Solution.Workspace.Services.GetService<ISerializerService>();
 
             var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
@@ -590,7 +599,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task VBParseOptionsInCompilationOptions()
         {
-            var project = new AdhocWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.VisualBasic);
+            var project = CreateWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.VisualBasic);
             project = project.WithCompilationOptions(
                 ((VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions).WithParseOptions((VisualBasic.VisualBasicParseOptions)project.ParseOptions));
 
@@ -622,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
   </members>
 </doc>");
 
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution
                 .AddProject("Project", "Project.dll", LanguageNames.CSharp)
                 .AddMetadataReference(MetadataReference.CreateFromFile(tempCorlib.Path))
@@ -644,7 +653,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public void TestEncodingSerialization()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
+
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // test with right serializable encoding
@@ -688,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(NullableContextOptions.Warnings).WithMetadataImportOptions(MetadataImportOptions.All);
             var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
 
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             VerifyOptions(csharpOptions);
