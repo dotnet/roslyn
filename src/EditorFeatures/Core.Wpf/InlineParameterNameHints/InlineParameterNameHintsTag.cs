@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -21,7 +19,6 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Host;
 using System;
-using System.ComponentModel.Composition;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -40,14 +37,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private SnapshotSpan _span;
         private readonly SymbolKey _key;
         private readonly IThreadingContext _threadingContext;
-
         public Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+
         /// <summary>
         /// Creates the UIElement on call
         /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
         /// </summary>
-        /// <param name="text">The name of the parameter associated with the argument</param>
-        [ImportingConstructor]
+        /// <param name="adornment">The adornment that we are creating</param>
+        /// <param name="toolTipService">The service being used to create the tooltip and match the UI</param>
+        /// <param name="textView">The view of the editor</param>
+        /// <param name="span">The span that has the location of the hint</param>
+        /// <param name="key">The symbolkey associated with each parameter</param>
         private InlineParameterNameHintsTag(FrameworkElement adornment,
                                            IToolTipService toolTipService, ITextView textView,
                                            SnapshotSpan span, SymbolKey key, IThreadingContext threadingContext,
@@ -62,6 +62,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _threadingContext = threadingContext;
             adornment.ToolTip = "Test";
             adornment.ToolTipOpening += Border_ToolTipOpening;
+        }
+
+        public static InlineParameterNameHintsTag Create(string text, double lineHeight, TextFormattingRunProperties format, IToolTipService toolTipService, ITextView textView,
+                                          SnapshotSpan span, SymbolKey key, IThreadingContext threadingContext, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+        {
+            return new InlineParameterNameHintsTag(CreateElement(text, lineHeight, format), toolTipService, textView, span, key, threadingContext, streamingPresenter);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync()
@@ -106,12 +112,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             }
         }
 
-        public static InlineParameterNameHintsTag Create(string text, double lineHeight, TextFormattingRunProperties format, IToolTipService toolTipService, ITextView textView,
-                                           SnapshotSpan span, SymbolKey key, IThreadingContext threadingContext, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
-        {
-            return new InlineParameterNameHintsTag(CreateElement(text, lineHeight, format), toolTipService, textView, span, key, threadingContext, streamingPresenter);
-        }
-
         private static FrameworkElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
@@ -145,25 +145,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             return border;
         }
 
+        /// <summary>
+        /// Determines if the border is being moused over and shows the info accordingly
+        /// </summary>
         private void Border_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
             var border = sender as Border;
             var uiList = CreateDescriptionAsync().Result;
-            /*
-            var stackPanel = new StackPanel();
-            foreach (var element in uiList)
-            {
-                var container = element as ContainerElement;
-                foreach (var textElement in container.Elements)
-                {
-                    stackPanel.Children.Add(textElement);
-                }
-            }
-            */
-            //var containerElement = uiList.ElementAt(0) as ContainerElement;
-            //var what = containerElement.GetType();
-            //var tooltip = _viewElementFactoryService.CreateViewElement<UIElement>(_textView, containerElement);
-            //border.ToolTip = tooltip;
+
             bool KeepOpen()
             {
                 var mousePoint = Mouse.GetPosition(border);
@@ -173,6 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 }
                 return true;
             }
+
             _toolTipService.CreatePresenter(_textView, new ToolTipParameters(true, false, KeepOpen)).StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
             e.Handled = true;
         }
