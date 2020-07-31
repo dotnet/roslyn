@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Iterators handled in IteratorRewriter.cs
                             if (!methodSymbol.IsIterator)
                             {
-                                var boundStatementsWithNullCheck = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
 
                                 if (!boundStatementsWithNullCheck.IsDefault)
                                 {
@@ -1249,8 +1249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers))
                         {
-                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
-
                             var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
                             var emittedBody = GenerateMethodBody(

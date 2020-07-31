@@ -1487,6 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
+#nullable disable
         internal BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
         {
             Debug.Assert((operatorKind == BinaryOperatorKind.Equal) || (operatorKind == BinaryOperatorKind.NotEqual) ||
@@ -1531,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (operatorKind == BinaryOperatorKind.NullableNullEqual || operatorKind == BinaryOperatorKind.NullableNullNotEqual)
             {
-                return RewriteNullableNullEquality(syntax, operatorKind, rewrittenExpr, Literal(ConstantValue.Null, objectType), boolType); 
+                return RewriteNullableNullEquality(syntax, operatorKind, rewrittenExpr, Literal(ConstantValue.Null, objectType), boolType);
             }
             else
             {
@@ -1615,5 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
+        // PROTOTYPE(BangBang): Re-enable annotations
+#nullable enable
     }
 }

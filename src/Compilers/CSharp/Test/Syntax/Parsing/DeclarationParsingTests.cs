@@ -7241,7 +7241,7 @@ class C<T> where T : struct? {}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
         {
             UsingStatement(@"void M(string name!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
@@ -7319,7 +7319,7 @@ class C<T> where T : struct? {}
         }
 
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedArgWithLeadingSpace()
         {
             UsingStatement(@"void M(string name !=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
@@ -7365,7 +7365,7 @@ class C<T> where T : struct? {}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedArgWithLeadingNewLine()
         {
             UsingStatement(@"void M(string name
@@ -7412,7 +7412,7 @@ class C<T> where T : struct? {}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedArgWithTrailingSpace()
         {
             UsingStatement(@"void M(string name!= null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
@@ -7458,7 +7458,7 @@ class C<T> where T : struct? {}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedArgWithTrailingNewLine()
         {
             UsingStatement(@"void M(string name!=
@@ -7505,7 +7505,7 @@ null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticD
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedMethod()
         {
             UsingTree(@"
@@ -7552,7 +7552,7 @@ class C
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedConstructor()
         {
             UsingTree(@"
@@ -7669,7 +7669,7 @@ class Box
             N(SyntaxKind.EndOfFileToken);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestAnonymousDelegateNullChecking()
         {
             // PROTOTYPE : During semantics, make sure this causes an error
@@ -7743,6 +7743,8 @@ Del d = delegate(int k!) { /* ... */ };", options: TestOptions.RegularPreview);
                 }
                 N(SyntaxKind.SemicolonToken);
             }
+        }
+
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList1()
         {
