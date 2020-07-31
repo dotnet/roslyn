@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -60,32 +58,6 @@ namespace Analyzer.Utilities
             }
 
             return success;
-        }
-
-        internal static bool TryGetEnumMemberValues(INamedTypeSymbol enumType, out IList<ulong> values)
-        {
-            Debug.Assert(enumType.TypeKind == TypeKind.Enum);
-
-            values = new List<ulong>();
-            foreach (var member in enumType.GetMembers())
-            {
-                if (!member.IsImplicitlyDeclared && member is IFieldSymbol field)
-                {
-                    if (!field.HasConstantValue)
-                    {
-                        return false;
-                    }
-
-                    if (!TryConvertToUInt64(field.ConstantValue, enumType.EnumUnderlyingType.SpecialType, out ulong convertedValue))
-                    {
-                        return false;
-                    }
-
-                    values.Add(convertedValue);
-                }
-            }
-
-            return true;
         }
 
         public static string GetMemberName(ISymbol symbol)

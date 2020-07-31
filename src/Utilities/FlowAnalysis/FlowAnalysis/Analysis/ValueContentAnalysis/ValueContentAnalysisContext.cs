@@ -26,16 +26,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResult,
+            PointsToAnalysisResult? pointsToAnalysisResult,
             Func<ValueContentAnalysisContext, ValueContentAnalysisResult?> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph? parentControlFlowGraphOpt,
-            InterproceduralValueContentAnalysisData? interproceduralAnalysisDataOpt,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
+            ControlFlowGraph? parentControlFlowGraph,
+            InterproceduralValueContentAnalysisData? interproceduralAnalysisData,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig,
-                  pessimisticAnalysis, predicateAnalysis: true, exceptionPathsAnalysis: false, copyAnalysisResultOpt,
-                  pointsToAnalysisResultOpt, valueContentAnalysisResultOpt: null, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
+                  pessimisticAnalysis, predicateAnalysis: true, exceptionPathsAnalysis: false, copyAnalysisResult,
+                  pointsToAnalysisResult, valueContentAnalysisResult: null, tryGetOrComputeAnalysisResult, parentControlFlowGraph,
+                  interproceduralAnalysisData, interproceduralAnalysisPredicate)
         {
         }
 
@@ -47,30 +47,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResult,
+            PointsToAnalysisResult? pointsToAnalysisResult,
             Func<ValueContentAnalysisContext, ValueContentAnalysisResult?> tryGetOrComputeAnalysisResult,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
         {
             return new ValueContentAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions,
-                interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt,
-                tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
+                interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult,
+                tryGetOrComputeAnalysisResult, parentControlFlowGraph: null, interproceduralAnalysisData: null, interproceduralAnalysisPredicate);
         }
 
         public override ValueContentAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedControlFlowGraph,
             IOperation operation,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            CopyAnalysisResult? copyAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralValueContentAnalysisData? interproceduralAnalysisData)
         {
-            Debug.Assert(valueContentAnalysisResultOpt == null);
+            Debug.Assert(valueContentAnalysisResult == null);
 
             return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
-                PessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
+                PessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
                 InterproceduralAnalysisPredicateOpt);
         }
 

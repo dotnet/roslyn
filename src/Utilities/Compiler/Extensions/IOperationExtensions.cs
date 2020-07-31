@@ -57,22 +57,6 @@ namespace Analyzer.Utilities.Extensions
             return typeInfo.Type as INamedTypeSymbol;
         }
 
-        public static bool HasConstantValue(this IOperation operation, string comparand, StringComparison comparison)
-        {
-            var constantValue = operation.ConstantValue;
-            if (!constantValue.HasValue)
-            {
-                return false;
-            }
-
-            if (operation.Type == null || operation.Type.SpecialType != SpecialType.System_String)
-            {
-                return false;
-            }
-
-            return string.Equals((string)constantValue.Value, comparand, comparison);
-        }
-
         public static bool HasNullConstantValue(this IOperation operation)
         {
             return operation.ConstantValue.HasValue && operation.ConstantValue.Value == null;
@@ -235,10 +219,10 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Gets the first ancestor of this operation with:
         ///  1. Specified OperationKind
-        ///  2. If <paramref name="predicateOpt"/> is non-null, it succeeds for the ancestor.
+        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
         /// Returns null if there is no such ancestor.
         /// </summary>
-        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicateOpt = null)
+        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicate = null)
             where TOperation : class, IOperation
         {
             if (root == null)
@@ -254,9 +238,9 @@ namespace Analyzer.Utilities.Extensions
 
             if (ancestor != null)
             {
-                if (predicateOpt != null && !predicateOpt((TOperation)ancestor))
+                if (predicate != null && !predicate((TOperation)ancestor))
                 {
-                    return GetAncestor(ancestor, ancestorKind, predicateOpt);
+                    return GetAncestor(ancestor, ancestorKind, predicate);
                 }
                 return (TOperation)ancestor;
             }
@@ -393,12 +377,6 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool IsLambdaOrLocalFunctionOrDelegateInvocation(this IInvocationOperation operation)
-            => operation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate();
-
-        public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
-            => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
-
         public static IOperation GetRoot(this IOperation operation)
         {
             while (operation.Parent != null)
@@ -534,6 +512,11 @@ namespace Analyzer.Utilities.Extensions
         {
             return pattern switch
             {
+#if CODEANALYSIS_V3_OR_BETTER
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
+                IDiscardPatternOperation discardPattern => discardPattern.InputType,
+#else
                 IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
                 {
                     ILocalSymbol local => local.Type,
@@ -542,7 +525,7 @@ namespace Analyzer.Utilities.Extensions
 
                     _ => null,
                 },
-
+#endif
                 IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
                 _ => null,
@@ -594,9 +577,24 @@ namespace Analyzer.Utilities.Extensions
             return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
         }
 
-        public static SyntaxNode GetInstance(this IInvocationOperation invocationOperation)
+        public static IOperation? GetInstance(this IInvocationOperation invocationOperation)
+            => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;
+
+        public static SyntaxNode? GetInstanceSyntax(this IInvocationOperation invocationOperation)
+            => invocationOperation.GetInstance()?.Syntax;
+
+        public static ITypeSymbol? GetInstanceType(this IOperation operation)
         {
-            return invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value.Syntax : invocationOperation.Instance.Syntax;
+            IOperation? instance = operation switch
+            {
+                IInvocationOperation invocation => invocation.GetInstance(),
+
+                IPropertyReferenceOperation propertyReference => propertyReference.Instance,
+
+                _ => throw new NotImplementedException()
+            };
+
+            return instance?.WalkDownConversion().Type;
         }
 
         public static ISymbol? GetReferencedMemberOrLocalOrParameter(this IOperation operation)
@@ -622,7 +620,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
-        public static IOperation WalkDownParenthesis(this IOperation operation)
+        public static IOperation WalkDownParentheses(this IOperation operation)
         {
             while (operation is IParenthesizedOperation parenthesizedOperation)
             {
@@ -632,12 +630,7 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        /// <summary>
-        /// Walks up consequtive parenthesized operations until a parent is reached that isn't a parenthesized operation.
-        /// </summary>
-        /// <param name="operation">The starting operation.</param>
-        /// <returns>The outer non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
-        public static IOperation WalkUpParenthesis(this IOperation operation)
+        public static IOperation WalkUpParentheses(this IOperation operation)
         {
             while (operation is IParenthesizedOperation parenthesizedOperation)
             {
@@ -662,11 +655,6 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        /// <summary>
-        /// Walks up consequtive conversion operations until a parent is reached that isn't a conversion operation.
-        /// </summary>
-        /// <param name="operation">The starting operation.</param>
-        /// <returns>The outer non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
         public static IOperation WalkUpConversion(this IOperation operation)
         {
             while (operation is IConversionOperation conversionOperation)
@@ -721,6 +709,78 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return firstFoundArgument != null;
+        }
+
+        public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
+        {
+            var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
+            stack.Add(operation.Children.GetEnumerator());
+
+            while (stack.Any())
+            {
+                var enumerator = stack.Last();
+                stack.RemoveLast();
+                if (enumerator.MoveNext())
+                {
+                    var current = enumerator.Current;
+                    stack.Add(enumerator);
+
+                    if (current != null &&
+                        (descendIntoOperation == null || descendIntoOperation(current)))
+                    {
+                        if (!current.IsImplicit &&
+                            // This prevents non explicit operations like expression to be considered as ok
+                            (current.ConstantValue.HasValue || current.Type != null))
+                        {
+                            return true;
+                        }
+                        stack.Add(current.Children.GetEnumerator());
+                    }
+                }
+            }
+
+            stack.Free();
+            return false;
+        }
+
+        public static bool IsSetMethodInvocation(this IPropertyReferenceOperation operation)
+        {
+            if (operation.Property.SetMethod is null)
+            {
+                // This is either invalid code, or an assignment through a ref-returning getter
+                return false;
+            }
+
+            IOperation potentialLeftSide = operation;
+            while (potentialLeftSide.Parent is IParenthesizedOperation
+                || potentialLeftSide.Parent is ITupleOperation)
+            {
+                potentialLeftSide = potentialLeftSide.Parent;
+            }
+
+            return potentialLeftSide.Parent switch
+            {
+                IAssignmentOperation { Target: var target } when target == potentialLeftSide => true,
+                _ => false,
+            };
+        }
+
+        public static IArgumentOperation GetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex)
+        {
+            Debug.Assert(parameterIndex >= 0);
+            Debug.Assert(parameterIndex < arguments.Length);
+
+            foreach (var argument in arguments)
+            {
+                if (argument.Parameter.Ordinal == parameterIndex)
+                {
+                    return argument;
+                }
+            }
+
+            throw new InvalidOperationException();
         }
     }
 }

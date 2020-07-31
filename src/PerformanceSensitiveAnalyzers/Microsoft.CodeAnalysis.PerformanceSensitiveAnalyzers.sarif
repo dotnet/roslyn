@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers",
-        "version": "2.9.10",
+        "version": "3.3.0",
         "language": "en-US"
       },
       "rules": {
@@ -165,8 +165,8 @@
             ]
           }
         },
-        "HeapAnalyzerReadonlyMethodGroupAllocationRule": {
-          "id": "HeapAnalyzerReadonlyMethodGroupAllocationRule",
+        "HAA0604": {
+          "id": "HAA0604",
           "shortDescription": "Delegate allocation from a method group",
           "fullDescription": "This will allocate a delegate instance",
           "defaultLevel": "note",
@@ -184,7 +184,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
-        "version": "2.9.10",
+        "version": "3.3.0",
         "language": "en-US"
       },
       "rules": {

@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
+      <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Add rule entry to unshipped release file</source>
+        <target state="translated">Добавить запись правила в неотправленный файл выпуска</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
+        <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
+        <target state="translated">Наследовать тип "{0}" от DiagnosticAnalyzer или удалить DiagnosticAnalyzerAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
+        <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
+        <target state="translated">Типы, помеченные как DiagnosticAnalyzerAttribute, должны наследовать от DiagnosticAnalyzer.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
         <source>Compare symbols correctly</source>
         <target state="translated">Сравнивайте символы правильно</target>
@@ -42,6 +57,96 @@
         <target state="translated">Настройка анализа созданного кода</target>
         <note />
       </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
+        <source>All supported analyzer diagnostic IDs should be part of an analyzer release.</source>
+        <target state="translated">Все поддерживаемые идентификаторы диагностики анализатора должны быть частью выпуска анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' is not part of any analyzer release.</source>
+        <target state="translated">Правило "{0}" не входит ни в один выпуск анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Add analyzer diagnostic IDs to analyzer release.</source>
+        <target state="translated">Добавить идентификаторы диагностики анализатора в выпуск анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
+        <target state="translated">Описание диагностики должно включать одно или несколько предложений, заканчивающихся знаком препинания.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="translated">Укажите описание диагностики правильно</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
+        <target state="translated">Сообщение диагностики не должно содержать символов возврата строки и должно представлять собой одно предложение без конечной точки или несколько предложений с конечной точкой.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="translated">Укажите сообщение диагностики правильно</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>The diagnostic title should not contain a period or any line return character</source>
+        <target state="translated">Название диагностики не может содержать точку и символы возврата строк.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="translated">Укажите название диагностики правильно</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">"GetSemanticModel" является затратным методом для вызова в диагностическом анализаторе, так как при этом создается совершенно новая семантическая модель, которая не использует данные компиляции совместно с компилятором или другими анализаторами. Это приводит к снижению производительности во время семантического анализа. Вместо этого попробуйте зарегистрировать другое действие анализатора, которое позволит использовать общую модель "SemanticModel", например "RegisterOperationAction", "RegisterSyntaxNodeAction" или "RegisterSemanticModelAction".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Не вызывайте метод Compilation.GetSemanticModel() в диагностическом анализаторе.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Не вызывайте метод Compilation.GetSemanticModel() в диагностическом анализаторе</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="translated">Идентификатор диагностики DiagnosticId для анализатора не должен включать зарезервированные идентификаторы.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>'{0}' is a reserved diagnostic ID.</source>
+        <target state="translated">"{0}" является зарезервированным идентификатором диагностики.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>Do not use reserved diagnostic IDs.</source>
+        <target state="translated">Не используйте зарезервированные идентификаторы диагностики.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
+        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
+        <target state="translated">Включение отслеживания выпуска для пакетов анализатора помогает отслеживать и документировать диагностические сведения анализатора, поставляемые и (или) изменяемые с каждым выпуском анализатора. Дополнительные сведения см. на странице https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
+        <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
+        <target state="translated">Включить отслеживание выпуска анализатора для проекта анализатора, содержащего правило "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
+        <source>Enable analyzer release tracking</source>
+        <target state="translated">Включить отслеживание выпуска анализатора</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
         <source>Enable concurrent execution</source>
         <target state="translated">Включение параллельного выполнения</target>
@@ -60,6 +165,36 @@
       <trans-unit id="EnableConcurrentExecutionTitle">
         <source>Enable concurrent execution</source>
         <target state="translated">Включение параллельного выполнения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
+        <source>Invalid entry in analyzer release file.</source>
+        <target state="translated">Недопустимая запись в файле выпуска анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an invalid entry '{1}'.</source>
+        <target state="translated">Файл выпуска анализатора "{0}" содержит недопустимую запись "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
+        <source>Invalid entry in analyzer release file.</source>
+        <target state="translated">Недопустимая запись в файле выпуска анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'.</source>
+        <target state="translated">В файле выпуска анализатора "{0}" отсутствует заголовок выпуска или указан недопустимый заголовок выпуска "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
+        <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
+        <target state="translated">В файле выпуска анализатора "{0}" указана недопустимая запись "{1}" без ранее отправленного выпуска для правила "{2}". Вместо этого добавьте отдельную запись "{1}" для правила в неотправленном файле выпуска.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</source>
+        <target state="translated">В файле выпуска анализатора "{0}" содержится недопустимая запись с одним или несколькими полями "Не обнаружено", которые необходимо ввести вручную в "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
@@ -125,6 +260,96 @@
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
         <target state="translated">Вам следует указать по меньшей мере один вид синтаксиса, символа или операции при регистрации соответствующего действия анализатора. В противном случае зарегистрированное действие не будет вызвано во время анализа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="translated">Значение параметра "customTags" используется для включения определенных действий и фильтров для диагностических дескрипторов на основе конкретных значений тегов. У каждого анализатора Roslyn должен быть по крайней мере один тег из класса "WellKnownDiagnosticTags".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
+        <target state="translated">Рекомендуется передать в конструктор дескриптора диагностики значение параметра "customTags", отличное от NULL, чтобы включить фильтрацию метаданных дескрипторов диагностики.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
+        <target state="translated">Передайте значение параметра "customTags", отличное от NULL, в конструктор дескриптора диагностики.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
+        <target state="translated">Удалите повторяющиеся записи идентификаторов диагностики в разных выпусках анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
+        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</source>
+        <target state="translated">Правило "{0}" содержит повторяющуюся запись в выпусках "{1}" и "{2}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
+        <target state="translated">Удалите повторяющиеся записи идентификаторов диагностики в разных выпусках анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
+        <target state="translated">Удалите повторяющиеся записи идентификаторов диагностики в одном и том же выпуске анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
+        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</source>
+        <target state="translated">Правило "{0}" содержит несколько записей для выпуска "{1}" в файле выпуска анализатора "{2}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
+        <target state="translated">Удалите повторяющиеся записи идентификаторов диагностики в одном и том же выпуске анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="translated">Для отправленных идентификаторов диагностики, которые больше не включены в отчет, должны присутствовать записи в таблице "Удаленные правила" в неотправленном файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
+        <target state="translated">Правило "{0}" было отправлено в выпуске анализатора "{1}", но больше не поддерживается в качестве диагностики ни для одного из анализаторов. Добавьте запись для этого правила в таблице "Удаленные правила" в неотправленном файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="translated">Для отправленных идентификаторов диагностики, которые больше не включены в отчет, должны присутствовать записи в таблице "Удаленные правила" в неотправленном файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
+        <source>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</source>
+        <target state="translated">Записи для идентификаторов диагностики анализатора, которые больше не включены в отчет и не были отправлены, можно удалить из неотправленного выпуска анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</source>
+        <target state="translated">Правило "{0}" является частью следующего неотправленного выпуска анализатора, но не поддерживается в качестве диагностики ни для одного из анализаторов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
+        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</source>
+        <target state="translated">Не добавляйте удаленные идентификаторы диагностики анализатора в неотправленный выпуск анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
+        <target state="translated">Идентификаторы диагностики, помеченные как удаленные в файле выпуска анализатора, не должны отображаться в отчетах анализаторов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
+        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</source>
+        <target state="translated">Правило "{0}" помечено как удаленное в последнем выпуске анализатора, но по-прежнему отображается в отчете.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
+        <target state="translated">Идентификаторы диагностики, помеченные как удаленные в файле выпуска анализатора, не должны отображаться в отчетах анализаторов.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
@@ -200,6 +425,26 @@
 3. Зарегистрируйте по меньшей мере одно неконечное действие, ссылающееся на это состояние в начальном действии. Если подобное действие не требуется, рекомендуется заменить начальное действие неначальным. Например, CodeBlockStartAction без зарегистрированных действий или с единственным зарегистрированным действием CodeBlockEndAction следует заменить на CodeBlockAction.
 4. При необходимости зарегистрируйте конечное действие, чтобы предоставлять диагностические сведения на основе конечного состояния.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
+        <target state="translated">Убедитесь, что в выпуск анализатора добавлена обновленная запись для идентификаторов диагностики анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</source>
+        <target state="translated">Категория или уровень серьезности для правила "{0}" были изменены с последнего выпуска. Отмените изменения в источнике или добавьте обновленную запись в неотправленный файл выпуска.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
+        <target state="translated">Убедитесь, что в выпуск анализатора добавлена обновленная запись для идентификаторов диагностики анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Update rule entry in unshipped release file</source>
+        <target state="translated">Обновить запись правила в неотправленном файле выпуска</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorMessage">

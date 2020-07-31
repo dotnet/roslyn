@@ -109,7 +109,7 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken,
             [NotNullWhen(returnValue: true)] out DisposeAnalysisResult? disposeAnalysisResult,
             [NotNullWhen(returnValue: true)] out PointsToAnalysisResult? pointsToAnalysisResult,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt = null,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
             bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
             var cfg = operationBlocks.GetControlFlowGraph();
@@ -118,7 +118,7 @@ namespace Analyzer.Utilities
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                     analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, defaultPointsToAnalysisKind, trackInstanceFields,
                     trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
-                    interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
+                    interproceduralAnalysisPredicate: interproceduralAnalysisPredicate,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                 if (disposeAnalysisResult != null)
                 {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -30,13 +31,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             PointsToAnalysisKind pointsToAnalysisKind,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
         {
             return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                pointsToAnalysisKind, out _, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
+                pointsToAnalysisKind, out _, interproceduralAnalysisConfig, interproceduralAnalysisPredicate,
                 pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
@@ -46,22 +47,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             PointsToAnalysisKind pointsToAnalysisKind,
-            out CopyAnalysisResult? copyAnalysisResultOpt,
+            out CopyAnalysisResult? copyAnalysisResult,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
         {
             if (pointsToAnalysisKind == PointsToAnalysisKind.None)
             {
-                copyAnalysisResultOpt = null;
+                copyAnalysisResult = null;
                 return null;
             }
 
-            copyAnalysisResultOpt = performCopyAnalysis ?
+            copyAnalysisResult = performCopyAnalysis ?
                 CopyAnalysis.CopyAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
-                    interproceduralAnalysisPredicateOpt, pessimisticAnalysis, pointsToAnalysisKind, exceptionPathsAnalysis) :
+                    interproceduralAnalysisPredicate, pessimisticAnalysis, pointsToAnalysisKind, exceptionPathsAnalysis) :
                 null;
 
             if (cfg == null)
@@ -71,8 +72,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             }
 
             var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
-                owningSymbol, analyzerOptions, pointsToAnalysisKind, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt,
-                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
+                owningSymbol, analyzerOptions, pointsToAnalysisKind, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResult,
+                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicate);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
@@ -86,8 +87,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType() ||
-            typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
+        internal static bool ShouldBeTracked([NotNullWhen(returnValue: true)] ITypeSymbol typeSymbol)
+            => typeSymbol.IsReferenceTypeOrNullableValueType() ||
+               typeSymbol?.IsRefLikeType == true ||
+               typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
 
         internal static bool ShouldBeTracked(AnalysisEntity analysisEntity, PointsToAnalysisKind pointsToAnalysisKind)
         {
