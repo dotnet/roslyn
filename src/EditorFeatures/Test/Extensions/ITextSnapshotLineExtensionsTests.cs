@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
 using Xunit;
@@ -183,7 +184,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
         private static ITextSnapshotLine GetLine(string codeLine)
         {
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, codeLine).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, codeLine).CurrentSnapshot;
             return snapshot.GetLineFromLineNumber(0);
         }
 

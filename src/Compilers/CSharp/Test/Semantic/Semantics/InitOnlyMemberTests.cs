@@ -2313,22 +2313,22 @@ public class Derived : C
                 // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(11, 9),
-                // (12,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (12,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         _ = new C() { field = null }; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(12, 23),
-                // (25,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (25,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(25, 13),
-                // (30,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (30,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(30, 13),
-                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         field = null; // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(38, 9),
-                // (42,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (42,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         field = null; // 6
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(42, 9),
-                // (48,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (48,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 7
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(48, 13)
                 );
@@ -2509,19 +2509,19 @@ public class Caller
                 // (9,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         c.field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(9, 9),
-                // (16,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (16,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             c.field = null; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(16, 13),
-                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         c.field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(24, 9),
-                // (31,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (31,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             c.field = null; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(31, 13),
-                // (40,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (40,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(40, 13),
-                // (41,18): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (41,18): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //                 (c.field = null)  // 6
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(41, 18)
                 );
@@ -2719,16 +2719,16 @@ public class Derived : C
                 // (6,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(6, 9),
-                // (7,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (7,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         _ = new C() { field = null }; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(7, 23),
-                // (12,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (12,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(12, 9),
-                // (13,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (13,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         _ = new C() { field = null }; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(13, 23),
-                // (20,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (20,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(20, 13)
                 );

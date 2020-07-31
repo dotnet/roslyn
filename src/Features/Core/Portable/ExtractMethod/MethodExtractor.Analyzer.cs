@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
+                var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
                 var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));

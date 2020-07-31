@@ -845,7 +845,10 @@ hasRelatedInterfaces:
 
             if (typeParameter.HasUnmanagedTypeConstraint)
             {
-                var managedKind = typeArgument.Type.ManagedKind;
+                HashSet<DiagnosticInfo> managedKindUseSiteDiagnostics = null;
+                var managedKind = typeArgument.Type.GetManagedKind(ref managedKindUseSiteDiagnostics);
+                AppendUseSiteDiagnostics(managedKindUseSiteDiagnostics, typeParameter, ref useSiteDiagnosticsBuilder);
+
                 if (managedKind == ManagedKind.Managed || !typeArgument.Type.IsNonNullableValueType())
                 {
                     // "The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"

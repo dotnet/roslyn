@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static ImmutableDictionary<K, ImmutableArray<V>> GroupToImmutableDictionary<K, V>(IEnumerable<IGrouping<K, V>> items)
+            where K : notnull
         {
             var builder = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
 

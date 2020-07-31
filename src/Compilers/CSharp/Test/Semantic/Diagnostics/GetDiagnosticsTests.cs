@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -554,6 +555,61 @@ class C
                 Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
                 Assert.False(diagnostic.IsSuppressed);
             }
+        }
+
+        [Fact]
+        public async Task TestConcurrentGetAnalyzerDiagnostics()
+        {
+            var source1 = @"
+partial class C
+{
+    void M1()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var source2 = @"
+partial class C
+{
+    void M2()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var source3 = @"
+class C3
+{
+    void M2()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(true));
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: false));
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree, true);
+            var tasks = new Task[10];
+            for (var i = 0; i < 10; i++)
+            {
+                tasks[i] = Task.Run(() => compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, null, CancellationToken.None));
+            }
+
+            await Task.WhenAll(tasks);
         }
     }
 }
