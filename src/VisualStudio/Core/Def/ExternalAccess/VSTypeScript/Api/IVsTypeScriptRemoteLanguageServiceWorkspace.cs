@@ -2,8 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
+
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
+    /// <summary>
+    /// Used to acquire the RemoteLanguageServiceWorkspace. Its members should be accessed by casting to <see cref="Workspace"/>.
+    /// </summary>
     interface IVsTypeScriptRemoteLanguageServiceWorkspace
     {
     }
