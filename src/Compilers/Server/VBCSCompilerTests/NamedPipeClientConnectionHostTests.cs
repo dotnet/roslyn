@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,60 +35,99 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             timeoutMs: (int)(TimeSpan.FromMinutes(1).TotalMilliseconds),
             cancellationToken);
 
-        public class GetNextClientConnectionAsyncTests : NamedPipeClientConnectionHostTests
+        [Fact]
+        public async Task CallBeforeListen()
         {
-            /// <summary>
-            /// Not legal to call this until the previous task has completed.
-            /// </summary>
-            [Fact]
-            public async Task CallBeforePreviousComplete()
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync()).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task CallAfterComplete()
+        {
+            _host.BeginListening();
+            var task = _host.GetNextClientConnectionAsync();
+            using var clientStream = await ConnectAsync().ConfigureAwait(false);
+            await task.ConfigureAwait(false);
+            Assert.NotNull( _host.GetNextClientConnectionAsync());
+            _host.EndListening();
+        }
+
+        [Fact]
+        public void EndListenCancelsIncompleteTask()
+        {
+            _host.BeginListening();
+            var task = _host.GetNextClientConnectionAsync();
+            _host.EndListening();
+
+            Assert.ThrowsAsync<OperationCanceledException>(() => task).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// It is the responsibility of the caller of <see cref="NamedPipeClientConnectionHost.GetNextClientConnectionAsync"/>
+        /// to dispose the returned client, not the hosts
+        /// </summary>
+        [Fact]
+        public async Task EndListenDoesNotDisposeCompletedConnection()
+        {
+            _host.BeginListening();
+            var task = _host.GetNextClientConnectionAsync();
+            using var clientStream = await ConnectAsync().ConfigureAwait(false);
+            using var namedPipeClientConnection = (NamedPipeClientConnection)(await task.ConfigureAwait(false));
+            _host.EndListening();
+            Assert.False(namedPipeClientConnection.IsDisposed);
+        }
+
+        /// <summary>
+        /// Ensure that the host can handle many connections before they are acknowledged / dequeued
+        /// by the caller.
+        /// </summary>
+        [Fact]
+        public async Task ManyConnectsBeforeAcknowledged()
+        {
+            const int count = 20;
+            _host.BeginListening();
+            var list = new List<Task<NamedPipeClientStream>>();
+            for (int i = 0; i < count; i++)
             {
-                _host.BeginListening();
-                var task = _host.GetNextClientConnectionAsync();
-                await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync()).ConfigureAwait(false);
-                _host.EndListening();
+                list.Add(ConnectAsync());
             }
 
-            [Fact]
-            public async Task CallBeforeListen()
+            await Task.WhenAll(list).ConfigureAwait(false);
+
+            for (int i = 0; i < count; i++)
             {
-                await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync()).ConfigureAwait(false);
+                var clientConnection = await _host.GetNextClientConnectionAsync().ConfigureAwait(false);
+                clientConnection.Dispose();
             }
 
-            [Fact]
-            public async Task CallAfterComplete()
+            _host.EndListening();
+        }
+
+        /// <summary>
+        /// When EndListen is called the host should be closing all of the queue'd client connections
+        /// </summary>
+        [Fact]
+        public async Task EndListenClosesQueuedConnections()
+        {
+            const int count = 20;
+            _host.BeginListening();
+            var list = new List<Task<NamedPipeClientStream>>();
+            for (int i = 0; i < count; i++)
             {
-                _host.BeginListening();
-                var task = _host.GetNextClientConnectionAsync();
-                using var clientStream = await ConnectAsync().ConfigureAwait(false);
-                await task.ConfigureAwait(false);
-                Assert.NotNull( _host.GetNextClientConnectionAsync());
-                _host.EndListening();
+                list.Add(ConnectAsync());
             }
 
-            [Fact]
-            public void EndListenCancelsIncompleteTask()
-            {
-                _host.BeginListening();
-                var task = _host.GetNextClientConnectionAsync();
-                _host.EndListening();
+            await Task.WhenAll(list).ConfigureAwait(false);
 
-                Assert.ThrowsAsync<OperationCanceledException>(() => task).ConfigureAwait(false);
-            }
+            _host.EndListening();
 
-            /// <summary>
-            /// It is the responsibility of the caller of <see cref="NamedPipeClientConnectionHost.GetNextClientConnectionAsync"/>
-            /// to dispose the returned client, not the hosts
-            /// </summary>
-            [Fact]
-            public async Task EndListenDoesNotDisposeCompletedConnection()
+            var buffer = new byte[10];
+            foreach (var streamTask in list)
             {
-                _host.BeginListening();
-                var task = _host.GetNextClientConnectionAsync();
-                using var clientStream = await ConnectAsync().ConfigureAwait(false);
-                using var namedPipeClientConnection = (NamedPipeClientConnection)(await task.ConfigureAwait(false));
-                _host.EndListening();
-                Assert.False(namedPipeClientConnection.IsDisposed);
+                var stream = await streamTask.ConfigureAwait(false);
+                var readCount = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                Assert.Equal(0, readCount);
+                Assert.False(stream.IsConnected);
             }
         }
     }
