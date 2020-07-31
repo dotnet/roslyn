@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
 
                 var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
-                var document = textBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+                var document = textBuffer?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
                 // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
                 // for the local navbar implementation.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360

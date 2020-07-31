@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    // The C#P and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest, they will not copy the DisableUserExperience attribute,
+    // The C# and VB ILanguageClient should not activate on the host. When LiveShare mirrors the C# ILC to the guest, they will not copy the DisableUserExperience attribute,
     // so guests will still use the C# ILC.
     [DisableUserExperience(true)]
     [ContentType(ContentTypeNames.CSharpContentType)]
