@@ -286,6 +286,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
+            // var cannot be used with target typed new
+#if CODE_STYLE
+            if (expression.IsKind(Formatting.SyntaxKindEx.ImplicitObjectCreationExpression))
+#else
+            if (expression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
+#endif
+            {
+                return false;
+            }
+
             // cannot use implicit typing on method group or on dynamic
             var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
             if (declaredType != null && declaredType.TypeKind == TypeKind.Dynamic)
