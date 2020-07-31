@@ -468,7 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (_symbol is MethodSymbol method)
+                var method = _symbol as MethodSymbol;
+                if (method is object)
                 {
                     do
                     {
@@ -555,7 +556,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void makeNotNullMembersMaybeNull()
             {
-                if (_symbol is MethodSymbol method)
+                var method = _symbol as MethodSymbol;
+                if (method is object)
                 {
                     do
                     {
@@ -6853,7 +6855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
                     }
                     Debug.Assert(_binder is object);
-                    method = InferMethodTypeArguments(_binder!, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                    method = InferMethodTypeArguments(_binder, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
                 if (invokedAsExtensionMethod)
                 {
