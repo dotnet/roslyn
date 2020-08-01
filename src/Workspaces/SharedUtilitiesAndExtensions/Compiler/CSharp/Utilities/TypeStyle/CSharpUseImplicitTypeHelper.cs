@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -287,11 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // var cannot be used with target typed new
-#if CODE_STYLE
-            if (expression.IsKind(Formatting.SyntaxKindEx.ImplicitObjectCreationExpression))
-#else
-            if (expression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
-#endif
+            if (expression.IsKind(SyntaxKindEx.ImplicitObjectCreationExpression))
             {
                 return false;
             }
