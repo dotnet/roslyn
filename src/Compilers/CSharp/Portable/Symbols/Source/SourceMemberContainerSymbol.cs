@@ -2067,6 +2067,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            if (IsRecord)
+            {
+                // For records the warnings reported below are simply going to eco record specific errors,
+                // producing more noise.
+                return;
+            }
+
             bool hasOp = this.GetOperators(WellKnownMemberNames.EqualityOperatorName).Any() ||
                 this.GetOperators(WellKnownMemberNames.InequalityOperatorName).Any();
             bool overridesEquals = this.TypeOverridesObjectMethod("Equals");
@@ -3023,6 +3030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addOtherEquals();
             addObjectEquals(thisEquals);
             addHashCode(equalityContract);
+            addEqualityOperators();
 
             memberSignatures.Free();
 
@@ -3354,6 +3362,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics));
                 }
+            }
+
+            void addEqualityOperators()
+            {
+                members.Add(new SynthesizedRecordEqualityOperator(this, memberOffset: members.Count, diagnostics));
+                members.Add(new SynthesizedRecordInequalityOperator(this, memberOffset: members.Count, diagnostics));
             }
         }
 
