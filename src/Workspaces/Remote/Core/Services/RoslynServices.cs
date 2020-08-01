@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -36,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
                 // This adds the exported MEF services from the RemoteWorkspaces assembly.
-                .Add(typeof(RoslynServices).Assembly)
-                .Add(typeof(ICodingConventionsManager).Assembly);
+                .Add(typeof(RoslynServices).Assembly);
 
         public static HostServices HostServices
         {
