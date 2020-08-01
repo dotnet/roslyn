@@ -12,6 +12,7 @@ If you are using a `Microsoft.CodeAnalysis.PublicApiAnalyzers` package with vers
 
 - `PublicAPI.Shipped.txt`
 - `PublicAPI.Unshipped.txt`
+
 This can be done by:
 
 - In Visual Studio, right-click the project in Solution Explorer, choose "Add -> New Item...", and then select "Text File" in the "Add New Item" dialog. Then right-click each file, select "Properties", and choose "C# analyzer additional file" for "Build Action" in the "Properties" window.
