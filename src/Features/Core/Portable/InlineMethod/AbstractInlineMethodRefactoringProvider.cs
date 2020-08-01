@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// </summary>
         protected abstract bool IsMethodContainsOneStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
 
-        protected abstract SyntaxNode GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode, bool shouldGenerateTempVariableForReturnValue);
+        protected abstract SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode, bool shouldGenerateTempVariableForReturnValue);
 
         protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts)
         {
@@ -165,7 +165,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 documentEditor.InsertBefore(inlineContext.StatementInvokesCallee, statement);
             }
 
-            documentEditor.ReplaceNode(calleeMethodInvocationSyntaxNode, inlineStatement);
+            if (inlineStatement == null)
+            {
+                documentEditor.RemoveNode(inlineContext.StatementInvokesCallee);
+            }
+            else
+            {
+                documentEditor.ReplaceNode(calleeMethodInvocationSyntaxNode, inlineStatement);
+            }
+
             return documentEditor.GetChangedDocument();
         }
 

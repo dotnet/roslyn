@@ -428,6 +428,35 @@ public class TestClass
 }");
 
         [Fact]
+        public Task TestInlineMethodWithEmptyContent()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Call[||]ee();
+    }
+
+    private void Callee()
+    {
+        return;
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+    }
+
+    private void Callee()
+    {
+        return;
+    }
+}");
+
+        [Fact]
         public Task TestInlineMethodWithVariableDeclaration()
             => TestInRegularAndScript1Async(
                 @"
