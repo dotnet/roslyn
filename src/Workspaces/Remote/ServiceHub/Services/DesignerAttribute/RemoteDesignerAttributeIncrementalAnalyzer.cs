@@ -90,8 +90,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // in this project.
             var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            // Now get all the values that actually changed and notify VS about them. We only need to report any data
-            // for files we haven't reported for, or for files where the data has changed.
+            // Now get all the values that actually changed and notify VS about them. We don't need
+            // to tell it about the ones that didn't change since that will have no effect on the
+            // user experience.
             var latestData = await ComputeLatestDataAsync(
                 project, specificDocument, projectVersion, cancellationToken).ConfigureAwait(false);
 
@@ -125,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (specificDocument != null && document != specificDocument)
                     continue;
 
-                // If we don't have a path for this document, we can't proceed with it. We need that path to inform the
-                // project system which file we're referring to.
+                // If we don't have a path for this document, we cant proceed with it.
+                // We need that path to inform the project system which file we're referring to.
                 if (document.FilePath == null)
                     continue;
 
@@ -151,6 +152,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Contract.ThrowIfNull(document.FilePath);
 
+                // We either haven't computed the designer info, or our data was out of date.  We need
+                // So recompute here.  Figure out what the current category is, and if that's different
+                // from what we previously stored.
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
                     designerCategoryType, document, cancellationToken).ConfigureAwait(false);
 
