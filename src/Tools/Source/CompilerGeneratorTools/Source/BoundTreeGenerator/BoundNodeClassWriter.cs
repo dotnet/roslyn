@@ -703,6 +703,18 @@ namespace BoundTreeGenerator
             return Enumerable.Empty<Field>();
         }
 
+        private Field GetMostDerivedField(Node node, string fieldName)
+        {
+            foreach (var type in TypeAndBaseTypes(node))
+            {
+                if (FieldsIncludingOverrides(type).SingleOrDefault(f => f.Name == fieldName) is { } field)
+                {
+                    return field;
+                }
+            }
+            return null;
+        }
+
         private TreeType BaseType(TreeType node)
         {
             string name = _typeMap[node.Name];
@@ -1433,12 +1445,12 @@ namespace BoundTreeGenerator
                         var updatedNullabilities = "_updatedNullabilities";
                         var snapshotManager = "_snapshotManager";
                         var remappedSymbols = "_remappedSymbols";
-                        WriteLine($"private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> {updatedNullabilities};");
+                        WriteLine($"private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> {updatedNullabilities};");
                         WriteLine($"private readonly NullableWalker.SnapshotManager? {snapshotManager};");
                         WriteLine($"private readonly ImmutableDictionary<Symbol, Symbol>.Builder {remappedSymbols};");
 
                         Blank();
-                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities, NullableWalker.SnapshotManager? snapshotManager, ImmutableDictionary<Symbol, Symbol>.Builder remappedSymbols)");
+                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> updatedNullabilities, NullableWalker.SnapshotManager? snapshotManager, ImmutableDictionary<Symbol, Symbol>.Builder remappedSymbols)");
                         Brace();
                         WriteLine($"{updatedNullabilities} = updatedNullabilities;");
                         WriteLine($"{snapshotManager} = snapshotManager;");
@@ -1522,7 +1534,7 @@ namespace BoundTreeGenerator
                             Unbrace();
 
                             void writeNullabilityCheck(bool inverted) =>
-                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))");
+                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
 
                             void writeUpdateAndDecl(bool decl, bool updatedType)
                             {
@@ -1548,7 +1560,9 @@ namespace BoundTreeGenerator
                                         }
                                         else if (updatedType && field.Name == "Type")
                                         {
-                                            return "infoAndType.Type";
+                                            // Use the override for the field if any.
+                                            field = GetMostDerivedField(node, field.Name);
+                                            return $"infoAndType.Type" + (field.Null == "disallow" ? "!" : "");
                                         }
                                         else if (symbolIsPotentiallyUpdated(field) || immutableArrayIsPotentiallyUpdated(field))
                                         {

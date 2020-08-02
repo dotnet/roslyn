@@ -168,22 +168,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(args.Diagnostics.Length > 0);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/46463")]
         public async Task TestPreviewDiagnosticTagger()
         {
             using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
             using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
-            //// preview workspace and owner of the solution now share solution and its underlying text buffer
+
+            // preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
 
             previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
-            //// enable preview diagnostics
+            // enable preview diagnostics
             previewWorkspace.EnableDiagnostic();
 
             var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider>(workspace);
-            const string AnalzyerCount = "Analyzer Count: ";
-            Assert.Equal(AnalzyerCount + 1, AnalzyerCount + diagnosticsAndErrorsSpans.Item1.Length);
+            const string AnalyzerCount = "Analyzer Count: ";
+            Assert.Equal(AnalyzerCount + 1, AnalyzerCount + diagnosticsAndErrorsSpans.Item1.Length);
 
             const string SquigglesCount = "Squiggles Count: ";
             Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Length);

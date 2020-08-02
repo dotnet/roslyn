@@ -19,29 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
-    public static class SquiggleUtilities
-    {
-        internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpansAsync<TProvider>(
-            TestWorkspace workspace,
-            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
-            where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
-        {
-            using var wrapper = new DiagnosticTaggerWrapper<TProvider, IErrorTag>(workspace, analyzerMap);
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
-
-            using var disposable = tagger as IDisposable;
-            await wrapper.WaitForTags();
-
-            var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
-
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-            var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
-
-            return (analyzerDiagnostics, spans);
-        }
-    }
-
-    internal sealed class DiagnosticTagProducer<TProvider>
+    internal sealed class TestDiagnosticTagProducer<TProvider>
         where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpans(
