@@ -1,6 +1,6 @@
 ---
 name: Analyzer suggestion
-about: Suggest a Roslyn analyzer. TODO - Add more information on what kind of analyzers for roslyn repo, and what for roslyn-analyzers repo
+about: Suggest a Roslyn analyzer related to code style. Semantic/code quality analyzers are developed in roslyn-analyzers repository.
 labels: [Area-IDE, Feature Request]
 ---
 
