@@ -68,6 +68,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Throw New NotImplementedException
         End Function
 
+        Protected Overrides Function GetSingleVariableNameFromDeclarationExpression(syntaxNode As SyntaxNode) As String
+            Throw New NotImplementedException
+        End Function
+
         Protected Overrides Function GenerateArrayInitializerExpression(arguments As ImmutableArray(Of SyntaxNode)) As SyntaxNode
             Throw New NotImplementedException
         End Function
@@ -84,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
             Throw New NotImplementedException
         End Function
 
-        Protected Overrides Function GetInlineStatement(calleeMethodDeclarationSyntaxNode As SyntaxNode, shouldGenerateTempVariableForReturnValue As Boolean) As SyntaxNode
+        Protected Overrides Function GetInlineStatement(calleeMethodDeclarationSyntaxNode As SyntaxNode) As SyntaxNode
             Dim methodStatementSyntaxNode = TryCast(calleeMethodDeclarationSyntaxNode, MethodStatementSyntax)
             Dim inlineSyntaxNode As SyntaxNode = Nothing
             If methodStatementSyntaxNode IsNot Nothing Then
@@ -119,10 +123,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineMethod
         End Function
 
         Protected Overrides Function IsEmbeddedStatementOwner(syntaxNode As SyntaxNode) As Boolean
-            Throw New NotImplementedException()
-        End Function
-
-        Protected Overrides Function IsArrayCreationExpressionOrImplicitArrayCreationExpression(syntaxNode As SyntaxNode) As Boolean
             Throw New NotImplementedException()
         End Function
 

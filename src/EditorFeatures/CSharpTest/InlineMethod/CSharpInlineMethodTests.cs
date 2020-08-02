@@ -358,6 +358,37 @@ public class TestClass
 }");
 
         [Fact]
+        public Task TestInlineParamsArrayWithArrayInitializerExpression2()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(1);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}"
+,
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int[] x = new int[6] {1, 2, 3, 4, 5, 6};
+        System.Console.WriteLine(x.Length);
+    }
+
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}");
+
+        [Fact]
         public Task TestInlineParamsArrayMethodWithIdentifier()
             => TestInRegularAndScript1Async(@"
 public class TestClass

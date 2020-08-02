@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// </summary>
         protected abstract bool IsMethodContainsOneStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
 
-        protected abstract SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode, bool shouldGenerateTempVariableForReturnValue);
+        protected abstract SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
 
         protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts)
         {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             SyntaxNode root,
             CancellationToken cancellationToken)
         {
-            var inlineContext = InlineMethodContext.GetInlineContext(
+            var inlineContext = InlineMethodContext.GetInlineContext2(
                 this,
                 _syntaxFacts,
                 semanticModel,
@@ -146,21 +146,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     cancellationToken).ConfigureAwait(false);
             }
 
-            foreach (var (parameterSymbol, literalExpressionSyntaxNode) in inlineContext.LiteralArgumentsInfo)
-            {
-                await ReplaceAllSyntaxNodesForSymbolAsync(
-                    document.Project.Solution,
-                    root,
-                    calleeMethodDeclarationNodeEditor,
-                    parameterSymbol,
-                    literalExpressionSyntaxNode,
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            var inlineStatement = GetInlineStatement(calleeMethodDeclarationNodeEditor.GetChangedRoot(), inlineContext.ShouldGenerateTempVariableForReturnValue);
-
+            var inlineStatement = GetInlineStatement(calleeMethodDeclarationNodeEditor.GetChangedRoot());
             var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            foreach (var statement in inlineContext.StatementsShouldBeInserted)
+            foreach (var statement in inlineContext.StatementsNeedInsert)
             {
                 documentEditor.InsertBefore(inlineContext.StatementInvokesCallee, statement);
             }

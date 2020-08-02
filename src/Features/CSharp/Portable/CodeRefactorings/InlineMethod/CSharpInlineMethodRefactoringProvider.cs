@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override SyntaxNode GenerateIdentifierNameSyntaxNode(string name)
             => SyntaxFactory.IdentifierName(name);
 
-        protected override SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode, bool shouldGenerateTempVariableForReturnValue)
+        protected override SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode)
         {
             SyntaxNode? inlineSyntaxNode = null;
             if (calleeMethodDeclarationSyntaxNode is MethodDeclarationSyntax declarationSyntax)
@@ -152,10 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override bool IsEmbeddedStatementOwner(SyntaxNode syntaxNode)
             => syntaxNode.IsEmbeddedStatementOwner();
 
-        protected override bool IsArrayCreationExpressionOrImplicitArrayCreationExpression(SyntaxNode syntaxNode)
-            => syntaxNode.IsKind(SyntaxKind.ArrayCreationExpression) || syntaxNode.IsKind(SyntaxKind.ImplicitArrayCreationExpression);
-
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)
             => symbol.GenerateTypeSyntax(allowVar: false);
+
+        protected override string GetSingleVariableNameFromDeclarationExpression(SyntaxNode syntaxNode)
+            => ((SingleVariableDesignationSyntax)((DeclarationExpressionSyntax)syntaxNode).Designation).Identifier.Text;
     }
 }
