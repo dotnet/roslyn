@@ -57,6 +57,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool RequiresValueContentAnalysis => false;
 
+        public string? DependencyFullTypeName => null;
+
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.SinkProperties,

@@ -17,9 +17,10 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithSystemWeb { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Web", "System.Web.Extensions"));
 
-        public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = Default
+        public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = ReferenceAssemblies.NetFramework.Net472.Default
             .AddAssemblies(ImmutableArray.Create("PresentationFramework", "System.DirectoryServices", "System.Web", "System.Web.Extensions", "System.Xaml"))
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("AntiXSS", "4.3.0")));
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("AntiXSS", "4.3.0")))
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.2.0")));
 
         public static ReferenceAssemblies DefaultWithSerialization { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Runtime.Serialization"));

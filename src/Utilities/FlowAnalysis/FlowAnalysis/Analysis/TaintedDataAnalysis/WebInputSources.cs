@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -12,6 +16,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public static ImmutableHashSet<SourceInfo> SourceInfos { get; }
 
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>> s_sourceArgumentCacheByCompilation = new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
+
         /// <summary>
         /// Statically constructs.
         /// </summary>
@@ -19,6 +25,48 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
+                WellKnownTypeNames.SystemObject, // checking all System.Object derived types is expensive, so it first check if MicrosoftAspNetCoreMvcControllerBase is resolvable
+                 new ParameterMatcher[]{
+                    (parameter, wellKnownTypeProvider) => {
+                        // it can be expensive to do all the machinery on every parameter reference access
+                        // since it ultimately boils down to if the method is an Action, we cache the containing symbol
+                        var cache = s_sourceArgumentCacheByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<ISymbol, bool>());
+                        if (cache.TryGetValue(parameter.ContainingSymbol, out bool ret))
+                            return ret;
+
+                        if (!(parameter.ContainingSymbol is IMethodSymbol containingSymbol)
+                            || !(containingSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
+                        {
+                            cache.TryAdd(parameter.ContainingSymbol, false);
+                            return false;
+                        }
+
+                        if (!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
+                            && (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute, out var controllerAttributeTypeSymbol)
+                                || !typeSymbol.HasDerivedTypeAttribute(controllerAttributeTypeSymbol)))
+                        {
+                            cache.TryAdd(parameter.ContainingSymbol, false);
+                            return false;
+                        }
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public
+                            || containingSymbol.IsConstructor()
+                            || containingSymbol.IsStatic
+                            || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute, out var nonActionAttributeTypeSymbol)
+                            || containingSymbol.HasDerivedMethodAttribute(nonActionAttributeTypeSymbol)
+                            || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute, out var nonControllerAttributeTypeSymbol)
+                            || typeSymbol.HasDerivedTypeAttribute(nonControllerAttributeTypeSymbol))
+                        {
+                            cache.TryAdd(parameter.ContainingSymbol, false);
+                            return false;
+                        }
+
+                        cache.TryAdd(parameter.ContainingSymbol, true);
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebHttpCookie,
                 isInterface: false,

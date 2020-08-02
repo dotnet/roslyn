@@ -181,11 +181,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
             {
-                // If the property reference itself is a tainted data source
+                // If the property or parameter reference itself is a tainted data source
                 if (operation is IPropertyReferenceOperation propertyReferenceOperation
                     && this.DataFlowAnalysisContext.SourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
                 {
                     return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
+                }
+                else if (operation is IParameterReferenceOperation parameterReferenceOperation
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceParameter(parameterReferenceOperation.Parameter, WellKnownTypeProvider))
+                {
+                    return TaintedDataAbstractValue.CreateTainted(parameterReferenceOperation.Parameter, parameterReferenceOperation.Syntax, this.OwningSymbol);
                 }
 
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity? analysisEntity))
