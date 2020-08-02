@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1668,6 +1669,8 @@ class C
 #nullable enable
 class C
 {
+    object field = null;
+
     void M()
     {
         object o = null;
@@ -1679,14 +1682,74 @@ class C
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: featureFlagOff);
             comp.VerifyDiagnostics(
-                    // (7,16): warning CS0219: The variable 'o' is assigned but its value is never used
-                    //         object o = null;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(7, 16),
-                    // (7,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                    //         object o = null;
-                    Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 20));
+                // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field").WithLocation(5, 12),
+                // (5,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 20),
+                // (9,16): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(9, 16),
+                // (9,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
             Assert.False(comp.NullableSemanticAnalysisEnabled);
+        }
+
+        private class CSharp73ProvidesNullableSemanticInfo_Analyzer : DiagnosticAnalyzer
+        {
+            public int HitCount;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
+            }
+
+            private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
+            {
+                var node = (MemberAccessExpressionSyntax)context.Node;
+                var model = context.SemanticModel;
+                var info = model.GetTypeInfo(node.Expression);
+
+                Assert.Equal(PublicNullableAnnotation.Annotated, info.Nullability.Annotation);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, info.Nullability.FlowState);
+
+                Interlocked.Increment(ref HitCount);
+            }
+        }
+
+        [Fact]
+        public void CSharp73ProvidesNullableSemanticInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string s)
+    {
+        if (s == null)
+        {
+            s.ToString();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                );
+
+            var analyzer = new CSharp73ProvidesNullableSemanticInfo_Analyzer();
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }).Verify();
+            Assert.Equal(1, analyzer.HitCount);
         }
 
         [Fact]
@@ -3001,19 +3064,19 @@ class C<T, U>
 {
     public T this[U u] { get => throw null!; set => throw null!; }
     
-    public static void M(object? o1, object o2)
+    public static void M(bool b, object? o1, object o2)
     {
         var c1 = CExt.Create(o1, o2);
-        c1[o1] = o2;
-        _ = c1[o1];
+        if (b) c1[o1] = o2;
+        if (b) _ = c1[o1];
         
         var c2 = CExt.Create(o2, o1);
-        c2[o2] = o1;
-        _ = c2[o2];
+        if (b) c2[o2] = o1;
+        if (b) _ = c2[o2];
         
         var c3 = CExt.Create(o1 ?? o2, o2);
-        c3[o1] = o2;
-        _ = c3[o1];
+        if (b) c3[o1] = o2;
+        if (b) _ = c3[o1];
     }
 }
 static class CExt
@@ -3023,21 +3086,21 @@ static class CExt
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (9,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
-                //         c1[o1] = o2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(9, 12),
-                // (10,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
-                //         _ = c1[o1];
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(10, 16),
-                // (13,18): warning CS8601: Possible null reference assignment.
-                //         c2[o2] = o1;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o1").WithLocation(13, 18),
-                // (17,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
-                //         c3[o1] = o2;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(17, 12),
-                // (18,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
-                //         _ = c3[o1];
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(18, 16));
+                // (9,19): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         if (b) c1[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(9, 19),
+                // (10,23): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         if (b) _ = c1[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(10, 23),
+                // (13,25): warning CS8601: Possible null reference assignment.
+                //         if (b) c2[o2] = o1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o1").WithLocation(13, 25),
+                // (17,19): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         if (b) c3[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(17, 19),
+                // (18,23): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         if (b) _ = c3[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(18, 23));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();

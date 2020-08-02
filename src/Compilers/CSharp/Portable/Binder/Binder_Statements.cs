@@ -1307,6 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            initializerOpt = BindToNaturalType(initializerOpt, diagnostics, reportNoTargetType: false);
             initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedPatternMethod, hasErrors, diagnostics);
             return true;
         }
