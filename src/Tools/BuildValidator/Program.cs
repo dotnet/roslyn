@@ -16,10 +16,15 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
+    /// <summary>
+    /// Build Validator enumerates the output of the Roslyn build, extracts the compilation options
+    /// from the PE and attempts to rebuild the source using that information. It then checks
+    /// that the new build output is the same as the original build
+    /// </summary>
     class Program
     {
-        private static ILogger? _logger;
-        private static readonly Regex[] _ignorePatterns = new Regex[]
+        private static ILogger? s_logger;
+        private static readonly Regex[] s_ignorePatterns = new Regex[]
         {
             new Regex(@"\\runtimes?\\"),
             new Regex(@"\\ref\\"),
@@ -49,7 +54,7 @@ namespace BuildValidator
                 loggerFactory.AddConsole();
             }
 
-            _logger = loggerFactory.CreateLogger<Program>();
+            s_logger = loggerFactory.CreateLogger<Program>();
 
             var sourceResolver = new LocalSourceResolver(loggerFactory);
             var referenceResolver = new LocalReferenceResolver(loggerFactory);
@@ -84,7 +89,7 @@ namespace BuildValidator
                 assembliesCompiled.Add(compilationDiff);
             }
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.AppendLine("====================");
             sb.AppendLine("Summary:");
@@ -116,15 +121,15 @@ namespace BuildValidator
             }
             sb.AppendLine("====================");
 
-            _logger.LogInformation(sb.ToString());
+            s_logger.LogInformation(sb.ToString());
         }
 
         private static async Task<CompilationDiff?> ValidateFileAsync(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion)
         {
 
-            if (_ignorePatterns.Any(r => r.IsMatch(file.FullName)))
+            if (s_ignorePatterns.Any(r => r.IsMatch(file.FullName)))
             {
-                _logger.LogTrace($"Ignoring {file.FullName}");
+                s_logger.LogTrace($"Ignoring {file.FullName}");
                 return null;
             }
 
@@ -137,7 +142,7 @@ namespace BuildValidator
             var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             if (thisCompilerVersion != null && assemblyVersion != thisCompilerVersion)
             {
-                _logger.LogInformation($"Skipping {file.FullName}");
+                s_logger.LogInformation($"Skipping {file.FullName}");
                 return null;
             }
 
@@ -158,7 +163,7 @@ namespace BuildValidator
 
             if (!embedded.HasValue)
             {
-                _logger.LogError($"Could not find embedded pdb for {file.FullName}");
+                s_logger.LogError($"Could not find embedded pdb for {file.FullName}");
                 return null;
             }
 
@@ -166,14 +171,14 @@ namespace BuildValidator
             {
                 using var embeddedPdb = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded.Value);
 
-                _logger.LogInformation($"Compiling {file.FullName}");
+                s_logger.LogInformation($"Compiling {file.FullName}");
 
                 var compilation = await buildConstructor.CreateCompilationAsync(embeddedPdb, file.Name).ConfigureAwait(false);
                 return CompilationDiff.Create(assembly, compilation);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, file.FullName);
+                s_logger.LogError(e, file.FullName);
                 return CompilationDiff.Create(assembly, e);
             }
         }
@@ -185,7 +190,6 @@ namespace BuildValidator
             Console.WriteLine("/verbose                 Output verbose log information");
             Console.WriteLine("/quiet                   Do not output log information to console");
             Console.WriteLine("/ignorecompilerversion   Do not verify compiler version that assemblies were generated with");
-            Console.WriteLine("/log <logFile>           Write logs into the log file specified");
         }
 
         private static bool TryLoadAssembly(string fullPath, out Assembly? assembly)
@@ -198,11 +202,11 @@ namespace BuildValidator
             }
             catch (BadImageFormatException)
             {
-                _logger.LogTrace($"Failed to load assembly for {fullPath}: Bad Image Format");
+                s_logger.LogTrace($"Failed to load assembly for {fullPath}: Bad Image Format");
             }
             catch (IOException e)
             {
-                _logger.LogError(e, $"Loading {fullPath} failed: IO Exception");
+                s_logger.LogError(e, $"Loading {fullPath} failed: IO Exception");
             }
 
             return false;

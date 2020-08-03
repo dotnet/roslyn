@@ -13,6 +13,10 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
+    /// <summary>
+    /// Resolves references for a package by looking in local nuget and artifact
+    /// directories for Roslyn
+    /// </summary>
     internal class LocalReferenceResolver : IMetadataReferenceResolver
     {
         private readonly Dictionary<Guid, string> _cache = new Dictionary<Guid, string>();

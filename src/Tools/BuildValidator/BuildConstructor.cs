@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,6 +20,9 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace BuildValidator
 {
+    /// <summary>
+    /// An abstraction for building from a MetadataReaderProvider
+    /// </summary>
     internal class BuildConstructor
     {
         private readonly IMetadataReferenceResolver _referenceResolver;
@@ -57,13 +60,13 @@ namespace BuildValidator
             return await _referenceResolver.ResolveReferencesAsync(referenceInfos).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<SourceText>> GetSourcesAsync(CompilationOptionsReader pdbReader)
+        private async Task<ImmutableArray<SourceText>> GetSourcesAsync(CompilationOptionsReader pdbReader, Encoding encoding)
         {
             var builder = ImmutableArray.CreateBuilder<SourceText>();
 
             foreach (var srcFile in pdbReader.GetSourceFileNames())
             {
-                var text = await _sourceResolver.ResolveSourceAsync(srcFile).ConfigureAwait(false);
+                var text = await _sourceResolver.ResolveSourceAsync(srcFile, encoding).ConfigureAwait(false);
                 builder.Add(text);
             }
 
@@ -73,9 +76,9 @@ namespace BuildValidator
         #region CSharp
         private async Task<Compilation> CreateCSharpCompilationAsync(CompilationOptionsReader pdbReader, string name)
         {
-            var (compilationOptions, parseOptions) = CreateCSharpCompilationOptions(pdbReader);
+            var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(pdbReader);
             var metadataReferences = await CreateMetadataReferencesAsync(pdbReader).ConfigureAwait(false);
-            var sources = await GetSourcesAsync(pdbReader).ConfigureAwait(false);
+            var sources = await GetSourcesAsync(pdbReader, encoding).ConfigureAwait(false);
 
             return CSharpCompilation.Create(
                 name,
@@ -84,19 +87,25 @@ namespace BuildValidator
                 options: compilationOptions);
         }
 
-        private static (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(CompilationOptionsReader pdbReader)
+        private static (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader pdbReader)
         {
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
             var langVersionString = pdbCompilationOptions["language-version"];
             var optimization = pdbCompilationOptions["optimization"];
-            pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
+            // TODO: Check portability policy if needed
+            // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
             pdbCompilationOptions.TryGetValue("default-encoding", out var defaultEncoding);
             pdbCompilationOptions.TryGetValue("fallback-encoding", out var fallbackEncoding);
             pdbCompilationOptions.TryGetValue("define", out var define);
             pdbCompilationOptions.TryGetValue("checked", out var checkedString);
             pdbCompilationOptions.TryGetValue("nullable", out var nullable);
             pdbCompilationOptions.TryGetValue("unsafe", out var unsafeString);
+
+            var encodingString = defaultEncoding ?? fallbackEncoding;
+            var encoding = encodingString is null
+                ? Encoding.UTF8
+                : Encoding.GetEncoding(encodingString);
 
             CS.LanguageVersionFacts.TryParse(langVersionString, out var langVersion);
 
@@ -106,8 +115,6 @@ namespace BuildValidator
 
             var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(langVersion)
                 .WithPreprocessorSymbols(preprocessorSymbols);
-
-            int.TryParse(portabilityPolicyString, out var portabilityPolicy);
 
             var (optimizationLevel, _) = GetOptimizationLevel(optimization);
 
@@ -144,7 +151,7 @@ namespace BuildValidator
                 metadataImportOptions: MetadataImportOptions.Public,
                 nullableContextOptions: nullableOptions);
 
-            return (compilationOptions, parseOptions);
+            return (compilationOptions, parseOptions, encoding);
         }
 
         private static (OptimizationLevel, bool) GetOptimizationLevel(string optimizationLevel)
@@ -163,7 +170,7 @@ namespace BuildValidator
         {
             var compilationOptions = CreateVisualBasicCompilationOptions(pdbReader);
             var metadataReferences = await CreateMetadataReferencesAsync(pdbReader).ConfigureAwait(false);
-            var sources = await GetSourcesAsync(pdbReader).ConfigureAwait(false);
+            var sources = await GetSourcesAsync(pdbReader, Encoding.UTF8).ConfigureAwait(false);
 
             return VisualBasicCompilation.Create(
                 name,
@@ -186,7 +193,7 @@ namespace BuildValidator
             VB.LanguageVersionFacts.TryParse(langVersionString, ref langVersion);
 
             var preprocessorSymbols = string.IsNullOrEmpty(define)
-                ? new KeyValuePair<string, object>[0]
+                ? Array.Empty<KeyValuePair<string, object>>()
                 : define.Split(';')
                     .Select(s => s.Split('='))
                     .Select(a => new KeyValuePair<string, object>(a[0], a[1]))

@@ -5,12 +5,17 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
+    /// <summary>
+    /// Roslyn specific implementation for looking for files
+    /// in the Roslyn repo
+    /// </summary>
     internal class LocalSourceResolver : ISourceResolver
     {
         private readonly DirectoryInfo _baseDirectory;
@@ -24,7 +29,7 @@ namespace BuildValidator
             _logger.LogInformation($"Source Base Directory: {_baseDirectory}");
         }
 
-        public Task<SourceText> ResolveSourceAsync(string name)
+        public Task<SourceText> ResolveSourceAsync(string name, Encoding encoding)
         {
             if (!File.Exists(name))
             {
@@ -34,7 +39,7 @@ namespace BuildValidator
             if (File.Exists(name))
             {
                 using var fileStream = File.OpenRead(name);
-                var sourceText = SourceText.From(fileStream);
+                var sourceText = SourceText.From(fileStream, encoding: encoding);
                 return Task.FromResult(sourceText);
             }
 

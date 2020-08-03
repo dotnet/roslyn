@@ -19,7 +19,7 @@ namespace BuildValidator
         {
             var options = new Options();
 
-            for (int i = 0; i < args.Length;)
+            for (var i = 0; i < args.Length;)
             {
                 var arg = args[i++];
 
