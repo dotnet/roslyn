@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         /// <summary>
         /// Creates the UIElement on call
-        /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
+        /// Uses PositionAffinity.Predecessor because we want the tag to be associated with the preceding character
         /// </summary>
         /// <param name="adornment">The adornment that we are creating</param>
         /// <param name="textView">The view of the editor</param>
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// <param name="key">The symbolkey associated with each parameter</param>
         private InlineParameterNameHintsTag(FrameworkElement adornment, ITextView textView, SnapshotSpan span,
                                             SymbolKey key, InlineParameterNameHintsTaggerProvider taggerProvider)
-            : base(adornment, removalCallback: null, PositionAffinity.Successor)
+            : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
         {
             _textView = textView;
             _span = span;

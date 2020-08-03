@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         private readonly string? _diagnosticsClientName;
         private readonly IDiagnosticService _diagnosticService;
-        private readonly LanguageServerProtocol _languageServerProtocol;
+        private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private InProcLanguageServer? _languageServer;
 
@@ -57,12 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractLanguageServerClient(LanguageServerProtocol languageServerProtocol,
+        public AbstractLanguageServerClient(AbstractRequestHandlerProvider requestHandlerProvider,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             string? diagnosticsClientName)
         {
-            _languageServerProtocol = languageServerProtocol;
+            _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _diagnosticsClientName = diagnosticsClientName;
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace,
+            _languageServer = new InProcLanguageServer(serverStream, serverStream, _requestHandlerProvider, _workspace,
                 _diagnosticService, clientName: _diagnosticsClientName);
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
