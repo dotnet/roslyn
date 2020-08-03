@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,10 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
     {
-        public CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
-                  option: null,
-                  title: new LocalizableResourceString(nameof(CSharpAnalyzersResources.typeof_can_be_converted__to_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+        private static readonly string s_title = CSharpAnalyzersResources.typeof_can_be_converted__to_nameof;
+
+        public CSharpConvertTypeOfToNameOfDiagnosticAnalyzer() : base(s_title, LanguageNames.CSharp)
         {
         }
 

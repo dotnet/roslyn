@@ -7,7 +7,6 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -17,8 +16,11 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(string diagnosticId, IPerLanguageOption? option, LocalizableString title, LocalizableString? messageFormat = null, bool configurable = true)
-            : base(diagnosticId, option, title, messageFormat, configurable)
+        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title, string language)
+            : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
+                  option: null,
+                  language: language,
+                  title: title)
         {
         }
 

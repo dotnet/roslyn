@@ -2,18 +2,20 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer
         Inherits AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
 
+        Private Shared ReadOnly s_title As String = VisualBasicAnalyzersResources.GetType_can_be_converted_to_NameOf
+
         Public Sub New()
-            MyBase.New(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId, [option]:=Nothing, title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.GetType_can_be_converted_to_NameOf), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
+            MyBase.New(s_title, LanguageNames.VisualBasic)
         End Sub
 
         Protected Overrides Function IsValidTypeofAction(context As OperationAnalysisContext) As Boolean
