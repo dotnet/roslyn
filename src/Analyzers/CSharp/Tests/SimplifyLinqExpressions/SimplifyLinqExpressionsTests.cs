@@ -186,5 +186,38 @@ namespace demo
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestExpressionTreeType()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+namespace demo
+{
+    class Test
+    {
+        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
+        int output = [||]testvar2.Where(x => x == 4).Count();
+    }
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+namespace demo
+{
+    class Test
+    {
+        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
+        int output = testvar2.Where(x => x == 4).Count();
+    }
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+        }
     }
 }
