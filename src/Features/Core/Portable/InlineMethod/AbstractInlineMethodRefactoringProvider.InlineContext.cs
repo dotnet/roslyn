@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
     internal partial class AbstractInlineMethodRefactoringProvider
     {
         protected abstract IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, SyntaxNode argumentSyntaxNode, CancellationToken cancellationToken);
-        protected abstract bool IsExpressionStatement(SyntaxNode syntaxNode);
         protected abstract SyntaxNode GenerateLiteralExpression(ITypeSymbol typeSymbol, object? value);
         protected abstract bool IsExpressionSyntax(SyntaxNode syntaxNode);
         protected abstract string GetIdentifierTokenTextFromIdentifierNameSyntax(SyntaxNode syntaxNode);
@@ -56,8 +55,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 StatementInvokesCallee = statementInvokesCallee;
             }
 
-            public static InlineMethodContext GetInlineContext2(
-                AbstractInlineMethodRefactoringProvider service,
+            public static InlineMethodContext GetInlineContext(
+                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 SemanticModel semanticModel,
                 SyntaxNode calleeInvocationSyntaxNode,
@@ -68,10 +67,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 var allArguments = syntaxFacts.GetArgumentsOfInvocationExpression(calleeInvocationSyntaxNode);
                 var allParameterSymbols = calleeMethodSymbol.Parameters;
 
-                var statementInvokesCallee = GetInvokingStatement(syntaxFacts, service, calleeInvocationSyntaxNode);
+                var statementInvokesCallee = GetInvokingStatement(syntaxFacts, inlineMethodRefactoringProvider, calleeInvocationSyntaxNode);
                 if (allArguments.IsEmpty() && allParameterSymbols.Length == 1 && allParameterSymbols[0].IsParams)
                 {
-                    var renameTable = ComputeRenameTable2(
+                    var renameTable = ComputeRenameTable(
                         calleeInvocationSyntaxNode,
                         semanticModel,
                         calleeMethodDeclarationSyntaxNode,
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         ImmutableArray.Create(allParameterSymbols[0]),
                         ImmutableArray<(IParameterSymbol parameterSymbol, string name)>.Empty,
                         cancellationToken);
-                    var arrayInitializer = service.GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode>.Empty);
+                    var arrayInitializer = inlineMethodRefactoringProvider.GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode>.Empty);
                     return new InlineMethodContext(
                         ImmutableArray.Create(arrayInitializer),
                         ImmutableDictionary<ISymbol, SyntaxNode>.Empty,
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 {
                     var parameterSymbolToArgumentGroupings = allArguments
                         .Select(argument => (
-                            parameterSymbol: service.GetParameterSymbol(semanticModel, argument, cancellationToken),
+                            parameterSymbol: inlineMethodRefactoringProvider.GetParameterSymbol(semanticModel, argument, cancellationToken),
                             argumentExpression: syntaxFacts.GetExpressionOfArgument(argument)))
                         .Where(parameterAndArgument =>
                             parameterAndArgument.parameterSymbol != null
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         .ToImmutableArray();
 
                     var parametersWithVariableDeclarationArgumentToName = parametersWithVariableDeclarationArgumentGroupings
-                        .SelectAsArray(grouping => (grouping.Key, service.GetSingleVariableNameFromDeclarationExpression(grouping.Single())));
+                        .SelectAsArray(grouping => (grouping.Key, inlineMethodRefactoringProvider.GetSingleVariableNameFromDeclarationExpression(grouping.Single())));
 
                     var parametersWithLiteralArgumentGroupings = parameterSymbolToArgumentGroupings
                         .Where(grouping => ParameterWithLiteralArgumentFilter(syntaxFacts, grouping))
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         .RemoveRange(parametersWithIdentifierArgumentGroupings)
                         .RemoveRange(parametersWithVariableDeclarationArgumentGroupings)
                         .RemoveRange(parametersWithLiteralArgumentGroupings)
-                        .Where(grouping => ParameterNeedsGenerateDeclarationFilter(service, syntaxFacts, semanticModel, grouping, cancellationToken))
+                        .Where(grouping => ParameterNeedsGenerateDeclarationFilter(inlineMethodRefactoringProvider, syntaxFacts, semanticModel, grouping, cancellationToken))
                         .ToImmutableArray();
 
                     var parametersWithDefaultValue = calleeMethodSymbol.Parameters
@@ -129,24 +128,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         .Where(parameterSymbol => parameterSymbol.HasExplicitDefaultValue)
                         .ToImmutableArray();
 
-                    var renameTable = ComputeRenameTable2(
+                    var renameTable = ComputeRenameTable(
                         calleeInvocationSyntaxNode,
                         semanticModel,
                         calleeMethodDeclarationSyntaxNode,
-                        parametersWithIdentifierArgumentGroupings.SelectAsArray(grouping => (grouping.Key, service.GetIdentifierTokenTextFromIdentifierNameSyntax(grouping.Single()))),
+                        parametersWithIdentifierArgumentGroupings.SelectAsArray(grouping => (grouping.Key, inlineMethodRefactoringProvider.GetIdentifierTokenTextFromIdentifierNameSyntax(grouping.Single()))),
                         parametersNeedGenerateDeclarations.SelectAsArray(grouping => grouping.Key),
                         parametersWithVariableDeclarationArgumentToName,
                         cancellationToken);
 
                     var replacementTable = ComputeReplacementTable(
-                        service,
+                        inlineMethodRefactoringProvider,
                         calleeMethodSymbol,
                         parametersWithLiteralArgumentGroupings,
                         parametersWithDefaultValue,
                         renameTable);
 
                     var statementsNeedInsert = ComputeStatementsNeedInsert(
-                        service,
+                        inlineMethodRefactoringProvider,
                         semanticModel,
                         parametersNeedGenerateDeclarations,
                         parametersWithVariableDeclarationArgumentToName,
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static bool ParameterNeedsGenerateDeclarationFilter(
-                AbstractInlineMethodRefactoringProvider service,
+                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 SemanticModel semanticModel,
                 IGrouping<IParameterSymbol, SyntaxNode> parameterAndArguments,
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 {
                     var argument = argumentsArray[0];
                     // Is this check too wide?
-                    return service.IsExpressionSyntax(argument);
+                    return inlineMethodRefactoringProvider.IsExpressionSyntax(argument);
                 }
 
                 // Params array is special, if there are multiple arguments, then they needs to be put into a separate array.
@@ -251,20 +250,20 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static ImmutableArray<SyntaxNode> ComputeStatementsNeedInsert(
-                AbstractInlineMethodRefactoringProvider service,
+                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 ImmutableArray<IGrouping<IParameterSymbol, SyntaxNode>> parametersNeedGenerateDeclarations,
                 ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
                 ImmutableDictionary<ISymbol, string> renameTable,
                 CancellationToken cancellationToken)
                 => parametersNeedGenerateDeclarations
-                    .Select(grouping => CreateLocalDeclarationStatement(service, semanticModel, renameTable, grouping, cancellationToken))
+                    .Select(grouping => CreateLocalDeclarationStatement(inlineMethodRefactoringProvider, semanticModel, renameTable, grouping, cancellationToken))
                     .Concat(parametersWithVariableDeclarationArgument
-                        .Select(grouping => service.GenerateLocalDeclarationStatement(grouping.name, grouping.parameterSymbol.Type)))
+                        .Select(grouping => inlineMethodRefactoringProvider.GenerateLocalDeclarationStatement(grouping.name, grouping.parameterSymbol.Type)))
                     .ToImmutableArray();
 
             private static SyntaxNode CreateLocalDeclarationStatement(
-                AbstractInlineMethodRefactoringProvider service,
+                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 ImmutableDictionary<ISymbol, string> renameTable,
                 IGrouping<IParameterSymbol, SyntaxNode> parameterAndArguments,
@@ -281,14 +280,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 if (generateArrayInitializerExpression)
                 {
-                    return service.GenerateLocalDeclarationStatementWithRightHandExpression(
+                    return inlineMethodRefactoringProvider.GenerateLocalDeclarationStatementWithRightHandExpression(
                         name,
                         parameterSymbol.Type,
-                        service.GenerateArrayInitializerExpression(argumentArray));
+                        inlineMethodRefactoringProvider.GenerateArrayInitializerExpression(argumentArray));
                 }
                 else
                 {
-                    return service.GenerateLocalDeclarationStatementWithRightHandExpression(
+                    return inlineMethodRefactoringProvider.GenerateLocalDeclarationStatementWithRightHandExpression(
                         name,
                         parameterSymbol.Type,
                         argumentArray[0]);
@@ -296,7 +295,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
-                AbstractInlineMethodRefactoringProvider service,
+                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 IMethodSymbol calleeMethodSymbol,
                 ImmutableArray<IGrouping<IParameterSymbol, SyntaxNode>> parametersWithLiteralArgument,
                 ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
@@ -304,23 +303,23 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             {
                 var typeParametersReplacementQuery = calleeMethodSymbol.TypeParameters
                     .Zip(calleeMethodSymbol.TypeArguments,
-                        (parameter, argument) => (parameter: (ISymbol)parameter, syntaxNode: service.GenerateTypeSyntax(argument)));
+                        (parameter, argument) => (parameter: (ISymbol)parameter, syntaxNode: inlineMethodRefactoringProvider.GenerateTypeSyntax(argument)));
                 var defaultValueReplacementQuery = parametersWithDefaultValue
-                    .Select(symbol => (parameter: (ISymbol)symbol, syntaxNode: service.GenerateLiteralExpression(symbol.Type, symbol.ExplicitDefaultValue)));
+                    .Select(symbol => (parameter: (ISymbol)symbol, syntaxNode: inlineMethodRefactoringProvider.GenerateLiteralExpression(symbol.Type, symbol.ExplicitDefaultValue)));
 
                 var literalArgumentReplacementQuery = parametersWithLiteralArgument
                     .Select(grouping => (parameter: (ISymbol)grouping.Key, syntaxNode: grouping.Single()));
 
                 return renameTable
                     .Select(kvp => (parameter: kvp.Key,
-                        syntaxNode: service.GenerateIdentifierNameSyntaxNode(kvp.Value)))
+                        syntaxNode: inlineMethodRefactoringProvider.GenerateIdentifierNameSyntaxNode(kvp.Value)))
                     .Concat(typeParametersReplacementQuery)
                     .Concat(defaultValueReplacementQuery)
                     .Concat(literalArgumentReplacementQuery)
                     .ToImmutableDictionary(tuple => tuple.parameter, tuple => tuple.syntaxNode);
             }
 
-            private static ImmutableDictionary<ISymbol, string> ComputeRenameTable2(
+            private static ImmutableDictionary<ISymbol, string> ComputeRenameTable(
                 SyntaxNode calleeInvocationSyntaxNode,
                 SemanticModel semanticModel,
                 SyntaxNode calleeDeclarationSyntaxNode,
@@ -388,14 +387,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static SyntaxNode GetInvokingStatement(
-                ISyntaxFacts syntaxFacts, AbstractInlineMethodRefactoringProvider service, SyntaxNode syntaxNode)
+                ISyntaxFacts syntaxFacts, AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider, SyntaxNode syntaxNode)
             {
                 for (var node = syntaxNode; node != null; node = node!.Parent)
                 {
-                    // TODO: Is there anything missed?
+                    // Is there anything missed here?
                     if (node != null && (
                         syntaxFacts.IsLocalDeclarationStatement(node)
-                        || service.IsEmbeddedStatementOwner(syntaxNode)
+                        || inlineMethodRefactoringProvider.IsEmbeddedStatementOwner(syntaxNode)
                         || syntaxFacts.IsExpressionStatement(node)))
                     {
                         return node;

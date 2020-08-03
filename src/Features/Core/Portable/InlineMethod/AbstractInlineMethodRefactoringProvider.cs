@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             SyntaxNode root,
             CancellationToken cancellationToken)
         {
-            var inlineContext = InlineMethodContext.GetInlineContext2(
+            var inlineContext = InlineMethodContext.GetInlineContext(
                 this,
                 _syntaxFacts,
                 semanticModel,

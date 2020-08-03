@@ -66,9 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 ? argumentSyntax.DetermineParameter(semanticModel, allowParams: true, cancellationToken)
                 : null;
 
-        protected override bool IsExpressionStatement(SyntaxNode syntaxNode)
-            => syntaxNode.IsKind(SyntaxKind.ExpressionStatement);
-
         protected override SyntaxNode GenerateLiteralExpression(ITypeSymbol typeSymbol, object? value)
             => ExpressionGenerator.GenerateExpression(typeSymbol, value, canUseFieldReference: false);
 
