@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     internal sealed class InlineParameterNameHintsTagger : ITagger<IntraTextAdornmentTag>, IDisposable
     {
         private readonly ITagAggregator<InlineParameterNameHintDataTag> _tagAggregator;
-        private readonly ITextBuffer _buffer;
-        private readonly ITextView _textView;
 
         /// <summary>
         /// stores the parameter hint tags in a global location 
@@ -45,22 +43,25 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// </summary>
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hintClassification;
+
         private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IToolTipService _toolTipService;
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingFindUsagesPresenter;
+        private readonly InlineParameterNameHintsTaggerProvider _inlineParameterNameHintsTaggerProvider;
+
+        private readonly ITextBuffer _buffer;
+        private readonly ITextView _textView;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
-            _threadingContext = taggerProvider.ThreadingContext;
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
+
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
-            _toolTipService = taggerProvider.ToolTipService;
-            _streamingFindUsagesPresenter = taggerProvider.StreamingFindUsagesPresenter;
+            _inlineParameterNameHintsTaggerProvider = taggerProvider;
+
             _textView = textView;
             _buffer = buffer;
+
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight, Format, _toolTipService, _textView, dataTagSpan, textTag.Key, _threadingContext, _streamingFindUsagesPresenter)));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight, Format, _textView, dataTagSpan, textTag.ParameterSymbolKey, _inlineParameterNameHintsTaggerProvider)));
                     }
                 }
             }

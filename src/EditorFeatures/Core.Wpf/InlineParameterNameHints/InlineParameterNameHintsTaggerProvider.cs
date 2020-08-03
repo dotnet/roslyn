@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                                                        IClassificationTypeRegistryService classificationTypeRegistryService,
                                                        IThreadingContext threadingContext,
                                                        IToolTipService toolTipService,
-                                                       Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter
-                                                       )
+                                                       Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;
