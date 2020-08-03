@@ -662,24 +662,39 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 await EnqueueWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(continueOnCapturedContext: false);
             }
 
-            internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> workers)
+            internal TestAccessor GetTestAccessor()
             {
-                var solution = _registration.CurrentSolution;
-                var list = new List<WorkItem>();
-
-                foreach (var project in solution.Projects)
-                {
-                    foreach (var document in project.Documents)
-                    {
-                        list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
-                    }
-                }
-
-                _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly(workers, list);
+                return new TestAccessor(this);
             }
 
-            internal void WaitUntilCompletion_ForTestingPurposesOnly()
-                => _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+            internal readonly struct TestAccessor
+            {
+                private readonly WorkCoordinator _workCoordinator;
+
+                internal TestAccessor(WorkCoordinator workCoordinator)
+                {
+                    _workCoordinator = workCoordinator;
+                }
+
+                internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> workers)
+                {
+                    var solution = _workCoordinator._registration.CurrentSolution;
+                    var list = new List<WorkItem>();
+
+                    foreach (var project in solution.Projects)
+                    {
+                        foreach (var document in project.Documents)
+                        {
+                            list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                        }
+                    }
+
+                    _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion(workers, list);
+                }
+
+                internal void WaitUntilCompletion()
+                    => _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion();
+            }
         }
 
         private readonly struct ReanalyzeScope

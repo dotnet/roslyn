@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             if (_solutionCrawlerService != null)
             {
-                _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
+                _solutionCrawlerService.GetTestAccessor().WaitUntilCompletion(_workspace, _incrementalAnalyzers);
             }
 
             await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();

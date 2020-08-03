@@ -165,22 +165,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace, ImmutableArray<IIncrementalAnalyzer> workers)
-        {
-            if (_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
-            {
-                coordinator.WaitUntilCompletion_ForTestingPurposesOnly(workers);
-            }
-        }
-
-        internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace)
-        {
-            if (_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
-            {
-                coordinator.WaitUntilCompletion_ForTestingPurposesOnly();
-            }
-        }
-
         private IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> GetAnalyzerProviders(string workspaceKind)
         {
             foreach (var (_, lazyProviders) in _analyzerProviders)
@@ -268,6 +252,45 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private static bool IsDefaultProvider(IncrementalAnalyzerProviderMetadata providerMetadata)
             => providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SolutionCrawlerRegistrationService _solutionCrawlerRegistrationService;
+
+            internal TestAccessor(SolutionCrawlerRegistrationService solutionCrawlerRegistrationService)
+            {
+                _solutionCrawlerRegistrationService = solutionCrawlerRegistrationService;
+            }
+
+            private bool TryGetWorkCoordinator(Workspace workspace, [NotNullWhen(true)] out WorkCoordinator? coordinator)
+            {
+                lock (_solutionCrawlerRegistrationService._gate)
+                {
+                    return _solutionCrawlerRegistrationService._documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator);
+                }
+            }
+
+            internal void WaitUntilCompletion(Workspace workspace, ImmutableArray<IIncrementalAnalyzer> workers)
+            {
+                if (TryGetWorkCoordinator(workspace, out var coordinator))
+                {
+                    coordinator.GetTestAccessor().WaitUntilCompletion(workers);
+                }
+            }
+
+            internal void WaitUntilCompletion(Workspace workspace)
+            {
+                if (TryGetWorkCoordinator(workspace, out var coordinator))
+                {
+                    coordinator.GetTestAccessor().WaitUntilCompletion();
+                }
+            }
+        }
 
         private class Registration
         {

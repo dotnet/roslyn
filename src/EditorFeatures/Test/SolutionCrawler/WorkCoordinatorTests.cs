@@ -1315,7 +1315,7 @@ class C
         {
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            service.WaitUntilCompletion_ForTestingPurposesOnly(workspace);
+            service.GetTestAccessor().WaitUntilCompletion(workspace);
         }
 
         private static async Task WaitWaiterAsync(ExportProvider provider)

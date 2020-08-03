@@ -587,20 +587,35 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _projectCache = null;
                     }
 
-                    internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    internal TestAccessor GetTestAccessor()
                     {
-                        foreach (var item in items)
-                        {
-                            ProcessDocumentAsync(analyzers, item, CancellationToken.None).Wait();
-                        }
+                        return new TestAccessor(this);
                     }
 
-                    internal void WaitUntilCompletion_ForTestingPurposesOnly()
+                    internal readonly struct TestAccessor
                     {
-                        // this shouldn't happen. would like to get some diagnostic
-                        while (_workItemQueue.HasAnyWork)
+                        private readonly NormalPriorityProcessor _normalPriorityProcessor;
+
+                        internal TestAccessor(NormalPriorityProcessor normalPriorityProcessor)
                         {
-                            FailFast.Fail("How?");
+                            _normalPriorityProcessor = normalPriorityProcessor;
+                        }
+
+                        internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                        {
+                            foreach (var item in items)
+                            {
+                                _normalPriorityProcessor.ProcessDocumentAsync(analyzers, item, CancellationToken.None).Wait();
+                            }
+                        }
+
+                        internal void WaitUntilCompletion()
+                        {
+                            // this shouldn't happen. would like to get some diagnostic
+                            while (_normalPriorityProcessor._workItemQueue.HasAnyWork)
+                            {
+                                FailFast.Fail("How?");
+                            }
                         }
                     }
                 }
