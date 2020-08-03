@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
 
-            var comparableType = compilation.GetTypeByMetadataName(typeof(IComparable<>).FullName!);
+            var comparableType = compilation.GetTypeByMetadataName(typeof(IComparable<>).FullName);
             if (comparableType == null)
                 return;
 

@@ -169,7 +169,10 @@
       Disable analyzers via an MSBuild property settable on the command line.
     -->
     <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" />
+      <!--
+        Roslyn.Diagnostics.Analyzers provides diagnostic suppressors that are required for clean builds.
+      -->
+      <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' != 'Roslyn.Diagnostics.Analyzers'" />
     </ItemGroup>
   </Target>
 

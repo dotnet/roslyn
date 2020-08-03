@@ -2686,7 +2686,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
             if (lazyLayoutAttribute == null)
             {
                 return false;
