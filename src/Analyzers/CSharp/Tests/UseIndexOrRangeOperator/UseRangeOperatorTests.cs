@@ -750,7 +750,7 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
-      
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestWithTypeWithActualSliceMethod3()
         {
@@ -774,11 +774,12 @@ class C
         var v = s[1..];
     }
 }";
-          await new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = source,
                 FixedCode = fixedSource,
             }.RunAsync();
+        }
     }
 }
