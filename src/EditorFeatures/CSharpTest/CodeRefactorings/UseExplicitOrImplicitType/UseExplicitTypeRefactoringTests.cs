@@ -533,7 +533,7 @@ class C
             var code = @"
 #nullable enable
 
-import System.Collections;
+using System.Collections;
 
 class C
 {
@@ -548,7 +548,7 @@ class C
             var expected = @"
 #nullable enable
 
-import System.Collections;
+using System.Collections;
 
 class C
 {
@@ -569,7 +569,7 @@ class C
             var code = @"
 #nullable enable
 
-import System.Collections;
+using System.Collections;
 
 class C
 {
@@ -584,7 +584,7 @@ class C
             var expected = @"
 #nullable enable
 
-import System.Collections;
+using System.Collections;
 
 class C
 {
@@ -599,17 +599,17 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45398")]
+        [Fact]
         public async Task TestNullabilityAssignment_Lambda1()
         {
             var code = @"
 #nullable enable
 
-import System;
+using System;
 
 class C
 {
-    private static string s_data;
+    private static string s_data = """";
 
     static void Main()
     {
@@ -619,17 +619,17 @@ class C
         };
     }
 
-    string? GetNullableString() => null;
+    static string? GetNullableString() => null;
 }";
 
             var expected = @"
 #nullable enable
 
-import System;
+using System;
 
 class C
 {
-    private static string s_data;
+    private static string s_data = """";
 
     static void Main()
     {
@@ -639,19 +639,19 @@ class C
         };
     }
 
-    string? GetNullableString() => null;
+    static string? GetNullableString() => null;
 }";
 
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45398")]
+        [Fact]
         public async Task TestNullabilityAssignment_Lambda2()
         {
             var code = @"
 #nullable enable
 
-import System;
+using System;
 
 class C
 {
@@ -663,13 +663,13 @@ class C
         };
     }
 
-    string GetString() => """";
+    static string GetString() => """";
 }";
 
             var expected = @"
 #nullable enable
 
-import System;
+using System;
 
 class C
 {
@@ -681,7 +681,7 @@ class C
         };
     }
 
-    string GetString() => """";
+    static string GetString() => """";
 }";
 
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
