@@ -1,6 +1,7 @@
 # Contributing to Roslyn
 
 Guidelines for contributing to the Roslyn repo.
+Testing CI
 
 ## Submitting Pull Requests
 
