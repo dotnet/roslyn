@@ -267,7 +267,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _solutionCrawlerRegistrationService = solutionCrawlerRegistrationService;
             }
 
-            private bool TryGetWorkCoordinator(Workspace workspace, [NotNullWhen(true)] out WorkCoordinator? coordinator)
+            internal ref ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> AnalyzerProviders
+                => ref _solutionCrawlerRegistrationService._analyzerProviders;
+
+            internal bool TryGetWorkCoordinator(Workspace workspace, [NotNullWhen(true)] out WorkCoordinator? coordinator)
             {
                 lock (_solutionCrawlerRegistrationService._gate)
                 {
@@ -292,7 +295,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private class Registration
+        internal sealed class Registration
         {
             public readonly int CorrelationId;
             public readonly Workspace Workspace;

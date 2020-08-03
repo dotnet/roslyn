@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private readonly Registration _registration;
             private readonly object _gate;
@@ -134,7 +134,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _documentAndProjectWorkerProcessor.AsyncProcessorTask,
                         _semanticChangeProcessor.AsyncProcessorTask);
 
-                    shutdownTask.Wait(TimeSpan.FromSeconds(5));
+                    try
+                    {
+                        shutdownTask.Wait(TimeSpan.FromSeconds(5));
+                    }
+                    catch (AggregateException ex)
+                    {
+                        ex.Handle(e => e is OperationCanceledException);
+                    }
 
                     if (!shutdownTask.IsCompleted)
                     {
@@ -697,7 +704,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private readonly struct ReanalyzeScope
+        internal readonly struct ReanalyzeScope
         {
             private readonly SolutionId? _solutionId;
             private readonly ISet<object>? _projectOrDocumentIds;

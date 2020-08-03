@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         private readonly TestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService? AnalyzerService;
-        private readonly ISolutionCrawlerRegistrationService _registrationService;
-        private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
-        private readonly SolutionCrawlerRegistrationService? _solutionCrawlerService;
+        private readonly SolutionCrawlerRegistrationService _registrationService;
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -44,31 +42,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _threadingContext = workspace.GetService<IThreadingContext>();
             _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
-            if (updateSource == null)
-            {
-                updateSource = AnalyzerService = new MyDiagnosticAnalyzerService(_listenerProvider.GetListener(FeatureAttribute.DiagnosticService));
-            }
-
             var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             _workspace = workspace;
 
-            _registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            _registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
+            if (!_registrationService.GetTestAccessor().TryGetWorkCoordinator(workspace, out var coordinator))
+                throw new InvalidOperationException();
+
+            AnalyzerService = (DiagnosticAnalyzerService?)_registrationService.GetTestAccessor().AnalyzerProviders.SelectMany(pair => pair.Value).SingleOrDefault(lazyProvider => lazyProvider.Metadata.Name == WellKnownSolutionCrawlerAnalyzers.Diagnostic && lazyProvider.Metadata.HighPriorityForActiveFile)?.Value;
             DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
-            DiagnosticService.Register(updateSource);
+
+            if (updateSource is object)
+            {
+                DiagnosticService.Register(updateSource);
+            }
 
             if (createTaggerProvider)
             {
                 _ = TaggerProvider;
-            }
-
-            if (AnalyzerService != null)
-            {
-                _incrementalAnalyzers = ImmutableArray.Create(AnalyzerService.CreateIncrementalAnalyzer(workspace));
-                _solutionCrawlerService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
             }
         }
 
@@ -103,11 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public async Task WaitForTags()
         {
-            if (_solutionCrawlerService != null)
-            {
-                _solutionCrawlerService.GetTestAccessor().WaitUntilCompletion(_workspace, _incrementalAnalyzers);
-            }
-
+            await _listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync();
