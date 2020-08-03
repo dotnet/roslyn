@@ -11,5 +11,7 @@ namespace Analyzer.Utilities
         public const string TargetPlatformMinVersion = nameof(TargetPlatformMinVersion);
         public const string UsingMicrosoftNETSdkWeb = nameof(UsingMicrosoftNETSdkWeb);
         public const string ProjectTypeGuids = nameof(ProjectTypeGuids);
+        public const string PublishSingleFile = nameof(PublishSingleFile);
+        public const string IncludeAllContentForSelfExtract = nameof(IncludeAllContentForSelfExtract);
     }
 }

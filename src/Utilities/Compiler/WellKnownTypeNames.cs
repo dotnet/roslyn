@@ -217,7 +217,8 @@ namespace Analyzer.Utilities
         public const string SystemRange = "System.Range";
         public const string SystemReadOnlyMemory1 = "System.ReadOnlyMemory`1";
         public const string SystemReadOnlySpan1 = "System.ReadOnlySpan`1";
-        public const string SystemReflectionAssemblyFullName = "System.Reflection.Assembly";
+        public const string SystemReflectionAssembly = "System.Reflection.Assembly";
+        public const string SystemReflectionAssemblyName = "System.Reflection.AssemblyName";
         public const string SystemReflectionAssemblyVersionAttribute = "System.Reflection.AssemblyVersionAttribute";
         public const string SystemReflectionMemberInfo = "System.Reflection.MemberInfo";
         public const string SystemReflectionParameterInfo = "System.Reflection.ParameterInfo";

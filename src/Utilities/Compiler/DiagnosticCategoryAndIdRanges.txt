@@ -36,3 +36,7 @@ RoslynDiagnosticsMaintainability: RS0000-RS0999
 RoslynDiagnosticsPerformance: RS0000-RS0999
 RoslynDiagnosticsReliability: RS0000-RS0999
 RoslynDiagnosticsUsage: RS0000-RS0999
+
+# dotnet publish rules
+# These are warnings for single-file publish or the IL trimmer
+Publish: IL0000-IL9999
