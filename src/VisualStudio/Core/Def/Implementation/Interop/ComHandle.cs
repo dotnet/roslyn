@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         }
 
         /// <summary>
-        /// Return the IComWrapper object (as T) or the managed object (as T) if the managed object is not wrapped.
+        /// Return the IComWrapperFixed object (as T) or the managed object (as T) if the managed object is not wrapped.
         /// </summary>
         public THandle Handle
         {

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(expression, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression, cancellationToken).ConfigureAwait(false);
             var initializedType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             if (initializedType == null)
             {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // expr with { $$
             if (token.Parent.Parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
             {
-                var type = semanticModel.GetTypeInfo(withExpression.Receiver, cancellationToken).Type;
+                var type = semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
                 // Note: no special handling for type parameters since they can't be used in 'with' expressions ('with' is restricted to records at the moment)
 
                 return Tuple.Create(type, token.GetLocation());

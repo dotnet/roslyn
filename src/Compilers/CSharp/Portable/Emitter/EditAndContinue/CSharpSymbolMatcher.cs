@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     case SymbolKind.PointerType:
                         return ArePointerTypesEqual((PointerTypeSymbol)type, (PointerTypeSymbol)other);
 
-                    case SymbolKind.FunctionPointer:
+                    case SymbolKind.FunctionPointerType:
                         return AreFunctionPointerTypesEqual((FunctionPointerTypeSymbol)type, (FunctionPointerTypeSymbol)other);
 
                     case SymbolKind.NamedType:

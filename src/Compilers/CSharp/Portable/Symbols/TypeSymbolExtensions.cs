@@ -52,8 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T where T : class? => true
         /// T where T : IComparable => true
         /// T where T : IComparable? => true
+        /// T where T : notnull => true
         /// </summary>
-        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
+        /// <remarks>
+        /// In C#9, annotations are allowed regardless of constraints.
+        /// </remarks>
+        public static bool IsTypeParameterDisallowingAnnotationInCSharp8(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
             {
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.SpecialType == SpecialType.System_Void;
         }
 
-        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
+        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol? type)
         {
             if (type is null)
             {
@@ -656,12 +660,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+                        var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                        if (typeArguments.IsEmpty)
+                        {
+                            return null;
+                        }
+
+                        int i;
+                        for (i = 0; i < typeArguments.Length - 1; i++)
                         {
                             // Let's try to avoid early resolution of nullable types
+                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
                             var result = VisitType(
-                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
-                                type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                                typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                type: nextType,
                                 typeWithAnnotationsPredicate,
                                 typePredicate,
                                 arg,
@@ -672,7 +684,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return result;
                             }
                         }
-                        return null;
+
+                        next = typeArguments[i];
+                        break;
 
                     case TypeKind.Array:
                         next = ((ArrayTypeSymbol)current).ElementTypeWithAnnotations;
@@ -683,7 +697,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case TypeKind.FunctionPointer:
-                        return visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable);
+                        {
+                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, out next);
+                            if (result is object)
+                            {
+                                return result;
+                            }
+
+                            break;
+                        }
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
@@ -694,9 +716,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
 
-            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable)
+            static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
+                => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
+
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, out TypeWithAnnotations next)
             {
                 MethodSymbol currentPointer = type.Signature;
+                if (currentPointer.ParameterCount == 0)
+                {
+                    next = currentPointer.ReturnTypeWithAnnotations;
+                    return null;
+                }
+
                 var result = VisitType(
                     typeWithAnnotationsOpt: canDigThroughNullable ? default : currentPointer.ReturnTypeWithAnnotations,
                     type: canDigThroughNullable ? currentPointer.ReturnTypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
@@ -707,14 +738,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     useDefaultType);
                 if (result is object)
                 {
+                    next = default;
                     return result;
                 }
 
-                foreach (var parameter in currentPointer.Parameters)
+                int i;
+                for (i = 0; i < currentPointer.ParameterCount - 1; i++)
                 {
+                    (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(currentPointer.Parameters[i].TypeWithAnnotations, canDigThroughNullable);
                     result = VisitType(
-                        typeWithAnnotationsOpt: canDigThroughNullable ? default : parameter.TypeWithAnnotations,
-                        type: canDigThroughNullable ? parameter.TypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
+                        typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                        type: nextType,
                         typeWithAnnotationsPredicate,
                         typePredicate,
                         arg,
@@ -722,10 +756,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         useDefaultType);
                     if (result is object)
                     {
+                        next = default;
                         return result;
                     }
                 }
 
+                next = currentPointer.Parameters[i].TypeWithAnnotations;
                 return null;
             }
         }
@@ -1628,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = pointerType;
                         return changed;
                     }
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     {
                         var functionPointerType = (FunctionPointerTypeSymbol)type;
                         var changed = NormalizeTaskTypesInFunctionPointer(compilation, ref functionPointerType);

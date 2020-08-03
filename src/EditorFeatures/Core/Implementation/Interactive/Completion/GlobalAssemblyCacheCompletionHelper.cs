@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             return result.ToImmutable();
         }
 
-        private IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)
+        private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)
         {
             return IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(partialName),
                 SpecializedCollections.EmptyEnumerable<AssemblyIdentity>());

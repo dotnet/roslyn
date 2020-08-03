@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a SolutionInfo.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static SolutionInfo Create(
             SolutionId id,
             VersionStamp version,

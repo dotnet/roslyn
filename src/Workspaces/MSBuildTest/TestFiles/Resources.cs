@@ -145,8 +145,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreMultiTFM_ProjectReference_Library => GetText("NetCoreMultiTFM_ProjectReference.Library.csproj");
                 public static string NetCoreMultiTFM_ProjectReference_Project => GetText("NetCoreMultiTFM_ProjectReference.Project.csproj");
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.csharplib.csharplib.csproj");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Library => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Library.csproj");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Project.csproj");
                 public static string PortableProject => GetText("ProjectFiles.CSharp.PortableProject.csproj");
                 public static string ProjectLoadErrorOnMissingDebugType => GetText("ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType.csproj");
                 public static string ProjectReference => GetText("ProjectFiles.CSharp.ProjectReference.csproj");
@@ -207,8 +205,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreMultiTFM_ProjectReference_Class1 => GetText("NetCoreMultiTFM_ProjectReference.Class1.cs");
                 public static string NetCoreMultiTFM_ProjectReference_Program => GetText("NetCoreMultiTFM_ProjectReference.Program.cs");
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib_Class1 = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.csharplib.Class1.cs");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Class1 => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Class1.cs");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Program => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Program.cs");
                 public static string MainWindow => GetText("SourceFiles.CSharp.MainWindow.xaml.cs");
                 public static string OtherStuff_Foo => GetText("SourceFiles.CSharp.OtherStuff_Foo.cs");
             }

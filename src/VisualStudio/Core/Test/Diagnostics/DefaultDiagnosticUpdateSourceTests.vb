@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -100,7 +101,7 @@ class A
             End Using
         End Function
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/45877")>
         Public Async Function TestDefaultDiagnosticProviderSemantic() As Task
             Dim code = <code>
 class A
@@ -177,7 +178,7 @@ class A
             End Using
         End Function
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/45877")>
         Public Async Function TestDefaultDiagnosticProviderRemove() As Task
             Dim code = <code>
 class A
@@ -285,7 +286,11 @@ End Class
             Dim analyzerMap = ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New DiagnosticAnalyzerWithSemanticError()))
 
-            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True)
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(NoCompilationContentTypeDefinitions))
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=Composition)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(analyzerMap)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 

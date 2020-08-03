@@ -1261,12 +1261,7 @@
     <TypeComment>
       <summary>Provides the base class from which the classes that represent anonymous function expressions are derived.</summary>
     </TypeComment>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
     <Choice>
       <Field Name="Block" Type="BlockSyntax">
         <PropertyComment>
@@ -1288,12 +1283,7 @@
   </AbstractNode>
   <Node Name="AnonymousMethodExpressionSyntax" Base="AnonymousFunctionExpressionSyntax" SkipConvenienceFactories="true">
     <Kind Name="AnonymousMethodExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="DelegateKeyword" Type="SyntaxToken">
       <Kind Name="DelegateKeyword"/>
       <PropertyComment>
@@ -1342,12 +1332,7 @@
   </AbstractNode>
   <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="SimpleLambdaExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Parameter" Type="ParameterSyntax">
       <Kind Name="Parameter"/>
       <PropertyComment>
@@ -1395,12 +1380,7 @@
   </Node>
   <Node Name="ParenthesizedLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="ParenthesizedLambdaExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax">
       <PropertyComment>
         <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
@@ -1543,7 +1523,7 @@
   </Node>
   <Node Name="WithExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="WithExpression"/>
-    <Field Name="Receiver" Type="ExpressionSyntax" />
+    <Field Name="Expression" Type="ExpressionSyntax" />
     <Field Name="WithKeyword" Type="SyntaxToken">
       <Kind Name="WithKeyword" />
     </Field>
@@ -3451,9 +3431,14 @@
     <Kind Name="SimpleBaseType"/>
     <Field Name="Type" Type="TypeSyntax" Override="true">
     </Field>
-    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true"/>
   </Node>
 
+  <Node Name="PrimaryConstructorBaseTypeSyntax" Base="BaseTypeSyntax">
+    <Kind Name="PrimaryConstructorBaseType"/>
+    <Field Name="Type" Type="TypeSyntax" Override="true"/>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax"/>
+  </Node>
+  
   <Node Name="TypeParameterConstraintClauseSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
       <summary>Type parameter constraint clause.</summary>
@@ -3511,7 +3496,7 @@
   </Node>
   <Node Name="ClassOrStructConstraintSyntax" Base="TypeParameterConstraintSyntax">
     <TypeComment>
-      <summary>Base type for class or struct constraint syntax.</summary>
+      <summary>Class or struct constraint syntax.</summary>
     </TypeComment>
     <Kind Name="ClassConstraint"/>
     <Kind Name="StructConstraint"/>
@@ -3538,6 +3523,18 @@
       <PropertyComment>
         <summary>Gets the type syntax.</summary>
       </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="DefaultConstraintSyntax" Base="TypeParameterConstraintSyntax">
+    <TypeComment>
+      <summary>Default constraint syntax.</summary>
+    </TypeComment>
+    <Kind Name="DefaultConstraint"/>
+    <Field Name="DefaultKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "default" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="DefaultKeyword"/>
     </Field>
   </Node>
   <AbstractNode Name="BaseFieldDeclarationSyntax" Base="MemberDeclarationSyntax">

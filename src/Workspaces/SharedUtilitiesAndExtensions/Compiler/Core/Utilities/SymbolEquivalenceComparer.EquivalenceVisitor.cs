@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     SymbolKind.RangeVariable => RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y),
                     SymbolKind.TypeParameter => TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Preprocessing => PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y),
-                    SymbolKindEx.FunctionPointer =>
+                    SymbolKindEx.FunctionPointerType =>
 #if !CODE_STYLE
                         FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
 #else
@@ -344,8 +344,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
-                if (x.IsDefinition != y.IsDefinition ||
-                    IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
+                if (IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
                     x.Name != y.Name ||
                     x.IsAnonymousType != y.IsAnonymousType ||

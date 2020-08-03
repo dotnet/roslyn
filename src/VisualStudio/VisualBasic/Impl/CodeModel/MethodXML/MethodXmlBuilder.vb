@@ -578,7 +578,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
 
                 If arrayBounds IsNot Nothing Then
 
-                    If Not TryGenerateArrayBounds(arrayBounds, type) Then
+                    If Not TryGenerateArrayBounds(arrayBounds) Then
                         Return False
                     End If
 
@@ -599,7 +599,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                                         Return False
                                     End If
                                 Case SyntaxKind.CollectionInitializer
-                                    If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax), type) Then
+                                    If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax)) Then
                                         Return False
                                     End If
                                 Case Else
@@ -616,7 +616,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             End Using
         End Function
 
-        Private Function TryGenerateArrayBounds(argumentList As ArgumentListSyntax, type As ITypeSymbol) As Boolean
+        Private Function TryGenerateArrayBounds(argumentList As ArgumentListSyntax) As Boolean
             For Each argument In argumentList.Arguments
                 Using BoundTag()
                     If Not TryGenerateSimpleArrayBound(argument) AndAlso
@@ -629,7 +629,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
-        Private Function TryGenerateArrayInitializer(collectionInitializer As CollectionInitializerSyntax, type As ITypeSymbol) As Boolean
+        Private Function TryGenerateArrayInitializer(collectionInitializer As CollectionInitializerSyntax) As Boolean
             Using BoundTag()
                 Using ExpressionTag()
                     Using LiteralTag()

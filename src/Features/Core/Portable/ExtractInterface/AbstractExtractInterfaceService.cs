@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             var symbolToDeclarationAnnotationMap = new Dictionary<ISymbol, SyntaxAnnotation>();
             var currentRoots = new Dictionary<SyntaxTree, SyntaxNode>();
-            var documentIds = new List<DocumentId>();
+            using var _ = ArrayBuilder<DocumentId>.GetInstance(out var documentIds);
 
             var typeNodeRoot = await typeNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var typeNodeAnnotation = new SyntaxAnnotation();
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 annotatedSolution = document.WithSyntaxRoot(root.Value).Project.Solution;
             }
 
-            return new SymbolMapping(symbolToDeclarationAnnotationMap, annotatedSolution, documentIds, typeNodeAnnotation);
+            return new SymbolMapping(symbolToDeclarationAnnotationMap, annotatedSolution, documentIds.ToImmutable(), typeNodeAnnotation);
         }
 
         internal Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
@@ -352,7 +352,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocument.Project.Solution,
                 interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                options: new CodeGenerationOptions(contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()), generateMethodBodies: false),
+                options: new CodeGenerationOptions(
+                    contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
+                    generateMethodBodies: false,
+                    options: await interfaceDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var syntaxRoot = await unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -386,7 +389,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         private async Task<Solution> GetSolutionWithOriginalTypeUpdatedAsync(
             Solution solution,
-            List<DocumentId> documentIds,
+            ImmutableArray<DocumentId> documentIds,
             SyntaxAnnotation typeNodeAnnotation,
             INamedTypeSymbol typeToExtractFrom,
             INamedTypeSymbol extractedInterfaceSymbol,
@@ -443,7 +446,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         private static ImmutableArray<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
         {
-            var interfaceMembers = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var interfaceMembers);
 
             foreach (var member in includedMembers)
             {
@@ -494,7 +497,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return interfaceMembers.ToImmutableAndFree();
+            return interfaceMembers.ToImmutable();
         }
 
         internal virtual bool IsExtractableMember(ISymbol m)
@@ -551,12 +554,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return potentialTypeParameters.Where(allReferencedTypeParameters.Contains).ToImmutableArray();
+            return potentialTypeParameters.WhereAsArray(allReferencedTypeParameters.Contains);
         }
 
-        private static List<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)
+        private static ImmutableArray<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)
         {
-            var typeParameters = new List<ITypeParameterSymbol>();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
 
             var typesToVisit = new Stack<INamedTypeSymbol>();
 
@@ -572,12 +575,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 typeParameters.AddRange(typesToVisit.Pop().TypeParameters);
             }
 
-            return typeParameters;
+            return typeParameters.ToImmutable();
         }
 
-        private IList<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
+        private ImmutableArray<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
         {
-            var directlyReferencedTypeParameters = new List<ITypeParameterSymbol>();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var directlyReferencedTypeParameters);
             foreach (var typeParameter in potentialTypeParameters)
             {
                 if (includedMembers.Any(m => DoesMemberReferenceTypeParameter(m, typeParameter, new HashSet<ITypeSymbol>())))
@@ -586,7 +589,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return directlyReferencedTypeParameters;
+            return directlyReferencedTypeParameters.ToImmutable();
         }
 
         private bool DoesMemberReferenceTypeParameter(ISymbol member, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)

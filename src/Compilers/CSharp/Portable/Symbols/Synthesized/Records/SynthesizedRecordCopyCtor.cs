@@ -27,12 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     isNullableEnabled: true,
                     ContainingType),
                 ordinal: 0,
-                RefKind.None));
+                RefKind.None,
+                "original"));
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        public override Accessibility DeclaredAccessibility => Accessibility.Protected;
+        public override Accessibility DeclaredAccessibility => ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
@@ -58,19 +59,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType, NamedTypeSymbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // We should handle ambiguities once we consider custom modifiers, as we do in overload resolution
-            // https://github.com/dotnet/roslyn/issues/45077
+            MethodSymbol? bestCandidate = null;
+            int bestModifierCountSoFar = -1; // stays as -1 unless we hit an ambiguity
             foreach (var member in containingType.InstanceConstructors)
             {
                 if (HasCopyConstructorSignature(member) &&
                     !member.HasUnsupportedMetadata &&
                     AccessCheck.IsSymbolAccessible(member, within, ref useSiteDiagnostics))
                 {
-                    return member;
+                    // If one has fewer custom modifiers, that is better
+                    // (see OverloadResolution.BetterFunctionMember)
+
+                    if (bestCandidate is null && bestModifierCountSoFar < 0)
+                    {
+                        bestCandidate = member;
+                        continue;
+                    }
+
+                    if (bestModifierCountSoFar < 0)
+                    {
+                        bestModifierCountSoFar = bestCandidate.CustomModifierCount();
+                    }
+
+                    var memberModCount = member.CustomModifierCount();
+                    if (memberModCount > bestModifierCountSoFar)
+                    {
+                        continue;
+                    }
+
+                    if (memberModCount == bestModifierCountSoFar)
+                    {
+                        bestCandidate = null;
+                        continue;
+                    }
+
+                    bestCandidate = member;
+                    bestModifierCountSoFar = memberModCount;
                 }
             }
 
-            return null;
+            return bestCandidate;
         }
 
         internal static bool IsCopyConstructor(Symbol member)
@@ -86,10 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool HasCopyConstructorSignature(MethodSymbol member)
         {
             NamedTypeSymbol containingType = member.ContainingType;
-            // We should relax the comparison to AllIgnoreOptions, so that a copy constructor with a custom modifier is recognized
-            // https://github.com/dotnet/roslyn/issues/45077
             return member is MethodSymbol { IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
-                method.Parameters[0].Type.Equals(containingType, TypeCompareKind.CLRSignatureCompareOptions) &&
+                method.Parameters[0].Type.Equals(containingType, TypeCompareKind.AllIgnoreOptions) &&
                 method.Parameters[0].RefKind == RefKind.None;
         }
     }

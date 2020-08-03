@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
                 case SymbolKind.TypeParameter:
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     return ((TypeSymbol)m).CustomModifierCount();
                 case SymbolKind.Event:
                     return ((EventSymbol)m).CustomModifierCount();
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt);
+                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt, requireSameReturnType: false);
 
                 case SymbolKind.Property:
                     var property = (PropertySymbol)member;

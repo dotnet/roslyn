@@ -5608,8 +5608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public abstract SyntaxToken? AsyncKeyword { get; }
+        public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get; }
 
         /// <summary>
         /// BlockSyntax node representing the body of the anonymous function.
@@ -5627,20 +5626,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Class which represents the syntax node for anonymous method expression.</summary>
     internal sealed partial class AnonymousMethodExpressionSyntax : AnonymousFunctionExpressionSyntax
     {
-        internal readonly SyntaxToken? asyncKeyword;
+        internal readonly GreenNode? modifiers;
         internal readonly SyntaxToken delegateKeyword;
         internal readonly ParameterListSyntax? parameterList;
         internal readonly BlockSyntax block;
         internal readonly ExpressionSyntax? expressionBody;
 
-        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(delegateKeyword);
             this.delegateKeyword = delegateKeyword;
@@ -5658,15 +5657,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
+        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(delegateKeyword);
             this.delegateKeyword = delegateKeyword;
@@ -5684,14 +5683,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
+        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
           : base(kind)
         {
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(delegateKeyword);
             this.delegateKeyword = delegateKeyword;
@@ -5709,8 +5708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken? AsyncKeyword => this.asyncKeyword;
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
         /// <summary>SyntaxToken representing the delegate keyword.</summary>
         public SyntaxToken DelegateKeyword => this.delegateKeyword;
         /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
@@ -5729,7 +5727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.asyncKeyword,
+                0 => this.modifiers,
                 1 => this.delegateKeyword,
                 2 => this.parameterList,
                 3 => this.block,
@@ -5742,11 +5740,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousMethodExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousMethodExpression(this);
 
-        public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
+        public AnonymousMethodExpressionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
+                var newNode = SyntaxFactory.AnonymousMethodExpression(modifiers, delegateKeyword, parameterList, block, expressionBody);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -5760,20 +5758,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, diagnostics, GetAnnotations());
+            => new AnonymousMethodExpressionSyntax(this.Kind, this.modifiers, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, GetDiagnostics(), annotations);
+            => new AnonymousMethodExpressionSyntax(this.Kind, this.modifiers, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal AnonymousMethodExpressionSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 5;
-            var asyncKeyword = (SyntaxToken?)reader.ReadValue();
-            if (asyncKeyword != null)
+            var modifiers = (GreenNode?)reader.ReadValue();
+            if (modifiers != null)
             {
-                AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             var delegateKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(delegateKeyword);
@@ -5798,7 +5796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.asyncKeyword);
+            writer.WriteValue(this.modifiers);
             writer.WriteValue(this.delegateKeyword);
             writer.WriteValue(this.parameterList);
             writer.WriteValue(this.block);
@@ -5836,20 +5834,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Class which represents the syntax node for a simple lambda expression.</summary>
     internal sealed partial class SimpleLambdaExpressionSyntax : LambdaExpressionSyntax
     {
-        internal readonly SyntaxToken? asyncKeyword;
+        internal readonly GreenNode? modifiers;
         internal readonly ParameterSyntax parameter;
         internal readonly SyntaxToken arrowToken;
         internal readonly BlockSyntax? block;
         internal readonly ExpressionSyntax? expressionBody;
 
-        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(parameter);
             this.parameter = parameter;
@@ -5867,15 +5865,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
+        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(parameter);
             this.parameter = parameter;
@@ -5893,14 +5891,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
           : base(kind)
         {
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(parameter);
             this.parameter = parameter;
@@ -5918,8 +5916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken? AsyncKeyword => this.asyncKeyword;
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
         /// <summary>ParameterSyntax node representing the parameter of the lambda expression.</summary>
         public ParameterSyntax Parameter => this.parameter;
         /// <summary>SyntaxToken representing equals greater than.</summary>
@@ -5938,7 +5935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.asyncKeyword,
+                0 => this.modifiers,
                 1 => this.parameter,
                 2 => this.arrowToken,
                 3 => this.block,
@@ -5951,11 +5948,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleLambdaExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleLambdaExpression(this);
 
-        public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        public SimpleLambdaExpressionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.SimpleLambdaExpression(modifiers, parameter, arrowToken, block, expressionBody);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -5969,20 +5966,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
+            => new SimpleLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameter, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
+            => new SimpleLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameter, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal SimpleLambdaExpressionSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 5;
-            var asyncKeyword = (SyntaxToken?)reader.ReadValue();
-            if (asyncKeyword != null)
+            var modifiers = (GreenNode?)reader.ReadValue();
+            if (modifiers != null)
             {
-                AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             var parameter = (ParameterSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(parameter);
@@ -6007,7 +6004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.asyncKeyword);
+            writer.WriteValue(this.modifiers);
             writer.WriteValue(this.parameter);
             writer.WriteValue(this.arrowToken);
             writer.WriteValue(this.block);
@@ -6123,20 +6120,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
     internal sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressionSyntax
     {
-        internal readonly SyntaxToken? asyncKeyword;
+        internal readonly GreenNode? modifiers;
         internal readonly ParameterListSyntax parameterList;
         internal readonly SyntaxToken arrowToken;
         internal readonly BlockSyntax? block;
         internal readonly ExpressionSyntax? expressionBody;
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6154,15 +6151,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6180,14 +6177,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
           : base(kind)
         {
             this.SlotCount = 5;
-            if (asyncKeyword != null)
+            if (modifiers != null)
             {
-                this.AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6205,8 +6202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        /// <summary>Gets the "async" token.</summary>
-        public override SyntaxToken? AsyncKeyword => this.asyncKeyword;
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
         /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
         public ParameterListSyntax ParameterList => this.parameterList;
         /// <summary>SyntaxToken representing equals greater than.</summary>
@@ -6225,7 +6221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.asyncKeyword,
+                0 => this.modifiers,
                 1 => this.parameterList,
                 2 => this.arrowToken,
                 3 => this.block,
@@ -6238,11 +6234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
-        public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
         {
-            if (asyncKeyword != this.AsyncKeyword || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (modifiers != this.Modifiers || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(modifiers, parameterList, arrowToken, block, expressionBody);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -6256,20 +6252,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
+            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
+            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal ParenthesizedLambdaExpressionSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 5;
-            var asyncKeyword = (SyntaxToken?)reader.ReadValue();
-            if (asyncKeyword != null)
+            var modifiers = (GreenNode?)reader.ReadValue();
+            if (modifiers != null)
             {
-                AdjustFlagsAndWidth(asyncKeyword);
-                this.asyncKeyword = asyncKeyword;
+                AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
             }
             var parameterList = (ParameterListSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(parameterList);
@@ -6294,7 +6290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.asyncKeyword);
+            writer.WriteValue(this.modifiers);
             writer.WriteValue(this.parameterList);
             writer.WriteValue(this.arrowToken);
             writer.WriteValue(this.block);
@@ -6749,48 +6745,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed partial class WithExpressionSyntax : ExpressionSyntax
     {
-        internal readonly ExpressionSyntax receiver;
+        internal readonly ExpressionSyntax expression;
         internal readonly SyntaxToken withKeyword;
         internal readonly InitializerExpressionSyntax initializer;
 
-        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(receiver);
-            this.receiver = receiver;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
             this.AdjustFlagsAndWidth(withKeyword);
             this.withKeyword = withKeyword;
             this.AdjustFlagsAndWidth(initializer);
             this.initializer = initializer;
         }
 
-        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer, SyntaxFactoryContext context)
+        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(receiver);
-            this.receiver = receiver;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
             this.AdjustFlagsAndWidth(withKeyword);
             this.withKeyword = withKeyword;
             this.AdjustFlagsAndWidth(initializer);
             this.initializer = initializer;
         }
 
-        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
           : base(kind)
         {
             this.SlotCount = 3;
-            this.AdjustFlagsAndWidth(receiver);
-            this.receiver = receiver;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
             this.AdjustFlagsAndWidth(withKeyword);
             this.withKeyword = withKeyword;
             this.AdjustFlagsAndWidth(initializer);
             this.initializer = initializer;
         }
 
-        public ExpressionSyntax Receiver => this.receiver;
+        public ExpressionSyntax Expression => this.expression;
         public SyntaxToken WithKeyword => this.withKeyword;
         /// <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
         public InitializerExpressionSyntax Initializer => this.initializer;
@@ -6798,7 +6794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.receiver,
+                0 => this.expression,
                 1 => this.withKeyword,
                 2 => this.initializer,
                 _ => null,
@@ -6809,11 +6805,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithExpression(this);
 
-        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        public WithExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
-            if (receiver != this.Receiver || withKeyword != this.WithKeyword || initializer != this.Initializer)
+            if (expression != this.Expression || withKeyword != this.WithKeyword || initializer != this.Initializer)
             {
-                var newNode = SyntaxFactory.WithExpression(receiver, withKeyword, initializer);
+                var newNode = SyntaxFactory.WithExpression(expression, withKeyword, initializer);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -6827,18 +6823,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new WithExpressionSyntax(this.Kind, this.receiver, this.withKeyword, this.initializer, diagnostics, GetAnnotations());
+            => new WithExpressionSyntax(this.Kind, this.expression, this.withKeyword, this.initializer, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new WithExpressionSyntax(this.Kind, this.receiver, this.withKeyword, this.initializer, GetDiagnostics(), annotations);
+            => new WithExpressionSyntax(this.Kind, this.expression, this.withKeyword, this.initializer, GetDiagnostics(), annotations);
 
         internal WithExpressionSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 3;
-            var receiver = (ExpressionSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(receiver);
-            this.receiver = receiver;
+            var expression = (ExpressionSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(expression);
+            this.expression = expression;
             var withKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(withKeyword);
             this.withKeyword = withKeyword;
@@ -6850,7 +6846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.receiver);
+            writer.WriteValue(this.expression);
             writer.WriteValue(this.withKeyword);
             writer.WriteValue(this.initializer);
         }
@@ -22279,69 +22275,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
     {
         internal readonly TypeSyntax type;
-        internal readonly ArgumentListSyntax? argumentList;
 
-        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax? argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 2;
+            this.SlotCount = 1;
             this.AdjustFlagsAndWidth(type);
             this.type = type;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
         }
 
-        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax? argumentList, SyntaxFactoryContext context)
+        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 2;
+            this.SlotCount = 1;
             this.AdjustFlagsAndWidth(type);
             this.type = type;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
         }
 
-        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax? argumentList)
+        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type)
           : base(kind)
         {
-            this.SlotCount = 2;
+            this.SlotCount = 1;
             this.AdjustFlagsAndWidth(type);
             this.type = type;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
         }
 
         public override TypeSyntax Type => this.type;
-        public ArgumentListSyntax? ArgumentList => this.argumentList;
 
         internal override GreenNode? GetSlot(int index)
-            => index switch
-            {
-                0 => this.type,
-                1 => this.argumentList,
-                _ => null,
-            };
+            => index == 0 ? this.type : null;
 
         internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SimpleBaseTypeSyntax(this, parent, position);
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
 
-        public SimpleBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
+        public SimpleBaseTypeSyntax Update(TypeSyntax type)
         {
-            if (type != this.Type || argumentList != this.ArgumentList)
+            if (type != this.Type)
             {
-                var newNode = SyntaxFactory.SimpleBaseType(type, argumentList);
+                var newNode = SyntaxFactory.SimpleBaseType(type);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -22355,24 +22329,117 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new SimpleBaseTypeSyntax(this.Kind, this.type, this.argumentList, diagnostics, GetAnnotations());
+            => new SimpleBaseTypeSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new SimpleBaseTypeSyntax(this.Kind, this.type, this.argumentList, GetDiagnostics(), annotations);
+            => new SimpleBaseTypeSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
 
         internal SimpleBaseTypeSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 1;
+            var type = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.type);
+        }
+
+        static SimpleBaseTypeSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(SimpleBaseTypeSyntax), r => new SimpleBaseTypeSyntax(r));
+        }
+    }
+
+    internal sealed partial class PrimaryConstructorBaseTypeSyntax : BaseTypeSyntax
+    {
+        internal readonly TypeSyntax type;
+        internal readonly ArgumentListSyntax argumentList;
+
+        internal PrimaryConstructorBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
+        }
+
+        internal PrimaryConstructorBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax argumentList, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
+        }
+
+        internal PrimaryConstructorBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax argumentList)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
+        }
+
+        public override TypeSyntax Type => this.type;
+        public ArgumentListSyntax ArgumentList => this.argumentList;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.type,
+                1 => this.argumentList,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PrimaryConstructorBaseTypeSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrimaryConstructorBaseType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrimaryConstructorBaseType(this);
+
+        public PrimaryConstructorBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+            if (type != this.Type || argumentList != this.ArgumentList)
+            {
+                var newNode = SyntaxFactory.PrimaryConstructorBaseType(type, argumentList);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new PrimaryConstructorBaseTypeSyntax(this.Kind, this.type, this.argumentList, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new PrimaryConstructorBaseTypeSyntax(this.Kind, this.type, this.argumentList, GetDiagnostics(), annotations);
+
+        internal PrimaryConstructorBaseTypeSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 2;
             var type = (TypeSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(type);
             this.type = type;
-            var argumentList = (ArgumentListSyntax?)reader.ReadValue();
-            if (argumentList != null)
-            {
-                AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
+            var argumentList = (ArgumentListSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal override void WriteTo(ObjectWriter writer)
@@ -22382,9 +22449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.argumentList);
         }
 
-        static SimpleBaseTypeSyntax()
+        static PrimaryConstructorBaseTypeSyntax()
         {
-            ObjectBinder.RegisterTypeReader(typeof(SimpleBaseTypeSyntax), r => new SimpleBaseTypeSyntax(r));
+            ObjectBinder.RegisterTypeReader(typeof(PrimaryConstructorBaseTypeSyntax), r => new PrimaryConstructorBaseTypeSyntax(r));
         }
     }
 
@@ -22666,7 +22733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    /// <summary>Base type for class or struct constraint syntax.</summary>
+    /// <summary>Class or struct constraint syntax.</summary>
     internal sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstraintSyntax
     {
         internal readonly SyntaxToken classOrStructKeyword;
@@ -22863,6 +22930,91 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         static TypeConstraintSyntax()
         {
             ObjectBinder.RegisterTypeReader(typeof(TypeConstraintSyntax), r => new TypeConstraintSyntax(r));
+        }
+    }
+
+    /// <summary>Default constraint syntax.</summary>
+    internal sealed partial class DefaultConstraintSyntax : TypeParameterConstraintSyntax
+    {
+        internal readonly SyntaxToken defaultKeyword;
+
+        internal DefaultConstraintSyntax(SyntaxKind kind, SyntaxToken defaultKeyword, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        internal DefaultConstraintSyntax(SyntaxKind kind, SyntaxToken defaultKeyword, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        internal DefaultConstraintSyntax(SyntaxKind kind, SyntaxToken defaultKeyword)
+          : base(kind)
+        {
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        /// <summary>Gets the "default" keyword.</summary>
+        public SyntaxToken DefaultKeyword => this.defaultKeyword;
+
+        internal override GreenNode? GetSlot(int index)
+            => index == 0 ? this.defaultKeyword : null;
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DefaultConstraintSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultConstraint(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultConstraint(this);
+
+        public DefaultConstraintSyntax Update(SyntaxToken defaultKeyword)
+        {
+            if (defaultKeyword != this.DefaultKeyword)
+            {
+                var newNode = SyntaxFactory.DefaultConstraint(defaultKeyword);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new DefaultConstraintSyntax(this.Kind, this.defaultKeyword, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new DefaultConstraintSyntax(this.Kind, this.defaultKeyword, GetDiagnostics(), annotations);
+
+        internal DefaultConstraintSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 1;
+            var defaultKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(defaultKeyword);
+            this.defaultKeyword = defaultKeyword;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.defaultKeyword);
+        }
+
+        static DefaultConstraintSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(DefaultConstraintSyntax), r => new DefaultConstraintSyntax(r));
         }
     }
 
@@ -32376,10 +32528,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
@@ -32604,10 +32758,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
         public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
         public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
         public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
         public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
@@ -32815,16 +32971,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.OpenParenToken), (TypeSyntax)Visit(node.Type), (SyntaxToken)Visit(node.CloseParenToken), (ExpressionSyntax)Visit(node.Expression));
 
         public override CSharpSyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-            => node.Update((SyntaxToken)Visit(node.AsyncKeyword), (SyntaxToken)Visit(node.DelegateKeyword), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), (SyntaxToken)Visit(node.DelegateKeyword), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override CSharpSyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-            => node.Update((SyntaxToken)Visit(node.AsyncKeyword), (ParameterSyntax)Visit(node.Parameter), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), (ParameterSyntax)Visit(node.Parameter), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override CSharpSyntaxNode VisitRefExpression(RefExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.RefKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override CSharpSyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update((SyntaxToken)Visit(node.AsyncKeyword), (ParameterListSyntax)Visit(node.ParameterList), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), (ParameterListSyntax)Visit(node.ParameterList), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override CSharpSyntaxNode VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Expressions), (SyntaxToken)Visit(node.CloseBraceToken));
@@ -32836,7 +32992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.NewKeyword), (TypeSyntax)Visit(node.Type), (ArgumentListSyntax)Visit(node.ArgumentList), (InitializerExpressionSyntax)Visit(node.Initializer));
 
         public override CSharpSyntaxNode VisitWithExpression(WithExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Receiver), (SyntaxToken)Visit(node.WithKeyword), (InitializerExpressionSyntax)Visit(node.Initializer));
+            => node.Update((ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.WithKeyword), (InitializerExpressionSyntax)Visit(node.Initializer));
 
         public override CSharpSyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             => node.Update((NameEqualsSyntax)Visit(node.NameEquals), (ExpressionSyntax)Visit(node.Expression));
@@ -33148,6 +33304,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.ColonToken), VisitList(node.Types));
 
         public override CSharpSyntaxNode VisitSimpleBaseType(SimpleBaseTypeSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
             => node.Update((TypeSyntax)Visit(node.Type), (ArgumentListSyntax)Visit(node.ArgumentList));
 
         public override CSharpSyntaxNode VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
@@ -33161,6 +33320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitTypeConstraint(TypeConstraintSyntax node)
             => node.Update((TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitDefaultConstraint(DefaultConstraintSyntax node)
+            => node.Update((SyntaxToken)Visit(node.DefaultKeyword));
 
         public override CSharpSyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration), (SyntaxToken)Visit(node.SemicolonToken));
@@ -34493,44 +34655,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new CastExpressionSyntax(SyntaxKind.CastExpression, openParenToken, type, closeParenToken, expression, this.context);
         }
 
-        public AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken? asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
+        public AnonymousMethodExpressionSyntax AnonymousMethodExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
             if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
 #endif
 
-            return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, asyncKeyword, delegateKeyword, parameterList, block, expressionBody, this.context);
+            return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, modifiers.Node, delegateKeyword, parameterList, block, expressionBody, this.context);
         }
 
-        public SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken? asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public SimpleLambdaExpressionSyntax SimpleLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new SimpleLambdaExpressionSyntax(SyntaxKind.SimpleLambdaExpression, asyncKeyword, parameter, arrowToken, block, expressionBody, this.context);
+            return new SimpleLambdaExpressionSyntax(SyntaxKind.SimpleLambdaExpression, modifiers.Node, parameter, arrowToken, block, expressionBody, this.context);
         }
 
         public RefExpressionSyntax RefExpression(SyntaxToken refKeyword, ExpressionSyntax expression)
@@ -34554,24 +34698,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken? asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, asyncKeyword, parameterList, arrowToken, block, expressionBody, this.context);
+            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, modifiers.Node, parameterList, arrowToken, block, expressionBody, this.context);
         }
 
         public InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -34637,20 +34772,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, newKeyword, type, argumentList, initializer, this.context);
         }
 
-        public WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        public WithExpressionSyntax WithExpression(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
 #if DEBUG
-            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (withKeyword == null) throw new ArgumentNullException(nameof(withKeyword));
             if (withKeyword.Kind != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.WithExpression, receiver, withKeyword, initializer, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.WithExpression, expression, withKeyword, initializer, this.context, out hash);
             if (cached != null) return (WithExpressionSyntax)cached;
 
-            var result = new WithExpressionSyntax(SyntaxKind.WithExpression, receiver, withKeyword, initializer, this.context);
+            var result = new WithExpressionSyntax(SyntaxKind.WithExpression, expression, withKeyword, initializer, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -36736,17 +36871,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type, ArgumentListSyntax? argumentList)
+        public SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
 #if DEBUG
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, argumentList, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, this.context, out hash);
             if (cached != null) return (SimpleBaseTypeSyntax)cached;
 
-            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type, argumentList, this.context);
+            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public PrimaryConstructorBaseTypeSyntax PrimaryConstructorBaseType(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+#if DEBUG
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PrimaryConstructorBaseType, type, argumentList, this.context, out hash);
+            if (cached != null) return (PrimaryConstructorBaseTypeSyntax)cached;
+
+            var result = new PrimaryConstructorBaseTypeSyntax(SyntaxKind.PrimaryConstructorBaseType, type, argumentList, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -36843,6 +36998,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (TypeConstraintSyntax)cached;
 
             var result = new TypeConstraintSyntax(SyntaxKind.TypeConstraint, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
+        {
+#if DEBUG
+            if (defaultKeyword == null) throw new ArgumentNullException(nameof(defaultKeyword));
+            if (defaultKeyword.Kind != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.DefaultConstraint, defaultKeyword, this.context, out hash);
+            if (cached != null) return (DefaultConstraintSyntax)cached;
+
+            var result = new DefaultConstraintSyntax(SyntaxKind.DefaultConstraint, defaultKeyword, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39243,44 +39418,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new CastExpressionSyntax(SyntaxKind.CastExpression, openParenToken, type, closeParenToken, expression);
         }
 
-        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken? asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
             if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
 #endif
 
-            return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
+            return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, modifiers.Node, delegateKeyword, parameterList, block, expressionBody);
         }
 
-        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken? asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new SimpleLambdaExpressionSyntax(SyntaxKind.SimpleLambdaExpression, asyncKeyword, parameter, arrowToken, block, expressionBody);
+            return new SimpleLambdaExpressionSyntax(SyntaxKind.SimpleLambdaExpression, modifiers.Node, parameter, arrowToken, block, expressionBody);
         }
 
         public static RefExpressionSyntax RefExpression(SyntaxToken refKeyword, ExpressionSyntax expression)
@@ -39304,24 +39461,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken? asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, asyncKeyword, parameterList, arrowToken, block, expressionBody);
+            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, modifiers.Node, parameterList, arrowToken, block, expressionBody);
         }
 
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -39387,20 +39535,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, newKeyword, type, argumentList, initializer);
         }
 
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
 #if DEBUG
-            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (withKeyword == null) throw new ArgumentNullException(nameof(withKeyword));
             if (withKeyword.Kind != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.WithExpression, receiver, withKeyword, initializer, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.WithExpression, expression, withKeyword, initializer, out hash);
             if (cached != null) return (WithExpressionSyntax)cached;
 
-            var result = new WithExpressionSyntax(SyntaxKind.WithExpression, receiver, withKeyword, initializer);
+            var result = new WithExpressionSyntax(SyntaxKind.WithExpression, expression, withKeyword, initializer);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -41486,17 +41634,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type, ArgumentListSyntax? argumentList)
+        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
 #if DEBUG
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, argumentList, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, out hash);
             if (cached != null) return (SimpleBaseTypeSyntax)cached;
 
-            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type, argumentList);
+            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static PrimaryConstructorBaseTypeSyntax PrimaryConstructorBaseType(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+#if DEBUG
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PrimaryConstructorBaseType, type, argumentList, out hash);
+            if (cached != null) return (PrimaryConstructorBaseTypeSyntax)cached;
+
+            var result = new PrimaryConstructorBaseTypeSyntax(SyntaxKind.PrimaryConstructorBaseType, type, argumentList);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -41593,6 +41761,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (TypeConstraintSyntax)cached;
 
             var result = new TypeConstraintSyntax(SyntaxKind.TypeConstraint, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
+        {
+#if DEBUG
+            if (defaultKeyword == null) throw new ArgumentNullException(nameof(defaultKeyword));
+            if (defaultKeyword.Kind != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DefaultConstraint, defaultKeyword, out hash);
+            if (cached != null) return (DefaultConstraintSyntax)cached;
+
+            var result = new DefaultConstraintSyntax(SyntaxKind.DefaultConstraint, defaultKeyword);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -43012,10 +43200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(EnumMemberDeclarationSyntax),
                 typeof(BaseListSyntax),
                 typeof(SimpleBaseTypeSyntax),
+                typeof(PrimaryConstructorBaseTypeSyntax),
                 typeof(TypeParameterConstraintClauseSyntax),
                 typeof(ConstructorConstraintSyntax),
                 typeof(ClassOrStructConstraintSyntax),
                 typeof(TypeConstraintSyntax),
+                typeof(DefaultConstraintSyntax),
                 typeof(FieldDeclarationSyntax),
                 typeof(EventFieldDeclarationSyntax),
                 typeof(ExplicitInterfaceSpecifierSyntax),

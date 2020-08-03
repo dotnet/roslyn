@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(SourceCodeKind.Regular)]
@@ -1297,7 +1297,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
         public async Task PositionalPatternSecondPosition()
         {

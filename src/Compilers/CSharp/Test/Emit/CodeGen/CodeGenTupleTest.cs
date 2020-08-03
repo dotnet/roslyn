@@ -20,6 +20,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static TestResources.NetFX.ValueTuple;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -3540,8 +3541,9 @@ static class C
 }
 ";
 
-            CompileAndVerifyWithMscorlib40(source,
-                references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerify(source,
+                targetFramework: TargetFramework.Mscorlib45,
+                references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef },
                 expectedOutput: @"42 Alice");
         }
 
@@ -3826,7 +3828,7 @@ public static class Extensions
     public static string a(this (int, int) self) { return ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
@@ -10740,7 +10742,7 @@ CS0151ERR_IntegralTypeValueExpected}
                 // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7.0").WithLocation(6, 24),
-                // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // (8,36): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)
                 );
@@ -18600,7 +18602,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -18639,7 +18641,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -20628,10 +20630,10 @@ public class Derived : Base<(int a, int b)>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base class are not allowed
+                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base type are not allowed
                 //     public static explicit operator Derived(Base<(int, int)> x)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Derived").WithArguments("Derived.explicit operator Derived(Base<(int, int)>)").WithLocation(9, 37),
-                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base type are not allowed
                 //     public static explicit operator Base<(int, int)>(Derived x)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Base<(int, int)>").WithArguments("Derived.explicit operator Base<(int, int)>(Derived)").WithLocation(5, 37)
                 );

@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BlockSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
@@ -35,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions_GetAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StatementSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolDisplayPartExtensions.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpPatternPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpExpressionPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\CSharpSelectedMembers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\CSharpSemanticFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxFacts.cs" />

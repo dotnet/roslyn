@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isFunctionPointerResolution)
             {
                 RemoveCallingConventionMismatches(results, callingConvention);
-                RemoveStaticInstanceMismatches(results, requireStatic: true);
+                RemoveMethodsNotDeclaredStatic(results);
             }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
@@ -381,6 +381,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = results[f];
                 TMember member = result.Member;
                 if (result.Result.IsValid && member.RequiresInstanceReceiver() == requireStatic)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
+                }
+            }
+        }
+
+        private static void RemoveMethodsNotDeclaredStatic<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
+        {
+            // RemoveStaticInstanceMistmatches allows methods that do not need a reciever but are not declared static,
+            // such as a local function that is not declared static. This eliminates methods that are not actually
+            // declared as static
+            for (int f = 0; f < results.Count; f++)
+            {
+                var result = results[f];
+                TMember member = result.Member;
+                if (result.Result.IsValid && !member.IsStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }
@@ -735,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (containingTypeMapOpt == null)
             {
-                if (MemberGroupContainsOverride(members, member))
+                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteDiagnostics))
                 {
                     // Don't even add it to the result set.  We'll add only the most-overriding members.
                     return;
@@ -761,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
-                        if (MemberGroupContainsOverride(others, member))
+                        if (MemberGroupContainsMoreDerivedOverride(others, member, checkOverrideContainingType: false, ref useSiteDiagnostics))
                         {
                             // Don't even add it to the result set.  We'll add only the most-overriding members.
                             return;
@@ -905,45 +921,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
-        private static bool IsOverride(Symbol overridden, Symbol overrider)
+        /// <summary>
+        /// Does <paramref name="moreDerivedOverride"/> override <paramref name="member"/> or the
+        /// thing that it originally overrides, but in a more derived class?
+        /// </summary>
+        /// <param name="checkOverrideContainingType">Set to false if the caller has already checked that
+        /// <paramref name="moreDerivedOverride"/> is in a type that derives from the type containing
+        /// <paramref name="member"/>.</param>
+        private static bool IsMoreDerivedOverride(
+            Symbol member,
+            Symbol moreDerivedOverride,
+            bool checkOverrideContainingType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (TypeSymbol.Equals(overridden.ContainingType, overrider.ContainingType, TypeCompareKind.ConsiderEverything2) ||
-                !MemberSignatureComparer.SloppyOverrideComparer.Equals(overridden, overrider))
+            if (!moreDerivedOverride.IsOverride ||
+                checkOverrideContainingType && !moreDerivedOverride.ContainingType.IsDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) ||
+                !MemberSignatureComparer.SloppyOverrideComparer.Equals(member, moreDerivedOverride))
             {
                 // Easy out.
                 return false;
             }
 
-            // Does overrider override overridden?
-            var current = overrider;
-            while (true)
-            {
-                if (!current.IsOverride)
-                {
-                    return false;
-                }
-                current = current.GetOverriddenMember();
-
-                // We could be in error recovery.
-                if ((object)current == null)
-                {
-                    return false;
-                }
-
-                if (current == overridden)
-                {
-                    return true;
-                }
-
-                // Don't search beyond the overridden member.
-                if (TypeSymbol.Equals(current.ContainingType, overridden.ContainingType, TypeCompareKind.ConsiderEverything2))
-                {
-                    return false;
-                }
-            }
+            // Rather than following the member.GetOverriddenMember() chain, we check to see if both
+            // methods ultimately override the same original method.  This addresses issues in binary compat
+            // scenarios where the override chain may skip some steps.
+            // See https://github.com/dotnet/roslyn/issues/45798 for an example.
+            return moreDerivedOverride.GetLeastOverriddenMember(accessingTypeOpt: null).OriginalDefinition ==
+                   member.GetLeastOverriddenMember(accessingTypeOpt: null).OriginalDefinition;
         }
 
-        private static bool MemberGroupContainsOverride<TMember>(ArrayBuilder<TMember> members, TMember member)
+        /// <summary>
+        /// Does the member group <paramref name="members"/> contain an override of <paramref name="member"/> or the method it
+        /// overrides, but in a more derived type?
+        /// </summary>
+        /// <param name="checkOverrideContainingType">Set to false if the caller has already checked that
+        /// <paramref name="members"/> are all in a type that derives from the type containing
+        /// <paramref name="member"/>.</param>
+        private static bool MemberGroupContainsMoreDerivedOverride<TMember>(
+            ArrayBuilder<TMember> members,
+            TMember member,
+            bool checkOverrideContainingType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             if (!member.IsVirtual && !member.IsAbstract && !member.IsOverride)
@@ -951,9 +969,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (!member.ContainingType.IsClassType())
+            {
+                return false;
+            }
+
             for (var i = 0; i < members.Count; ++i)
             {
-                if (IsOverride(member, members[i]))
+                if (IsMoreDerivedOverride(member: member, moreDerivedOverride: members[i], checkOverrideContainingType: checkOverrideContainingType, ref useSiteDiagnostics))
                 {
                     return true;
                 }
@@ -2289,12 +2312,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (t2MatchesExactly)
             {
-                // - E exactly matches T2
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
                 return BetterResult.Right;
             }
 
-            // - T1 is a better conversion target than T2
+            // - C1 is not a conditional expression conversion and C2 is a conditional expression conversion
+            if (!conv1.IsConditionalExpression && conv2.IsConditionalExpression)
+                return BetterResult.Left;
+            if (!conv2.IsConditionalExpression && conv1.IsConditionalExpression)
+                return BetterResult.Right;
+
+            // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
+            //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither);
         }
 
@@ -2538,7 +2567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BetterResult.Neither;
             }
 
-            // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists, 
+            // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists,
             // and at least one of the following holds:
             bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).IsImplicit;
             bool type2ToType1 = Conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteDiagnostics).IsImplicit;
@@ -2552,13 +2581,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BetterResult.Neither;
                 }
 
-                // - An implicit conversion from T1 to T2 exists 
+                // - An implicit conversion from T1 to T2 exists
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, type1, type2, ref useSiteDiagnostics, true);
                 return BetterResult.Left;
             }
             else if (type2ToType1)
             {
-                // - An implicit conversion from T1 to T2 exists 
+                // - An implicit conversion from T1 to T2 exists
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, type1, type2, ref useSiteDiagnostics, true);
                 return BetterResult.Right;
             }

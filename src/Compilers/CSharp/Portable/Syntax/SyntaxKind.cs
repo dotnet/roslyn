@@ -616,11 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
         FunctionPointerType = 9056,
+        DefaultConstraint = 9057,
 
         InitAccessorDeclaration = 9060,
 
         WithExpression = 9061,
         WithInitializerExpression = 9062,
-        RecordDeclaration = 9063
+        RecordDeclaration = 9063,
+
+        PrimaryConstructorBaseType = 9065,
     }
 }

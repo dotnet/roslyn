@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (languageService.Metadata.ServiceType == serviceTypeAssemblyQualifiedName &&
                     languageService.Metadata.Language == languageName)
                 {
-                    var unused = languageService.Value;
+                    _ = languageService.Value;
                     break;
                 }
             }

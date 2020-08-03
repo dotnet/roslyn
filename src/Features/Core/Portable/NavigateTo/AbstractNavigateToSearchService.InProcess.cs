@@ -71,11 +71,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SearchResult>.GetInstance();
+            using var _ = ArrayBuilder<SearchResult>.GetInstance(out var result);
 
             // Prioritize the active documents if we have any.
-            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id))
-                                               .ToImmutableArray();
+            var highPriDocs = priorityDocuments.WhereAsArray(d => project.ContainsDocument(d.Id));
 
             var highPriDocsSet = highPriDocs.ToSet();
             var lowPriDocs = project.Documents.Where(d => !highPriDocsSet.Contains(d));
@@ -90,9 +89,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var document in orderedDocs)
             {
                 if (searchDocument != null && document != searchDocument)
-                {
                     continue;
-                }
 
                 cancellationToken.ThrowIfCancellationRequested();
                 var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
@@ -108,7 +105,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static void AddResultIfMatch(
@@ -143,15 +140,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
-            var matchedSpans = ArrayBuilder<TextSpan>.GetInstance();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchedSpans);
             foreach (var match in nameMatches)
-            {
                 matchedSpans.AddRange(match.MatchedSpans);
-            }
 
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                matchedSpans.ToImmutableAndFree());
+                matchedSpans.ToImmutable());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)

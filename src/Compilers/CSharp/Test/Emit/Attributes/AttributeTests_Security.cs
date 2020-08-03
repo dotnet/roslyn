@@ -1520,6 +1520,42 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, "File = null").WithArguments("<null>", "File").WithLocation(5, 46));
         }
 
+        [Fact]
+        public void CS7056ERR_PermissionSetAttributeInvalidFile_WithXmlReferenceResolver()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var tempFile = tempDir.CreateFile("pset.xml");
+
+            string text = @"
+<PermissionSet class=""System.Security.PermissionSet"" version=""1"">
+</PermissionSet>";
+
+            tempFile.WriteAllText(text);
+
+            string source = @"
+using System.Security.Permissions;
+
+[PermissionSetAttribute(SecurityAction.Deny, File = @""NonExistentFile.xml"")]
+[PermissionSetAttribute(SecurityAction.Deny, File = null)]
+public class MyClass
+{
+}";
+            var resolver = new XmlFileResolver(tempDir.Path);
+            CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll.WithXmlReferenceResolver(resolver)).VerifyDiagnostics(
+                // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
+                // (5,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
+                // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
+                // (4,46): error CS7056: Unable to resolve file path 'NonExistentFile.xml' specified for the named argument 'File' for PermissionSet attribute
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
+                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, @"File = @""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(4, 46),
+                // (5,46): error CS7056: Unable to resolve file path '<null>' specified for the named argument 'File' for PermissionSet attribute
+                // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
+                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, "File = null").WithArguments("<null>", "File").WithLocation(5, 46));
+        }
+
         [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]
         [Fact]
         public void CS7057ERR_PermissionSetAttributeFileReadError()

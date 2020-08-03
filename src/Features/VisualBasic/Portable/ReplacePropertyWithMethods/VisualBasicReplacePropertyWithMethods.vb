@@ -2,12 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -28,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String,
-                cancellationToken As CancellationToken) As Task(Of IList(Of SyntaxNode))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxNode))
 
             Dim propertyStatement = TryCast(propertyDeclarationNode, PropertyStatementSyntax)
             If propertyStatement Is Nothing Then
-                Return Task.FromResult(SpecializedCollections.EmptyList(Of SyntaxNode))
+                Return SpecializedTasks.EmptyImmutableArray(Of SyntaxNode)
             End If
 
             Return Task.FromResult(ConvertPropertyToMembers(
@@ -49,10 +51,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String,
-                cancellationToken As CancellationToken) As IList(Of SyntaxNode)
+                cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
 
-            Dim result = New List(Of SyntaxNode)()
-
+            Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
             If propertyBackingField IsNot Nothing Then
                 Dim initializer = propertyStatement.Initializer?.Value
                 result.Add(generator.FieldDeclaration(propertyBackingField, initializer))
@@ -72,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                     setMethod, desiredSetMethodName, cancellationToken:=cancellationToken))
             End If
 
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
         Private Shared Function GetGetMethod(
@@ -155,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             ' To do this we make the new method using the information from the implicit getter 
             ' Function.  However, we need to update the 'explicit interface implementations' 
             ' of the implicit getter function so that they point to the updated interface method
-            ' and not hte old implicit interface method.
+            ' and not the old implicit interface method.
             Dim updatedImplementations = method.ExplicitInterfaceImplementations.SelectAsArray(
                 Function(i) UpdateExplicitInterfaceImplementation([property], i, desiredName))
 

@@ -8192,7 +8192,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8228,7 +8228,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -11040,7 +11040,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
 
 
             var code = @"

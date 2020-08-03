@@ -69,6 +69,10 @@
             </Color>
             <Color Name="label name">
             </Color>
+            <Color Name="inline parameter name hints">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+                <Background Type="CT_RAW" Source="FFE6E6FA" />
+            </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
@@ -225,6 +229,10 @@
             <Color Name="namespace name">
             </Color>
             <Color Name="label name">
+            </Color>
+            <Color Name="inline parameter name hints">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+                <Background Type="CT_RAW" Source="FFE6E6FA" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
@@ -383,6 +391,10 @@
             </Color>
             <Color Name="label name">
             </Color>
+            <Color Name="inline parameter name hints">
+                <Foreground Type="CT_RAW" Source="FF504848" />
+                <Background Type="CT_RAW" Source="FFE6E6FA" />
+            </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF5B5B5B" />
             </Color>
@@ -539,7 +551,11 @@
                 <Color Name="namespace name">
                 </Color>
                 <Color Name="label name">
-                </Color> 
+                </Color>
+            <Color Name="inline parameter name hints">
+                <Foreground Type="CT_RAW" Source="FF959493" />
+                <Background Type="CT_RAW" Source="FF2D2C2C" />
+            </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
             </Color>
@@ -703,6 +719,9 @@
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="label name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="inline parameter name hints">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="xml doc comment - attribute name">

@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CreateServerFunc createServerFunc,
             CancellationToken cancellationToken)
         {
-            if (pipeName == null)
+            if (pipeName is null)
             {
-                return new RejectedBuildResponse();
+                throw new ArgumentException(nameof(pipeName));
             }
 
             if (buildPaths.TempDirectory == null)
             {
-                return new RejectedBuildResponse();
+                throw new ArgumentException(nameof(buildPaths));
             }
 
             // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
@@ -132,24 +132,24 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var pipeTask = tryConnectToServer(pipeName, buildPaths, timeoutOverride, createServerFunc, cancellationToken);
             if (pipeTask is null)
             {
-                return new RejectedBuildResponse();
+                return new RejectedBuildResponse("Failed to connect to server");
             }
             else
             {
                 var pipe = await pipeTask.ConfigureAwait(false);
                 if (pipe is null)
                 {
-                    return new RejectedBuildResponse();
+                    return new RejectedBuildResponse("Failed to connect to server");
                 }
                 else
                 {
                     var request = BuildRequest.Create(language,
-                                                      buildPaths.WorkingDirectory,
-                                                      buildPaths.TempDirectory,
-                                                      BuildProtocolConstants.GetCommitHash(),
                                                       arguments,
-                                                      keepAlive,
-                                                      libEnvVariable);
+                                                      workingDirectory: buildPaths.WorkingDirectory,
+                                                      tempDirectory: buildPaths.TempDirectory,
+                                                      compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                                                      keepAlive: keepAlive,
+                                                      libDirectory: libEnvVariable);
 
                     return await TryCompileAsync(pipe, request, cancellationToken).ConfigureAwait(false);
                 }
@@ -186,7 +186,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         // the server and we need to fall back to the command line.
                         //
                         // Example: https://github.com/dotnet/roslyn/issues/24124
+#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
                         return null;
+#pragma warning restore VSTHRD114 // Avoid returning a null Task
                     }
 
                     if (!holdsMutex)
@@ -197,7 +199,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                             if (!holdsMutex)
                             {
+#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
                                 return null;
+#pragma warning restore VSTHRD114 // Avoid returning a null Task
                             }
                         }
                         catch (AbandonedMutexException)
@@ -255,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 catch (Exception e)
                 {
                     LogException(e, "Error writing build request.");
-                    return new RejectedBuildResponse();
+                    return new RejectedBuildResponse($"Error writing build request: {e.Message}");
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
@@ -279,13 +283,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     catch (Exception e)
                     {
                         LogException(e, "Error reading response");
-                        response = new RejectedBuildResponse();
+                        response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
                 }
                 else
                 {
-                    Log("Server disconnect");
-                    response = new RejectedBuildResponse();
+                    LogError("Client disconnect");
+                    response = new RejectedBuildResponse($"Client disconnected");
                 }
 
                 // Cancel whatever task is still around
@@ -303,20 +307,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
             string? identifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var buffer = Array.Empty<byte>();
 
             while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
             {
                 // Wait a tenth of a second before trying again
-                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(millisecondsDelay: 100, cancellationToken).ConfigureAwait(false);
 
                 try
                 {
-                    Log($"Before poking pipe {identifier}.");
                     await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
-                    Log($"After poking pipe {identifier}.");
                 }
                 catch (OperationCanceledException)
                 {
@@ -378,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    Log($"Connecting to server timed out after {timeoutMs} ms");
+                    LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
                     return null;
                 }
                 Log("Named pipe '{0}' connected", pipeName);
@@ -388,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Verify that we own the pipe.
                 if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
-                    Log("Owner of named pipe is incorrect");
+                    LogError("Owner of named pipe is incorrect");
                     return null;
                 }
 
@@ -457,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                    LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
                 }
                 return success;
             }

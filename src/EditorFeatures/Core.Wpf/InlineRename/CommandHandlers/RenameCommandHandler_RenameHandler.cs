@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var editableSpan))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
                 {
                     var dashboard = GetDashboard(args.TextView);
                     dashboard.Focus();

@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         protected void VerifyTabs(string initialMarkup, string expectedMarkup)
             => Verify(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
 
-        private string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");
+        private static string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {

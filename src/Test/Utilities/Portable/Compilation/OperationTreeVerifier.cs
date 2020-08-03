@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonProperties(operation);
             LogString(" (");
             LogType(operation.InputType, $"{nameof(operation.InputType)}");
+            LogString(", ");
+            LogType(operation.NarrowedType, $"{nameof(operation.NarrowedType)}");
         }
 
         private void LogCommonPropertiesAndNewLine(IOperation operation)
@@ -964,7 +966,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (operation.Parent is IMemberReferenceOperation memberReference && memberReference.Instance == operation)
                 {
-                    Assert.False(memberReference.Member.IsStatic);
+                    Assert.False(memberReference.Member.IsStatic && !operation.HasErrors(this._compilation));
                 }
                 else if (operation.Parent is IInvocationOperation invocation && invocation.Instance == operation)
                 {
@@ -1785,8 +1787,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitNegatedPattern(INegatedPatternOperation operation)
         {
             LogString(nameof(INegatedPatternOperation));
-            Visit(operation.NegatedPattern, "NegatedPattern");
             LogPatternPropertiesAndNewLine(operation);
+            Visit(operation.Pattern, "Pattern");
         }
 
         public override void VisitBinaryPattern(IBinaryPatternOperation operation)
@@ -1977,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IWithOperation));
             LogCommonPropertiesAndNewLine(operation);
-            Visit(operation.Value, "Value");
+            Visit(operation.Operand, "Operand");
             Indent();
             LogSymbol(operation.CloneMethod, nameof(operation.CloneMethod));
             LogNewLine();

@@ -4931,7 +4931,7 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics()
 
             ' Dev10 errors:
-            ' error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+            ' error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
             ' error CS0570: 'A.Goo' is not supported by the language
         End Sub
 
@@ -5179,7 +5179,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(vbSource, ilSource)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30643: Property 'Goo' is of an unsupported type.
+BC30643: Property 'A.Goo' is of an unsupported type.
         Dim x As Object = A.Goo
                             ~~~
 BC30456: 'get_Goo' is not a member of 'A'.

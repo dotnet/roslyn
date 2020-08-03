@@ -10387,7 +10387,7 @@ namespace ClassLibrary9
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", LanguageNames.CSharp).GetProject(projectId);
 
-            var document = project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            var document = project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                                   .AddDocument("Document", SourceText.From(""));
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
@@ -10400,10 +10400,6 @@ namespace ClassLibrary9
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractMethodCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
-                .CreateExportProvider();
-
             using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
@@ -10411,7 +10407,7 @@ namespace ClassLibrary9
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider);
+                composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
             workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
@@ -11281,6 +11277,64 @@ string NewMethod()
 {
     return ""string"";
 }";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Theory]
+        [InlineData("unsafe")]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
+        public async Task ExtractMethodInvolvingUnsafeBlock(string keyword)
+        {
+            var code = $@"
+using System;
+
+class Program {{
+    static void Main(string[] args)
+    {{
+        object value = args;
+
+        [|
+        IntPtr p;
+        {keyword}
+        {{
+            object t = value;
+            p = IntPtr.Zero;
+        }}
+        |]
+
+        Console.WriteLine(p);
+    }}
+}}
+";
+            var expected = $@"
+using System;
+
+class Program {{
+    static void Main(string[] args)
+    {{
+        object value = args;
+
+        IntPtr p = NewMethod(value);
+
+        Console.WriteLine(p);
+    }}
+
+    private static IntPtr NewMethod(object value)
+    {{
+        IntPtr p;
+        {keyword}
+        {{
+            object t = value;
+            p = IntPtr.Zero;
+        }}
+
+        return p;
+    }}
+}}
+";
             await TestExtractMethodAsync(code, expected);
         }
     }

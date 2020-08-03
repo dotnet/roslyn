@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody);
 
-        protected abstract SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
+        protected abstract SyntaxNode? TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
 
         protected abstract Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit);
         protected abstract Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches);
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// 
         /// Some lambda queries (group by, join by) have two bodies.
         /// </remarks>
-        internal abstract bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2);
+        internal abstract bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? body1, out SyntaxNode? body2);
 
         internal abstract bool IsStateMachineMethod(SyntaxNode declaration);
         internal abstract SyntaxNode? TryGetContainingTypeDeclaration(SyntaxNode node);
@@ -3004,7 +3004,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        private static ISymbol TryGetParameterlessConstructor(INamedTypeSymbol type, bool isStatic)
+        private static ISymbol? TryGetParameterlessConstructor(INamedTypeSymbol type, bool isStatic)
         {
             var oldCtors = isStatic ? type.StaticConstructors : type.InstanceConstructors;
             if (isStatic)

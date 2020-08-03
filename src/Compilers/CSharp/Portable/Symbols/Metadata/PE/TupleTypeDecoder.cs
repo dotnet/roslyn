@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.TypeParameter:
                     return type;
 
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     return DecodeFunctionPointerType((FunctionPointerTypeSymbol)type);
 
                 case SymbolKind.PointerType:

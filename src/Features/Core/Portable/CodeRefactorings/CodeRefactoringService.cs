@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
                 var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
-                var tasks = new List<Task<CodeRefactoring?>>();
+                using var _ = ArrayBuilder<Task<CodeRefactoring?>>.GetInstance(out var tasks);
 
                 foreach (var provider in GetProviders(document))
                 {
@@ -224,17 +224,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
             {
-                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
+                using var _ = ArrayBuilder<CodeRefactoringProvider>.GetInstance(out var builder);
                 foreach (var reference in project.AnalyzerReferences)
                 {
                     var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
                     foreach (var refactoring in projectCodeRefactoringProvider.GetExtensions(project.Language))
-                    {
                         builder.Add(refactoring);
-                    }
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
 

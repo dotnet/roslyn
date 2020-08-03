@@ -89,8 +89,8 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">'' が入力されたときに XML ドキュメント コメントを生成する(_G)</target>
-        <note />
+        <target state="translated">''' が入力されたときに XML ドキュメント コメントを生成する(_G)</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>

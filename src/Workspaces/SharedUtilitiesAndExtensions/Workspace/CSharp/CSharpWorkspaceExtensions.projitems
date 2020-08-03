@@ -28,7 +28,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NamespaceDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NameSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\QueryExpressionSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SeparatedSyntaxListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />

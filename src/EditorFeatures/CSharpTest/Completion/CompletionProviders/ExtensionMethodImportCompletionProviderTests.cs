@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
+        private const string NonBreakingSpaceString = "\x00A0";
+
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
         private bool IsExpandedCompletion { get; set; } = true;
@@ -35,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         internal override Type GetCompletionProviderType()
             => typeof(ExtensionMethodImportCompletionProvider);
@@ -1369,6 +1371,358 @@ namespace Baz
                      inlineDescription: "Foo");
             }
         }
+
+        [InlineData(ReferenceType.Project, "[]", "ExtentionMethod2")]
+        [InlineData(ReferenceType.Project, "[][]", "ExtentionMethod3")]
+        [InlineData(ReferenceType.Project, "[,]", "ExtentionMethod4")]
+        [InlineData(ReferenceType.Project, "[][,]", "ExtentionMethod5")]
+        [InlineData(ReferenceType.Metadata, "[]", "ExtentionMethod2")]
+        [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
+        [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
+        [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestExtensionMethodsForSimpleArrayType(ReferenceType refType, string rank, string expectedName)
+        {
+            var refDoc = $@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod1(this int x)
+            => true;
+
+        public static bool ExtentionMethod2(this int[] x)
+            => true;
+
+        public static bool ExtentionMethod3(this int[][] x)
+            => true;
+
+        public static bool ExtentionMethod4(this int[,] x)
+            => true;
+
+        public static bool ExtentionMethod5(this int[][,] x)
+            => true;
+    }}
+}}";
+            var srcDoc = $@"
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int{rank} x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 expectedName,
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [InlineData(ReferenceType.Project, "[]", "ExtentionMethod2")]
+        [InlineData(ReferenceType.Project, "[][]", "ExtentionMethod3")]
+        [InlineData(ReferenceType.Project, "[,]", "ExtentionMethod4")]
+        [InlineData(ReferenceType.Project, "[][,]", "ExtentionMethod5")]
+        [InlineData(ReferenceType.Metadata, "[]", "ExtentionMethod2")]
+        [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
+        [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
+        [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestExtensionMethodsForGenericArrayType(ReferenceType refType, string rank, string expectedName)
+        {
+            var refDoc = $@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod1<T>(this T x)
+            => true;
+
+        public static bool ExtentionMethod2<T>(this T[] x)
+            => true;
+
+        public static bool ExtentionMethod3<T>(this T[][] x)
+            => true;
+
+        public static bool ExtentionMethod4<T>(this T[,] x)
+            => true;
+
+        public static bool ExtentionMethod5<T>(this T[][,] x)
+            => true;
+    }}
+}}";
+            var srcDoc = $@"
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int{rank} x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 expectedName,
+                 displayTextSuffix: "<>",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestGenericReceiverTypeWithConstraint(ReferenceType refType)
+        {
+            var refDoc = @"
+using System;
+
+namespace NS1
+{
+    public class C1 {}
+}
+
+namespace NS2
+{
+    public static class Extensions
+    {
+        public static bool ExtentionMethod(this NS1.C1 c) => false;
+    }
+}";
+            var srcDoc = @"
+namespace NS1
+{
+    public class C2
+    {
+        public void M<T>(T x) where T : C1
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2");
+        }
+
+        [InlineData(ReferenceType.Project, "(int,int)")]
+        [InlineData(ReferenceType.Project, "(int,int,int,int,int,int,int,int,int,int)")]    // more than 8 tuple elements
+        [InlineData(ReferenceType.Metadata, "(int,int)")]
+        [InlineData(ReferenceType.Metadata, "(int,int,int,int,int,int,int,int,int,int)")]   // more than 8 tuple elements
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestTupleArray(ReferenceType refType, string tupleType)
+        {
+            var refDoc = $@"
+using System;
+
+namespace NS2
+{{
+    public static class Extensions
+    {{
+        public static bool ExtentionMethod(this {tupleType}[] x) => false;
+    }}
+}}";
+            var srcDoc = $@"
+namespace NS1
+{{
+    public class C
+    {{
+        public void M({tupleType}[] x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2");
+        }
+
+        [InlineData(ReferenceType.Project, "(int[],int[])")]
+        [InlineData(ReferenceType.Project, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
+        [InlineData(ReferenceType.Metadata, "(int[],int[])")]
+        [InlineData(ReferenceType.Metadata, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestArrayTuple(ReferenceType refType, string tupleType)
+        {
+            var refDoc = $@"
+using System;
+
+namespace NS2
+{{
+    public static class Extensions
+    {{
+        public static bool ExtentionMethod(this {tupleType} x) => false;
+    }}
+}}";
+            var srcDoc = $@"
+namespace NS1
+{{
+    public class C
+    {{
+        public void M({tupleType} x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2");
+        }
+
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestDescriptionOfGenericReceiverType(ReferenceType refType)
+        {
+            var refDoc = @"
+using System;
+
+namespace NS2
+{
+    public static class Extensions
+    {
+        public static bool ExtentionMethod<T>(this T t) => false;
+    }
+}";
+            var srcDoc = @"
+namespace NS1
+{
+    public class C
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                displayTextSuffix: "<>",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<int>()");
+        }
+
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestDescriptionOfOverloads(ReferenceType refType)
+        {
+            var refDoc = @"
+using System;
+
+namespace NS2
+{
+    public static class Extensions
+    {
+        public static bool ExtentionMethod(this int t) => false;
+        public static bool ExtentionMethod(this int t, int a) => false;
+        public static bool ExtentionMethod(this int t, int a, int b) => false;
+        public static bool ExtentionMethod<T>(this int t, T a) => false;
+        public static bool ExtentionMethod<T>(this int t, T a, T b) => false;
+        public static bool ExtentionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
+    }
+}";
+            var srcDoc = @"
+namespace NS1
+{
+    public class C
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod() (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})");
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                displayTextSuffix: "<>",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<T>(T a) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.generic_overloads})");
+        }
+
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
 
