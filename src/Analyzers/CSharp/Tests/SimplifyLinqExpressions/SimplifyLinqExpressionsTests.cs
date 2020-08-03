@@ -36,7 +36,7 @@ class Test
             yield return 2;
         }
 
-        var test = Data().Where(x => x==1).Single();
+        var test = [||]Data().Where(x => x==1).Single();
     }
 }";
             var fixedSource = @"
