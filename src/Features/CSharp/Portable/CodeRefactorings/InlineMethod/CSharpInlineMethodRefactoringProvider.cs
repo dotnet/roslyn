@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         }
 
         private static bool ShouldStatementBeInlined(StatementSyntax statementSyntax)
-            => statementSyntax is ReturnStatementSyntax || statementSyntax is ExpressionStatementSyntax || statementSyntax is ThrowStatementSyntax;
+            => statementSyntax is ReturnStatementSyntax || statementSyntax is ExpressionStatementSyntax;
 
         protected override bool IsMethodContainsOneStatement(SyntaxNode calleeMethodDeclarationSyntaxNode)
         {
@@ -145,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             {
                 ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression,
                 ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax.Expression,
-                ThrowStatementSyntax throwExpressionSyntax => throwExpressionSyntax.Expression,
                 _ => null
             };
 

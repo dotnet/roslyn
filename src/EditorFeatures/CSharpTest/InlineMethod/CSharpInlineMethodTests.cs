@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             => ((TestWorkspace)workspace).ExportProvider.GetExportedValue<CSharpInlineMethodRefactoringProvider>();
 
         [Fact]
-        public Task TestSingleStatementWithoutAnyExtraChange()
+        public Task TestInlineMethodWithSingleStatement()
             => TestInRegularAndScript1Async(
                 @"
 public class TestClass
@@ -182,7 +182,7 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestInlineMethodWithIdentiferReplacement()
+        public Task TestInlineMethodWithIdentifierReplacement()
             => TestInRegularAndScript1Async(
                 @"
 public class TestClass
@@ -358,7 +358,7 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestInlineParamsArrayWithArrayInitializerExpression2()
+        public Task TestInlineParamsArrayWithOneElement()
             => TestInRegularAndScript1Async(@"
 public class TestClass
 {
@@ -378,7 +378,9 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = new int[6] {1, 2, 3, 4, 5, 6};
+        int[] x = {
+            1
+        };
         System.Console.WriteLine(x.Length);
     }
 
@@ -435,7 +437,7 @@ public class TestClass
         System.Console.WriteLine(x.Length);
     }
 }",
-                // TODO: Is this is the intentional array format?
+                // Is this is the intentional array format?
                 @"
 public class TestClass
 {
@@ -548,6 +550,65 @@ public class TestClass
         return 1 + 2 + j;
     }
 }");
+        [Fact]
+        public Task TestInlineMethodWithConditionalExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller(bool x)
+    {
+        int t = C[||]allee(x ? Callee(1) : Callee(2));
+    }
+    
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+}",
+                @"
+public class TestClass
+{
+    public void Caller(bool x)
+    {
+        int i = x ? Callee(1) : Callee(2);
+        int t = i + 1;
+    }
+    
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+}");
+        [Fact]
+        public Task TestInlineMethodWithNullCoalescingExpression()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    public void Caller(int? i)
+    {
+        var t = Cal[||]lee(i ?? 1);
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+}", @"
+public class TestClass
+{
+    public void Caller(int? i)
+    {
+        int i1 = i ?? 1;
+        var t = i1 + 1;
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+}");
+
         [Fact]
         public Task TestInlineMethodWithGenericsArguments()
             => TestInRegularAndScript1Async(
