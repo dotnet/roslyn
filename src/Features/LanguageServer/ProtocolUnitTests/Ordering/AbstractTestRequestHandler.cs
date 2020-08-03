@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    internal abstract class AbstractTestRequestHandler : AbstractRequestHandler<OrderedLspRequest, OrderedLspRequest>
+    internal abstract class AbstractTestRequestHandler : AbstractRequestHandler<OrderedLspRequest, OrderedLspResponse>
     {
         protected abstract TimeSpan Delay { get; }
 
@@ -20,14 +20,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public override async Task<OrderedLspRequest> HandleRequestAsync(OrderedLspRequest request, ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
+        public override async Task<OrderedLspResponse> HandleRequestAsync(OrderedLspRequest request, ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
         {
-            request.StartTime = DateTime.UtcNow;
+            var response = new OrderedLspResponse();
 
-            await Task.Delay(Delay, cancellationToken);
+            response.RequestOrder = request.RequestOrder;
+            response.StartTime = DateTime.UtcNow;
 
-            request.EndTime = DateTime.UtcNow;
-            return request;
+            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
+
+            response.TimeAfterFirstAwait = DateTime.UtcNow;
+
+            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
+
+            // some busy work
+            response.ToString();
+
+            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
+
+            response.EndTime = DateTime.UtcNow;
+
+            return response;
         }
     }
 }
