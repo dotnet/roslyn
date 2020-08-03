@@ -305,8 +305,6 @@ namespace Microsoft.CodeAnalysis
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
                 return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(textFile.Path));
             }
-
-            // PROTOTYPE: why isn't this just a provided implementation?
             private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
             {
                 private readonly ImmutableDictionary<string, string> _backing;

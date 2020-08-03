@@ -351,10 +351,10 @@ abstract record D
     abstract record R3();
 }";
             UsingTree(text,
-                // (2,15): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
+                // (2,15): error CS1519: Invalid token 'return' in class, record, struct, or interface member declaration
                 // record R1() { return null; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(2, 15),
-                // (5,19): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
+                // (5,19): error CS1519: Invalid token 'return' in class, record, struct, or interface member declaration
                 //     record R2() { return null; }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(5, 19));
 
@@ -1187,10 +1187,10 @@ class C
     int x = 0 with { };
 }";
             UsingTree(text,
-                // (4,10): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (4,10): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //     with { };
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 10),
-                // (4,10): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (4,10): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //     with { };
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 10),
                 // (5,15): error CS1597: Semicolon after method or accessor block is not valid

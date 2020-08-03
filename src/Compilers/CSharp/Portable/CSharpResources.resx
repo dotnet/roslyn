@@ -646,7 +646,7 @@
     <value>Member hides inherited member; missing new keyword</value>
   </data>
   <data name="WRN_NewRequired_Description" xml:space="preserve">
-    <value>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
+    <value>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
   </data>
   <data name="WRN_NewNotRequired" xml:space="preserve">
     <value>The member '{0}' does not hide an accessible member. The new keyword is not required.</value>
@@ -742,13 +742,13 @@
     <value>The type '{0}' has no constructors defined</value>
   </data>
   <data name="ERR_NoNewAbstract" xml:space="preserve">
-    <value>Cannot create an instance of the abstract class or interface '{0}'</value>
+    <value>Cannot create an instance of the abstract type or interface '{0}'</value>
   </data>
   <data name="ERR_ConstValueRequired" xml:space="preserve">
     <value>A const field requires a value to be provided</value>
   </data>
   <data name="ERR_CircularBase" xml:space="preserve">
-    <value>Circular base class dependency involving '{0}' and '{1}'</value>
+    <value>Circular base type dependency involving '{0}' and '{1}'</value>
   </data>
   <data name="ERR_BadDelegateConstructor" xml:space="preserve">
     <value>The delegate '{0}' does not have a valid constructor</value>
@@ -819,6 +819,12 @@
   <data name="ERR_UseDefViolation" xml:space="preserve">
     <value>Use of unassigned local variable '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolation" xml:space="preserve">
+    <value>Use of unassigned local variable '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolation_Title" xml:space="preserve">
+    <value>Use of unassigned local variable</value>
+  </data>
   <data name="WRN_UnreferencedVar" xml:space="preserve">
     <value>The variable '{0}' is declared but never used</value>
   </data>
@@ -834,11 +840,29 @@
   <data name="ERR_UseDefViolationField" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationField" xml:space="preserve">
+    <value>Use of possibly unassigned field '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationField_Title" xml:space="preserve">
+    <value>Use of possibly unassigned field</value>
+  </data>
   <data name="ERR_UseDefViolationProperty" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationProperty" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationProperty_Title" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property</value>
+  </data>
   <data name="ERR_UnassignedThis" xml:space="preserve">
     <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis" xml:space="preserve">
+    <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis_Title" xml:space="preserve">
+    <value>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</value>
   </data>
   <data name="ERR_AmbigQM" xml:space="preserve">
     <value>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</value>
@@ -857,6 +881,12 @@
   </data>
   <data name="ERR_ParamUnassigned" xml:space="preserve">
     <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned" xml:space="preserve">
+    <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned_Title" xml:space="preserve">
+    <value>An out parameter must be assigned to before control leaves the method</value>
   </data>
   <data name="ERR_InvalidArray" xml:space="preserve">
     <value>Invalid rank specifier: expected ',' or ']'</value>
@@ -901,7 +931,13 @@
     <value>Use of default literal is not valid in this context</value>
   </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
-    <value>The 'this' object cannot be used before all of its fields are assigned to</value>
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis" xml:space="preserve">
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis_Title" xml:space="preserve">
+    <value>The 'this' object cannot be used in a constructor before all of its fields have been assigned</value>
   </data>
   <data name="ERR_ArgsInvalid" xml:space="preserve">
     <value>The __arglist construct is valid only within a variable argument method</value>
@@ -1057,7 +1093,7 @@
     <value>Do not override object.Finalize. Instead, provide a destructor.</value>
   </data>
   <data name="ERR_CallingBaseFinalizeDeprecated" xml:space="preserve">
-    <value>Do not directly call your base class Finalize method. It is called automatically from your destructor.</value>
+    <value>Do not directly call your base type Finalize method. It is called automatically from your destructor.</value>
   </data>
   <data name="WRN_NegativeArrayIndex" xml:space="preserve">
     <value>Indexing an array with a negative index (array indices always start at zero)</value>
@@ -1108,13 +1144,19 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
-    <value>Imported type '{0}' is invalid. It contains a circular base class dependency.</value>
+    <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
   </data>
   <data name="ERR_UseDefViolationOut" xml:space="preserve">
     <value>Use of unassigned out parameter '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationOut" xml:space="preserve">
+    <value>Use of unassigned out parameter '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationOut_Title" xml:space="preserve">
+    <value>Use of unassigned out parameter</value>
   </data>
   <data name="ERR_ArraySizeInDeclaration" xml:space="preserve">
     <value>Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)</value>
@@ -1264,7 +1306,7 @@
     <value>'{0}': cannot provide arguments when creating an instance of a variable type</value>
   </data>
   <data name="ERR_AbstractSealedStatic" xml:space="preserve">
-    <value>'{0}': an abstract class cannot be sealed or static</value>
+    <value>'{0}': an abstract type cannot be sealed or static</value>
   </data>
   <data name="WRN_AmbiguousXMLReference" xml:space="preserve">
     <value>Ambiguous reference in cref attribute: '{0}'. Assuming '{1}', but could have also matched other overloads including '{2}'.</value>
@@ -1345,7 +1387,7 @@
     <value>Defining an alias named 'global' is ill-advised</value>
   </data>
   <data name="ERR_SealedStaticClass" xml:space="preserve">
-    <value>'{0}': a class cannot be both static and sealed</value>
+    <value>'{0}': a type cannot be both static and sealed</value>
   </data>
   <data name="ERR_PrivateAbstractAccessor" xml:space="preserve">
     <value>'{0}': abstract properties cannot have private accessors</value>
@@ -1494,7 +1536,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot derive from sealed type '{1}'</value>
   </data>
   <data name="ERR_AbstractInConcreteClass" xml:space="preserve">
-    <value>'{0}' is abstract but it is contained in non-abstract class '{1}'</value>
+    <value>'{0}' is abstract but it is contained in non-abstract type '{1}'</value>
   </data>
   <data name="ERR_StaticConstructorWithExplicitConstructorCall" xml:space="preserve">
     <value>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</value>
@@ -1566,7 +1608,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': containing type does not implement interface '{1}'</value>
   </data>
   <data name="ERR_ExplicitInterfaceImplementationInNonClassOrStruct" xml:space="preserve">
-    <value>'{0}': explicit interface declaration can only be declared in a class, struct or interface</value>
+    <value>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</value>
   </data>
   <data name="ERR_MemberNameSameAsType" xml:space="preserve">
     <value>'{0}': member names cannot be the same as their enclosing type</value>
@@ -1593,7 +1635,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>__arglist cannot have an argument of void type</value>
   </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
-    <value>'{0}' is a new virtual member in sealed class '{1}'</value>
+    <value>'{0}' is a new virtual member in sealed type '{1}'</value>
   </data>
   <data name="ERR_ExplicitPropertyAddingAccessor" xml:space="preserve">
     <value>'{0}' adds an accessor not found in interface member '{1}'</value>
@@ -1608,10 +1650,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': user-defined conversions to or from an interface are not allowed</value>
   </data>
   <data name="ERR_ConversionWithBase" xml:space="preserve">
-    <value>'{0}': user-defined conversions to or from a base class are not allowed</value>
+    <value>'{0}': user-defined conversions to or from a base type are not allowed</value>
   </data>
   <data name="ERR_ConversionWithDerived" xml:space="preserve">
-    <value>'{0}': user-defined conversions to or from a derived class are not allowed</value>
+    <value>'{0}': user-defined conversions to or from a derived type are not allowed</value>
   </data>
   <data name="ERR_IdentityConversion" xml:space="preserve">
     <value>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</value>
@@ -1662,7 +1704,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot have instance property or field initializers in structs</value>
   </data>
   <data name="ERR_BadDestructorName" xml:space="preserve">
-    <value>Name of destructor must match name of class</value>
+    <value>Name of destructor must match name of type</value>
   </data>
   <data name="ERR_OnlyClassesCanContainDestructors" xml:space="preserve">
     <value>Only class types can contain destructors</value>
@@ -1785,10 +1827,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Method, operator, or accessor is marked external and has no attributes on it</value>
   </data>
   <data name="WRN_ProtectedInSealed" xml:space="preserve">
-    <value>'{0}': new protected member declared in sealed class</value>
+    <value>'{0}': new protected member declared in sealed type</value>
   </data>
   <data name="WRN_ProtectedInSealed_Title" xml:space="preserve">
-    <value>New protected member declared in sealed class</value>
+    <value>New protected member declared in sealed type</value>
   </data>
   <data name="ERR_InterfaceImplementedByConditional" xml:space="preserve">
     <value>Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'</value>
@@ -2124,7 +2166,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>A partial method cannot have the 'abstract' modifier</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
+    <value>A partial method must be declared within a partial type</value>
   </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
@@ -2248,6 +2290,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoProperty" xml:space="preserve">
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoProperty_Title" xml:space="preserve">
+    <value>An auto-implemented property must be fully assigned before control is returned to the caller.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
@@ -2501,7 +2549,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid preprocessor expression</value>
   </data>
   <data name="ERR_InvalidMemberDecl" xml:space="preserve">
-    <value>Invalid token '{0}' in class, struct, or interface member declaration</value>
+    <value>Invalid token '{0}' in class, record, struct, or interface member declaration</value>
   </data>
   <data name="ERR_MemberNeedsType" xml:space="preserve">
     <value>Method must have a return type</value>
@@ -2573,7 +2621,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find '{0}' specified for Main method</value>
   </data>
   <data name="ERR_MainClassNotClass" xml:space="preserve">
-    <value>'{0}' specified for Main method must be a non-generic class, struct, or interface</value>
+    <value>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</value>
   </data>
   <data name="ERR_NoMainInClass" xml:space="preserve">
     <value>'{0}' does not have a suitable static 'Main' method</value>
@@ -2894,7 +2942,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonly" xml:space="preserve">
-    <value>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</value>
+    <value>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</value>
   </data>
   <data name="ERR_AssgReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
@@ -3375,7 +3423,7 @@ Although C# distinguishes between out and ref, the CLR sees them as the same. Wh
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</value>
   </data>
   <data name="WRN_MultipleRuntimeOverrideMatches" xml:space="preserve">
-    <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</value>
+    <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</value>
   </data>
   <data name="WRN_MultipleRuntimeOverrideMatches_Title" xml:space="preserve">
     <value>Member overrides base member with multiple override candidates at run-time</value>
@@ -5764,6 +5812,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_SwitchExpressionNotExhaustive_Title" xml:space="preserve">
     <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithWhen" xml:space="preserve">
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithWhen_Title" xml:space="preserve">
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
+  </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
   </data>
@@ -5993,6 +6047,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustiveForNull_Title" xml:space="preserve">
+    <value>The switch expression does not handle some null inputs.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveForNullWithWhen" xml:space="preserve">
+    <value>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveForNullWithWhen_Title" xml:space="preserve">
     <value>The switch expression does not handle some null inputs.</value>
   </data>
   <data name="ERR_AttributeNotOnEventAccessor" xml:space="preserve">
@@ -6301,6 +6361,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DoesNotOverrideMethodFromObject" xml:space="preserve">
     <value>'{0}' does not override expected method from 'object'.</value>
   </data>
+  <data name="IDS_FeatureCovariantReturnsForOverrides" xml:space="preserve">
+    <value>covariant returns</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</value>
+  </data>
   <data name="ERR_SealedGetHashCodeInRecord" xml:space="preserve">
     <value>'{0}' cannot be sealed because containing record is not sealed.</value>
   </data>
@@ -6339,6 +6408,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NonPrivateAPIInRecord" xml:space="preserve">
     <value>Record member '{0}' must be private.</value>
+  </data>
+  <data name="WRN_PrecedenceInversion" xml:space="preserve">
+    <value>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</value>
+  </data>
+  <data name="WRN_PrecedenceInversion_Title" xml:space="preserve">
+    <value>Operator cannot be used here due to precedence.</value>
   </data>
   <data name="IDS_FeatureModuleInitializers" xml:space="preserve">
     <value>module initializers</value>

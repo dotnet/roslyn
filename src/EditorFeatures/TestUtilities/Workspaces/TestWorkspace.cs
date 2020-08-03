@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
 
         public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Test)
+            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
         {
             Contract.ThrowIfTrue(exportProvider != null && composition != null);
 

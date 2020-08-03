@@ -1835,7 +1835,7 @@ record C9 : System.ICloneable
                 // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
-                // (13,10): error CS1519: Invalid token 'string' in class, struct, or interface member declaration
+                // (13,10): error CS1519: Invalid token 'string' in class, record, struct, or interface member declaration
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),
                 // (13,17): error CS8859: Members named 'Clone' are disallowed in records.
@@ -2030,7 +2030,7 @@ abstract sealed record C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,24): error CS0418: 'C1': an abstract class cannot be sealed or static
+                // (2,24): error CS0418: 'C1': an abstract type cannot be sealed or static
                 // abstract sealed record C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C1").WithArguments("C1").WithLocation(2, 24)
                 );
@@ -2045,6 +2045,9 @@ abstract sealed record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2056,7 +2059,7 @@ sealed abstract record C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,24): error CS0418: 'C1': an abstract class cannot be sealed or static
+                // (2,24): error CS0418: 'C1': an abstract type cannot be sealed or static
                 // sealed abstract record C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C1").WithArguments("C1").WithLocation(2, 24)
                 );
@@ -2071,6 +2074,9 @@ sealed abstract record C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -2083,7 +2089,7 @@ abstract sealed record C2 : C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (3,24): error CS0418: 'C2': an abstract class cannot be sealed or static
+                // (3,24): error CS0418: 'C2': an abstract type cannot be sealed or static
                 // abstract sealed record C2 : C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C2").WithArguments("C2").WithLocation(3, 24)
                 );
@@ -2110,7 +2116,7 @@ sealed abstract record C2 : C1;
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (3,24): error CS0418: 'C2': an abstract class cannot be sealed or static
+                // (3,24): error CS0418: 'C2': an abstract type cannot be sealed or static
                 // sealed abstract record C2 : C1;
                 Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C2").WithArguments("C2").WithLocation(3, 24)
                 );
@@ -2125,10 +2131,13 @@ sealed abstract record C2 : C1;
 
             Assert.True(clone.ContainingType.IsSealed);
             Assert.True(clone.ContainingType.IsAbstract);
+
+            Assert.Equal("record C1", comp.GlobalNamespace.GetTypeMember("C1")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_05()
+        public void Clone_05_IntReturnType_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2219,10 +2228,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_06()
+        public void Clone_06_IntReturnType_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2319,10 +2331,13 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_07()
+        public void Clone_07_Ambiguous_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2423,10 +2438,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_08()
+        public void Clone_08_Ambiguous_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2533,16 +2551,18 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_09()
+        public void Clone_09_AmbiguousReverseOrder_UsedAsBaseType()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
     extends System.Object
 {
-    // Methods
     // Methods
     .method public hidebysig specialname newslot virtual 
         instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
@@ -2637,10 +2657,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_10()
+        public void Clone_10_AmbiguousReverseOrder_UsedInWith()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -2747,6 +2770,9 @@ public class Program
                 //         A x = new A() with { };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -3046,7 +3072,7 @@ record D(int X) : C(X)
         }
 
         [Fact]
-        public void Clone_17()
+        public void Clone_17_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -3137,10 +3163,13 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
-        public void Clone_18()
+        public void Clone_18_NonOverridable()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -3231,6 +3260,9 @@ public record B : A {
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
+
+            Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
+                .ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
@@ -4501,7 +4533,7 @@ Block[B3] - Exit
         }
 
         [Fact]
-        public void NoCloneMethod()
+        public void NoCloneMethod_01()
         {
             var src = @"
 class C
@@ -4594,6 +4626,30 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ");
+        }
+
+        [Fact]
+        public void NoCloneMethod_02()
+        {
+            var source =
+@"#nullable enable
+class R
+{
+    public object? P { get; set; }
+}
+class Program
+{
+    static void Main()
+    {
+        R r = new R();
+        _ = r with { P = 2 };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8858: The receiver type 'R' is not a valid record type.
+                //         _ = r with { P = 2 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "r").WithArguments("R").WithLocation(11, 13));
         }
 
         [Fact]
@@ -9275,7 +9331,7 @@ sealed record A(int X)
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "RAN").VerifyDiagnostics(
-                // (4,15): warning CS0628: 'A.A(A)': new protected member declared in sealed class
+                // (4,15): warning CS0628: 'A.A(A)': new protected member declared in sealed type
                 //     protected A(A a)
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "A").WithArguments("A.A(A)").WithLocation(4, 6 + accessibility.Length)
                 );
@@ -12116,9 +12172,9 @@ public record B : A {
                 // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
                 // public record B : A {
                 Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
-                // (3,23): error CS0508: 'B.GetHashCode()': return type must be 'A' to match overridden member 'A.GetHashCode()'
+                // (3,23): error CS8830: 'B.GetHashCode()': Target runtime doesn't support covariant return types in overrides. Return type must be 'A' to match overridden member 'A.GetHashCode()'
                 //     public override B GetHashCode() => default;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "A").WithLocation(3, 23)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "A").WithLocation(3, 23)
                 );
         }
 
@@ -13979,22 +14035,22 @@ record D
                 // (4,27): error CS8872: 'A.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 27),
-                // (10,27): warning CS0628: 'B.EqualityContract': new protected member declared in sealed class
+                // (10,27): warning CS0628: 'B.EqualityContract': new protected member declared in sealed type
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(10, 27),
                 // (10,27): error CS8879: Record member 'B.EqualityContract' must be private.
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(10, 27),
-                // (11,12): warning CS0628: 'B.EqualityContract.get': new protected member declared in sealed class
+                // (11,12): warning CS0628: 'B.EqualityContract.get': new protected member declared in sealed type
                 //         => throw null;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("B.EqualityContract.get").WithLocation(11, 12),
-                // (16,35): warning CS0628: 'C.EqualityContract': new protected member declared in sealed class
+                // (16,35): warning CS0628: 'C.EqualityContract': new protected member declared in sealed type
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(16, 35),
                 // (16,35): error CS8879: Record member 'C.EqualityContract' must be private.
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(16, 35),
-                // (17,12): error CS0549: 'C.EqualityContract.get' is a new virtual member in sealed class 'C'
+                // (17,12): error CS0549: 'C.EqualityContract.get' is a new virtual member in sealed type 'C'
                 //         => throw null;
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("C.EqualityContract.get", "C").WithLocation(17, 12)
                 );
@@ -14061,7 +14117,7 @@ sealed record H : A
                 // (7,27): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(7, 27),
-                // (13,27): warning CS0628: 'C.EqualityContract': new protected member declared in sealed class
+                // (13,27): warning CS0628: 'C.EqualityContract': new protected member declared in sealed type
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(13, 27),
                 // (13,27): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
@@ -14070,10 +14126,10 @@ sealed record H : A
                 // (13,27): warning CS0114: 'C.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     protected System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("C.EqualityContract", "A.EqualityContract").WithLocation(13, 27),
-                // (14,12): warning CS0628: 'C.EqualityContract.get': new protected member declared in sealed class
+                // (14,12): warning CS0628: 'C.EqualityContract.get': new protected member declared in sealed type
                 //         => throw null;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("C.EqualityContract.get").WithLocation(14, 12),
-                // (19,35): warning CS0628: 'D.EqualityContract': new protected member declared in sealed class
+                // (19,35): warning CS0628: 'D.EqualityContract': new protected member declared in sealed type
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("D.EqualityContract").WithLocation(19, 35),
                 // (19,35): error CS8876: 'D.EqualityContract' does not override expected property from 'A'.
@@ -14082,7 +14138,7 @@ sealed record H : A
                 // (19,35): warning CS0114: 'D.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     protected virtual System.Type EqualityContract
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("D.EqualityContract", "A.EqualityContract").WithLocation(19, 35),
-                // (20,12): error CS0549: 'D.EqualityContract.get' is a new virtual member in sealed class 'D'
+                // (20,12): error CS0549: 'D.EqualityContract.get' is a new virtual member in sealed type 'D'
                 //         => throw null;
                 Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("D.EqualityContract.get", "D").WithLocation(20, 12),
                 // (25,35): error CS8876: 'E.EqualityContract' does not override expected property from 'A'.
@@ -14714,7 +14770,7 @@ public record G : B {
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,34): warning CS0628: 'A.EqualityContract': new protected member declared in sealed class
+                // (3,34): warning CS0628: 'A.EqualityContract': new protected member declared in sealed type
                 //     protected static System.Type EqualityContract => throw null;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(3, 34),
                 // (3,34): error CS8879: Record member 'A.EqualityContract' must be private.
@@ -14723,7 +14779,7 @@ public record G : B {
                 // (3,34): error CS8877: Record member 'A.EqualityContract' may not be static.
                 //     protected static System.Type EqualityContract => throw null;
                 Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(3, 34),
-                // (3,54): warning CS0628: 'A.EqualityContract.get': new protected member declared in sealed class
+                // (3,54): warning CS0628: 'A.EqualityContract.get': new protected member declared in sealed type
                 //     protected static System.Type EqualityContract => throw null;
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("A.EqualityContract.get").WithLocation(3, 54)
                 );
@@ -19483,6 +19539,524 @@ public class C
                 //         _ = new R2<int>(2);
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("R2<T>", "T", "int").WithLocation(10, 20)
                 );
+        }
+
+        [Fact]
+        public void AccessCheckProtected03()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+record X<T> { }
+
+record A { }
+
+record B
+{
+    record C : X<C.D.E>
+    {
+        protected record D : A
+        {
+            public record E { }
+        }
+    }
+}
+");
+
+            c.VerifyDiagnostics(
+                // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                //     record C : X<C.D.E>
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                // (8,12): error CS0050: Inconsistent accessibility: return type 'X<B.C.D.E>' is less accessible than method 'B.C.<Clone>$()'
+                //     record C : X<C.D.E>
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "C").WithArguments("B.C.<Clone>$()", "X<B.C.D.E>").WithLocation(8, 12),
+                // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
+                //     record C : X<C.D.E>
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
+                );
+        }
+
+        [Fact]
+        public void TestTargetType_Abstract()
+        {
+            var source = @"
+abstract record C
+{
+    void M()
+    {
+        C x0 = new();
+        var x1 = (C)new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0144: Cannot create an instance of the abstract type or interface 'C'
+                //         C x0 = new();
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
+                // (7,21): error CS0144: Cannot create an instance of the abstract type or interface 'C'
+                //         var x1 = (C)new();
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void CyclicBases4()
+        {
+            var text =
+@"
+record A<T> : B<A<T>> { }
+record B<T> : A<B<T>> {
+    A<T> F() { return null; }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (2,8): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>").WithLocation(2, 8),
+                // (3,8): error CS0146: Circular base type dependency involving 'A<B<T>>' and 'B<T>'
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>").WithLocation(3, 8),
+                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
+                // (3,8): error CS0115: 'B<T>.EqualityContract': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.EqualityContract").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B<T>.Equals(object?)': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.Equals(object?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B<T>.GetHashCode()': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void CS0250ERR_CallingBaseFinalizeDeprecated()
+        {
+            var text = @"
+record B
+{
+}
+
+record C : B
+{
+    ~C()
+    {
+        base.Finalize();   // CS0250
+    }
+
+    public static void Main()
+    {
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,7): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
+                Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()")
+                );
+        }
+
+        [Fact]
+        public void PartialClassWithDifferentTupleNamesInBaseTypes()
+        {
+            var source = @"
+public record Base<T> { }
+public partial record C1 : Base<(int a, int b)> { }
+public partial record C1 : Base<(int notA, int notB)> { }
+public partial record C2 : Base<(int a, int b)> { }
+public partial record C2 : Base<(int, int)> { }
+public partial record C3 : Base<(int a, int b)> { }
+public partial record C3 : Base<(int a, int b)> { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base classes
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23),
+                // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base classes
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 23),
+                // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(5, 23),
+                // (5,23): error CS0115: 'C2.EqualityContract': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(5, 23),
+                // (5,23): error CS0115: 'C2.Equals(object?)': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(5, 23),
+                // (3,23): error CS0115: 'C1.GetHashCode()': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.GetHashCode()").WithLocation(3, 23),
+                // (3,23): error CS0115: 'C1.EqualityContract': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.EqualityContract").WithLocation(3, 23),
+                // (3,23): error CS0115: 'C1.Equals(object?)': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.Equals(object?)").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        public void CS0267ERR_PartialMisplaced()
+        {
+            var test = @"
+partial public record C  // CS0267
+{
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // partial public class C  // CS0267
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void AttributeContainsGeneric()
+        {
+            string source = @"
+[Goo<int>]
+class G
+{
+}
+record Goo<T>
+{
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2)
+                );
+        }
+
+        [Fact]
+        public void CS0406ERR_ClassBoundNotFirst()
+        {
+            var source =
+@"interface I { }
+record A { }
+record B { }
+class C<T, U>
+    where T : I, A
+    where U : A, B
+{
+    void M<V>() where V : U, A, B { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,18): error CS0406: The class type constraint 'A' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(5, 18),
+                // (6,18): error CS0406: The class type constraint 'B' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(6, 18),
+                // (8,30): error CS0406: The class type constraint 'A' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 30),
+                // (8,33): error CS0406: The class type constraint 'B' must come before any other constraints
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(8, 33));
+        }
+
+        [Fact]
+        public void SealedStaticRecord()
+        {
+            var source = @"
+sealed static record R;
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,22): error CS0441: 'R': a type cannot be both static and sealed
+                // sealed static record R;
+                Diagnostic(ErrorCode.ERR_SealedStaticClass, "R").WithArguments("R").WithLocation(2, 22),
+                // (2,22): error CS0708: 'R.EqualityContract': cannot declare instance members in a static class
+                // sealed static record R;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("R.EqualityContract").WithLocation(2, 22),
+                // (2,22): error CS0708: 'GetHashCode': cannot declare instance members in a static class
+                // sealed static record R;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 22),
+                // (2,22): error CS0722: 'R': static types cannot be used as return types
+                // sealed static record R;
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "R").WithArguments("R").WithLocation(2, 22),
+                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static class
+                // sealed static record R;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 22),
+                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static class
+                // sealed static record R;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 22)
+                );
+        }
+
+        [Fact]
+        public void CS0513ERR_AbstractInConcreteClass02()
+        {
+            var text = @"
+record C
+{
+    public abstract event System.Action E;
+    public abstract int this[int x] { get; set; }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (4,41): error CS0513: 'C.E' is abstract but it is contained in non-abstract type 'C'
+                //     public abstract event System.Action E;
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("C.E", "C"),
+                // (5,39): error CS0513: 'C.this[int].get' is abstract but it is contained in non-abstract type 'C'
+                //     public abstract int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("C.this[int].get", "C"),
+                // (5,44): error CS0513: 'C.this[int].set' is abstract but it is contained in non-abstract type 'C'
+                //     public abstract int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("C.this[int].set", "C"));
+        }
+
+        [Fact]
+        public void ConversionToBase()
+        {
+            var source = @"
+public record Base<T> { }
+public record Derived : Base<(int a, int b)>
+{
+    public static explicit operator Base<(int, int)>(Derived x)
+    {
+        return null;
+    }
+    public static explicit operator Derived(Base<(int, int)> x)
+    {
+        return null;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base type are not allowed
+                //     public static explicit operator Derived(Base<(int, int)> x)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "Derived").WithArguments("Derived.explicit operator Derived(Base<(int, int)>)").WithLocation(9, 37),
+                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base type are not allowed
+                //     public static explicit operator Base<(int, int)>(Derived x)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "Base<(int, int)>").WithArguments("Derived.explicit operator Base<(int, int)>(Derived)").WithLocation(5, 37)
+                );
+        }
+
+        [Fact]
+        public void CS0554ERR_ConversionWithDerived()
+        {
+            var text = @"
+public record B
+{
+    public static implicit operator B(D d) // CS0554
+    {
+        return null;
+    }
+}
+public record D : B {}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived type are not allowed
+                //     public static implicit operator B(D d) // CS0554
+                Diagnostic(ErrorCode.ERR_ConversionWithDerived, "B").WithArguments("B.implicit operator B(D)")
+                );
+        }
+
+        [Fact]
+        public void CS0574ERR_BadDestructorName()
+        {
+            var test = @"
+namespace x
+{
+    public record iii
+    {
+        ~iiii(){}
+        public static void Main()
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,10): error CS0574: Name of destructor must match name of type
+                //         ~iiii(){}
+                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
+        }
+
+        [Fact]
+        public void StaticBasePartial()
+        {
+            var text = @"
+static record NV
+{
+}
+
+public partial record C1
+{
+}
+
+partial record C1 : NV
+{
+}
+
+public partial record C1
+{
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0708: 'NV.EqualityContract': cannot declare instance members in a static class
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("NV.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS0722: 'NV': static types cannot be used as return types
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "NV").WithArguments("NV").WithLocation(2, 15),
+                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static class
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("GetHashCode").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
+                // static record NV
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS1057: 'NV.NV(NV)': static classes cannot contain protected members
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.NV(NV)").WithLocation(2, 15),
+                // (2,15): error CS1057: 'NV.EqualityContract': static classes cannot contain protected members
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS1057: 'NV.EqualityContract.get': static classes cannot contain protected members
+                // static record NV
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.EqualityContract.get").WithLocation(2, 15),
+                // (6,23): error CS0050: Inconsistent accessibility: return type 'NV' is less accessible than method 'C1.<Clone>$()'
+                // public partial record C1
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "C1").WithArguments("C1.<Clone>$()", "NV").WithLocation(6, 23),
+                // (6,23): error CS0722: 'NV': static types cannot be used as return types
+                // public partial record C1
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C1").WithArguments("NV").WithLocation(6, 23),
+                // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
+                // public partial record C1
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
+                // (10,16): error CS0709: 'C1': cannot derive from static class 'NV'
+                // partial record C1 : NV
+                Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 16),
+                // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial record C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
+                );
+        }
+
+        [Fact]
+        public void StaticRecordWithConstructorAndDestructor()
+        {
+            var text = @"
+static record R(int I)
+{
+    R() : this(0) { }
+    ~R() { }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0708: 'R.EqualityContract': cannot declare instance members in a static class
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("R.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Deconstruct': cannot declare instance members in a static class
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Deconstruct").WithLocation(2, 15),
+                // (2,15): error CS0722: 'R': static types cannot be used as return types
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "R").WithArguments("R").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 15),
+                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static class
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 15),
+                // (2,15): error CS1057: 'R.R(R)': static classes cannot contain protected members
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.R(R)").WithLocation(2, 15),
+                // (2,15): error CS1057: 'R.EqualityContract': static classes cannot contain protected members
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.EqualityContract").WithLocation(2, 15),
+                // (2,15): error CS1057: 'R.EqualityContract.get': static classes cannot contain protected members
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.EqualityContract.get").WithLocation(2, 15),
+                // (2,21): error CS0708: 'R.I': cannot declare instance members in a static class
+                // static record R(int I)
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "I").WithArguments("R.I").WithLocation(2, 21),
+                // (4,5): error CS0710: Static classes cannot have instance constructors
+                //     R() : this(0) { }
+                Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "R").WithLocation(4, 5),
+                // (5,6): error CS0711: Static classes cannot contain destructors
+                //     ~R() { }
+                Diagnostic(ErrorCode.ERR_DestructorInStaticClass, "R").WithArguments("R.~R()").WithLocation(5, 6)
+                );
+        }
+
+        [Fact]
+        public void RecordWithPartialMethodExplicitImplementation()
+        {
+            var source =
+@"record R
+{
+    partial void M();
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,18): error CS0751: A partial method must be declared within a partial type
+                //     partial void M();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 18)
+                );
+        }
+
+        [Fact]
+        public void RecordWithMultipleBaseTypes()
+        {
+            var source = @"
+record Base1;
+record Base2;
+record R : Base1, Base2
+{
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,19): error CS1721: Class 'R' cannot have multiple base classes: 'Base1' and 'Base2'
+                // record R : Base1, Base2
+                Diagnostic(ErrorCode.ERR_NoMultipleInheritance, "Base2").WithArguments("R", "Base1", "Base2").WithLocation(4, 19)
+                );
+        }
+
+        [Fact]
+        public void RecordWithInterfaceBeforeBase()
+        {
+            var source = @"
+record Base;
+interface I { }
+record R : I, Base;
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,15): error CS1722: Base class 'Base' must come before any interfaces
+                // record R : I, Base;
+                Diagnostic(ErrorCode.ERR_BaseClassMustBeFirst, "Base").WithArguments("Base").WithLocation(4, 15)
+                );
+        }
+
+        [Fact]
+        public void RecordLoadedInVisualBasicDisplaysAsRecord()
+        {
+            var src = @"
+public record A;
+";
+            var compRef = CreateCompilation(src).EmitToImageReference();
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: new[] { compRef });
+            var symbol = vbComp.GlobalNamespace.GetTypeMember("A");
+            Assert.Equal("record A",
+                SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
         }
 
         [Fact]
