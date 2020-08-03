@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 return;
             }
-
             context.ReportDiagnostic(CreateDiagnostic(resultOpt.Value));
         }
 
@@ -174,8 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
-
-
             var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
             // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property, 
             // or the syntax allows for the slice method to be run
@@ -183,8 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 return null;
             }
-
-            //
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
             // same as the right side of the subtraction.
