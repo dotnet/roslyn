@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var reportSuppressedDiagnostics = compilation.Options.ReportSuppressedDiagnostics;
             while (DiagnosticQueue.TryDequeue(out var diagnostic))
             {
-                diagnostic = suppressMessageState.ApplySourceSuppressions(diagnostic, SemanticModelProvider);
+                diagnostic = suppressMessageState.ApplySourceSuppressions(diagnostic);
                 if (reportSuppressedDiagnostics || !diagnostic.IsSuppressed)
                 {
                     allDiagnostics.Add(diagnostic);
@@ -1074,15 +1074,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSourceOrByAnalyzers(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
-            diagnostics = FilterDiagnosticsSuppressedInSource(diagnostics, compilation, CurrentCompilationData.SuppressMessageAttributeState, SemanticModelProvider);
+            diagnostics = FilterDiagnosticsSuppressedInSource(diagnostics, compilation, CurrentCompilationData.SuppressMessageAttributeState);
             return ApplyProgrammaticSuppressions(diagnostics, compilation);
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSource(
             ImmutableArray<Diagnostic> diagnostics,
             Compilation compilation,
-            SuppressMessageAttributeState suppressMessageState,
-            SemanticModelProvider semanticModelProvider)
+            SuppressMessageAttributeState suppressMessageState)
         {
             if (diagnostics.IsEmpty)
             {
@@ -1098,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticAnalysisContextHelpers.VerifyDiagnosticLocationsInCompilation(diagnostics[i], compilation);
 #endif
 
-                var diagnostic = suppressMessageState.ApplySourceSuppressions(diagnostics[i], semanticModelProvider);
+                var diagnostic = suppressMessageState.ApplySourceSuppressions(diagnostics[i]);
                 if (!reportSuppressedDiagnostics && diagnostic.IsSuppressed)
                 {
                     // Diagnostic suppressed in source.

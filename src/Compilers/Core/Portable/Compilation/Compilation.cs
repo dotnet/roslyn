@@ -210,20 +210,9 @@ namespace Microsoft.CodeAnalysis
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
-            => GetSemanticModel(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
+            => GetSemanticModelCore(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
 
-        internal SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull)
-        {
-            if (SemanticModelProvider != null && useSemanticModelProviderIfNonNull)
-            {
-                Debug.Assert(!ignoreAccessibility);
-                return SemanticModelProvider.GetSemanticModel(syntaxTree, this);
-            }
-
-            return CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
-        }
-
-        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
+        internal abstract SemanticModel GetSemanticModelCore(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull);
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity

@@ -1986,6 +1986,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' SemanticModel.
         '''</summary> 
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
+            Return GetSemanticModelCore(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull:=True)
+        End Function
+
+        Friend Overrides Function GetSemanticModelCore(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean, useSemanticModelProviderIfNonNull As Boolean) As SemanticModel
+            If SemanticModelProvider IsNot Nothing AndAlso useSemanticModelProviderIfNonNull Then
+                Debug.Assert(Not ignoreAccessibility)
+                Return SemanticModelProvider.GetSemanticModel(syntaxTree, Me)
+            End If
+
             Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
         End Function
 
@@ -2651,10 +2660,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Options
             End Get
         End Property
-
-        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
-            Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
-        End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
             Get

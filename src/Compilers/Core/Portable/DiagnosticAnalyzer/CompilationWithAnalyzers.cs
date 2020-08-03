@@ -1283,7 +1283,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 yield break;
             }
 
-            compilation = compilation.WithSemanticModelProvider(new CachingSemanticModelProvider());
+            if (compilation.SemanticModelProvider == null)
+            {
+                compilation = compilation.WithSemanticModelProvider(new CachingSemanticModelProvider());
+            }
+
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
             foreach (var diagnostic in diagnostics)
             {
@@ -1292,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null)
                     {
-                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic, compilation.SemanticModelProvider);
+                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
                     }
                 }
             }

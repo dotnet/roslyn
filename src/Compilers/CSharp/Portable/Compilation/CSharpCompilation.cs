@@ -2114,7 +2114,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
-            return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
+            return GetSemanticModelCore(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
+        }
+
+        internal override SemanticModel GetSemanticModelCore(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull)
+        {
+            if (SemanticModelProvider != null && useSemanticModelProviderIfNonNull)
+            {
+                Debug.Assert(!ignoreAccessibility);
+                return SemanticModelProvider.GetSemanticModel(syntaxTree, this);
+            }
+
+            return new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
         }
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
@@ -3190,11 +3201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonOptions
         {
             get { return _options; }
-        }
-
-        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
-        {
-            return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
         protected override IEnumerable<SyntaxTree> CommonSyntaxTrees

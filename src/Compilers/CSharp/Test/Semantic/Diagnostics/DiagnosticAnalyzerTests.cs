@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -3743,6 +3744,39 @@ class C
 
                     return ImmutableArray<Diagnostic>.Empty;
                 }
+            }
+        }
+
+        [Fact]
+        public void TestSemanticModelProvider()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"class C { }");
+            Compilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
+
+            var semanticModelProvider = new MySemanticModelProvider();
+            compilation = compilation.WithSemanticModelProvider(semanticModelProvider);
+
+            // Verify semantic model provider is used by Compilation.GetSemanticModel API
+            var model = compilation.GetSemanticModel(tree);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+
+            // Verify semantic model provider is used by CSharpCompilation.GetSemanticModel API
+            model = ((CSharpCompilation)compilation).GetSemanticModel(tree, ignoreAccessibility: false);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+        }
+
+        private sealed class MySemanticModelProvider : SemanticModelProvider
+        {
+            private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
+
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation)
+            {
+                return _cache.GetOrAdd(tree, compilation.GetSemanticModelCore(tree, ignoreAccessibility: false, useSemanticModelProviderIfNonNull: false));
+            }
+
+            public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)
+            {
+                Assert.Equal(model, _cache[tree]);
             }
         }
     }

@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -20,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation)
         {
-            if (_semanticModelsMap.TryGetValue(tree, out var model))
+            if (_semanticModelsMap.TryGetValue(tree, out var model) &&
+                model.Compilation == compilation)
             {
-                Debug.Assert(model.Compilation == compilation);
                 return model;
             }
 
             // Avoid infinite recursion by passing 'useSemanticModelProviderIfNonNull: false'
-            model = compilation.GetSemanticModel(tree, ignoreAccessibility: false, useSemanticModelProviderIfNonNull: false);
-            return _semanticModelsMap.GetOrAdd(tree, model);
+            model = compilation.GetSemanticModelCore(tree, ignoreAccessibility: false, useSemanticModelProviderIfNonNull: false);
+            return _semanticModelsMap.AddOrUpdate(tree, addValue: model, updateValueFactory: (_, _) => model);
         }
 
         internal void RemoveCachedSemanticModel(SyntaxTree tree)
