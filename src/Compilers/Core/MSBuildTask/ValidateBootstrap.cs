@@ -72,14 +72,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            // The number chosen is arbitrary here.  The goal of this check is to catch cases where a coding error has 
-            // broken our ability to use the compiler server in the bootstrap phase.
-            //
-            // It's possible on completely correct code for the server connection to fail.  There could be simply 
-            // named pipe errors, CPU load causing timeouts, etc ...  Hence flagging a single failure would produce
-            // a lot of false positives.  The current value was chosen as a reasonable number for warranting an 
-            // investigation.
-            const int maxRejectCount = 5;
+            const int maxRejectCount = 0;
             var rejectCount = 0;
             foreach (var tuple in s_failedQueue.ToList())
             {
