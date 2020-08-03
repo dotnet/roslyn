@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         protected readonly ILspSolutionProvider SolutionProvider;
 
+        public virtual RequestProcessingMode Type => RequestProcessingMode.None;
+
         protected AbstractRequestHandler(ILspSolutionProvider solutionProvider)
         {
             SolutionProvider = solutionProvider;

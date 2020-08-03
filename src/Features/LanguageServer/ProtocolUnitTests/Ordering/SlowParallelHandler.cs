@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     {
         public const string MethodName = nameof(SlowParallelHandler);
 
+        public override RequestProcessingMode Type => RequestProcessingMode.Parallel;
+
         protected override TimeSpan Delay => TimeSpan.FromSeconds(1);
 
         [ImportingConstructor]

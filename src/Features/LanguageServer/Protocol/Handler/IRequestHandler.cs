@@ -29,4 +29,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <returns>the LSP response.</returns>
         Task<ResponseType> HandleRequestAsync(RequestType request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken);
     }
+
+    internal enum RequestProcessingMode
+    {
+        Serial,
+        Parallel
+    }
 }

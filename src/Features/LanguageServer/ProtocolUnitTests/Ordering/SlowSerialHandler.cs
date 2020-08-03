@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     {
         public const string MethodName = nameof(SlowSerialHandler);
 
+        public override RequestProcessingMode Type => RequestProcessingMode.Serial;
+
         protected override TimeSpan Delay => TimeSpan.FromSeconds(1);
 
         [ImportingConstructor]

@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     internal class FastParallelHandler : AbstractTestRequestHandler
     {
         public const string MethodName = nameof(FastParallelHandler);
+        public override RequestProcessingMode Type => RequestProcessingMode.Parallel;
 
         protected override TimeSpan Delay => TimeSpan.FromMilliseconds(100);
 
