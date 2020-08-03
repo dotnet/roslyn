@@ -30,17 +30,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             };
 
         internal Task TestAllOptionsOffAsync(
-            TestHost host, string initialMarkup, string expectedMarkup,
+            TestHost host,
+            string initialMarkup,
+            string expectedMarkup,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            int index = 0, OptionsCollection options = null)
+            int index = 0,
+            OptionsCollection options = null)
         {
-            options = options ?? new OptionsCollection(GetLanguage());
+            options ??= new OptionsCollection(GetLanguage());
             options.AddRange(AllOptionsOff);
-            options.Add(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess);
 
-            return TestAsync(initialMarkup, expectedMarkup,
-                parseOptions, compilationOptions, index, options);
+            return TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, options, testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -212,9 +213,9 @@ class goo
                 options: new OptionsCollection(GetLanguage())
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-                    { RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess }
-                });
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent }
+                },
+                testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -249,8 +250,8 @@ class goo
                 options: new OptionsCollection(GetLanguage())
                 {
                     {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
-                    { RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess }
-                });
+                },
+                testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -783,12 +784,7 @@ class Program
 }
 ";
 
-            await TestActionCountAsync(text, 2, GetRemoteHostOptions(host));
-        }
-
-        private TestParameters GetRemoteHostOptions(TestHost host)
-        {
-            return new TestParameters(options: Option(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess));
+            await TestActionCountAsync(text, 2, new TestParameters(testHost: host));
         }
 
         [WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")]
@@ -1078,7 +1074,7 @@ partial class Program {
     a b c [|b|]
 }";
 
-            await TestActionCountAsync(text, count: 2, GetRemoteHostOptions(host));
+            await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
         [WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072")]
@@ -1093,7 +1089,7 @@ class Program
 }
 ";
 
-            await TestActionCountAsync(text, count: 2, GetRemoteHostOptions(host));
+            await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
         [WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517")]
@@ -1143,19 +1139,19 @@ namespace ConsoleApplication1
         public async Task DoNotEncapsulateOutsideTypeDeclaration(TestHost host)
         {
             await TestMissingInRegularAndScriptAsync(
-@"var [|x|] = 1;", GetRemoteHostOptions(host));
+@"var [|x|] = 1;", new TestParameters(testHost: host));
 
             await TestMissingInRegularAndScriptAsync(
 @"namespace N
 {
     var [|x|] = 1;
-}", GetRemoteHostOptions(host));
+}", new TestParameters(testHost: host));
 
             await TestMissingInRegularAndScriptAsync(
 @"enum E
 {
     [|x|] = 1;
-}", GetRemoteHostOptions(host));
+}", new TestParameters(testHost: host));
         }
 
         [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal sealed class ServiceHubRemoteHostClientProvider : IRemoteHostClientProvider
     {
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), WorkspaceKind.Host), Shared]
-        private sealed class Factory : IWorkspaceServiceFactory
+        internal sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

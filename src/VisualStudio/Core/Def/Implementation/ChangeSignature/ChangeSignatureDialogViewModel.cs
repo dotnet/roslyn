@@ -38,12 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
         private readonly ExistingParameterViewModel? _paramsParameter;
-        private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
+        private readonly HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
-
-        private readonly Dictionary<string, List<ParameterViewModel>> _parameterNameOverlapMap = new Dictionary<string, List<ParameterViewModel>>();
 
         /// <summary>
         /// The document where the symbol we are changing signature is defined.
@@ -149,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
             => new AddParameterDialogViewModel(_document, _positionForTypeBinding);
 
-        List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
+        private List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
         {
             var list = new List<ParameterViewModel>();
             foreach (ExistingParameter existingParameter in parameters)

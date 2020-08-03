@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    class MoveToNamespaceDialog_InProc : AbstractCodeRefactorDialog_InProc<MoveToNamespaceDialog, MoveToNamespaceDialog.TestAccessor>
+    internal class MoveToNamespaceDialog_InProc : AbstractCodeRefactorDialog_InProc<MoveToNamespaceDialog, MoveToNamespaceDialog.TestAccessor>
     {
         private MoveToNamespaceDialog_InProc()
         {

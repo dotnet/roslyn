@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             var noWarns = new Dictionary<string, ReportDiagnostic>();
             var warnAsErrors = new Dictionary<string, ReportDiagnostic>();
-            int warningLevel = 4;
+            int warningLevel = Diagnostic.DefaultWarningLevel;
             bool highEntropyVA = false;
             bool printFullPaths = false;
             string? moduleAssemblyName = null;
@@ -135,7 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool publicSign = false;
             string? sourceLink = null;
             string? ruleSetPath = null;
-            decimal warningVersion = 0m;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -896,31 +895,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
-                            else if (newWarningLevel < 0 || newWarningLevel > 4)
+                            else if (newWarningLevel < 0)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningLevel, name);
                             }
                             else
                             {
                                 warningLevel = newWarningLevel;
-                            }
-                            continue;
-
-                        case "warnversion":
-                            value = RemoveQuotesAndSlashes(value);
-                            decimal newWarningVersion;
-                            if (string.IsNullOrEmpty(value) ||
-                                !decimal.TryParse(value, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out newWarningVersion))
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
-                            }
-                            else if (newWarningVersion < 0m)
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningVersion, name);
-                            }
-                            else
-                            {
-                                warningVersion = newWarningVersion;
                             }
                             continue;
 
@@ -1438,8 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 warningLevel: warningLevel,
                 specificDiagnosticOptions: diagnosticOptions,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
-                publicSign: publicSign,
-                warningVersion: warningVersion
+                publicSign: publicSign
             );
 
             if (debugPlus)

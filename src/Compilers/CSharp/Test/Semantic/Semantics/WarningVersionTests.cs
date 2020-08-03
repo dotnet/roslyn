@@ -8,12 +8,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     /// <summary>
-    /// Tests that exercise warnings that are under control of the compiler option <see cref="CSharpCompilationOptions.WarningVersion"/>.
+    /// Tests that exercise warnings that are under control of the compiler option <see cref="CompilationOptions.WarningLevel"/>.
     /// </summary>
     public class WarningVersionTests : CompilingTestBase
     {
         [Fact]
-        public void CompareStructToNull()
+        public void WRN_NubExprIsConstBool2()
         {
             var source = @"
 class Program
@@ -42,10 +42,77 @@ struct S
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "s != null").WithArguments("true", "S", "S?").WithLocation(7, 13)
             };
             CreateCompilation(source).VerifyDiagnostics();
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(4.9m)).VerifyDiagnostics();
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(5m)).VerifyDiagnostics(whenWave5);
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(5.0m)).VerifyDiagnostics(whenWave5);
-            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningVersion(5.1m)).VerifyDiagnostics(whenWave5);
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(3)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6)).VerifyDiagnostics(whenWave5);
+        }
+
+        [Fact]
+        public void WRN_StaticInAsOrIs()
+        {
+            var source = @"
+class Program
+{
+    public static void M(object o)
+    {
+        if (o is SC)
+            _ = o as SC;
+    }
+}
+static class SC { }
+";
+            var whenWave5 = new[]
+            {
+                // (6,13): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'SC'
+                //         if (o is SC)
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o is SC").WithArguments("SC").WithLocation(6, 13),
+                // (7,17): warning CS7023: The second operand of an 'is' or 'as' operator may not be static type 'SC'
+                //             _ = o as SC;
+                Diagnostic(ErrorCode.WRN_StaticInAsOrIs, "o as SC").WithArguments("SC").WithLocation(7, 17)
+            };
+            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
+        }
+
+        [Fact]
+        public void WRN_PrecedenceInversion()
+        {
+            var source = @"
+using System;
+
+class X
+{
+    public bool Select<T>(Func<int, T> selector) => true;
+    public static int operator +(Action a, X right) => 0;
+}
+
+class P
+{
+    static void M1()
+    {
+        var src = new X();
+        var b = false && from x in src select x;
+    }
+    static void M2()
+    {
+        var x = new X();
+        var i = ()=>{} + x;
+    }
+}";
+            var whenWave5 = new[]
+            {
+                // (15,26): warning CS8848: Operator 'from' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var b = false && from x in src select x;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "from x in src").WithArguments("from").WithLocation(15, 26),
+                // (20,24): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var i = ()=>{} + x;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(20, 24)
+            };
+            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4)).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
         }
     }
 }
