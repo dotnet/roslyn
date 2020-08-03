@@ -226,8 +226,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet unifiedSuggestedActionSet)
+            private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet)
             {
+                // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
+                if (unifiedSuggestedActionSet == null)
+                {
+                    return null;
+                }
+
                 using var _ = ArrayBuilder<ISuggestedAction>.GetInstance(out var suggestedActions);
                 foreach (var action in unifiedSuggestedActionSet.Actions)
                 {
