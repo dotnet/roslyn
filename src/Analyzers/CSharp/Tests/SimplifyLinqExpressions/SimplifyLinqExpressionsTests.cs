@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
             => (new CSharpSimplifyLinqExpressionsDiagnosticAnalyzer(), new CSharpSimplifyLinqExpressionsCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
-        public async Task TestBasicCase()
+        public async Task TestBasicCase1()
 
         {
             var source = @"
@@ -55,6 +55,133 @@ class Test
         }
 
         var test = Data().Single(x => x==1);
+    }
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestBasicCase2()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class Test
+{
+    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10)
+            select value;
+
+        private var test2 = [||]test1.Where(x => x==1).First();
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class Test
+{
+    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10)
+            select value;
+
+        private var test2 = test1.First(x => x==1);
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestBasicCase3()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class Test
+{
+    static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
+
+        var _test2 = [||]_test1.Where(x => x == '!').Any();
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class Test
+{
+    static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
+
+        var _test2 = _test1.Any(x => x == '!');
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestUserDefinedWhere()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+namespace demo
+{
+    class Test
+    {
+        public class TestClass4
+        {
+            private string test;
+            public TestClass4() => test = 'hello';
+
+            public TestClass4 Where(Func<string, bool> input)
+            {
+                return this;
+            }
+
+            public string Single()
+            {
+                return test;
+            }
+        }
+        static void Main()
+        {
+            TestClass4 Test1 = new TestClass4();
+            TestClass4 test = [||]Test1.Where(y => true);
+        }
+    }
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+namespace demo
+{
+    class Test
+    {
+        public class TestClass4
+        {
+            private string test;
+            public TestClass4() => test = 'hello';
+
+            public TestClass4 Where(Func<string, bool> input)
+            {
+                return this;
+            }
+
+            public string Single()
+            {
+                return test;
+            }
+        }
+        static void Main()
+        {
+            TestClass4 Test1 = new TestClass4();
+            TestClass4 test = Test1.Where(y => true);
+        }
     }
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
