@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        internal GeneratorState SetReceiver(ISyntaxReceiver syntaxReceiver)
+        internal GeneratorState WithReceiver(ISyntaxReceiver syntaxReceiver)
         {
             return new GeneratorState(this.Info,
                                       sourceTexts: this.SourceTexts,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
                                       exception: null);
         }
 
-        internal GeneratorState SetResult(ImmutableArray<GeneratedSourceText> sourceTexts,
+        internal GeneratorState WithResult(ImmutableArray<GeneratedSourceText> sourceTexts,
                                           ImmutableArray<SyntaxTree> trees,
                                           ImmutableArray<Diagnostic> diagnostics)
         {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                                       exception: null);
         }
 
-        internal GeneratorState SetError(Exception e, Diagnostic diagnostic)
+        internal GeneratorState WithError(Exception e, Diagnostic diagnostic)
         {
             return new GeneratorState(this.Info,
                                       sourceTexts: ImmutableArray<GeneratedSourceText>.Empty,

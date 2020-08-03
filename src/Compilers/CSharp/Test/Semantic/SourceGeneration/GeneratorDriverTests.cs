@@ -734,11 +734,10 @@ class C { }
 
             var result = results.Results.Single();
 
-            Assert.True(result.Succeeded);
             Assert.Null(result.Exception);
             Assert.Empty(result.Diagnostics);
-            Assert.Single(result.GeneratedTrees);
-            Assert.Equal(results.SyntaxTrees.Single(), result.GeneratedTrees.Single().SyntaxTree);
+            Assert.Single(result.AddedSources);
+            Assert.Equal(results.SyntaxTrees.Single(), result.AddedSources.Single().SyntaxTree);
         }
 
         [Fact]
@@ -769,24 +768,21 @@ class C { }
             var result2 = results.Results[1];
             var result3 = results.Results[2];
 
-            Assert.True(result1.Succeeded);
             Assert.Null(result1.Exception);
             Assert.Empty(result1.Diagnostics);
-            Assert.Equal(2, result1.GeneratedTrees.Length);
-            Assert.Equal(results.SyntaxTrees[0], result1.GeneratedTrees[0].SyntaxTree);
-            Assert.Equal(results.SyntaxTrees[1], result1.GeneratedTrees[1].SyntaxTree);
+            Assert.Equal(2, result1.AddedSources.Length);
+            Assert.Equal(results.SyntaxTrees[0], result1.AddedSources[0].SyntaxTree);
+            Assert.Equal(results.SyntaxTrees[1], result1.AddedSources[1].SyntaxTree);
 
-            Assert.True(result2.Succeeded);
             Assert.Null(result2.Exception);
             Assert.Empty(result2.Diagnostics);
-            Assert.Single(result2.GeneratedTrees);
-            Assert.Equal(results.SyntaxTrees[2], result2.GeneratedTrees[0].SyntaxTree);
+            Assert.Single(result2.AddedSources);
+            Assert.Equal(results.SyntaxTrees[2], result2.AddedSources[0].SyntaxTree);
 
-            Assert.True(result3.Succeeded);
             Assert.Null(result3.Exception);
             Assert.Empty(result3.Diagnostics);
-            Assert.Single(result3.GeneratedTrees);
-            Assert.Equal(results.SyntaxTrees[3], result3.GeneratedTrees[0].SyntaxTree);
+            Assert.Single(result3.AddedSources);
+            Assert.Equal(results.SyntaxTrees[3], result3.AddedSources[0].SyntaxTree);
         }
 
         [Fact]
@@ -824,17 +820,15 @@ class C { }
             var result1 = results.Results[0];
             var result2 = results.Results[1];
 
-            Assert.True(result1.Succeeded);
             Assert.Null(result1.Exception);
             Assert.Equal(2, result1.Diagnostics.Length);
-            Assert.Empty(result1.GeneratedTrees);
+            Assert.Empty(result1.AddedSources);
             Assert.Equal(results.Diagnostics[0], result1.Diagnostics[0]);
             Assert.Equal(results.Diagnostics[1], result1.Diagnostics[1]);
 
-            Assert.True(result2.Succeeded);
             Assert.Null(result2.Exception);
             Assert.Single(result2.Diagnostics);
-            Assert.Empty(result2.GeneratedTrees);
+            Assert.Empty(result2.AddedSources);
             Assert.Equal(results.Diagnostics[2], result2.Diagnostics[0]);
         }
 

@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var rx = generatorState.Info.SyntaxReceiverCreator();
-                        generatorState = generatorState.SetReceiver(rx);
+                        generatorState = generatorState.WithReceiver(rx);
                         receiverCount++;
                     }
                     catch (Exception e)
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                     generator.Execute(context);
 
                     (var sources, var diagnostics) = context.ToImmutableAndFree();
-                    generatorState = generatorState.SetResult(sources, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
+                    generatorState = generatorState.WithResult(sources, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
                     diagnosticsBag.AddRange(diagnostics);
                 }
                 catch (Exception e)
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis
 
                     // update the state with the new edits
                     var additionalSources = context.AdditionalSources.ToImmutableAndFree();
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, generatorState.SetResult(sourceTexts: additionalSources, trees: ParseAdditionalSources(generator, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, generatorState.WithResult(sourceTexts: additionalSources, trees: ParseAdditionalSources(generator, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
                 }
             }
             state = edit.Commit(state);
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis
             var message = isInit ? MessageProvider.WRN_GeneratorFailedDuringInitialization : MessageProvider.WRN_GeneratorFailedDuringGeneration;
             var diagnostic = Diagnostic.Create(MessageProvider, message, generator.GetType().Name);
             diagnosticBag.Add(diagnostic);
-            return generatorState.SetError(e, diagnostic);
+            return generatorState.WithError(e, diagnostic);
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }

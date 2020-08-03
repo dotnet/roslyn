@@ -16,6 +16,7 @@ Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
 Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.SyntaxTreeOptionsProvider() -> void
 abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.IsGenerated(Microsoft.CodeAnalysis.SyntaxTree tree) -> bool?
 abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(Microsoft.CodeAnalysis.SyntaxTree tree, string diagnosticId, out Microsoft.CodeAnalysis.ReportDiagnostic severity) -> bool
+Microsoft.CodeAnalysis.GeneratorRunResult.AddedSources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "<Program>$" -> string
 Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider.get -> Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
@@ -34,6 +35,4 @@ Microsoft.CodeAnalysis.GeneratorDriverRunResult
 Microsoft.CodeAnalysis.GeneratorRunResult
 Microsoft.CodeAnalysis.GeneratorRunResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.GeneratorRunResult.Exception.get -> System.Exception
-Microsoft.CodeAnalysis.GeneratorRunResult.GeneratedTrees.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
 Microsoft.CodeAnalysis.GeneratorRunResult.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator
-Microsoft.CodeAnalysis.GeneratorRunResult.Succeeded.get -> bool
