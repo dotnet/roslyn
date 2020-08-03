@@ -1790,6 +1790,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Las signaturas de método relacionadas encontradas en los metadatos no se actualizarán.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="new">Remove 'async' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Reemplazar "{0}" por "{1}"</target>

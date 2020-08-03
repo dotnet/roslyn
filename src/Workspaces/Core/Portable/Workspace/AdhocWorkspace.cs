@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public sealed class AdhocWorkspace : Workspace
     {
-        public AdhocWorkspace(HostServices host, string workspaceKind = "Custom")
+        public AdhocWorkspace(HostServices host, string workspaceKind = WorkspaceKind.Custom)
             : base(host, workspaceKind)
         {
         }

@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> PrettyListing = new PerLanguageOption2<bool>(nameof(FeatureOnOffOptions), nameof(PrettyListing), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
 
+        public static readonly PerLanguageOption2<bool> InlineParameterNameHints = new PerLanguageOption2<bool>(nameof(FeatureOnOffOptions), nameof(InlineParameterNameHints), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints"));
+
         public static readonly PerLanguageOption2<bool> AutoFormattingOnTyping = new PerLanguageOption2<bool>(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));

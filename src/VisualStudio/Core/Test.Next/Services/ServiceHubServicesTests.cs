@@ -42,6 +42,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
+             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
         private static Solution WithChangedOptionsFromRemoteWorkspace(Solution solution)
             => solution.WithChangedOptionsFrom(RemoteWorkspace.Options);
 
@@ -177,9 +180,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
             public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
-            public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
             public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
@@ -264,7 +264,7 @@ class Test { }");
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestUnknownProject()
         {
-            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
+            var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
             var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);

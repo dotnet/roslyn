@@ -172,6 +172,11 @@
         <target state="new">Current parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints (experimental)</source>
+        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">編集(_E)</target>
@@ -1172,16 +1177,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">プロジェクト: {0}
 
 ドロップダウンを使用して、このファイルが属している可能性のある他のプロジェクトを表示し、それらのプロジェクトに切り替えます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">規則セット ファイル {0} を読み込み中にエラーが発生しました - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">

@@ -53,7 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T where T : IComparable => true
         /// T where T : IComparable? => true
         /// </summary>
-        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
+        /// <remarks>
+        /// In C#9, annotations are allowed regardless of constraints.
+        /// </remarks>
+        public static bool IsTypeParameterDisallowingAnnotationInCSharp8(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
             {
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.SpecialType == SpecialType.System_Void;
         }
 
-        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
+        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol? type)
         {
             if (type is null)
             {

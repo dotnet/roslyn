@@ -792,16 +792,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
-                    if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined() || ErrorCode.WRN_NubExprIsConstBool2.GetWarningVersion() <= this._compilation.Options.WarningVersion)
+                    if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
                     {
-                        if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
-                        {
-                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
-                        }
-                        else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
-                        {
-                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
-                        }
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
+                    }
+                    else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
+                    {
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
                     }
                     break;
                 case BinaryOperatorKind.Or:

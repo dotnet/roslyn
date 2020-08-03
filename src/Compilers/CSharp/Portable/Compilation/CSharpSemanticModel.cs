@@ -2040,8 +2040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
-                    pattern.InputType, pattern.ConvertedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
+                    pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref useSiteDiagnostics));
             }
 
             var boundExpr = lowestBoundNode as BoundExpression;
@@ -2217,8 +2217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = cond.NaturalTypeOpt;
                     convertedType = cond.Type;
                     convertedNullability = nullability;
-                    // PROTOTYPE(ngafter): Should we preserve the set of conversions?
-                    // By now they have been pushed into the subexpressions.
                     conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
                 }
                 else
@@ -5108,34 +5106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpDeclarationComputer.ComputeDeclarationsInNode(this, associatedSymbol, node, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
-        internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
-        {
-            if (declaredNode is CompilationUnitSyntax unit && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            {
-                switch (declaredSymbol.Kind)
-                {
-                    case SymbolKind.Namespace:
-                        Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
-                        // Do not include top level global statements into a global namespace
-                        return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
-
-                    case SymbolKind.Method:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
-                        // Include only global statements at the top level
-                        return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
-
-                    case SymbolKind.NamedType:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
-                        return (node) => false;
-
-                    default:
-                        ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                        break;
-                }
-            }
-
-            return base.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-        }
+        internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {

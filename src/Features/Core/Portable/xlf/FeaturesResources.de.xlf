@@ -1790,6 +1790,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">In Metadaten gefundene ähnliche Methodensignaturen werden nicht aktualisiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="new">Remove 'async' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">"{0}" durch "{1}" ersetzen</target>

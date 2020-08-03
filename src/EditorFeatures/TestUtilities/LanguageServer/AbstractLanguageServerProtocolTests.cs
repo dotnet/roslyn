@@ -39,6 +39,10 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract class AbstractLanguageServerProtocolTests
     {
+        // TODO: remove WPF dependency (IEditorInlineRenameService)
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
+            .AddParts(typeof(TestLspSolutionProvider));
+
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
         internal class TestLspSolutionProvider : ILspSolutionProvider
         {
@@ -66,6 +70,12 @@ namespace Roslyn.Test.Utilities
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetDocuments(documentUri);
+            }
+
+            public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
+            {
+                Contract.ThrowIfNull(_currentSolution);
+                return _currentSolution.GetTextDocuments(documentUri);
             }
         }
 
@@ -100,20 +110,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        protected virtual ExportProvider GetExportProvider()
-        {
-            var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
-            var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(LanguageServerProtocol))
-                .WithParts(requestHelperTypes)
-                .WithParts(executeCommandHandlerTypes)
-                .WithPart(typeof(TestLspSolutionProvider)));
-            return exportProviderFactory.CreateExportProvider();
-        }
+        protected virtual TestComposition Composition => s_composition;
 
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
@@ -259,7 +256,7 @@ namespace Roslyn.Test.Utilities
         /// </returns>
         protected Workspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
         {
-            var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: GetExportProvider());
+            var workspace = TestWorkspace.CreateCSharp(markups, composition: Composition);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -277,7 +274,7 @@ namespace Roslyn.Test.Utilities
 
         protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
-            var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
+            var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
             UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             return workspace;

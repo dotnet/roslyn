@@ -29,7 +29,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Public SystemWindowsFormsPath As String
         Public SystemDrawingPath As String
 
+#Disable Warning IDE0040 ' Add accessibility modifiers - https://github.com/dotnet/roslyn/issues/45962
         Sub New()
+#Enable Warning IDE0040 ' Add accessibility modifiers
             SystemWindowsFormsPath = GetType(System.Windows.Forms.Form).Assembly.Location
             SystemDrawingPath = GetType(System.Drawing.Point).Assembly.Location
         End Sub
@@ -42,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Dim result As CodeModelTestState = Nothing
             Try
@@ -137,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         End Try
 
                         Dim wrapperRCW = Marshal.GetObjectForIUnknown(wrapperUnknown)
-                        Return CType(wrapperRCW, IComWrapper)
+                        Return CType(wrapperRCW, IComWrapperFixed)
                     Finally
                         Marshal.Release(innerUnknown)
                     End Try
@@ -231,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return XElement.Parse(xml)
         End Function
 
-        Private s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
+        Private ReadOnly s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
             {{GetType(EnvDTE.CodeAttribute), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE80.CodeAttribute2), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE.CodeClass), {EnvDTE.vsCMElement.vsCMElementClass, EnvDTE.vsCMElement.vsCMElementModule}},

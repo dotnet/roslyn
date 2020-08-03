@@ -845,7 +845,10 @@ hasRelatedInterfaces:
 
             if (typeParameter.HasUnmanagedTypeConstraint)
             {
-                var managedKind = typeArgument.Type.ManagedKind;
+                HashSet<DiagnosticInfo> managedKindUseSiteDiagnostics = null;
+                var managedKind = typeArgument.Type.GetManagedKind(ref managedKindUseSiteDiagnostics);
+                AppendUseSiteDiagnostics(managedKindUseSiteDiagnostics, typeParameter, ref useSiteDiagnosticsBuilder);
+
                 if (managedKind == ManagedKind.Managed || !typeArgument.Type.IsNonNullableValueType())
                 {
                     // "The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"
@@ -948,8 +951,7 @@ hasRelatedInterfaces:
                     if (nullabilityDiagnosticsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteDiagnostics) ||
-                            (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsNonNullableValueType() &&
-                             TypeParameterSymbol.IsNotNullableFromConstraintType(constraintType, out _) == true))
+                            !constraintTypeAllows(constraintType, getTypeArgumentState(typeArgument)))
                         {
                             nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument)));
                         }
@@ -978,6 +980,77 @@ hasRelatedInterfaces:
                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(currentCompilation, constraintType.Type, typeArgument.Type);
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), distinguisher.First, typeParameter, distinguisher.Second)));
                 hasError = true;
+            }
+
+            static NullableFlowState getTypeArgumentState(in TypeWithAnnotations typeWithAnnotations)
+            {
+                var type = typeWithAnnotations.Type;
+                if (type is null)
+                {
+                    return NullableFlowState.NotNull;
+                }
+                if (type.IsValueType)
+                {
+                    return type.IsNullableType() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                }
+                switch (typeWithAnnotations.NullableAnnotation)
+                {
+                    case NullableAnnotation.Annotated:
+                        return type.IsTypeParameterDisallowingAnnotationInCSharp8() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                    case NullableAnnotation.Oblivious:
+                        return NullableFlowState.NotNull;
+                }
+                var typeParameter = type as TypeParameterSymbol;
+                if (typeParameter is null || typeParameter.IsNotNullable == true)
+                {
+                    return NullableFlowState.NotNull;
+                }
+                NullableFlowState? result = null;
+                foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                {
+                    var constraintState = getTypeArgumentState(constraintType);
+                    if (result == null)
+                    {
+                        result = constraintState;
+                    }
+                    else
+                    {
+                        result = (NullableFlowState)Math.Min((int)result.Value, (int)constraintState);
+                    }
+                }
+                return result ?? NullableFlowState.MaybeNull;
+            }
+
+            static bool constraintTypeAllows(in TypeWithAnnotations typeWithAnnotations, NullableFlowState state)
+            {
+                if (state == NullableFlowState.NotNull)
+                {
+                    return true;
+                }
+                var type = typeWithAnnotations.Type;
+                if (type is null || type.IsValueType)
+                {
+                    return true;
+                }
+                switch (typeWithAnnotations.NullableAnnotation)
+                {
+                    case NullableAnnotation.Oblivious:
+                    case NullableAnnotation.Annotated:
+                        return true;
+                }
+                var typeParameter = type as TypeParameterSymbol;
+                if (typeParameter is null || typeParameter.IsNotNullable == true)
+                {
+                    return false;
+                }
+                foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                {
+                    if (!constraintTypeAllows(constraintType, state))
+                    {
+                        return false;
+                    }
+                }
+                return state == NullableFlowState.MaybeNull;
             }
         }
 

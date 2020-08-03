@@ -172,6 +172,11 @@
         <target state="new">Current parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints (experimental)</source>
+        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">_Изменить</target>
@@ -1172,16 +1177,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Проект: {0}
 
 Используйте раскрывающийся список для просмотра других проектов, к которым может относиться этот файл, и перехода к ним.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">Ошибка при чтении файла с набором правил {0} — {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">

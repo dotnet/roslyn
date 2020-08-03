@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
         }
 
-        public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
+        public override async Task<(ISymbol? symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
