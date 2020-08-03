@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions
     /// </summary>
     internal interface ICodeFixSuggestedAction
     {
-        public CodeFix CodeFix { get; }
+        CodeFix CodeFix { get; }
     }
 }

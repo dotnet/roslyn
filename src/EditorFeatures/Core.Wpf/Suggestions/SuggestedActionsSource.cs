@@ -222,17 +222,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return null;
                     }
 
-                    return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s)!);
+                    return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s));
                 }
             }
 
-            private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet)
+            private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet unifiedSuggestedActionSet)
             {
-                if (unifiedSuggestedActionSet == null)
-                {
-                    return null;
-                }
-
                 using var _ = ArrayBuilder<ISuggestedAction>.GetInstance(out var suggestedActions);
                 foreach (var action in unifiedSuggestedActionSet.Actions)
                 {
