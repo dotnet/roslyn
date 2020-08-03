@@ -10,17 +10,14 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspMethod(MethodName)]
-    internal class SlowParallelHandler : AbstractTestRequestHandler
+    internal class ParallelHandler : AbstractTestRequestHandler
     {
-        public const string MethodName = nameof(SlowParallelHandler);
-
+        public const string MethodName = nameof(ParallelHandler);
         public override RequestProcessingMode Type => RequestProcessingMode.Parallel;
-
-        protected override TimeSpan Delay => TimeSpan.FromSeconds(1);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SlowParallelHandler(ILspSolutionProvider solutionProvider)
+        public ParallelHandler(ILspSolutionProvider solutionProvider)
             : base(solutionProvider)
         {
         }

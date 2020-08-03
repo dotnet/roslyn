@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     internal abstract class AbstractTestRequestHandler : AbstractRequestHandler<OrderedLspRequest, OrderedLspResponse>
     {
-        protected abstract TimeSpan Delay { get; }
+        private const int Delay = 100;
 
         public AbstractTestRequestHandler(ILspSolutionProvider solutionProvider)
             : base(solutionProvider)

@@ -1,7 +1,9 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 
@@ -11,9 +13,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private class QueueItem
         {
-            public Func<object, Task> Callback { get; internal set; }
-            public object State { get; internal set; }
-            public RequestProcessingMode Type { get; internal set; }
+            public Func<Task> Callback { get; set; }
+            public RequestProcessingMode Type { get; set; }
         }
 
         private readonly AsyncQueue<QueueItem> _queue;
@@ -24,65 +25,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _ = ProcessQueueAsync();
         }
 
-        internal Task<TResult> ExecuteParallel<TResult>(Func<Task<TResult>> asyncFunction)
+        internal Task<TResult> ExecuteAsync<TResult>(RequestProcessingMode type, Func<Task<TResult>> asyncFunction)
         {
-            var completion = new RequestHandlerSynchronizationTaskCompletionSource<Func<Task<TResult>>, TResult>(asyncFunction);
+            var completion = new TaskCompletionSource<TResult>();
 
-            Enqueue(RequestProcessingMode.Parallel, async (state) =>
-            {
-                var completion = (RequestHandlerSynchronizationTaskCompletionSource<Func<Task<TResult>>, TResult>)state;
-                try
-                {
-                    var result = await completion.Callback().ConfigureAwait(false);
-                    completion.SetResult(result);
-                }
-                catch (OperationCanceledException)
-                {
-                    completion.SetCanceled();
-                }
-                catch (Exception exception)
-                {
-                    completion.SetException(exception);
-                }
-            }, completion);
-
-            return completion.Task;
-        }
-
-        internal Task<TResult> ExecuteSerial<TResult>(Func<Task<TResult>> asyncFunction)
-        {
-            var completion = new RequestHandlerSynchronizationTaskCompletionSource<Func<Task<TResult>>, TResult>(asyncFunction);
-
-            Enqueue(RequestProcessingMode.Serial, async (state) =>
-            {
-                var completion = (RequestHandlerSynchronizationTaskCompletionSource<Func<Task<TResult>>, TResult>)state;
-                try
-                {
-                    var result = await completion.Callback().ConfigureAwait(false);
-                    completion.SetResult(result);
-                }
-                catch (OperationCanceledException)
-                {
-                    completion.SetCanceled();
-                }
-                catch (Exception exception)
-                {
-                    completion.SetException(exception);
-                }
-            }, completion);
-
-            return completion.Task;
-        }
-
-        private void Enqueue(RequestProcessingMode type, Func<object, Task> p, object state)
-        {
             var item = new QueueItem
             {
                 Type = type,
-                Callback = p,
-                State = state
+                Callback = async () =>
+                {
+                    try
+                    {
+                        var result = await asyncFunction().ConfigureAwait(false);
+                        completion.SetResult(result);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        completion.SetCanceled();
+                    }
+                    catch (Exception exception)
+                    {
+                        completion.SetException(exception);
+                    }
+                },
             };
             _queue.Enqueue(item);
+
+            return completion.Task;
         }
 
         private async Task ProcessQueueAsync()
@@ -99,23 +68,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     await Task.WhenAll(runningParallelTasks).ConfigureAwait(false);
                     runningParallelTasks.Clear();
 
-                    await work.Callback(work.State).ConfigureAwait(false);
+                    // Run serial work and block
+                    await work.Callback().ConfigureAwait(false);
                 }
                 else
                 {
-                    runningParallelTasks.Add(work.Callback(work.State));
+                    runningParallelTasks.Add(work.Callback());
                 }
             }
-        }
-
-        internal class RequestHandlerSynchronizationTaskCompletionSource<TCallback, TResult> : TaskCompletionSource<TResult>
-        {
-            public RequestHandlerSynchronizationTaskCompletionSource(TCallback callback)
-            {
-                Callback = callback;
-            }
-
-            public TCallback Callback { get; }
         }
     }
 }

@@ -45,14 +45,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            if ((handler as AbstractRequestHandler<RequestType, ResponseType>)?.Type == RequestProcessingMode.Serial)
-            {
-                return _queue.ExecuteSerial(() => handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken));
-            }
-            else
-            {
-                return _queue.ExecuteParallel(() => handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken));
-            }
+            var type = (handler as AbstractRequestHandler<RequestType, ResponseType>)?.Type ?? RequestProcessingMode.Parallel;
+
+            return _queue.ExecuteAsync(type, () => handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken));
         }
     }
 }

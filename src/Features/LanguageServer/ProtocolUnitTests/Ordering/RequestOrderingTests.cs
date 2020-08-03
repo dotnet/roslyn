@@ -21,34 +21,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     public partial class RequestOrderingTests : AbstractLanguageServerProtocolTests
     {
         protected override TestComposition Composition => base.Composition
-            .AddParts(typeof(FastSerialHandler))
-            .AddParts(typeof(FastParallelHandler))
-            .AddParts(typeof(SlowSerialHandler))
-            .AddParts(typeof(SlowParallelHandler));
+            .AddParts(typeof(SerialHandler))
+            .AddParts(typeof(ParallelHandler));
 
         [Fact]
         public async Task SerialRequestsDontOverlap()
         {
             var requests = new[] {
-                new OrderedLspRequest(SlowSerialHandler.MethodName),
-                new OrderedLspRequest(SlowSerialHandler.MethodName),
-                new OrderedLspRequest(SlowSerialHandler.MethodName),
-            };
-
-            var responses = await TestAsync(requests);
-
-            // Every request should have started at or after the one before it
-            Assert.True(responses[1].StartTime >= responses[0].EndTime);
-            Assert.True(responses[2].StartTime >= responses[1].EndTime);
-        }
-
-        [Fact]
-        public async Task FastAndSlowSerialRequestsDontOverlap()
-        {
-            var requests = new[] {
-                new OrderedLspRequest(SlowSerialHandler.MethodName),
-                new OrderedLspRequest(FastSerialHandler.MethodName),
-                new OrderedLspRequest(FastSerialHandler.MethodName),
+                new OrderedLspRequest(SerialHandler.MethodName),
+                new OrderedLspRequest(SerialHandler.MethodName),
+                new OrderedLspRequest(SerialHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -62,9 +44,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ParallelRequestsOverlap()
         {
             var requests = new[] {
-                new OrderedLspRequest(SlowParallelHandler.MethodName),
-                new OrderedLspRequest(FastParallelHandler.MethodName),
-                new OrderedLspRequest(FastParallelHandler.MethodName),
+                new OrderedLspRequest(ParallelHandler.MethodName),
+                new OrderedLspRequest(ParallelHandler.MethodName),
+                new OrderedLspRequest(ParallelHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -78,9 +60,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ParallelWaitsForSerial()
         {
             var requests = new[] {
-                new OrderedLspRequest(SlowSerialHandler.MethodName),
-                new OrderedLspRequest(FastParallelHandler.MethodName),
-                new OrderedLspRequest(FastParallelHandler.MethodName),
+                new OrderedLspRequest(SerialHandler.MethodName),
+                new OrderedLspRequest(ParallelHandler.MethodName),
+                new OrderedLspRequest(ParallelHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -97,10 +79,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task SerialWaitsForParallel()
         {
             var requests = new[] {
-                new OrderedLspRequest(SlowParallelHandler.MethodName),
-                new OrderedLspRequest(FastParallelHandler.MethodName),
-                new OrderedLspRequest(FastSerialHandler.MethodName),
-                new OrderedLspRequest(FastSerialHandler.MethodName),
+                new OrderedLspRequest(ParallelHandler.MethodName),
+                new OrderedLspRequest(ParallelHandler.MethodName),
+                new OrderedLspRequest(SerialHandler.MethodName),
+                new OrderedLspRequest(SerialHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -134,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             var responses = await Task.WhenAll(waitables);
 
-            // Sanity checks to ensure testing code isn't somehow wrong, making future checks invalid
+            // Sanity checks to ensure test handlers aren't doing something wacky, making future checks invalid
             Assert.Empty(responses.Where(r => r.StartTime == default));
             Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
 
