@@ -343,11 +343,16 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
+            if (compilation.SemanticModelProvider == null)
+            {
+                compilation = compilation.WithSemanticModelProvider(new CachingSemanticModelProvider());
+            }
+
             AttributeData? attribute;
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
             if (!suppressMessageState.IsDiagnosticSuppressed(
                     this,
-                    compilation.SemanticModelProvider ?? new CachingSemanticModelProvider(),
+                    compilation.SemanticModelProvider,
                     out attribute))
             {
                 attribute = null;
