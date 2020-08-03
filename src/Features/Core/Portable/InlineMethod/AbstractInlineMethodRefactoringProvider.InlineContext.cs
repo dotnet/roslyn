@@ -78,7 +78,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         ImmutableArray.Create(allParameterSymbols[0]),
                         ImmutableArray<(IParameterSymbol parameterSymbol, string name)>.Empty,
                         cancellationToken);
-                    var arrayInitializer = inlineMethodRefactoringProvider.GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode>.Empty);
+                    var paramArrayParameterSymbol = allParameterSymbols[0];
+                    var name = renameTable.ContainsKey(paramArrayParameterSymbol)
+                        ? renameTable[paramArrayParameterSymbol]
+                        : paramArrayParameterSymbol.Name;
+                    var arrayInitializer =
+                        inlineMethodRefactoringProvider.GenerateLocalDeclarationStatementWithRightHandExpression(
+                            name,
+                            paramArrayParameterSymbol.Type,
+                            inlineMethodRefactoringProvider.GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode>.Empty));
                     return new InlineMethodContext(
                         ImmutableArray.Create(arrayInitializer),
                         ImmutableDictionary<ISymbol, SyntaxNode>.Empty,

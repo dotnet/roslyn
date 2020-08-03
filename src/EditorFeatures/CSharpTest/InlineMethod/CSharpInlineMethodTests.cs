@@ -420,6 +420,35 @@ public class TestClass
         System.Console.WriteLine(x.Length);
     }
 }");
+        [Fact]
+        public Task TestInlineMethodWithNoElementInParamsArray()
+            => TestInRegularAndScript1Async(
+                    @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee();
+    }
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}",
+                    @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int[] x = {
+        };
+        System.Console.WriteLine(x.Length);
+    }
+    private void Callee(params int[] x)
+    {
+        System.Console.WriteLine(x.Length);
+    }
+}");
 
         [Fact]
         public Task TestInlineMethodWithParamsArray()
