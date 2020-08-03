@@ -160,10 +160,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// <summary>
         /// Determines if the border is being moused over and shows the info accordingly
         /// </summary>
-        private void Border_ToolTipOpening(object sender, ToolTipEventArgs e)
+        private async void Border_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
             var border = (Border)sender;
-            var uiList = CreateDescriptionAsync(CancellationToken.None).Result;
+            e.Handled = true;
+            var uiList = await CreateDescriptionAsync(CancellationToken.None).ConfigureAwait(false);
 
             bool KeepOpen()
             {
@@ -172,7 +173,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             }
 
             _toolTipService.CreatePresenter(_textView, new ToolTipParameters(true, false, KeepOpen)).StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
-            e.Handled = true;
         }
     }
 }
