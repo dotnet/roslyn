@@ -35,15 +35,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new OrderedLspRequest(SlowSerialHandler.MethodName),
             };
 
-            await TestAsync(requests);
+            var responses = await TestAsync(requests);
 
-            // Since every request is serial, no request should have started before the last one ended
-            DateTime lastEnd = default;
-            foreach (var request in requests)
-            {
-                Assert.True(request.StartTime > lastEnd);
-                lastEnd = request.EndTime;
-            }
+            // Every request should have started at or after the one before it
+            Assert.True(responses[1].StartTime >= responses[0].EndTime);
+            Assert.True(responses[2].StartTime >= responses[1].EndTime);
         }
 
         [Fact]
@@ -55,18 +51,71 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new OrderedLspRequest(FastSerialHandler.MethodName),
             };
 
-            await TestAsync(requests);
+            var responses = await TestAsync(requests);
 
-            // Since every request is serial, no request should have started before the last one ended
-            DateTime lastEnd = default;
-            foreach (var request in requests)
-            {
-                Assert.True(request.StartTime > lastEnd);
-                lastEnd = request.EndTime;
-            }
+            // Every request should have started at or after the one before it
+            Assert.True(responses[1].StartTime >= responses[0].EndTime);
+            Assert.True(responses[2].StartTime >= responses[1].EndTime);
         }
 
-        private async Task TestAsync(OrderedLspRequest[] requests)
+        [Fact]
+        public async Task ParallelRequestsOverlap()
+        {
+            var requests = new[] {
+                new OrderedLspRequest(SlowParallelHandler.MethodName),
+                new OrderedLspRequest(FastParallelHandler.MethodName),
+                new OrderedLspRequest(FastParallelHandler.MethodName),
+            };
+
+            var responses = await TestAsync(requests);
+
+            // Every request should have started immediately, without waiting
+            Assert.True(responses[1].StartTime < responses[0].EndTime);
+            Assert.True(responses[2].StartTime < responses[1].EndTime);
+        }
+
+        [Fact]
+        public async Task ParallelWaitsForSerial()
+        {
+            var requests = new[] {
+                new OrderedLspRequest(SlowSerialHandler.MethodName),
+                new OrderedLspRequest(FastParallelHandler.MethodName),
+                new OrderedLspRequest(FastParallelHandler.MethodName),
+            };
+
+            var responses = await TestAsync(requests);
+
+            // The parallel tasks should have waited for the first task to finish
+            Assert.True(responses[1].StartTime >= responses[0].EndTime);
+            Assert.True(responses[2].StartTime >= responses[0].EndTime);
+            // The parallel requests shouldn't have waited for each other
+            Assert.True(responses[1].StartTime < responses[2].EndTime);
+            Assert.True(responses[2].StartTime < responses[1].EndTime);
+        }
+
+        [Fact]
+        public async Task SerialWaitsForParallel()
+        {
+            var requests = new[] {
+                new OrderedLspRequest(SlowParallelHandler.MethodName),
+                new OrderedLspRequest(FastParallelHandler.MethodName),
+                new OrderedLspRequest(FastSerialHandler.MethodName),
+                new OrderedLspRequest(FastSerialHandler.MethodName),
+            };
+
+            var responses = await TestAsync(requests);
+
+            // The serial requests should have waited for both parallel tasks to finihs
+            Assert.True(responses[2].StartTime >= responses[0].EndTime);
+            Assert.True(responses[3].StartTime >= responses[0].EndTime);
+            Assert.True(responses[2].StartTime >= responses[1].EndTime);
+            Assert.True(responses[3].StartTime >= responses[1].EndTime);
+            // The parallel requests shouldn't have waited for each other
+            Assert.True(responses[0].StartTime < responses[1].EndTime);
+            Assert.True(responses[1].StartTime < responses[0].EndTime);
+        }
+
+        private async Task<OrderedLspResponse[]> TestAsync(OrderedLspRequest[] requests)
         {
             using var workspace = CreateTestWorkspace("class C { }", out _);
             var solution = workspace.CurrentSolution;
@@ -74,23 +123,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var languageServer = GetLanguageServer(solution);
             var clientCapabilities = new LSP.ClientCapabilities();
 
-            var waitables = new List<Task<OrderedLspRequest>>();
+            var waitables = new List<Task<OrderedLspResponse>>();
 
             var order = 1;
             foreach (var request in requests)
             {
                 request.RequestOrder = order++;
-                waitables.Add(languageServer.ExecuteRequestAsync<OrderedLspRequest, OrderedLspRequest>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
+                waitables.Add(languageServer.ExecuteRequestAsync<OrderedLspRequest, OrderedLspResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
             }
 
-            await Task.WhenAll(waitables);
+            var responses = await Task.WhenAll(waitables);
 
-            Assert.Empty(requests.Where(r => r.StartTime == default));
+            // Sanity checks to ensure testing code isn't somehow wrong, making future checks invalid
+            Assert.Empty(responses.Where(r => r.StartTime == default));
+            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
 
-            var byRequestOrder = requests.OrderBy(r => r.RequestOrder).ToArray();
-            var byStartTime = requests.OrderBy(r => r.StartTime).ToArray();
-
-            Assert.Equal(byRequestOrder, byStartTime);
+            return responses;
         }
     }
 }
