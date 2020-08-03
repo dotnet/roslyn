@@ -1232,9 +1232,9 @@ namespace System.Runtime.CompilerServices
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource)
+        public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource, bool prependDefaultHeader = true)
         {
-            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader))
             {
                 return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }
@@ -1506,6 +1506,11 @@ namespace System.Runtime.CompilerServices
             return attributes.Select(a => a.ToString());
         }
 
+        internal static IEnumerable<string> GetAttributeStrings(IEnumerable<CSharpAttributeData> attributes)
+        {
+            return attributes.Select(a => a.ToString());
+        }
+
         #endregion
 
         #region Documentation Comments
@@ -1764,9 +1769,13 @@ namespace System.Runtime.CompilerServices
 
         protected static void VerifyOperationTreeForNode(CSharpCompilation compilation, SemanticModel model, SyntaxNode syntaxNode, string expectedOperationTree)
         {
-            var actualOperation = model.GetOperation(syntaxNode);
-            Assert.NotNull(actualOperation);
-            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
+            VerifyOperationTree(compilation, model.GetOperation(syntaxNode), expectedOperationTree);
+        }
+
+        protected static void VerifyOperationTree(CSharpCompilation compilation, IOperation operation, string expectedOperationTree)
+        {
+            Assert.NotNull(operation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, operation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 

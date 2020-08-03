@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private readonly ISymbol _renamedSymbol;
             private readonly IAliasSymbol? _aliasSymbol;
-            private readonly Location _renamableDeclarationLocation;
+            private readonly Location? _renamableDeclarationLocation;
 
             private readonly RenamedSpansTracker _renameSpansTracker;
             private readonly bool _isVerbatim;

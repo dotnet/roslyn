@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -25,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
+        private const string NonBreakingSpaceString = "\x00A0";
+
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
         private bool IsExpandedCompletion { get; set; } = true;
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         internal override Type GetCompletionProviderType()
             => typeof(ExtensionMethodImportCompletionProvider);
@@ -1665,6 +1666,61 @@ namespace NS1
                 glyph: (int)Glyph.ExtensionMethodPublic,
                 inlineDescription: "NS2",
                 expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<int>()");
+        }
+
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestDescriptionOfOverloads(ReferenceType refType)
+        {
+            var refDoc = @"
+using System;
+
+namespace NS2
+{
+    public static class Extensions
+    {
+        public static bool ExtentionMethod(this int t) => false;
+        public static bool ExtentionMethod(this int t, int a) => false;
+        public static bool ExtentionMethod(this int t, int a, int b) => false;
+        public static bool ExtentionMethod<T>(this int t, T a) => false;
+        public static bool ExtentionMethod<T>(this int t, T a, T b) => false;
+        public static bool ExtentionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
+    }
+}";
+            var srcDoc = @"
+namespace NS1
+{
+    public class C
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod() (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})");
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                displayTextSuffix: "<>",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<T>(T a) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.generic_overloads})");
         }
 
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)

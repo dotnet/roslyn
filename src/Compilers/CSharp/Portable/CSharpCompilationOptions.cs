@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? delaySign = null,
             Platform platform = Platform.AnyCpu,
             ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default,
-            int warningLevel = 4,
+            int warningLevel = Diagnostic.DefaultWarningLevel,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>>? specificDiagnosticOptions = null,
             bool concurrentBuild = true,
             bool deterministic = false,
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(ScriptClassName), ScriptClassName ?? "null"));
             }
 
-            if (WarningLevel < 0 || WarningLevel > 4)
+            if (WarningLevel < 0)
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(WarningLevel), WarningLevel));
             }

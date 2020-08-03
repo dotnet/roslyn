@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordEqualityContractProperty : SourcePropertySymbolBase, IAttributeTargetSymbol
+    internal sealed class SynthesizedRecordEqualityContractProperty : SourcePropertySymbolBase
     {
         internal const string PropertyName = "EqualityContract";
 
@@ -30,10 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 setSyntax: null,
                 arrowExpression: null,
                 interfaceSpecifier: null,
-                modifiers: DeclarationModifiers.Protected |
-                           (containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() ?
-                                (containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual) :
-                                DeclarationModifiers.Override),
+                modifiers: (containingType.IsSealed, containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType()) switch
+                {
+                    (true, true) => DeclarationModifiers.Private,
+                    (false, true) => DeclarationModifiers.Protected | DeclarationModifiers.Virtual,
+                    (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
+                },
                 isIndexer: false,
                 hasInitializer: false,
                 isAutoProperty: false,
@@ -52,11 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+            => new SyntaxList<AttributeListSyntax>();
 
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.None;
-
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.None;
+        public override IAttributeTargetSymbol AttributesOwner => this;
 
         protected override Location TypeLocation
             => ContainingType.Locations[0];
@@ -64,15 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => new SyntaxTokenList();
 
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => new SyntaxList<AttributeListSyntax>();
-
         protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             // Nothing to do here
         }
-
-        protected override bool ShouldReportProtectedMemberInSealedTypeError => false;
 
         protected override SourcePropertyAccessorSymbol? CreateAccessorSymbol(
             bool isGet,

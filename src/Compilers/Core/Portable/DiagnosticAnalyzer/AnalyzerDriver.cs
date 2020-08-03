@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>)> _symbolActionsByKind;
         private ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>)> _semanticModelActions;
         private ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<SyntaxTreeAnalyzerAction>)> _syntaxTreeActions;
+        private ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<AdditionalFileAnalyzerAction>)> _additionalFileActions;
         // Compilation actions and compilation end actions have separate maps so that it is easy to
         // execute the compilation actions before the compilation end actions.
         private ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>)> _compilationActions;
@@ -245,10 +246,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind(in AnalyzerActions);
-                    _semanticModelActions = MakeSemanticModelActionsByAnalyzer(in AnalyzerActions);
-                    _syntaxTreeActions = MakeSyntaxTreeActionsByAnalyzer(in AnalyzerActions);
-                    _compilationActions = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.CompilationActions);
-                    _compilationEndActions = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.CompilationEndActions);
+                    _semanticModelActions = MakeActionsByAnalyzer(AnalyzerActions.SemanticModelActions);
+                    _syntaxTreeActions = MakeActionsByAnalyzer(AnalyzerActions.SyntaxTreeActions);
+                    _additionalFileActions = MakeActionsByAnalyzer(AnalyzerActions.AdditionalFileActions);
+                    _compilationActions = MakeActionsByAnalyzer(this.AnalyzerActions.CompilationActions);
+                    _compilationEndActions = MakeActionsByAnalyzer(this.AnalyzerActions.CompilationEndActions);
                     _compilationEndAnalyzers = MakeCompilationEndAnalyzers(_compilationEndActions);
 
                     if (this.AnalyzerActions.SymbolStartActionsCount > 0)
@@ -558,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteSyntaxTreeActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
+            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
             {
                 // For partial analysis, only execute syntax tree actions if performing syntax analysis.
                 return;
@@ -567,9 +569,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var tree in analysisScope.SyntaxTrees)
             {
                 var isGeneratedCode = IsGeneratedCode(tree);
+                var file = new SourceOrAdditionalFile(tree);
                 if (isGeneratedCode && DoNotAnalyzeGeneratedCode)
                 {
-                    analysisStateOpt?.MarkSyntaxAnalysisComplete(tree, analysisScope.Analyzers);
+                    analysisStateOpt?.MarkSyntaxAnalysisComplete(file, analysisScope.Analyzers);
                     continue;
                 }
 
@@ -586,12 +589,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         cancellationToken.ThrowIfCancellationRequested();
 
                         // Execute actions for a given analyzer sequentially.
-                        AnalyzerExecutor.TryExecuteSyntaxTreeActions(syntaxTreeActions, analyzer, tree, analysisScope, analysisStateOpt, isGeneratedCode);
+                        AnalyzerExecutor.TryExecuteSyntaxTreeActions(syntaxTreeActions, analyzer, file, analysisScope, analysisStateOpt, isGeneratedCode);
 
                         processedAnalyzers?.Add(analyzer);
                     }
 
-                    analysisStateOpt?.MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(tree, analysisScope, processedAnalyzers);
+                    analysisStateOpt?.MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(file, analysisScope, processedAnalyzers);
+                }
+                finally
+                {
+                    processedAnalyzers?.Free();
+                }
+            }
+        }
+
+        private void ExecuteAdditionalFileActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        {
+            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
+            {
+                // For partial analysis, only execute additional file actions if performing syntactic single file analysis.
+                return;
+            }
+
+            foreach (var additionalFile in analysisScope.AdditionalFiles)
+            {
+                var file = new SourceOrAdditionalFile(additionalFile);
+
+                var processedAnalyzers = analysisStateOpt != null ? PooledHashSet<DiagnosticAnalyzer>.GetInstance() : null;
+                try
+                {
+                    foreach (var (analyzer, additionalFileActions) in _additionalFileActions)
+                    {
+                        if (!analysisScope.Contains(analyzer))
+                        {
+                            continue;
+                        }
+
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // Execute actions for a given analyzer sequentially.
+                        AnalyzerExecutor.TryExecuteAdditionalFileActions(additionalFileActions, analyzer, file, analysisScope, analysisStateOpt);
+
+                        processedAnalyzers?.Add(analyzer);
+                    }
+
+                    analysisStateOpt?.MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(file, analysisScope, processedAnalyzers);
                 }
                 finally
                 {
@@ -655,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter, concurrentAnalysis: true, logAnalyzerExecutionTime: reportAnalyzer, reportSuppressedDiagnostics: false);
             analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), categorizeDiagnostics, cancellationToken);
 
-            var analysisScope = new AnalysisScope(newCompilation, analyzers, hasAllAnalyzers: true, concurrentAnalysis: newCompilation.Options.ConcurrentBuild, categorizeDiagnostics: categorizeDiagnostics);
+            var analysisScope = new AnalysisScope(newCompilation, options, analyzers, hasAllAnalyzers: true, concurrentAnalysis: newCompilation.Options.ConcurrentBuild, categorizeDiagnostics: categorizeDiagnostics);
             analyzerDriver.AttachQueueAndStartProcessingEvents(newCompilation.EventQueue, analysisScope, cancellationToken: cancellationToken);
             return analyzerDriver;
         }
@@ -1115,34 +1157,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutableAndFree();
         }
 
-        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<SyntaxTreeAnalyzerAction>)> MakeSyntaxTreeActionsByAnalyzer(in AnalyzerActions analyzerActions)
+        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<TAnalyzerAction>)> MakeActionsByAnalyzer<TAnalyzerAction>(in ImmutableArray<TAnalyzerAction> analyzerActions)
+            where TAnalyzerAction : AnalyzerAction
         {
-            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<SyntaxTreeAnalyzerAction>)>.GetInstance();
-            var actionsByAnalyzers = analyzerActions.SyntaxTreeActions.GroupBy(action => action.Analyzer);
-            foreach (var analyzerAndActions in actionsByAnalyzers)
-            {
-                builder.Add((analyzerAndActions.Key, analyzerAndActions.ToImmutableArray()));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>)> MakeSemanticModelActionsByAnalyzer(in AnalyzerActions analyzerActions)
-        {
-            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>)>.GetInstance();
-            var actionsByAnalyzers = analyzerActions.SemanticModelActions.GroupBy(action => action.Analyzer);
-            foreach (var analyzerAndActions in actionsByAnalyzers)
-            {
-                builder.Add((analyzerAndActions.Key, analyzerAndActions.ToImmutableArray()));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>)> MakeCompilationActionsByAnalyzer(ImmutableArray<CompilationAnalyzerAction> compilationActions)
-        {
-            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>)>.GetInstance();
-            var actionsByAnalyzers = compilationActions.GroupBy(action => action.Analyzer);
+            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<TAnalyzerAction>)>.GetInstance();
+            var actionsByAnalyzers = analyzerActions.GroupBy(action => action.Analyzer);
             foreach (var analyzerAndActions in actionsByAnalyzers)
             {
                 builder.Add((analyzerAndActions.Key, analyzerAndActions.ToImmutableArray()));
@@ -1187,8 +1206,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Kick off tasks to execute syntax tree actions.
                     var syntaxTreeActionsTask = Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt, cancellationToken), cancellationToken);
 
+                    // Kick off tasks to execute additional file actions.
+                    var additionalFileActionsTask = Task.Run(() => ExecuteAdditionalFileActions(analysisScope, analysisStateOpt, cancellationToken), cancellationToken);
+
                     // Wait for all worker threads to complete processing events.
-                    await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask)).ConfigureAwait(false);
+                    await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask).Concat(additionalFileActionsTask)).ConfigureAwait(false);
 
                     for (int i = 0; i < workerCount; i++)
                     {
@@ -1204,6 +1226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     completedEvent = await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
 
                     ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt, cancellationToken);
+                    ExecuteAdditionalFileActions(analysisScope, analysisStateOpt, cancellationToken);
                 }
 
                 // Finally process the compilation completed event, if any.
@@ -2261,7 +2284,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var decl = declaringReferences[i];
-                    if (analysisScope.FilterTreeOpt != null && analysisScope.FilterTreeOpt != decl.SyntaxTree)
+                    if (analysisScope.FilterFileOpt != null && analysisScope.FilterFileOpt?.SourceTree != decl.SyntaxTree)
                     {
                         continue;
                     }
@@ -2744,6 +2767,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             case OperationKind.MethodBody:
                             case OperationKind.ConstructorBody:
+                                Debug.Assert(!operationBlock.Parent.IsImplicit);
                                 operationsToAnalyze.Add(operationBlock.Parent);
                                 break;
 
@@ -2753,6 +2777,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);
+                                Debug.Assert(!operationBlock.Parent.Parent.IsImplicit);
+
+                                operationsToAnalyze.Add(operationBlock.Parent.Parent);
+
                                 break;
 
                             default:

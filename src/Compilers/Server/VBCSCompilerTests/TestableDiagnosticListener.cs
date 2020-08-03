@@ -4,51 +4,27 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal sealed class TestableDiagnosticListener : IDiagnosticListener
     {
-        public int ListeningCount;
-        public int ConnectionCount;
-        public int CompletedCount;
-        public DateTime? LastProcessedTime;
-        public TimeSpan? KeepAlive;
-        public bool HitKeepAliveTimeout;
-        public event EventHandler Listening;
-        public bool HasDetectedBadConnection;
-        public BlockingCollection<CompletionReason> ConnectionCompletedCollection = new BlockingCollection<CompletionReason>();
+        public TimeSpan? KeepAlive { get; set; }
+        public bool KeepAliveHit { get; set; }
+        public List<CompletionData> CompletionDataList { get; set; } = new List<CompletionData>();
+        public int ConnectionReceivedCount { get; set; }
 
         public void ConnectionListening()
         {
-            ListeningCount++;
-            Listening?.Invoke(this, EventArgs.Empty);
         }
 
-        public void ConnectionReceived()
-        {
-            ConnectionCount++;
-        }
+        public void ConnectionReceived() => ConnectionReceivedCount++;
 
-        public void ConnectionCompleted(CompletionReason reason)
-        {
-            ConnectionCompletedCollection.Add(reason);
-            CompletedCount++;
-            if (reason == CompletionReason.ClientDisconnect || reason == CompletionReason.ClientException)
-            {
-                HasDetectedBadConnection = true;
-            }
-            LastProcessedTime = DateTime.Now;
-        }
+        public void ConnectionCompleted(CompletionData completionData) => CompletionDataList.Add(completionData);
 
-        public void UpdateKeepAlive(TimeSpan timeSpan)
-        {
-            KeepAlive = timeSpan;
-        }
+        public void UpdateKeepAlive(TimeSpan keepAlive) => KeepAlive = keepAlive;
 
-        public void KeepAliveReached()
-        {
-            HitKeepAliveTimeout = true;
-        }
+        public void KeepAliveReached() => KeepAliveHit = true;
     }
 }

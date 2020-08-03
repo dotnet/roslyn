@@ -9960,6 +9960,31 @@ End Class")
                 Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'", output, StringComparison.Ordinal)
             End If
         End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub TestAdditionalFileAnalyzer(registerFromInitialize As Boolean)
+            Dim srcDirectory = Temp.CreateDirectory()
+
+            Dim source = "
+Class C
+End Class"
+            Dim srcFile = srcDirectory.CreateFile("a.vb")
+            srcFile.WriteAllText(source)
+
+            Dim additionalText = "Additional Text"
+            Dim additionalFile = srcDirectory.CreateFile("b.txt")
+            additionalFile.WriteAllText(additionalText)
+
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer As DiagnosticAnalyzer = New AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan)
+
+            Dim output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags:={"/additionalfile:" & additionalFile.Path},
+                                      analyzers:=ImmutableArray.Create(analyzer))
+            Assert.Contains("b.txt(1) : warning ID0001", output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(srcDirectory.Path)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

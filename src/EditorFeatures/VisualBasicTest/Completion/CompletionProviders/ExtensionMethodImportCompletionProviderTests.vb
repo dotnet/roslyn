@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue).WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Function
 
-        Protected Overrides Function GetExportCatalog() As ComposableCatalog
-            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
+        Protected Overrides Function GetComposition() As TestComposition
+            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
         Friend Overrides Function GetCompletionProviderType() As Type

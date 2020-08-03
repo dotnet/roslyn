@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     {
         protected abstract string LanguageName { get; }
 
-        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Test;
+        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
         protected virtual OptionSet UpdateOptions(OptionSet options)
             => options.WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120);

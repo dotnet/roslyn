@@ -685,9 +685,9 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // (7,19): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("_").WithLocation(7, 19)
                 );
             var names = new[] { "x1", "x2", "x3", "x4", "x5" };
             var tree = compilation.SyntaxTrees[0];
@@ -2942,6 +2942,42 @@ class F
                         break;
                 }
             }
+        }
+
+        [Fact, WorkItem(45946, "https://github.com/dotnet/roslyn/issues/45946")]
+        public void VoidPattern_01()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        _ = is this.F(1);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS1525: Invalid expression term 'is'
+                //         _ = is this.F(1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(6, 13)
+                );
+        }
+
+        [Fact, WorkItem(45946, "https://github.com/dotnet/roslyn/issues/45946")]
+        public void VoidPattern_02()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        _ = switch { this.F(1) => 1 };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS1525: Invalid expression term 'switch'
+                //         _ = switch { this.F(1) => 1 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "switch").WithArguments("switch").WithLocation(6, 13)
+                );
         }
     }
 }

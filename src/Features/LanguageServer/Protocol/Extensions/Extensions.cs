@@ -20,12 +20,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class Extensions
     {
-        public static Uri GetURI(this Document document)
+        public static Uri GetURI(this TextDocument document)
         {
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
+        {
+            return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
+        }
+
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        {
+            return GetDocuments<TextDocument>(solution, documentUri, (s, i) => s.GetRequiredTextDocument(i));
+        }
+
+        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -37,12 +47,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
             }
 
-            return documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+            return documentIds.SelectAsArray(id => getDocument(solution, id));
         }
 
         public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
         {
-            var documents = solutionProvider.GetDocuments(uri);
+            return GetDocuments<Document>(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
+        }
+
+        public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
+        {
+            return GetDocuments<TextDocument>(solutionProvider, uri, (s, u, c) => s.GetTextDocuments(u), clientName);
+        }
+
+        private static ImmutableArray<T> GetDocuments<T>(this ILspSolutionProvider solutionProvider, Uri uri, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
+        {
+            var documents = getDocuments(solutionProvider, uri, clientName);
 
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
@@ -65,7 +85,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
         {
-            var documents = solutionProvider.GetDocuments(documentIdentifier.Uri, clientName);
+            return GetDocument<Document>(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
+        }
+
+        public static TextDocument? GetTextDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
+        {
+            return GetDocument<TextDocument>(solutionProvider, documentIdentifier, (s, d, c) => s.GetTextDocuments(d, c), clientName);
+        }
+
+        private static T? GetDocument<T>(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName = null) where T : TextDocument
+        {
+            var documents = getDocuments(solutionProvider, documentIdentifier.Uri, clientName);
 
             if (documents.Length == 0)
             {
@@ -96,7 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents[0];
         }
 
-        public static async Task<int> GetPositionFromLinePositionAsync(this Document document, LinePosition linePosition, CancellationToken cancellationToken)
+        public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
