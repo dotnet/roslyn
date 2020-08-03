@@ -687,6 +687,114 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
+        [Fact]
+        public async Task TestNullabilityAssignment_Property1()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string S
+    {
+        get 
+        {
+            var[||] v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string GetString() => """";
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string S
+    {
+        get 
+        {
+            string v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string GetString() => """";
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Property2()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string? S
+    {
+        get 
+        {
+            var[||] v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string? GetString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string? S
+    {
+        get 
+        {
+            string? v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string? GetString() => null;
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
         [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
         public async Task TestRefLocal1()
         {

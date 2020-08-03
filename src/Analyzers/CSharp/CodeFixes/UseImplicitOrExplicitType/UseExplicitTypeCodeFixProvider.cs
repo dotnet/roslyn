@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
                     // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
                     // determine if it needs to be null
-                    var methodBody = node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFacts.IsMethodBody(n) || n is CompilationUnitSyntax);
-                    var operationScope = semanticModel.GetOperation(methodBody, cancellationToken);
+                    var encapsulatingNode = GetVariableEncapsulation(node, syntaxFacts);
+                    var operationScope = semanticModel.GetOperation(encapsulatingNode, cancellationToken);
                     var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent);
                     if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
                     {
@@ -142,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
 
                 editor.ReplaceNode(declarationContext, tupleDeclaration);
+            }
+
+            static SyntaxNode GetVariableEncapsulation(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+            {
+                return node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFacts.IsMethodBody(n) || n is CompilationUnitSyntax);
             }
         }
 
