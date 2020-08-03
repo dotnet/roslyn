@@ -358,6 +358,15 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,                                    // Field Signature
 
+                // System_Type__op_Equality
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Type,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
                 // System_Reflection_AssemblyKeyFileAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.System_Reflection_AssemblyKeyFileAttribute,                                             // DeclaringTypeId
@@ -3474,6 +3483,13 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+
+                // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute - WellKnownType.ExtSentinel),                  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3521,6 +3537,7 @@ namespace Microsoft.CodeAnalysis
                 "GetTypeFromCLSID",                         // System_Type__GetTypeFromCLSID
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
                 "Missing",                                  // System_Type__Missing
+                WellKnownMemberNames.EqualityOperatorName,  // System_Type__op_Equality
                 ".ctor",                                    // System_Reflection_AssemblyKeyFileAttribute__ctor
                 ".ctor",                                    // System_Reflection_AssemblyKeyNameAttribute__ctor
                 "GetMethodFromHandle",                      // System_Reflection_MethodBase__GetMethodFromHandle
@@ -3910,6 +3927,7 @@ namespace Microsoft.CodeAnalysis
                 "Dispose",                                  // System_Threading_CancellationTokenSource__Dispose
                 ".ctor",                                    // System_Runtime_CompilerServices_NativeIntegerAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags
+                ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

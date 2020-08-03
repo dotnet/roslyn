@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)text.ChecksumAlgorithm);
-            WriteTo(text.Encoding, writer, cancellationToken);
+            writer.WriteEncoding(text.Encoding);
 
             // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
             //       rather than using enums
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // REVIEW: why IDE services doesnt care about checksumAlgorithm?
             _ = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = ReadEncodingFrom(reader, cancellationToken);
+            var encoding = (Encoding)reader.ReadValue();
 
             var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)

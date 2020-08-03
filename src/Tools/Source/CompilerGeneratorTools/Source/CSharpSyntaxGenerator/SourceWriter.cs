@@ -67,8 +67,8 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
-            WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine("using System.Diagnostics.CodeAnalysis;");
+            WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
@@ -639,7 +639,7 @@ namespace CSharpSyntaxGenerator
             }
 
             // validate parameters
-            WriteLine("#if DEBUG");
+            WriteLineWithoutIndent("#if DEBUG");
             foreach (var field in nodeFields)
             {
                 var pname = CamelCase(field.Name);
@@ -687,7 +687,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            WriteLine("#endif");
+            WriteLineWithoutIndent("#endif");
 
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
@@ -1787,7 +1787,7 @@ namespace CSharpSyntaxGenerator
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLine("#pragma warning disable RS0027");
+                WriteLineWithoutIndent("#pragma warning disable RS0027");
             }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
@@ -1846,7 +1846,7 @@ namespace CSharpSyntaxGenerator
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLine("#pragma warning restore RS0027");
+                WriteLineWithoutIndent("#pragma warning restore RS0027");
             }
         }
 

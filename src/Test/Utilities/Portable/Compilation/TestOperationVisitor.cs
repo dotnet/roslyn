@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Same(operation.Operation, operation.Children.Single());
         }
 
-        internal override void VisitWith(IWithOperation operation)
+        internal override void VisitWithStatement(IWithStatementOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             AssertEx.Equal(new[] { operation.Value, operation.Body }, operation.Children);
@@ -1107,6 +1107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitPatternCommon(IPatternOperation pattern)
         {
             Assert.NotNull(pattern.InputType);
+            Assert.NotNull(pattern.NarrowedType);
             Assert.Null(pattern.Type);
             Assert.False(pattern.ConstantValue.HasValue);
         }
@@ -1148,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.NegatedPattern, operation.Kind);
             VisitPatternCommon(operation);
-            Assert.Same(operation.NegatedPattern, operation.Children.Single());
+            Assert.Same(operation.Pattern, operation.Children.Single());
         }
 
         public override void VisitTypePattern(ITypePatternOperation operation)
@@ -1253,7 +1254,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 case IFieldSymbol field:
                 case IPropertySymbol prop:
-                case IErrorTypeSymbol error:
                     break;
                 case var symbol:
                     Assert.True(false, $"Unexpected symbol {symbol}");
@@ -1520,11 +1520,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.IsImplicit;
         }
 
-        public override void VisitWithExpression(IWithExpressionOperation operation)
+        public override void VisitWith(IWithOperation operation)
         {
-            Assert.Equal(OperationKind.WithExpression, operation.Kind);
+            Assert.Equal(OperationKind.With, operation.Kind);
             _ = operation.CloneMethod;
-            IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Value).Concat(operation.Initializer);
+            IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.Children);
         }
     }

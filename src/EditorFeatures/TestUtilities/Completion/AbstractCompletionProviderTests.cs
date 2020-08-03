@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -37,8 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
     public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(CompletionProvider));
+
         protected readonly Mock<ICompletionSession> MockCompletionSession;
         protected TWorkspaceFixture WorkspaceFixture;
+        private ExportProvider _lazyExportProvider;
 
         protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
         {
@@ -46,6 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             this.WorkspaceFixture = workspaceFixture;
         }
+
+        protected ExportProvider ExportProvider
+            => _lazyExportProvider ??= GetComposition().ExportProviderFactory.CreateExportProvider();
+
+        protected virtual TestComposition GetComposition()
+            => s_baseComposition.AddParts(GetCompletionProviderType());
 
         public override void Dispose()
         {
@@ -74,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return completionServiceWithProviders;
         }
 
-        internal ImmutableHashSet<string> GetRoles(Document document)
+        internal static ImmutableHashSet<string> GetRoles(Document document)
             => document.SourceCodeKind == SourceCodeKind.Regular ? ImmutableHashSet<string>.Empty : ImmutableHashSet.Create(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
 
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
@@ -87,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags);
 
-        internal Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
+        internal static Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document,
             int position,
@@ -166,44 +174,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private static readonly Dictionary<Type, IExportProviderFactory> _specificCompletionExportProviderFactories = new Dictionary<Type, IExportProviderFactory>();
-        private ExportProvider _exportProvider = null;
-
-        protected ExportProvider ExportProvider
-        {
-            get
-            {
-                return _exportProvider ??= GetExportProvider(this);
-
-                static ExportProvider GetExportProvider(AbstractCompletionProviderTests<TWorkspaceFixture> self)
-                {
-                    IExportProviderFactory factory;
-                    lock (_specificCompletionExportProviderFactories)
-                    {
-                        factory = _specificCompletionExportProviderFactories.GetOrAdd(
-                            self.GetType(),
-                            type => ExportProviderCache.GetOrCreateExportProviderFactory(self.GetExportCatalog()));
-                    }
-
-                    return factory.CreateExportProvider();
-                }
-            }
-        }
-
         protected void SetExperimentOption(string experimentName, bool enabled)
         {
             var mockExperimentService = ExportProvider.GetExportedValue<TestExperimentationService>();
             mockExperimentService.SetExperimentOption(experimentName, enabled);
         }
 
-        protected virtual ComposableCatalog GetExportCatalog()
-        {
-            var catalogWithoutCompletion = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(CompletionProvider));
-            var catalog = catalogWithoutCompletion.WithPart(GetCompletionProviderType());
-            return catalog;
-        }
-
-        private bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
+        private static bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {
             var matchingFilters = FilterSet.GetFilters(item);
 
@@ -260,8 +237,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected async Task VerifyProviderCommitAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit,
-            char? commitChar, string textTypedSoFar, SourceCodeKind? sourceCodeKind = null)
+        protected async Task VerifyProviderCommitAsync(
+            string markupBeforeCommit,
+            string itemToCommit,
+            string expectedCodeAfterCommit,
+            char? commitChar,
+            string textTypedSoFar,
+            SourceCodeKind? sourceCodeKind = null)
         {
             WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider);
 
@@ -456,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
-        private Document WithChangedOption(Document document, OptionKey optionKey, object value)
+        private static Document WithChangedOption(Document document, OptionKey optionKey, object value)
         {
             var workspace = document.Project.Solution.Workspace;
             var newOptions = workspace.Options.WithChangedOption(optionKey, value);
@@ -610,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
-        protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference, string alias = null)
+        protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference)
         {
             return isProjectReference
                 ? CreateMarkupForProjectWithProjectReference(currentFile, referencedFile, sourceLanguage, referenceLanguage)
@@ -840,7 +822,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private const char NonBreakingSpace = (char)0x00A0;
 
-        private string GetExpectedOverloadSubstring(int expectedSymbols)
+        private static string GetExpectedOverloadSubstring(int expectedSymbols)
         {
             if (expectedSymbols <= 1)
             {

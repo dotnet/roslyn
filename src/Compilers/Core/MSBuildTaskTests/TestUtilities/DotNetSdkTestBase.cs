@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -66,15 +67,16 @@ public class TestClass
         static DotNetSdkTestBase()
         {
             s_dotnetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
-            s_dotnetSdkVersion = typeof(DotNetSdkTests).Assembly.GetCustomAttribute<DotNetSdkVersionAttribute>().Version;
+            s_dotnetSdkVersion = typeof(DotNetSdkTests).Assembly.GetCustomAttribute<DotNetSdkVersionAttribute>()?.Version
+                ?? throw new InvalidOperationException($"Couldn't find {nameof(DotNetSdkVersionAttribute)}");
 
-            bool isMatchingDotNetInstance(string dotnetDir)
+            static bool isMatchingDotNetInstance(string? dotnetDir)
                 => dotnetDir != null && File.Exists(Path.Combine(dotnetDir, s_dotnetExeName)) && Directory.Exists(GetSdkPath(dotnetDir, s_dotnetSdkVersion));
 
             var dotnetInstallDir = Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR");
             if (!isMatchingDotNetInstance(dotnetInstallDir))
             {
-                dotnetInstallDir = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator).FirstOrDefault(isMatchingDotNetInstance);
+                dotnetInstallDir = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator).FirstOrDefault(isMatchingDotNetInstance);
             }
 
             if (dotnetInstallDir != null)
@@ -137,11 +139,12 @@ $@"<Project>
 
         public DotNetSdkTestBase()
         {
-            Assert.True(s_dotnetInstallDir != null, $"SDK not found. Use {nameof(ConditionalFactAttribute)}(typeof({nameof(DotNetSdkAvailable)})) to skip the test if the SDK is not found.");
+            Assert.True(s_dotnetInstallDir is object, $"SDK not found. Use {nameof(ConditionalFactAttribute)}(typeof({nameof(DotNetSdkAvailable)})) to skip the test if the SDK is not found.");
+            Debug.Assert(s_dotnetInstallDir is object);
 
             DotNetPath = Path.Combine(s_dotnetInstallDir, s_dotnetExeName);
-            var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location);
-            var sdksDir = Path.Combine(s_dotnetSdkPath, "Sdks");
+            var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location) ?? string.Empty;
+            var sdksDir = Path.Combine(s_dotnetSdkPath ?? string.Empty, "Sdks");
 
             ProjectName = "test";
             ProjectFileName = ProjectName + ".csproj";

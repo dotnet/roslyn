@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
         }
 
-        public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
+        public override async Task<(ISymbol? symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -158,21 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
             return parameters != null ? GetParameterIndex(parameters.Parameters, position) : 0;
-        }
-
-        /// <summary>
-        /// Find the position to insert the new parameter.
-        /// We will insert a new comma and a parameter.
-        /// </summary>
-        protected override int GetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode)
-        {
-            var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
-            return parameters switch
-            {
-                ParameterListSyntax parameterListSyntax => parameterListSyntax.CloseParenToken.SpanStart,
-                BracketedParameterListSyntax bracketedParameterListSyntax => bracketedParameterListSyntax.CloseBracketToken.SpanStart,
-                _ => matchingNode.SpanStart // e.g. unparenthesized lambda parameters
-            };
         }
 
         private static SyntaxNode? GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)

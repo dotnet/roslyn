@@ -863,12 +863,20 @@ namespace Microsoft.Cci
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            if (portabilityPolicy != 0)
+            {
+                WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            }
+
+            var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
+            var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
+            if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
+            {
+                WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
+            }
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
-
-            WriteValue(CompilationOptionNames.Optimization, module.CommonCompilation.Options.OptimizationLevel.ToPdbSerializedString(module.CommonCompilation.Options.DebugPlusMode));
 
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
@@ -950,7 +958,7 @@ namespace Microsoft.Cci
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
-                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.MetadataReferenceInfo),
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
 
             static PEReader GetReader(ISymbol symbol)

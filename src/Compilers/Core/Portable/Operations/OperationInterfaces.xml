@@ -2361,6 +2361,11 @@
         <summary>The input type to the pattern-matching operation.</summary>
       </Comments>
     </Property>
+    <Property Name="NarrowedType" Type="ITypeSymbol">
+      <Comments>
+        <summary>The narrowed type of the pattern-matching operation.</summary>
+      </Comments>
+    </Property>
   </AbstractNode>
   <Node Name="IConstantPatternOperation" Base="IPatternOperation">
     <Comments>
@@ -2881,7 +2886,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IWithOperation" Base="IOperation" Internal="true" ChildrenOrder="Value,Body">
+  <Node Name="IWithStatementOperation" Base="IOperation" Internal="true" ChildrenOrder="Value,Body">
     <Comments>
       <summary>
         Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
@@ -2934,7 +2939,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="NegatedPattern" Type="IPatternOperation">
+    <Property Name="Pattern" Type="IPatternOperation">
       <Comments>
         <summary>The negated pattern.</summary>
       </Comments>
@@ -3005,7 +3010,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IWithExpressionOperation" Base="IOperation" ChildrenOrder="Value,Initializer">
+  <Node Name="IWithOperation" Base="IOperation" ChildrenOrder="Operand,Initializer">
     <Comments>
       <summary>
         Represents cloning of an object instance.
@@ -3015,9 +3020,9 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="Value" Type="IOperation">
+    <Property Name="Operand" Type="IOperation">
       <Comments>
-        <summary>Value to be cloned.</summary>
+        <summary>Operand to be cloned.</summary>
       </Comments>
     </Property>
     <Property Name="CloneMethod" Type="IMethodSymbol">

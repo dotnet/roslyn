@@ -20,19 +20,18 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspMethod(LSP.Methods.TextDocumentReferencesName), Shared]
-    internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]>
+    internal class FindAllReferencesHandler : AbstractRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindAllReferencesHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
+        public FindAllReferencesHandler(IMetadataAsSourceFileService metadataAsSourceFileService, ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public async Task<LSP.VSReferenceItem[]> HandleRequestAsync(
-            Solution solution,
+        public override async Task<LSP.VSReferenceItem[]> HandleRequestAsync(
             ReferenceParams referenceParams,
             ClientCapabilities clientCapabilities,
             string? clientName,
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
 
-            var document = solution.GetDocument(referenceParams.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(referenceParams.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<LSP.VSReferenceItem>();
@@ -50,14 +49,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
-            var context = new FindUsagesLSPContext(document, position, _metadataAsSourceFileService, cancellationToken);
+            var context = new FindUsagesLSPContext(
+                referenceParams.PartialResultToken, document, position, _metadataAsSourceFileService, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
-            // TODO: Change back FAR to use streaming once the following LSP bug is fixed:
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1094786/
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
+            await context.OnCompletedAsync().ConfigureAwait(false);
 
-            return context.GetReferences().ToArray();
+            // The results have already been reported to the client, so we don't need to return anything here.
+            return Array.Empty<LSP.VSReferenceItem>();
         }
     }
 }

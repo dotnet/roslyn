@@ -643,7 +643,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var root = newDocument.Root;
                     var methodDefinition = root.GetAnnotatedNodes<SyntaxNode>(MethodDefinitionAnnotation).First();
 
+#pragma warning disable IDE0007 // Use implicit type (False positive: https://github.com/dotnet/roslyn/issues/44507)
                     SyntaxNode newMethodDefinition = methodDefinition switch
+#pragma warning restore IDE0007 // Use implicit type
                     {
                         MethodDeclarationSyntax method => TweakNewLinesInMethod(method),
                         LocalFunctionStatementSyntax localFunction => TweakNewLinesInMethod(localFunction),

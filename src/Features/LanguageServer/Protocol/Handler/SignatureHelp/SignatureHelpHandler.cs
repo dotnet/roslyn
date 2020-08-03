@@ -21,19 +21,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
+    internal class SignatureHelpHandler : AbstractRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
+        public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders, ILspSolutionProvider solutionProvider)
+            : base(solutionProvider)
             => _allProviders = allProviders;
 
-        public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.SignatureHelp> HandleRequestAsync(LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return new LSP.SignatureHelp();

@@ -450,10 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
-            else if (parameter.TypeWithAnnotations.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
+            else if (parameter.TypeWithAnnotations.IsStatic && (parameter.ContainingSymbol is FunctionPointerMethodSymbol || !parameter.ContainingSymbol.ContainingType.IsInterfaceType()))
             {
                 // error CS0721: '{0}': static types cannot be used as parameters
-                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type);
+                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations.IsEmpty ? parameterSyntax.GetLocation() : owner.Locations[0], parameter.Type);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
             {

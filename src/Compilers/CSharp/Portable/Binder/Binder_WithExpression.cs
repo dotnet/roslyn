@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,65 +21,41 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
+            var receiver = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
             var receiverType = receiver.Type;
 
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-
             bool hasErrors = false;
 
             if (receiverType is null || receiverType.IsVoidType())
             {
-                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
+                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Expression.Location);
                 receiverType = CreateErrorType();
             }
 
             MethodSymbol? cloneMethod = null;
             if (!receiverType.IsErrorType())
             {
-                LookupMembersInType(
-                    lookupResult,
-                    receiverType,
-                    WellKnownMemberNames.CloneMethodName,
-                    arity: 0,
-                    ConsList<TypeSymbol>.Empty,
-                    LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
-                    this,
-                    diagnose: false,
-                    ref useSiteDiagnostics);
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
-                // https://github.com/dotnet/roslyn/issues/44908 - Should handle hiding/overriding
-                if (lookupResult.IsMultiViable)
+                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType, ref useSiteDiagnostics);
+                if (cloneMethod is null)
                 {
-                    foreach (var symbol in lookupResult.Symbols)
-                    {
-                        if (symbol is MethodSymbol { ParameterCount: 0 } m)
-                        {
-                            cloneMethod = m;
-                            break;
-                        }
-                    }
-                }
-
-                lookupResult.Clear();
-
-                if (cloneMethod is null ||
-                    !receiverType.IsEqualToOrDerivedFrom(
-                        cloneMethod.ReturnType,
-                        TypeCompareKind.ConsiderEverything,
-                        ref useSiteDiagnostics))
-                {
-                    useSiteDiagnostics = null;
                     hasErrors = true;
-                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Receiver.Location, receiverType);
+                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
                 }
+                else if (cloneMethod.GetUseSiteDiagnostic() is DiagnosticInfo info)
+                {
+                    (useSiteDiagnostics ??= new HashSet<DiagnosticInfo>()).Add(info);
+                }
+
+                diagnostics.Add(syntax.Expression, useSiteDiagnostics);
             }
 
             var initializer = BindInitializerExpression(
                 syntax.Initializer,
                 receiverType,
-                syntax.Receiver,
+                syntax.Expression,
                 diagnostics);
 
             // N.B. Since we only don't parse nested initializers in syntax there should be no extra

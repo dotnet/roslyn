@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
+        internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
         }
 
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
 
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
-                    var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), syntaxReceiverOpt, diagnosticsBag);
+                    var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, syntaxReceiverOpt, diagnosticsBag);
                     generator.Execute(context);
                     stateBuilder[i] = generatorState.WithSources(ParseAdditionalSources(generator, context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
                 }

@@ -45,6 +45,7 @@ try {
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
+  Exec-Console dotnet "format . --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --check -f"
   Write-Host ""
   
   # Verify the state of creating run settings for OptProf

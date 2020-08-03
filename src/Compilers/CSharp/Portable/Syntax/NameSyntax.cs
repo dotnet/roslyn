@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// containing the explicitly implemented interface symbol - there may be more than one.  We just want to know
         /// how the name was qualified in source so that we can make a similar qualification (for uniqueness purposes).
         /// </remarks>
-        internal string GetAliasQualifierOpt()
+        internal string? GetAliasQualifierOpt()
         {
             NameSyntax name = this;
             while (true)

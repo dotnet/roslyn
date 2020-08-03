@@ -472,7 +472,7 @@ class Goo
                     ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToImmutableArray(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspaceDoc,
-                    insertPosition:=0,
+                    positionForTypeBinding:=0,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
                     workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())

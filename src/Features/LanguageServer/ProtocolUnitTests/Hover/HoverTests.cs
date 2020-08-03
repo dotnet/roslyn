@@ -194,7 +194,7 @@ $@"<Workspace>
 
         private static async Task<LSP.Hover> RunGetHoverAsync(Solution solution, LSP.Location caret, ProjectId projectContext = null)
             => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                solution, CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.Hover CreateHover(LSP.Location location, string text)
             => new LSP.Hover()

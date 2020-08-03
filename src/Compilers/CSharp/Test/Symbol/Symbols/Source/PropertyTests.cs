@@ -1163,7 +1163,7 @@ class B {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
     //     B y = A.Goo; 
     Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E", "E"),
     // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
@@ -1171,7 +1171,7 @@ class B {
     Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B")
                 );
             // Dev10 errors:
-            // error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+            // error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
             // error CS0570: 'A.Goo' is not supported by the language
         }
 
@@ -1485,9 +1485,9 @@ class C {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,22): error CS1546: Property, indexer, or event 'Indexers.this[?]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(?)'
+                // (4,22): error CS1546: Property, indexer, or event 'Indexers.this[string]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(string)'
                 //         object goo = new Indexers()[null];
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)").WithLocation(4, 22));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(4, 22));
         }
 
         [WorkItem(538791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]

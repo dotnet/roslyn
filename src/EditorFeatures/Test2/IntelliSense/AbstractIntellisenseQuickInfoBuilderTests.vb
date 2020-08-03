@@ -21,7 +21,7 @@ Imports VSQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfo
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     Public MustInherit Class AbstractIntellisenseQuickInfoBuilderTests
-        Protected Async Function GetQuickInfoItemAsync(quickInfoItem As QuickInfoItem) As Task(Of VSQuickInfoItem)
+        Protected Shared Async Function GetQuickInfoItemAsync(quickInfoItem As QuickInfoItem) As Task(Of VSQuickInfoItem)
             Dim workspaceDefinition =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                Dim trackingSpan = New Mock(Of ITrackingSpan)(MockBehavior.Strict) With {
                     .DefaultValue = DefaultValue.Mock
                 }
 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        Protected Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of VSQuickInfoItem)
+        Protected Shared Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of VSQuickInfoItem)
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim codeAnalysisQuickInfoItem = Await quickInfoService.GetQuickInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(False)
 
-                Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                Dim trackingSpan = New Mock(Of ITrackingSpan)(MockBehavior.Strict) With {
                     .DefaultValue = DefaultValue.Mock
                 }
 

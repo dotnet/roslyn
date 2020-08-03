@@ -67,6 +67,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     version = textAndVersion.Version;
                 }
+                else if (_initialSource is ITextVersionable textVersionable)
+                {
+                    return textVersionable.TryGetTextVersion(out version);
+                }
             }
 
             return version != default;

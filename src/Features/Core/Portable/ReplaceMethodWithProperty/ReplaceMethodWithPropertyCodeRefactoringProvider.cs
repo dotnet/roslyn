@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -375,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
         }
 
-        private static async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
+        private static async Task<ImmutableArray<GetAndSetMethods>> GetGetSetPairsAsync(
             Solution updatedSolution,
             Compilation compilation,
             DocumentId documentId,
@@ -383,7 +385,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             bool updateSetMethod,
             CancellationToken cancellationToken)
         {
-            var result = new List<GetAndSetMethods>();
+            using var _ = ArrayBuilder<GetAndSetMethods>.GetInstance(out var result);
             foreach (var originalDefinition in originalDefinitions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -402,7 +404,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 }
             }
 
-            return result;
+            return result.ToImmutable();
         }
 
         private static TSymbol GetSymbolInCurrentCompilation<TSymbol>(Compilation compilation, TSymbol originalDefinition, CancellationToken cancellationToken)

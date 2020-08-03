@@ -2474,7 +2474,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/44901")]
+        [Fact]
         public void ImportScopeEquality()
         {
             var sources = new[] { @"
@@ -2535,29 +2535,28 @@ class C6 { void F() {} }
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
             var pdbImage = pdbStream.ToImmutable();
-            using (var metadata = new PinnedMetadata(pdbImage))
-            {
-                var mdReader = metadata.Reader;
-                var writer = new StringWriter();
-                var mdVisualizer = new MetadataVisualizer(mdReader, writer);
-                mdVisualizer.WriteImportScope();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            using var metadata = new PinnedMetadata(pdbImage);
+            var mdReader = metadata.Reader;
+            var writer = new StringWriter();
+            var mdVisualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            mdVisualizer.WriteImportScope();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 ImportScope (index: 0x35, size: 36): 
-================================================================================================
-    Parent                    Imports                                                             
-================================================================================================
-1: nil (ImportScope)         'A' (#1) = 0x23000002 (AssemblyRef)                                 
-2: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#b6)                               
-3: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#b6), 'C' (#cd) = 'System' (#b6)   
+========================================================================
+   Parent                    Imports                                      
+========================================================================
+1: nil (ImportScope)         'A' = 0x23000002 (AssemblyRef)                                 
+2: 0x35000001 (ImportScope)  Extern Alias 'A', 'System'                               
+3: 0x35000001 (ImportScope)  Extern Alias 'A', 'System', 'C' = 'System'  
 4: 0x35000003 (ImportScope)  nil                                                                 
-5: 0x35000004 (ImportScope)  'System.Collections' (#da)                                          
-6: 0x35000004 (ImportScope)  'System.Collections.Generic' (#ff)                                  
-7: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#b6), 'D' (#11e) = 'System' (#b6)  
+5: 0x35000004 (ImportScope)  'System.Collections'                                   
+6: 0x35000004 (ImportScope)  'System.Collections.Generic'                               
+7: 0x35000001 (ImportScope)  Extern Alias 'A', 'System', 'D' = 'System'
 8: 0x35000007 (ImportScope)  nil                                                                 
-9: 0x35000008 (ImportScope)  'System.Collections' (#da)  
+9: 0x35000008 (ImportScope)  'System.Collections'
 ", writer.ToString());
-            }
         }
     }
 }

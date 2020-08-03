@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
             Document document,
-            int insertPosition,
+            int positionForTypeBinding,
             ISymbol symbol,
             ParameterConfiguration parameters)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 parameters,
                 symbol,
                 document,
-                insertPosition,
+                positionForTypeBinding,
                 _classificationFormatMap,
                 _classificationTypeMap);
 

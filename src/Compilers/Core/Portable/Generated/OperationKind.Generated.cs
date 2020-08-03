@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis
         TypePattern = 0x6f,
         /// <summary>Indicates an <see cref="IRelationalPatternOperation"/>.</summary>
         RelationalPattern = 0x70,
-        /// <summary>Indicates an <see cref="IWithExpressionOperation"/>.</summary>
-        WithExpression = 0x71,
+        /// <summary>Indicates an <see cref="IWithOperation"/>.</summary>
+        With = 0x71,
     }
 }

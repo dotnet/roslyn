@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     [ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ObjectInitializerCompletionProvider))]
+    [ExtensionOrder(After = nameof(ObjectAndWithInitializerCompletionProvider))]
     [Shared]
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                     return null;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {

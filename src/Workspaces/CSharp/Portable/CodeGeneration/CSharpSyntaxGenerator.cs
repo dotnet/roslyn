@@ -2230,6 +2230,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
                     goto default;
 
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExpressionBody != null)
+                    {
+                        return method.ExpressionBody.Expression;
+                    }
+                    goto default;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var local = (LocalFunctionStatementSyntax)declaration;
+                    if (local.ExpressionBody != null)
+                    {
+                        return local.ExpressionBody.Expression;
+                    }
+                    goto default;
+
                 default:
                     return GetEqualsValue(declaration)?.Value;
             }
@@ -2263,6 +2279,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (id.ExpressionBody != null)
                     {
                         return ReplaceWithTrivia(id, id.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(method, method.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var local = (LocalFunctionStatementSyntax)declaration;
+                    if (local.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(local, local.ExpressionBody.Expression, expr);
                     }
                     goto default;
 
@@ -2792,6 +2824,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
+            if (declaration.Parent.IsKind(SyntaxKind.GlobalStatement))
+            {
+                // Insert global statements before this global statement
+                declaration = declaration.Parent;
+                newDeclarations = newDeclarations.Select(declaration => declaration is StatementSyntax statement ? SyntaxFactory.GlobalStatement(statement) : declaration);
+            }
+
             if (root.Span.Contains(declaration.Span))
             {
                 return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
@@ -2824,6 +2863,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
+            if (declaration.Parent.IsKind(SyntaxKind.GlobalStatement))
+            {
+                // Insert global statements before this global statement
+                declaration = declaration.Parent;
+                newDeclarations = newDeclarations.Select(declaration => declaration is StatementSyntax statement ? SyntaxFactory.GlobalStatement(statement) : declaration);
+            }
+
             if (root.Span.Contains(declaration.Span))
             {
                 return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
@@ -2884,6 +2930,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
         {
+            if (node.Parent.IsKind(SyntaxKind.GlobalStatement))
+            {
+                // Remove the entire global statement as part of the edit
+                node = node.Parent;
+            }
+
             if (root.Span.Contains(node.Span))
             {
                 // node exists within normal span of the root (not in trivia)

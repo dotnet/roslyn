@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.PointerType:
                     result = SubstitutePointerType((PointerTypeSymbol)previous);
                     break;
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     result = SubstituteFunctionPointerType((FunctionPointerTypeSymbol)previous);
                     break;
                 case SymbolKind.DynamicType:

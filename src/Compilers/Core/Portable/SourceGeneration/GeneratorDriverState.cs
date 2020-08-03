@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 #nullable enable
 namespace Microsoft.CodeAnalysis
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorDriverState
     {
         internal GeneratorDriverState(ParseOptions parseOptions,
+                                      AnalyzerConfigOptionsProvider optionsProvider,
                                       ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis
             AdditionalTexts = additionalTexts;
             Edits = edits;
             ParseOptions = parseOptions;
+            OptionsProvider = optionsProvider;
             EditsFailed = editsFailed;
 
             Debug.Assert(Generators.Length == GeneratorStates.Length);
@@ -54,6 +57,11 @@ namespace Microsoft.CodeAnalysis
         internal readonly ImmutableArray<AdditionalText> AdditionalTexts;
 
         /// <summary>
+        /// Gets a provider for analyzer options
+        /// </summary>
+        internal readonly AnalyzerConfigOptionsProvider OptionsProvider;
+
+        /// <summary>
         /// An ordered list of <see cref="PendingEdit"/>s that are waiting to be applied to the compilation.
         /// </summary>
         internal readonly ImmutableArray<PendingEdit> Edits;
@@ -69,7 +77,6 @@ namespace Microsoft.CodeAnalysis
         internal readonly ParseOptions ParseOptions;
 
         internal GeneratorDriverState With(
-            ParseOptions? parseOptions = null,
             ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
@@ -77,7 +84,8 @@ namespace Microsoft.CodeAnalysis
             bool? editsFailed = null)
         {
             return new GeneratorDriverState(
-                parseOptions ?? this.ParseOptions,
+                this.ParseOptions,
+                this.OptionsProvider,
                 generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,

@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document;
         }
 
-        public static Document GetRequiredDocument(this Project project, DocumentId documentId)
+        public static TextDocument GetRequiredTextDocument(this Solution solution, DocumentId documentId)
         {
-            var document = project.GetDocument(documentId);
+            var document = solution.GetTextDocument(documentId);
             if (document == null)
             {
                 throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             };
 
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
-                solution, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
     }
 }

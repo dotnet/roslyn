@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentImplementationName)]
-    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    internal class FindImplementationsHandler : AbstractRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindImplementationsHandler()
+        public FindImplementationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();
@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (clientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
                     }
                     else
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }

@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
-                name: SimpleProgramNamedTypeSymbol.UnspeakableName,
+                name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 arity: 0,
                 modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |

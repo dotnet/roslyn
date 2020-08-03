@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<(ISymbol? symbol, int selectedIndex)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -60,8 +60,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
-
-        protected abstract int GetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
 
         protected abstract SyntaxToken CommaTokenWithElasticSpace();
 
@@ -178,18 +176,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
             var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            int insertPosition;
+            int positionForTypeBinding;
             var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
 
             if (reference != null)
             {
-                insertPosition = declarationChangeSignatureService.GetPositionBeforeParameterListClosingBrace(reference.GetSyntax(cancellationToken));
+                var syntax = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                positionForTypeBinding = syntax.SpanStart;
             }
             else
             {
-                // There may be no declaring syntax reference, for example delegate Invoke methods. Use an
-                // insertPosition of 0 and continue on.
-                insertPosition = 0;
+                // There may be no declaring syntax reference, for example delegate Invoke methods.
+                // The user may need to fully-qualify type names, including the type(s) defined in
+                // this document.
+                positionForTypeBinding = 0;
             }
 
             var parameterConfiguration = ParameterConfiguration.Create(
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
-                declarationDocument, insertPosition, symbol, parameterConfiguration);
+                declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
         }
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, CancellationToken cancellationToken)
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
-                context.Document, context.InsertPosition, context.Symbol, context.ParameterConfiguration);
+                context.Document, context.PositionForTypeBinding, context.Symbol, context.ParameterConfiguration);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(

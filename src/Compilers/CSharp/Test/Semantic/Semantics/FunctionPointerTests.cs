@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview, targetFramework: targetFramework ?? TargetFramework.Standard);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
@@ -502,8 +502,8 @@ unsafe class C
                 Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
 
                 var typeInfo = model.GetTypeInfo(decl);
-                var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-                Assert.Equal(conversion, classifedConversion);
+                var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+                Assert.Equal(conversion, classifiedConversion);
             }
         }
 
@@ -557,8 +557,8 @@ unsafe class C
                 Assert.True(conversion.IsPointer);
 
                 var typeInfo = model.GetTypeInfo(decl);
-                var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-                Assert.Equal(conversion, classifedConversion);
+                var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+                Assert.Equal(conversion, classifiedConversion);
             }
         }
 
@@ -616,8 +616,8 @@ IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.Object, System.
             var typeInfo = model.GetTypeInfo(initializer);
             Assert.Equal(expectedOriginalType, typeInfo.Type!.ToTestDisplayString());
             Assert.Equal(expectedConvertedType, typeInfo.ConvertedType!.ToTestDisplayString());
-            var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-            Assert.Equal(conversion, classifedConversion);
+            var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+            Assert.Equal(conversion, classifiedConversion);
 
             VerifyOperationTreeForNode(comp, model, decl, expectedOperationTree);
         }
@@ -2228,7 +2228,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
   Value: 
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: delegate*<System.Void>)
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: delegate*<System.Void>, NarrowedType: delegate*<System.Void>)
       Value: 
         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
@@ -2238,7 +2238,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
   Value: 
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var v') (InputType: delegate*<System.Void>, DeclaredSymbol: delegate*<System.Void> v, MatchesNull: True)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var v') (InputType: delegate*<System.Void>, NarrowedType: delegate*<System.Void>, DeclaredSymbol: delegate*<System.Void> v, MatchesNull: True)
 ");
 
             comp = CreateCompilationWithFunctionPointers(source, parseOptions: TestOptions.Regular7_3);
@@ -2285,9 +2285,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value: 
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(x)') (InputType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(x)') (InputType: ?, NarrowedType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
       DeconstructionSubpatterns (1):
-          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'x') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
       PropertySubpatterns (0)
 ");
         }
@@ -2327,7 +2327,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value: 
     IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ } _') (InputType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ } _') (InputType: ?, NarrowedType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (0)
 ");
@@ -2433,7 +2433,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value: 
     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ O: delegate*<void> _ }') (InputType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ O: delegate*<void> _ }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (1):
           IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'O: delegate*<void> _')
@@ -2442,7 +2442,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
                 Instance Receiver: 
                   IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'O')
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'delegate*<void> _') (InputType: System.Object, DeclaredSymbol: null, MatchesNull: False)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'delegate*<void> _') (InputType: System.Object, NarrowedType: delegate*<System.Void>, DeclaredSymbol: null, MatchesNull: False)
 ");
         }
 
@@ -2499,12 +2499,12 @@ class E<T> where T : struct {}
 ");
 
             comp.VerifyDiagnostics(
+                // (6,27): error CS0722: 'S': static types cannot be used as return types
+                //     void M1(delegate*<C*, S> ptr) {}
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(6, 27),
                 // (6,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //     void M1(delegate*<C*, S> ptr) {}
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
-                // (7,26): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     void M2<T>(delegate*<T?> ptr) {}
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 26),
                 // (8,32): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     void M3<T>(delegate*<D<T>> ptr) {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ptr").WithArguments("D<T>", "T", "T").WithLocation(8, 32),
@@ -2861,6 +2861,51 @@ IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
                   IParameterReferenceOperation: ptr1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32, System.Void>, IsInvalid) (Syntax: 'ptr1')
 ");
+        }
+
+        [Fact, WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
+        public void StaticClassInFunctionPointer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe static class C
+{
+    static delegate*<C, C> Ptr;
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,22): error CS0721: 'C': static types cannot be used as parameters
+                //     static delegate*<C, C> Ptr;
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(4, 22),
+                // (4,25): error CS0722: 'C': static types cannot be used as return types
+                //     static delegate*<C, C> Ptr;
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(4, 25),
+                // (4,28): warning CS0169: The field 'C.Ptr' is never used
+                //     static delegate*<C, C> Ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Ptr").WithArguments("C.Ptr").WithLocation(4, 28)
+            );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
+        public void RestrictedTypeInFunctionPointer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe static class C
+{
+    static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+}", targetFramework: TargetFramework.NetCoreApp30);
+
+            comp.VerifyDiagnostics(
+                // (5,35): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 35),
+                // (5,52): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
+                //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 52),
+                // (5,65): warning CS0169: The field 'C.Ptr' is never used
+                //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Ptr").WithArguments("C.Ptr").WithLocation(5, 65)
+            );
         }
     }
 }

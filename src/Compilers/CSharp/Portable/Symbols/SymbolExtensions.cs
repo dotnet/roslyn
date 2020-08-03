@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                 case SymbolKind.TypeParameter:
                     return true;
                 case SymbolKind.Alias:
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return returnType;
         }
 
-        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol symbol)
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol? symbol)
         {
             return symbol switch
             {

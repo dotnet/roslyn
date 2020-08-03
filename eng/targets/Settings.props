@@ -16,7 +16,6 @@
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
-    <RoslynPortableTargetFrameworks>netcoreapp3.1;net472</RoslynPortableTargetFrameworks>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <Features>strict</Features>
@@ -66,7 +65,7 @@
       These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp3.1</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp3.1;net5.0</TestTargetFrameworks>
 
     <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
     <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>
@@ -123,8 +122,7 @@
     Analyzers
   -->
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="$(MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion)" PrivateAssets="all" />
@@ -172,7 +170,7 @@
     <!-- VB specific settings -->
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
-        <LangVersion>15.5</LangVersion>
+        <LangVersion>16</LangVersion>
         <NoWarn>$(NoWarn);40057</NoWarn>
         <VBRuntime>Embed</VBRuntime>
       </PropertyGroup>
@@ -194,7 +192,7 @@
     <!-- C# specific settings -->
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <LangVersion>8.0</LangVersion>
+        <LangVersion>preview</LangVersion>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 

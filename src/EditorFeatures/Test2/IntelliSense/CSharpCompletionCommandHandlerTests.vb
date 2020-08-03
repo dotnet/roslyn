@@ -26,6 +26,88 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests
 
+        <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnWithExpressionInitializer(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+record Base(int Alice, int Bob)
+{
+    void M(int value)
+    {
+        _ = this with $$
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("with { Alice", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" = va")
+                Await state.AssertSelectedCompletionItem(displayText:="value", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("with { Alice = value", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnWithExpressionInitializer_AfterComma(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+record Base(int Alice, int Bob)
+{
+    void M(int value)
+    {
+        _ = this with { Alice = value$$
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(", ")
+                Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars(" = va")
+                Await state.AssertSelectedCompletionItem(displayText:="value", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("with { Alice = value, Bob = value", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnObjectCreation(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    int Alice { get; set; }
+    void M()
+    {
+        _ = new C() $$
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new C() { Alice", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem(541201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -2119,7 +2201,7 @@ class Goo
             Await EnumCompletionNotTriggeredOn(";"c, showCompletionInArgumentLists)
         End Function
 
-        Private Async Function EnumCompletionNotTriggeredOn(c As Char, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function EnumCompletionNotTriggeredOn(c As Char, showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 enum Numeros { Uno, Dos }
@@ -2990,7 +3072,7 @@ class Program
         <WorkItem(785637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785637")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Sub CommitMovesCaretToWordEnd(showCompletionInArgumentLists As Boolean)
+        Public Async Function CommitMovesCaretToWordEnd(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -3007,7 +3089,7 @@ class C
                 Await state.SendCommitUniqueCompletionListItemAsync()
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(775370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775370")>
         <WpfTheory, CombinatorialData>
@@ -5141,7 +5223,7 @@ class C
 
                 state.SendBackspace()
                 state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
 
             End Using
         End Function
@@ -7358,6 +7440,36 @@ class Program
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("Name", "")
+            End Using
+        End Function
+
+        <WorkItem(1128749, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1128749")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFallingBackToItemWithLongestCommonPrefixWhenNoMatch(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class SomePrefixAndName {}
+
+class C
+{
+    void Method()
+    {
+        SomePrefixOrName$$
+    }
+}
+                              </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Await state.SendCommitUniqueCompletionListItemAsync()
+                Await state.AssertNoCompletionSession()
+
+                state.SendEscape()
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="SomePrefixAndName", isHardSelected:=False)
+
             End Using
         End Function
 
