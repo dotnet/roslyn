@@ -158,7 +158,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? (identifier_token | '__arglist') '!'? equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist') exclamation_exclamation_token? equals_value_clause?
   ;
 
 constructor_initializer
@@ -1269,6 +1269,10 @@ base_parameter_list
   ;
 
 character_literal_token
+  : /* see lexical specification */
+  ;
+
+exclamation_exclamation_token
   : /* see lexical specification */
   ;
 

@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CaretEqualsToken = 8282,
         PercentEqualsToken = 8283,
         QuestionQuestionEqualsToken = 8284,
+        ExclamationExclamationToken = 8285,
 
         // Keywords
         BoolKeyword = 8304,

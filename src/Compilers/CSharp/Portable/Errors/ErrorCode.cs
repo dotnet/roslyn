@@ -1868,7 +1868,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CopyConstructorWrongAccessibility = 8878,
         ERR_NonPrivateAPIInRecord = 8879,
 
-        ERR_NeedSpaceBetweenExclamationAndEquals = 8890,
         ERR_MustNullCheckInImplementation = 8891,
         ERR_NonNullableValueTypeIsNullChecked = 8892,
         WRN_NullCheckedHasDefaultNull = 8893,

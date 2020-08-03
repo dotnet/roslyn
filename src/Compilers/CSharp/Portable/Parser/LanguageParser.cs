@@ -4115,23 +4115,15 @@ tryAgain:
 
                 TypeSyntax type;
                 SyntaxToken name;
-                SyntaxToken exclamation = null;
+                SyntaxToken exclamationExclamation = null;
                 SyntaxToken equals = null;
                 if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
                 {
                     type = this.ParseType(mode: ParseTypeMode.Parameter);
                     name = this.ParseIdentifierToken();
-                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationExclamationToken)
                     {
-                        exclamation = this.EatToken(SyntaxKind.ExclamationToken);
-                    }
-
-                    else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
-                    {
-                        var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
-                        equals = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsToken);
-                        equals = AddError(equals, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
-                        exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
+                        exclamationExclamation = this.EatToken(SyntaxKind.ExclamationExclamationToken);
                     }
                     else if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
                     {
@@ -4154,7 +4146,7 @@ tryAgain:
                 {
                     equals = this.EatToken(SyntaxKind.EqualsToken);
                 }
-                exclamation = exclamation is null ? null : CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking);
+                exclamationExclamation = exclamationExclamation is null ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
                 EqualsValueClauseSyntax def = null;
                 if (!(equals is null))
                 {
@@ -4162,7 +4154,7 @@ tryAgain:
                     def = _syntaxFactory.EqualsValueClause(equals, value: value);
                     def = CheckFeatureAvailability(def, MessageID.IDS_FeatureOptionalParameter);
                 }
-                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, exclamation, def);
+                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, exclamationExclamation, def);
             }
             finally
             {
@@ -5517,7 +5509,7 @@ tryAgain:
                 case SyntaxKind.ExclamationEqualsToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.CaretToken:
-                    // These tokens are from 7.5.4.2 Grammar Ambiguities
+                    // These tokens are from 7.5.4.2 Grammar Ambiguities  
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
                 case SyntaxKind.AmpersandAmpersandToken: // e.g. `e is A<B> && e`
@@ -6923,7 +6915,7 @@ done:;
                 var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
                 var missingTypes = _pool.AllocateSeparated<ParameterSyntax>();
                 var missingTypeName = CreateMissingIdentifierName();
-                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), exclamationToken: null, @default: null);
+                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), exclamationExclamationToken: null, @default: null);
                 missingTypes.Add(missingType);
                 // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
                 // we don't know for sure that the expression isn't a relational with something else.
@@ -6949,7 +6941,7 @@ done:;
                         ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
 
                         var parameterType = ParseTypeOrVoid();
-                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), exclamationToken: null, @default: null));
+                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), exclamationExclamationToken: null, @default: null));
 
                         if (skipBadFunctionPointerParameterListTokens() == PostSkipAction.Abort)
                         {
@@ -10495,6 +10487,9 @@ tryAgain:
 
                     case SyntaxKind.ExclamationToken:
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
+                        break;
+
+                    case SyntaxKind.ExclamationExclamationToken:
                         expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureNullableReferenceTypes);
                         break;
 
@@ -10896,7 +10891,7 @@ tryAgain:
             {
                 // allow for       a) =>      or     a!) =>
                 var skipIndex = 2;
-                if (PeekToken(skipIndex).Kind == SyntaxKind.ExclamationToken)
+                if (PeekToken(skipIndex).Kind == SyntaxKind.ExclamationExclamationToken)
                 {
                     skipIndex++;
                 }
@@ -10942,8 +10937,8 @@ tryAgain:
                         {
                             return true;
                         }
-                        // ( x! , [...]
-                        if (afterKind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken)
+                        // ( x!! , [...]
+                        if (afterKind == SyntaxKind.ExclamationExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken)
                         {
                             return true;
                         }
@@ -11020,7 +11015,7 @@ tryAgain:
                         // eat the identifier
                         this.EatToken();
                     }
-                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationExclamationToken)
                     {
                         this.EatToken();
                     }
@@ -11246,7 +11241,7 @@ tryAgain:
             {
                 return true;
             }
-            if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (token1 == SyntaxKind.ExclamationExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 return true;
             }
@@ -12206,22 +12201,12 @@ tryAgain:
                 {
                     var name = this.ParseIdentifierToken();
                     SyntaxToken arrow, exclamation;
-                    // Case x! =>
-                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                    // Case x!! =>
+                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationExclamationToken)
                     {
-                        exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+                        exclamation = this.EatToken(SyntaxKind.ExclamationExclamationToken);
                         arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                         arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
-                    }
-                    // Case x!=>
-                    else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken && this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
-                    {
-                        var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
-                        arrow = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsGreaterThanToken);
-                        arrow = AddError(arrow, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
-                        var gt = this.EatToken(SyntaxKind.GreaterThanToken);
-                        arrow = AddTrailingSkippedSyntax(arrow, gt);
-                        exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
                     }
                     // Case x=>, x =>
                     else
@@ -12354,7 +12339,7 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-            var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
+            var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationExclamationToken ? this.EatToken(SyntaxKind.ExclamationExclamationToken) : null;
             exclamation = exclamation is null ? null : CheckFeatureAvailability(exclamation, MessageID.IDS_ParameterNullChecking);
             var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamation, null);
             _pool.Free(modifiers);
@@ -12401,7 +12386,7 @@ tryAgain:
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
                     peek1.Kind != SyntaxKind.OpenBraceToken &&
-                    peek1.Kind != SyntaxKind.ExclamationToken)
+                    peek1.Kind != SyntaxKind.ExclamationExclamationToken)
                 {
                     return true;
                 }

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
                 }
                 var parameterSyntax = syntax.ParameterList.Parameters[i];
-                if (parameterSyntax.ExclamationToken.Kind() == SyntaxKind.ExclamationToken)
+                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
                 {
                     diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
                 }

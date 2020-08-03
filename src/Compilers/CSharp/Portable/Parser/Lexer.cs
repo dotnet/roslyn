@@ -516,6 +516,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.ExclamationEqualsToken;
                     }
+                    else if (TextWindow.PeekChar() == '!')
+                    {
+                        TextWindow.AdvanceChar();
+                        info.Kind = SyntaxKind.ExclamationExclamationToken;
+                    }
                     else
                     {
                         info.Kind = SyntaxKind.ExclamationToken;
@@ -2840,6 +2845,11 @@ top:
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.ExclamationEqualsToken;
+                    }
+                    else if (TextWindow.PeekChar() == '!')
+                    {
+                        TextWindow.AdvanceChar();
+                        info.Kind = SyntaxKind.ExclamationExclamationToken;
                     }
                     else
                     {

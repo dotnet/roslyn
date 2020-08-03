@@ -7244,12 +7244,7 @@ class C<T> where T : struct? {}
         [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
         {
-            UsingStatement(@"void M(string name!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
-            { 
-                    // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
-                    // void M(string name!=null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
-            });
+            UsingStatement(@"void M(string name!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7322,12 +7317,7 @@ class C<T> where T : struct? {}
         [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedArgWithLeadingSpace()
         {
-            UsingStatement(@"void M(string name !=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
-            { 
-                    // (1,20): error CS8712: Space required between explanation-point and equals-sign here.
-                    // void M(string name !=null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 20)
-            });
+            UsingStatement(@"void M(string name !=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7369,12 +7359,7 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithLeadingNewLine()
         {
             UsingStatement(@"void M(string name
-!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
-            { 
-                // (2,1): error CS8712: Space required between '!' and '=' here.
-                // !=null) { }
-                Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(2, 1)
-            });
+!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7415,12 +7400,7 @@ class C<T> where T : struct? {}
         [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedArgWithTrailingSpace()
         {
-            UsingStatement(@"void M(string name!= null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
-            { 
-                    // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
-                    // void M(string name!= null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
-            });
+            UsingStatement(@"void M(string name!= null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7462,12 +7442,7 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithTrailingNewLine()
         {
             UsingStatement(@"void M(string name!=
-null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
-            { 
-                // (1,19): error CS8712: Space required between '!' and '=' here.
-                    // void M(string name!=
-                Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
-            });
+null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);

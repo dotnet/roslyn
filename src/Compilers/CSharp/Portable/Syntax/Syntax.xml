@@ -4042,8 +4042,8 @@
       <Kind Name="IdentifierToken"/>
       <Kind Name="ArgListKeyword"/>
     </Field>
-    <Field Name="ExclamationToken" Type="SyntaxToken" Optional="true">
-      <Kind Name="ExclamationToken"/>
+    <Field Name="ExclamationExclamationToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="ExclamationExclamationToken"/>
     </Field>
     <Field Name="Default" Type="EqualsValueClauseSyntax" Optional="true"/>
   </Node>

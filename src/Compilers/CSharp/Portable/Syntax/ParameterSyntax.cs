@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
         {
-            return Update(attributeLists, modifiers, type, identifier, exclamationToken: default, @default);
+            return Update(attributeLists, modifiers, type, identifier, exclamationExclamationToken: default, @default);
         }
     }
 }

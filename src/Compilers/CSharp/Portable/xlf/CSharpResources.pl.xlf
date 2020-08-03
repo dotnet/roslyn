@@ -542,11 +542,6 @@
         <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NeedSpaceBetweenExclamationAndEquals">
-        <source>Space required between '!' and '=' here.</source>
-        <target state="new">Space required between '!' and '=' here.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Ograniczenie „new()” nie może być używane z ograniczeniem „unmanaged”</target>

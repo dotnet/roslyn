@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = @"
 public class C
 {
-    public void M(string input!) { }
+    public void M(string input!!) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -31,7 +31,7 @@ public class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... input!) { }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... nput!!) { }')
   BlockBody: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
   ExpressionBody: 
@@ -45,20 +45,20 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Jump if False (Regular) to Block[B3]
-        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... input!) { }')
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... nput!!) { }')
           Left: 
-            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... input!) { }')
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... nput!!) { }')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public void ... input!) { }')
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public void ... nput!!) { }')
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
     Next (Throw) Block[null]
-        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... input!) { }')
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... nput!!) { }')
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... input!) { }')
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""input"", IsImplicit) (Syntax: 'public void ... input!) { }')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... nput!!) { }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""input"", IsImplicit) (Syntax: 'public void ... nput!!) { }')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Initializer: 
@@ -74,7 +74,7 @@ Block[B3] - Exit
             var source = @"
 public class C
 {
-    public void M(string x, string y!) { }
+    public void M(string x, string y!!) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -84,7 +84,7 @@ public class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... ing y!) { }')
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... ng y!!) { }')
       BlockBody: 
         IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
       ExpressionBody: 
@@ -98,20 +98,20 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Jump if False (Regular) to Block[B3]
-        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... ng y!!) { }')
           Left: 
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public void ... ng y!!) { }')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public void ... ng y!!) { }')
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
     Next (Throw) Block[null]
-        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ing y!) { }')
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... ng y!!) { }')
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ing y!) { }')
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'public void ... ing y!) { }')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... ng y!!) { }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'public void ... ng y!!) { }')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Initializer: 
@@ -127,7 +127,7 @@ Block[B3] - Exit
             var source = @"
 public class C
 {
-    public void M(string name! = ""rose"") { }
+    public void M(string name!! = ""rose"") { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -180,7 +180,7 @@ Block[B3] - Exit
             var source = @"
 public class Box
 {
-    public static int operator+ (Box b!, Box c)  
+    public static int operator+ (Box b!!, Box c)  
     { 
         return 2;
     }
@@ -245,7 +245,7 @@ Block[B4] - Exit
             var source = @"
 public class C
 {
-    public string this[string index!] => null;
+    public string this[string index!!] => null;
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -287,7 +287,7 @@ Block[B2] - Exit
 public class C
 {
     private object[] items = {'h', ""hello""};
-    public string this[object item!]
+    public string this[object item!!]
     {
         /*<bind>*/get
         {
@@ -380,7 +380,7 @@ Block[B4] - Exit
 public class C
 {
     private object[] items = {'h', ""hello""};
-    public string this[object item!]
+    public string this[object item!!]
     {
         /*<bind>*/get => items[0].ToString();/*</bind>*/
         set
@@ -467,7 +467,7 @@ Block[B4] - Exit
             var source = @"
 public class C
 {
-    public string this[object item!] { /*<bind>*/set { }/*</bind>*/ }
+    public string this[object item!!] { /*<bind>*/set { }/*</bind>*/ }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -522,7 +522,7 @@ class C
 {
     public void M()
     {
-        Func<string, string> func1 = x! => x;
+        Func<string, string> func1 = x!! => x;
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -532,27 +532,27 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... }')
-      BlockBody: 
-        IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-          Locals: Local_1: System.Func<System.String, System.String> func1
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ...  = x! => x;')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ... 1 = x! => x')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = x! => x')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= x! => x')
-                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x! => x')
-                          Target: 
-                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'x! => x')
-                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
-                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
-                                  ReturnedValue: 
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-              Initializer: 
-                null
-      ExpressionBody: 
-        null");
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... }')
+  BlockBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      Locals: Local_1: System.Func<System.String, System.String> func1
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... = x!! => x;')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ...  = x!! => x')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = x!! => x')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= x!! => x')
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x!! => x')
+                      Target: 
+                        IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'x!! => x')
+                          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+                            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                              ReturnedValue: 
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+          Initializer: 
+            null
+  ExpressionBody: 
+    null");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -565,13 +565,13 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x! => x')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x!! => x')
               Left: 
-                ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x! => x')
+                ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = x!! => x')
               Right: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x! => x')
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x!! => x')
                   Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'x! => x')
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'x!! => x')
                     {
                         Block[B0#A0] - Entry
                             Statements (0)
@@ -580,20 +580,20 @@ Block[B0] - Entry
                             Predecessors: [B0#A0]
                             Statements (0)
                             Jump if False (Regular) to Block[B3#A0]
-                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'x! => x')
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'x!! => x')
                                   Left: 
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'x! => x')
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'x!! => x')
                                   Right: 
-                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'x! => x')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'x!! => x')
                             Next (Regular) Block[B2#A0]
                         Block[B2#A0] - Block
                             Predecessors: [B1#A0]
                             Statements (0)
                             Next (Throw) Block[null]
-                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x! => x')
+                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x!! => x')
                                   Arguments(1):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x! => x')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'x! => x')
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x!! => x')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'x!! => x')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Initializer: 
@@ -624,7 +624,7 @@ class C
 {
     public void M()
     {
-        Func<string, string, string> func1 = (x!, y) => x;
+        Func<string, string, string> func1 = (x!!, y) => x;
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -639,14 +639,14 @@ class C
         IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
           Locals: Local_1: System.Func<System.String, System.String, System.String> func1
           IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... !, y) => x;')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ... x!, y) => x')
+            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ... !!, y) => x')
               Declarators:
-                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = (x!, y) => x')
+                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = (x!!, y) => x')
                     Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (x!, y) => x')
-                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: '(x!, y) => x')
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (x!!, y) => x')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: '(x!!, y) => x')
                           Target: 
-                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '(x!, y) => x')
+                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '(x!!, y) => x')
                               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
                                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                                   ReturnedValue: 
@@ -667,13 +667,13 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: 'func1 = (x!, y) => x')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: 'func1 = (x!!, y) => x')
               Left: 
-                ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: 'func1 = (x!, y) => x')
+                ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: 'func1 = (x!!, y) => x')
               Right: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: '(x!, y) => x')
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String, System.String>, IsImplicit) (Syntax: '(x!!, y) => x')
                   Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '(x!, y) => x')
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '(x!!, y) => x')
                     {
                         Block[B0#A0] - Entry
                             Statements (0)
@@ -682,20 +682,20 @@ Block[B0] - Entry
                             Predecessors: [B0#A0]
                             Statements (0)
                             Jump if False (Regular) to Block[B3#A0]
-                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '(x!, y) => x')
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '(x!!, y) => x')
                                   Left: 
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '(x!, y) => x')
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '(x!!, y) => x')
                                   Right: 
-                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: '(x!, y) => x')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: '(x!!, y) => x')
                             Next (Regular) Block[B2#A0]
                         Block[B2#A0] - Block
                             Predecessors: [B1#A0]
                             Statements (0)
                             Next (Throw) Block[null]
-                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!, y) => x')
+                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '(x!!, y) => x')
                                   Arguments(1):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(x!, y) => x')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '(x!, y) => x')
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(x!!, y) => x')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: '(x!!, y) => x')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Initializer: 
@@ -726,7 +726,7 @@ class C
 {
     public void M()
     {
-        Func<string, string> func1 = _! => null;
+        Func<string, string> func1 = _!! => null;
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -740,15 +740,15 @@ class C
       BlockBody: 
         IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
           Locals: Local_1: System.Func<System.String, System.String> func1
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... _! => null;')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ...  _! => null')
+          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Func<string ... !! => null;')
+            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Func<string ... _!! => null')
               Declarators:
-                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = _! => null')
+                  IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'func1 = _!! => null')
                     Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= _! => null')
-                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '_! => null')
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= _!! => null')
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '_!! => null')
                           Target: 
-                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '_! => null')
+                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '_!! => null')
                               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'null')
                                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'null')
                                   ReturnedValue: 
@@ -772,13 +772,13 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = _! => null')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = _!! => null')
               Left: 
-                ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = _! => null')
+                ILocalReferenceOperation: func1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'func1 = _!! => null')
               Right: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '_! => null')
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '_!! => null')
                   Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '_! => null')
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '_!! => null')
                     {
                         Block[B0#A0] - Entry
                             Statements (0)
@@ -787,20 +787,20 @@ Block[B0] - Entry
                             Predecessors: [B0#A0]
                             Statements (0)
                             Jump if False (Regular) to Block[B3#A0]
-                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '_! => null')
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '_!! => null')
                                   Left: 
-                                    IParameterReferenceOperation: _ (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '_! => null')
+                                    IParameterReferenceOperation: _ (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: '_!! => null')
                                   Right: 
-                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: '_! => null')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: '_!! => null')
                             Next (Regular) Block[B2#A0]
                         Block[B2#A0] - Block
                             Predecessors: [B1#A0]
                             Statements (0)
                             Next (Throw) Block[null]
-                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_! => null')
+                                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: '_!! => null')
                                   Arguments(1):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '_! => null')
-                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""_"", IsImplicit) (Syntax: '_! => null')
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '_!! => null')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""_"", IsImplicit) (Syntax: '_!! => null')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Initializer: 
@@ -833,7 +833,7 @@ Block[B2] - Exit
 using System;
 class C
 {
-    public Func<string, string> M(string s1!) => s2! => s2 + s1;
+    public Func<string, string> M(string s1!!) => s2!! => s2 + s1;
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -846,12 +846,12 @@ class C
       BlockBody: 
         null
       ExpressionBody: 
-        IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> s2! => s2 + s1')
-          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's2! => s2 + s1')
+        IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> s2!! => s2 + s1')
+          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's2!! => s2 + s1')
             ReturnedValue: 
-              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 's2! => s2 + s1')
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 's2!! => s2 + s1')
                 Target: 
-                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 's2! => s2 + s1')
+                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 's2!! => s2 + s1')
                     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's2 + s1')
                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's2 + s1')
                         ReturnedValue: 
@@ -891,9 +891,9 @@ Block[B3] - Block
     Predecessors: [B1]
     Statements (0)
     Next (Return) Block[B4]
-        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 's2! => s2 + s1')
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 's2!! => s2 + s1')
           Target: 
-            IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 's2! => s2 + s1')
+            IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 's2!! => s2 + s1')
             {
                 Block[B0#A0] - Entry
                     Statements (0)
@@ -902,20 +902,20 @@ Block[B3] - Block
                     Predecessors: [B0#A0]
                     Statements (0)
                     Jump if False (Regular) to Block[B3#A0]
-                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 's2! => s2 + s1')
+                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 's2!! => s2 + s1')
                           Left: 
-                            IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 's2! => s2 + s1')
+                            IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 's2!! => s2 + s1')
                           Right: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 's2! => s2 + s1')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 's2!! => s2 + s1')
                     Next (Regular) Block[B2#A0]
                 Block[B2#A0] - Block
                     Predecessors: [B1#A0]
                     Statements (0)
                     Next (Throw) Block[null]
-                        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 's2! => s2 + s1')
+                        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 's2!! => s2 + s1')
                           Arguments(1):
-                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's2! => s2 + s1')
-                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s2"", IsImplicit) (Syntax: 's2! => s2 + s1')
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's2!! => s2 + s1')
+                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s2"", IsImplicit) (Syntax: 's2!! => s2 + s1')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Initializer: 
@@ -945,7 +945,7 @@ Block[B4] - Exit
 using System;
 class C
 {
-    Func<string, string> func1 = x! => x;
+    Func<string, string> func1 = x!! => x;
     public C()
     {
     }
@@ -958,7 +958,7 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
             var node2 = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'x! => x')
+    IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'x!! => x')
       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
           ReturnedValue: 
@@ -971,15 +971,15 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '= x! => x')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '= x!! => x')
           Left: 
-            IFieldReferenceOperation: System.Func<System.String, System.String> C.func1 (OperationKind.FieldReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '= x! => x')
+            IFieldReferenceOperation: System.Func<System.String, System.String> C.func1 (OperationKind.FieldReference, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: '= x!! => x')
               Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= x! => x')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= x!! => x')
           Right: 
-            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x! => x')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'x!! => x')
               Target: 
-                IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'x! => x')
+                IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'x!! => x')
                 {
                     Block[B0#A0] - Entry
                         Statements (0)
@@ -988,20 +988,20 @@ Block[B1] - Block
                         Predecessors: [B0#A0]
                         Statements (0)
                         Jump if False (Regular) to Block[B3#A0]
-                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'x! => x')
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'x!! => x')
                               Left: 
-                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'x! => x')
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'x!! => x')
                               Right: 
-                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'x! => x')
+                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'x!! => x')
                         Next (Regular) Block[B2#A0]
                     Block[B2#A0] - Block
                         Predecessors: [B1#A0]
                         Statements (0)
                         Next (Throw) Block[null]
-                            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x! => x')
+                            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'x!! => x')
                               Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x! => x')
-                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'x! => x')
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x!! => x')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'x!! => x')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Initializer: 
@@ -1031,7 +1031,7 @@ class C
     public void M()
     {
         InnerM(""hello world"");
-        void InnerM(string x!) { }
+        void InnerM(string x!!) { }
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -1042,7 +1042,7 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
             var node2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing x!) { }')
+    ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ng x!!) { }')
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
           ReturnedValue: 
@@ -1080,20 +1080,20 @@ Block[B0] - Entry
             Predecessors: [B0#0R1]
             Statements (0)
             Jump if False (Regular) to Block[B3#0R1]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                   Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                   Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
             Next (Regular) Block[B2#0R1]
         Block[B2#0R1] - Block
             Predecessors: [B1#0R1]
             Statements (0)
             Next (Throw) Block[null]
-                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
@@ -1117,7 +1117,7 @@ class C
     public void M()
     {
         InnerM(""hello"",  ""world"");
-        void InnerM(string x!, string y!) { }
+        void InnerM(string x!!, string y!!) { }
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -1128,7 +1128,7 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
             var node2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    ILocalFunctionOperation (Symbol: void InnerM(System.String x, System.String y)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing y!) { }')
+    ILocalFunctionOperation (Symbol: void InnerM(System.String x, System.String y)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ng y!!) { }')
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
           ReturnedValue: 
@@ -1171,20 +1171,20 @@ Block[B0] - Entry
             Predecessors: [B0#0R1]
             Statements (0)
             Jump if False (Regular) to Block[B3#0R1]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                   Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                   Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
             Next (Regular) Block[B2#0R1]
         Block[B2#0R1] - Block
             Predecessors: [B1#0R1]
             Statements (0)
             Next (Throw) Block[null]
-                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
@@ -1193,20 +1193,20 @@ Block[B0] - Entry
             Predecessors: [B1#0R1]
             Statements (0)
             Jump if False (Regular) to Block[B5#0R1]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                   Left: 
-                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                   Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
             Next (Regular) Block[B4#0R1]
         Block[B4#0R1] - Block
             Predecessors: [B3#0R1]
             Statements (0)
             Next (Throw) Block[null]
-                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'void InnerM ... ing y!) { }')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""y"", IsImplicit) (Syntax: 'void InnerM ... ng y!!) { }')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
@@ -1227,7 +1227,7 @@ Block[B2] - Exit
             var source = @"
 class C
 {
-    public void M(string x!)
+    public void M(string x!!)
     {
         InnerM(""hello"");
         void InnerM(string x) { }
@@ -1331,7 +1331,7 @@ class C
     public void M(string x)
     {
         InnerM(""hello"");
-        void InnerM(string x!) { }
+        void InnerM(string x!!) { }
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -1342,7 +1342,7 @@ class C
             var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
             var node2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ing x!) { }')
+    ILocalFunctionOperation (Symbol: void InnerM(System.String x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void InnerM ... ng x!!) { }')
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
           ReturnedValue: 
@@ -1380,20 +1380,20 @@ Block[B0] - Entry
             Predecessors: [B0#0R1]
             Statements (0)
             Jump if False (Regular) to Block[B3#0R1]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                   Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                   Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
             Next (Regular) Block[B2#0R1]
         Block[B2#0R1] - Block
             Predecessors: [B1#0R1]
             Statements (0)
             Next (Throw) Block[null]
-                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ing x!) { }')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'void InnerM ... ng x!!) { }')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Initializer: 
@@ -1414,7 +1414,7 @@ Block[B2] - Exit
             var source = @"
 class C
 {
-    public C(string x!) { }
+    public C(string x!!) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -1423,7 +1423,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C(string x!) { }')
+    IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C(string x!!) { }')
       Initializer: 
         null
       BlockBody: 
@@ -1439,20 +1439,20 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Jump if False (Regular) to Block[B3]
-        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public C(string x!) { }')
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'public C(string x!!) { }')
           Left: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public C(string x!) { }')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'public C(string x!!) { }')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public C(string x!) { }')
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'public C(string x!!) { }')
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
     Next (Throw) Block[null]
-        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public C(string x!) { }')
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public C(string x!!) { }')
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public C(string x!) { }')
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public C(string x!) { }')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public C(string x!!) { }')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public C(string x!!) { }')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Initializer: 
@@ -1469,7 +1469,7 @@ Block[B3] - Exit
 class C
 {
     public C() { }
-    public C(string x!) : this() { }
+    public C(string x!!) : this() { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -1542,7 +1542,7 @@ class B
 }
 class C : B
 {
-    public C(string x!) : base(x) { }
+    public C(string x!!) : base(x) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -1620,7 +1620,7 @@ Block[B4] - Exit
 class C
 {
     int y = 5;
-    public C(string x!) { y++; }
+    public C(string x!!) { y++; }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -1692,7 +1692,7 @@ Block[B4] - Exit
             var source = @"
 class C
 {
-    object Local(object arg!) => arg;
+    object Local(object arg!!) => arg;
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 
@@ -1701,7 +1701,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             compilation.VerifyOperationTree(node1, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'object Loca ... g!) => arg;')
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'object Loca ... !!) => arg;')
       BlockBody: 
         null
       ExpressionBody: 
@@ -1718,20 +1718,20 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Jump if False (Regular) to Block[B3]
-        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'object Loca ... !!) => arg;')
           Left: 
-            IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
+            IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'object Loca ... !!) => arg;')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
+            ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'object Loca ... !!) => arg;')
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
     Next (Throw) Block[null]
-        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
+        IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'object Loca ... !!) => arg;')
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""arg"", IsImplicit) (Syntax: 'object Loca ... g!) => arg;')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'object Loca ... !!) => arg;')
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""arg"", IsImplicit) (Syntax: 'object Loca ... !!) => arg;')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Initializer: 
@@ -1753,7 +1753,7 @@ Block[B4] - Exit
 using System.Collections.Generic;
 class C
 {
-    IEnumerable<char> GetChars(string s!)
+    IEnumerable<char> GetChars(string s!!)
     {
         foreach (var c in s)
         {
@@ -1918,7 +1918,7 @@ class Iterators
     void Use()
     {
         IEnumerable<char> e = GetChars(""hello"");
-        IEnumerable<char> GetChars(string s!)
+        IEnumerable<char> GetChars(string s!!)
         {
             foreach (var c in s)
             {
@@ -2111,7 +2111,7 @@ using System.Collections.Generic;
 class C
 {
     public static void Main() { }
-    static IEnumerable<char> GetChars(string s!)
+    static IEnumerable<char> GetChars(string s!!)
     {
         yield break;
     }
@@ -2171,7 +2171,7 @@ using System.Collections.Generic;
 class C
 {
     public static void Main() { }
-    static IEnumerator<char> GetChars(string s!)
+    static IEnumerator<char> GetChars(string s!!)
     {
         yield break;
     }
@@ -2233,7 +2233,7 @@ class Program
 {
     public static void Main()
     {
-        Func<string, string> func = x! => x;
+        Func<string, string> func = x!! => x;
     }
 }
 
@@ -2250,15 +2250,15 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
   BlockBody: 
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
       Locals: Local_1: System.Func<System.String, System.String> func
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Func<string ...  = x! => x;')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Func<string ... c = x! => x')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Func<string ... = x!! => x;')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Func<string ...  = x!! => x')
           Declarators:
-              IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'func = x! => x')
+              IVariableDeclaratorOperation (Symbol: System.Func<System.String, System.String> func) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'func = x!! => x')
                 Initializer: 
-                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x! => x')
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x!! => x')
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x!! => x')
                       Target: 
-                        IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
+                        IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'x!! => x')
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                               ReturnedValue: 
@@ -2278,13 +2278,13 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x!! => x')
               Left: 
-                ILocalReferenceOperation: func (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x! => x')
+                ILocalReferenceOperation: func (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'func = x!! => x')
               Right: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsInvalid, IsImplicit) (Syntax: 'x!! => x')
                   Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'x! => x')
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'x!! => x')
                     {
                         Block[B0#A0] - Entry
                             Statements (0)
@@ -2293,19 +2293,19 @@ Block[B0] - Entry
                             Predecessors: [B0#A0]
                             Statements (0)
                             Jump if False (Regular) to Block[B3#A0]
-                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x!! => x')
                                   Left: 
-                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x!! => x')
                                   Right: 
-                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'x!! => x')
                             Next (Regular) Block[B2#A0]
                         Block[B2#A0] - Block
                             Predecessors: [B1#A0]
                             Statements (0)
                             Next (Throw) Block[null]
-                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x!! => x')
                                   Children(1):
-                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x! => x')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'x!! => x')
                         Block[B3#A0] - Block
                             Predecessors: [B1#A0]
                             Statements (0)
@@ -2333,7 +2333,7 @@ class Program
     public static void Main()
     {
         M(""ok"");
-        void M(string x!) { }
+        void M(string x!!) { }
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -2341,13 +2341,13 @@ class Program
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
                     // (7,23): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
-                    //         void M(string x!) { }
+                    //         void M(string x!!) { }
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 23));
             var tree = comp.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
             var node2 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             comp.VerifyOperationTree(node1, expectedOperationTree: @"
-    ILocalFunctionOperation (Symbol: void M(System.String x)) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'void M(string x!) { }')
+    ILocalFunctionOperation (Symbol: void M(System.String x)) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'void M(string x!!) { }')
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
           ReturnedValue: 
@@ -2385,19 +2385,19 @@ Block[B0] - Entry
             Predecessors: [B0#0R1]
             Statements (0)
             Jump if False (Regular) to Block[B3#0R1]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'void M(string x!!) { }')
                   Left: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'void M(string x!!) { }')
                   Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'void M(string x!!) { }')
             Next (Regular) Block[B2#0R1]
         Block[B2#0R1] - Block
             Predecessors: [B1#0R1]
             Statements (0)
             Next (Throw) Block[null]
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'void M(string x!!) { }')
                   Children(1):
-                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'void M(string x!) { }')
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsInvalid, IsImplicit) (Syntax: 'void M(string x!!) { }')
         Block[B3#0R1] - Exit
             Predecessors: [B1#0R1]
             Statements (0)
@@ -2415,18 +2415,18 @@ Block[B2] - Exit
 @"
 class Program
 {
-    public void Method(int? x!) { }
+    public void Method(int? x!!) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             comp.VerifyDiagnostics(
                     // (4,29): warning CS8721: Nullable value type 'int?' is null-checked and will throw if null.
-                    //     public void Method(int? x!) { }
+                    //     public void Method(int? x!!) { }
                     Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "x").WithArguments("int?").WithLocation(4, 29));
             var tree = comp.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             comp.VerifyOperationTree(node, expectedOperationTree: @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... nt? x!) { }')
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... t? x!!) { }')
       BlockBody: 
         IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
       ExpressionBody: 
@@ -2439,18 +2439,18 @@ class Program
         Predecessors: [B0]
         Statements (0)
         Jump if True (Regular) to Block[B3]
-            IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+            IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'public void ... t? x!!) { }')
               Children(1):
-                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?, IsImplicit) (Syntax: 'public void ... t? x!!) { }')
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+            IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException, IsImplicit) (Syntax: 'public void ... t? x!!) { }')
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... nt? x!) { }')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public void ... nt? x!) { }')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'public void ... t? x!!) { }')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""x"", IsImplicit) (Syntax: 'public void ... t? x!!) { }')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Initializer: 
@@ -2467,7 +2467,7 @@ class Program
             var source = @"
 public class C
 {
-    public void M(string input!) 
+    public void M(string input!!) 
             /*<bind>*/{ }/*</bind>*/
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -2522,7 +2522,7 @@ public class B
 }
 public class C : B
 {
-    public C(string param!) : base(param ?? """") { }
+    public C(string param!!) : base(param ?? """") { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
 

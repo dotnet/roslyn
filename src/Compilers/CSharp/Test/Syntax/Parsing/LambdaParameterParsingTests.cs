@@ -774,12 +774,7 @@ class C {
         [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void TestNullCheckedSingleParamNoSpaces()
         {
-            UsingDeclaration("Func<int, int> func1 = x!=>x;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
-            {
-                    // (1,25): error CS8712: Space required between explanation-point and equals-sign here.
-                    // Func<int, int> func1 = x!=>x;
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 25)
-            });
+            UsingDeclaration("Func<int, int> func1 = x!=>x;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);

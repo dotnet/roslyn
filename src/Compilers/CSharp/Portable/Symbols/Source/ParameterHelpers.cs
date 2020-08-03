@@ -145,9 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-                if (refKind != RefKind.None && parameterSyntax.ExclamationToken.Kind() != SyntaxKind.None)
+                if (refKind != RefKind.None && parameterSyntax.ExclamationExclamationToken.Kind() != SyntaxKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameterSyntax.ExclamationToken.GetLocation(), parameterSyntax.Identifier.ValueText);
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, parameterSyntax.ExclamationExclamationToken.GetLocation(), parameterSyntax.Identifier.ValueText);
                 }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
-                if (parameterSyntax.ExclamationToken.Kind() == SyntaxKind.ExclamationToken)
+                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
                 {
                     if (owner.IsAbstract || owner.IsPartialDefinition() || owner.IsExtern)
                     {
