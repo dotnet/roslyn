@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // back to primary workspace. only solution service can update primary workspace
         public override bool CanApplyChange(ApplyChangesKind feature) => false;
 
-        // enables simulation of having documents open.
-        public override bool CanOpenDocuments => true;
+        public override bool CanOpenDocuments => false;
 
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
@@ -139,74 +138,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 SetOptions(newSolution.Options);
 
                 return this.CurrentSolution;
-            }
-        }
-
-        /// <summary>
-        /// Puts the specified document into the open state.
-        /// </summary>
-        public override void OpenDocument(DocumentId documentId, bool activate = true)
-        {
-            lock (_gate)
-            {
-                var doc = this.CurrentSolution.GetDocument(documentId);
-                if (doc != null)
-                {
-                    var text = doc.GetTextSynchronously(CancellationToken.None);
-                    this.OnDocumentOpened(documentId, text.Container, activate);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Puts the specified document into the closed state.
-        /// </summary>
-        public override void CloseDocument(DocumentId documentId)
-        {
-            lock (_gate)
-            {
-                var doc = this.CurrentSolution.GetDocument(documentId);
-                if (doc != null)
-                {
-                    var text = doc.GetTextSynchronously(CancellationToken.None);
-                    var version = doc.GetTextVersionSynchronously(CancellationToken.None);
-                    var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
-                    this.OnDocumentClosed(documentId, loader);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Puts the specified additional document into the open state.
-        /// </summary>
-        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
-        {
-            lock (_gate)
-            {
-                var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
-                if (doc != null)
-                {
-                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                    this.OnAdditionalDocumentOpened(documentId, text.Container, activate);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Puts the specified additional document into the closed state
-        /// </summary>
-        public override void CloseAdditionalDocument(DocumentId documentId)
-        {
-            lock (_gate)
-            {
-                var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
-                if (doc != null)
-                {
-                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                    var version = doc.GetTextVersionSynchronously(CancellationToken.None);
-                    var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
-                    this.OnAdditionalDocumentClosed(documentId, loader);
-                }
             }
         }
     }
