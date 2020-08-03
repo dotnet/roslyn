@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var task = _host.GetNextClientConnectionAsync();
             using var clientStream = await ConnectAsync().ConfigureAwait(false);
             await task.ConfigureAwait(false);
-            Assert.NotNull( _host.GetNextClientConnectionAsync());
+            Assert.NotNull(_host.GetNextClientConnectionAsync());
             _host.EndListening();
         }
 
@@ -128,6 +128,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var readCount = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
                 Assert.Equal(0, readCount);
                 Assert.False(stream.IsConnected);
+            }
+        }
+
+        [Fact]
+        public async Task SupportsMultipleBeginEndCycles()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                _host.BeginListening();
+                using var client = await ConnectAsync().ConfigureAwait(false);
+                _host.EndListening();
             }
         }
     }

@@ -121,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             if (cancellationToken.IsCancellationRequested)
             {
                 ChangeToShuttingDown("Server cancellation");
-                Debug.Assert(_listenTask is null);
                 Debug.Assert(_gcTask is null);
                 Debug.Assert(_timeoutTask is null);
             }
@@ -129,7 +128,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             if (_listenTask?.IsCompleted == true)
             {
                 _diagnosticListener.ConnectionReceived();
-                // TODO: isn't allowCompilations always true here?
                 var connectionTask = ProcessClientConnectionAsync(
                     _compilerServerHost,
                     _listenTask,
@@ -146,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             if (_timeoutTask?.IsCompleted == true)
             {
-                CompilerServerLogger.Log("Timeout triggered. Shutting down server.");
                 _diagnosticListener.KeepAliveReached();
                 ChangeToShuttingDown("Keep alive hit");
             }
@@ -204,17 +201,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _state = State.ShuttingDown;
             _timeoutTask = null;
             _gcTask = null;
-            _clientConnectionHost.EndListening();
-
-            // When EndListening completes the last Task<IClientConnection> returned is guaranteed to have 
-            // completed. It is the responsibility of this type to close out the IClientConnection if it 
-            // completed before the EndListening was called
-            if (_listenTask?.Status == TaskStatus.RanToCompletion)
-            {
-                _listenTask.Result.Dispose();
-            }
-
-            _listenTask = null;
         }
 
         private void RunGargbageCollection()
@@ -262,7 +248,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private void HandleCompletedConnections()
         {
             var shutdown = false;
-            var processedCount = 0;
             var i = 0;
             while (i < _connectionList.Count)
             {
@@ -274,8 +259,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 _connectionList.RemoveAt(i);
-                processedCount++;
 
+                // These task should never fail. Unexpected errors will be caught and translated into
+                // a RequestError message
+                Debug.Assert(current.Status == TaskStatus.RanToCompletion);
                 var completionData = current.Result;
                 switch (completionData.Reason)
                 {
