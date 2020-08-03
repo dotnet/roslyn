@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
 
+        private readonly RequestHandlerExecutionQueue _queue = new RequestHandlerExecutionQueue();
+
         public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string? languageName = null)
             => _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == languageName));
 
@@ -43,7 +45,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken);
+            if ((handler as AbstractRequestHandler<RequestType, ResponseType>)?.Type == RequestProcessingMode.Serial)
+            {
+                return _queue.ExecuteSerial(() => handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken));
+            }
+            else
+            {
+                return _queue.ExecuteParallel(() => handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken));
+            }
         }
     }
 }
