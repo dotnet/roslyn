@@ -1016,6 +1016,7 @@
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-analyzerconfig:&lt;file&gt;        Specify an EditorConfig file for analyzer                             
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
