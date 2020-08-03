@@ -1070,24 +1070,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
                 {
-                    // If compilation has a caching semantic model provider, then cache the already-computed bound tree.
+                    // If compilation has a caching semantic model provider, then cache the already-computed bound tree
+                    // onto the semantic model and store it on the event.
+                    SyntaxTreeSemanticModel semanticModelWithCachedBoundNodes = null;
                     if (body != null &&
                         forSemanticModel.Syntax is { } semanticModelSyntax &&
                         _compilation.SemanticModelProvider is CachingSemanticModelProvider cachingSemanticModelProvider)
                     {
                         var syntax = body.Syntax;
-                        var semanticModel = (SyntaxTreeSemanticModel)cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, _compilation);
-                        semanticModel.GetOrAddModel(semanticModelSyntax,
+                        semanticModelWithCachedBoundNodes = (SyntaxTreeSemanticModel)cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, _compilation);
+                        semanticModelWithCachedBoundNodes.GetOrAddModel(semanticModelSyntax,
                                                     (rootSyntax) =>
                                                     {
                                                         Debug.Assert(rootSyntax == forSemanticModel.Syntax);
-                                                        return MethodBodySemanticModel.Create(semanticModel,
+                                                        return MethodBodySemanticModel.Create(semanticModelWithCachedBoundNodes,
                                                                                               methodSymbol,
                                                                                               forSemanticModel);
                                                     });
                     }
 
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol()));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
                 }
 
                 // Don't lower if we're not emitting or if there were errors.

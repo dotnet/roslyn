@@ -2544,7 +2544,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var symbol = symbolEvent.Symbol;
 
-            var semanticModel = SemanticModelProvider.GetSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
+            var semanticModel = symbolEvent.SemanticModelWithCachedBoundNodes ??
+                SemanticModelProvider.GetSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
             var cacheAnalysisData = analysisScope.Analyzers.Length < Analyzers.Length &&
                 (!analysisScope.FilterSpanOpt.HasValue || analysisScope.FilterSpanOpt.Value.Length >= decl.SyntaxTree.GetRoot(cancellationToken).Span.Length);
