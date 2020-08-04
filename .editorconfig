@@ -9,6 +9,10 @@ indent_style = space
 
 # (Please don't specify an indent_size here; that has too many unintended consequences.)
 
+[*.yml]
+indent_size = 2
+indent_style = space
+
 # Code files
 [*.{cs,csx,vb,vbx,h,cpp,idl}]
 indent_size = 4
