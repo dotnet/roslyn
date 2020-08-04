@@ -10487,9 +10487,6 @@ tryAgain:
 
                     case SyntaxKind.ExclamationToken:
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
-                        break;
-
-                    case SyntaxKind.ExclamationExclamationToken:
                         expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureNullableReferenceTypes);
                         break;
 

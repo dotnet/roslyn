@@ -7170,7 +7170,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestMethodDeclarationNullValidation()
         {
-            UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview);
+            UsingStatement(@"void M(string name!!) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7188,7 +7188,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7203,7 +7203,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestOptParamMethodDeclarationWithNullValidation()
         {
-            UsingStatement(@"void M(string name! = null) { }", options: TestOptions.RegularPreview);
+            UsingStatement(@"void M(string name!! = null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7221,7 +7221,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7577,7 +7577,7 @@ class C
             UsingTree(@"
 class Box
 {
-    public static int operator+ (Box b!, Box c) 
+    public static int operator+ (Box b!!, Box c) 
     {
         return 2;
     }
@@ -7610,7 +7610,7 @@ class Box
                                     N(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);

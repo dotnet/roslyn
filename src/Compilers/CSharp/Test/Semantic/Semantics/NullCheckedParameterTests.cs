@@ -218,7 +218,7 @@ class C
                     Diagnostic(ErrorCode.ERR_SyntaxError, "!!").WithArguments(",", "!!").WithLocation(8, 22));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(BangBang)")]
         public void NullCheckedArgList()
         {
             var source = @"

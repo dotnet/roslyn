@@ -588,7 +588,7 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidation()
         {
-            UsingDeclaration("Func<string, string> func1 = x! => x + \"1\";", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func1 = x!! => x + \"1\";", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -622,7 +622,7 @@ class C {
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.ExclamationToken);
+                            N(SyntaxKind.ExclamationExclamationToken);
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
                         N(SyntaxKind.AddExpression);
@@ -646,7 +646,7 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidationParams()
         {
-            UsingDeclaration("Func<int, int, bool> func1 = (x!, y) => x == y;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int, bool> func1 = (x!!, y) => x == y;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -688,7 +688,7 @@ class C {
                             N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -719,7 +719,7 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamInParens()
         {
-            UsingDeclaration("Func<int, int> func1 = (x!) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int> func1 = (x!!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -756,7 +756,7 @@ class C {
                             N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -824,7 +824,7 @@ class C {
         [Fact]
         public void TestNullCheckedTypedSingleParamInParen()
         {
-            UsingDeclaration("Func<int, int> func1 = (int x!) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int> func1 = (int x!!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -865,7 +865,7 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -883,7 +883,7 @@ class C {
         [Fact]
         public void TestNullCheckedTypedManyParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -929,7 +929,7 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -956,7 +956,7 @@ class C {
         [Fact]
         public void TestManyNullCheckedTypedParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y!) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y!!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1002,7 +1002,7 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -1012,7 +1012,7 @@ class C {
                                     N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "y");
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -1083,7 +1083,7 @@ class C {
         [Fact]
         public void TestNullCheckedDiscard()
         {
-            UsingDeclaration("Func<int, int> func1 = (_!) => 42;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<int, int> func1 = (_!!) => 42;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1120,7 +1120,7 @@ class C {
                             N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierToken, "_");
-                                N(SyntaxKind.ExclamationToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
