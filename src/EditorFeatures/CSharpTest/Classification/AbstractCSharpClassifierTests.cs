@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -14,17 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         protected static TestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
         {
-            var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, testHost == TestHost.OutOfProcess)));
-
-            return workspace;
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
+            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition);
         }
 
         protected override async Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected)
         {
-            await TestAsync(code, allCode, parseOptions: null, testHost, expected);
-            await TestAsync(code, allCode, parseOptions: Options.Script, testHost, expected);
+            await TestAsync(code, allCode, testHost, parseOptions: null, expected);
+            await TestAsync(code, allCode, testHost, parseOptions: Options.Script, expected);
         }
 
         protected override string WrapInClass(string className, string code) =>

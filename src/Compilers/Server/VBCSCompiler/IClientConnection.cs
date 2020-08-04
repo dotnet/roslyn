@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// Abstraction over the connection to the client process.   This hides underlying connection
     /// to facilitate better testing. 
     /// </summary>
-    internal interface IClientConnection
+    internal interface IClientConnection : IDisposable
     {
         /// <summary>
         /// A value which can be used to identify this connection for logging purposes only.  It has 
@@ -25,13 +24,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         string LoggingIdentifier { get; }
 
         /// <summary>
-        /// Server the connection and return the result.
+        /// This task resolves if the client disconnects from the server.
         /// </summary>
-        Task<ConnectionData> HandleConnectionAsync(bool allowCompilationRequests, CancellationToken cancellationToken);
+        Task DisconnectTask { get; }
 
         /// <summary>
-        /// Close the underlying client connection.
+        /// Read a <see cref="BuildRequest" /> from the client
         /// </summary>
-        void Close();
+        Task<BuildRequest> ReadBuildRequestAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Write a <see cref="BuildResponse" /> to the client
+        /// </summary>
+        Task WriteBuildResponseAsync(BuildResponse response, CancellationToken cancellationToken);
     }
+
+    internal interface IClientConnectionHost
+    {
+        Task<IClientConnection> ListenAsync(CancellationToken cancellationToken);
+    }
+
 }

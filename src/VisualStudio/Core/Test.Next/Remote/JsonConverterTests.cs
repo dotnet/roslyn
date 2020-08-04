@@ -63,18 +63,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestDiagnosticArguments()
         {
+            var projectId = ProjectId.CreateNewId("project");
             var arguments = new DiagnosticArguments(
-                forcedAnalysis: false,
+                isHighPriority: true,
                 reportSuppressedDiagnostics: true,
-                logAnalyzerExecutionTime: false,
-                projectId: ProjectId.CreateNewId("project"),
+                logPerformanceInfo: true,
+                getTelemetryInfo: true,
+                documentId: DocumentId.CreateNewId(projectId),
+                documentSpan: new TextSpan(0, 1),
+                documentAnalysisKind: AnalysisKind.Syntax,
+                projectId: projectId,
                 analyzerIds: new[] { "analyzer1", "analyzer2" });
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.ForcedAnalysis == y.ForcedAnalysis &&
+                if (x.IsHighPriority == y.IsHighPriority &&
                     x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
-                    x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
+                    x.LogPerformanceInfo == y.LogPerformanceInfo &&
+                    x.GetTelemetryInfo == y.GetTelemetryInfo &&
+                    x.DocumentId == y.DocumentId &&
+                    x.DocumentSpan == y.DocumentSpan &&
+                    x.DocumentAnalysisKind == y.DocumentAnalysisKind &&
                     x.ProjectId == y.ProjectId &&
                     x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
                     x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)

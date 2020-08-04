@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -304,8 +305,6 @@ namespace Microsoft.CodeAnalysis
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
                 return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(textFile.Path));
             }
-
-            // PROTOTYPE: why isn't this just a provided implementation?
             private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
             {
                 private readonly ImmutableDictionary<string, string> _backing;
@@ -313,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                 public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
                     => _backing = analyzerConfigOptions.AnalyzerOptions;
 
-                public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
+                public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value) => _backing.TryGetValue(key, out value);
             }
         }
 

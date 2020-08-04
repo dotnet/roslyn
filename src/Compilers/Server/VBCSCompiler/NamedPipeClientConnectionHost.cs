@@ -14,24 +14,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Security.AccessControl;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class NamedPipeClientConnectionHost : IClientConnectionHost
     {
-        private readonly ICompilerServerHost _compilerServerHost;
         private readonly string _pipeName;
-        private int _loggingIdentifier;
+        private int _clientLoggingIdentifier;
 
-        internal NamedPipeClientConnectionHost(ICompilerServerHost compilerServerHost, string pipeName)
+        internal NamedPipeClientConnectionHost(string pipeName)
         {
-            _compilerServerHost = compilerServerHost;
             _pipeName = pipeName;
-        }
-
-        public async Task<IClientConnection> ListenAsync(CancellationToken cancellationToken)
-        {
-            var pipeStream = await ListenCoreAsync(cancellationToken).ConfigureAwait(false);
-            return new NamedPipeClientConnection(_compilerServerHost, _loggingIdentifier++.ToString(), pipeStream);
         }
 
         /// <summary>
@@ -39,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <see cref="NamedPipeServerStream"/> object.  Throws on any connection error.
         /// </summary>
         /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
-        private async Task<NamedPipeServerStream> ListenCoreAsync(CancellationToken cancellationToken)
+        public async Task<IClientConnection> ListenAsync(CancellationToken cancellationToken)
         {
             // Create the pipe and begin waiting for a connection. This 
             // doesn't block, but could fail in certain circumstances, such
@@ -57,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
             {
                 CompilerServerLogger.Log("Memory available - accepting connection");
-                return pipeStream;
+                var clientLoggingIdentifier = $"Client{_clientLoggingIdentifier++}";
+                return new NamedPipeClientConnection(pipeStream, clientLoggingIdentifier);
             }
 
             pipeStream.Close();

@@ -5724,10 +5724,10 @@ partial class PartialPartial
         {
             var text = @"partial enum E{}";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
-                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
@@ -7538,6 +7538,277 @@ b { }";
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_01(bool useCSharp8)
+        {
+            UsingNode(
+@"class C<T> where T : default { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (1,22): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(1, 22)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_02()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : default
+    where U : default { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_03(bool useCSharp8)
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct, default
+    where U : default, class { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (2,23): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     where T : struct, default
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(2, 23),
+                        // (3,15): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     where U : default, class { }
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(3, 15)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_04()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct default
+    where U : default class { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
                         }
                     }
                     N(SyntaxKind.OpenBraceToken);
