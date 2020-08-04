@@ -8,11 +8,17 @@ trigger:
 
 # Branches that trigger builds on PR
 pr:
-- master
-- master-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - master
+    - master-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
 jobs:
 - job: VS_Integration
