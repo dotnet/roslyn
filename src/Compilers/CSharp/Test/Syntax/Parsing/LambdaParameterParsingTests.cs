@@ -771,10 +771,10 @@ class C {
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(BangBang)")]
+        [Fact]
         public void TestNullCheckedSingleParamNoSpaces()
         {
-            UsingDeclaration("Func<int, int> func1 = x!=>x;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingDeclaration("Func<int, int> func1 = x!!=>x;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -808,7 +808,7 @@ class C {
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "x");
-                            N(SyntaxKind.ExclamationToken);
+                            N(SyntaxKind.ExclamationExclamationToken);
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
                         N(SyntaxKind.IdentifierName);
@@ -1027,17 +1027,20 @@ class C {
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(BangBang)")]
+        [Fact]
         public void TestNullCheckedNoParams()
         {
-            UsingDeclaration("Func<int> func1 = (!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
+            UsingDeclaration("Func<int> func1 = (!!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             {
-                    // (1,21): error CS1525: Invalid expression term ')'
-                    // Func<int> func1 = (!) => 42;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 21),
-                    // (1,23): error CS1003: Syntax error, ',' expected
-                    // Func<int> func1 = (!) => 42;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 23)
+                    // (1,20): error CS1525: Invalid expression term '!!'
+                    // Func<int> func1 = (!!) => 42;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!!").WithArguments("!!").WithLocation(1, 20),
+                    // (1,20): error CS1026: ) expected
+                    // Func<int> func1 = (!!) => 42;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "!!").WithLocation(1, 20),
+                    // (1,20): error CS1003: Syntax error, ',' expected
+                    // Func<int> func1 = (!!) => 42;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!!").WithArguments(",", "!!").WithLocation(1, 20)
             });
             N(SyntaxKind.FieldDeclaration);
             {
@@ -1065,15 +1068,11 @@ class C {
                     N(SyntaxKind.ParenthesizedExpression);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.LogicalNotExpression);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.ExclamationToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
