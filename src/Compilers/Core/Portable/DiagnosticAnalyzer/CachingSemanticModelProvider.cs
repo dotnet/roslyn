@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Avoid infinite recursion by passing 'useSemanticModelProviderIfNonNull: false'
             model = compilation.GetSemanticModelCore(tree, ignoreAccessibility: false, useSemanticModelProviderIfNonNull: false);
-            return _semanticModelsMap.AddOrUpdate(tree, addValue: model, updateValueFactory: (_, _) => model);
+            return _semanticModelsMap.AddOrUpdate(tree,
+                addValue: model,
+                updateValueFactory: (_, currentModel) => currentModel.Compilation == compilation ? currentModel : model);
         }
 
         internal void RemoveCachedSemanticModel(SyntaxTree tree)

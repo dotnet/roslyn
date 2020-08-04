@@ -3751,7 +3751,7 @@ class C
         public void TestSemanticModelProvider()
         {
             var tree = CSharpSyntaxTree.ParseText(@"class C { }");
-            Compilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            Compilation compilation = CreateCompilation(new[] { tree });
 
             var semanticModelProvider = new MySemanticModelProvider();
             compilation = compilation.WithSemanticModelProvider(semanticModelProvider);
