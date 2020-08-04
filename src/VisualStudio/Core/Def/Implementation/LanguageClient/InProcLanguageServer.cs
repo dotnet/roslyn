@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     diagnostics = diagnostics.AddRange(diagnosticsFromOtherDocuments);
                 }
 
-                await SendDiagnosticsNotificationAsync(fileUri, diagnostics).ConfigureAwait(false);
+                //await SendDiagnosticsNotificationAsync(fileUri, diagnostics).ConfigureAwait(false);
 
                 // There are three cases here ->
                 // 1.  There are no diagnostics to publish for this fileUri.  We no longer need to track the fileUri at all.
@@ -362,11 +362,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private async Task SendDiagnosticsNotificationAsync(Uri uri, ImmutableArray<LanguageServer.Protocol.Diagnostic> diagnostics)
+        /*private async Task SendDiagnosticsNotificationAsync(Uri uri, ImmutableArray<LanguageServer.Protocol.Diagnostic> diagnostics)
         {
             var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics.ToArray(), Uri = uri };
             await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
-        }
+        }*/
 
         private async Task<Dictionary<Uri, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> GetDiagnosticsAsync(CodeAnalysis.Document document, CancellationToken cancellationToken)
         {

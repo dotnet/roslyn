@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    [Export(typeof(IAsyncCompletionCommitManagerProvider))]
+    //[Export(typeof(IAsyncCompletionCommitManagerProvider))]
     [Name("Roslyn Completion Commit Manager")]
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class CommitManagerProvider : IAsyncCompletionCommitManagerProvider

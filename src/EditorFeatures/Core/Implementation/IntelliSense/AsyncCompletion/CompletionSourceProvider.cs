@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    [Export(typeof(IAsyncCompletionSourceProvider))]
+    //[Export(typeof(IAsyncCompletionSourceProvider))]
     [Name("Roslyn Completion Source Provider")]
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class CompletionSourceProvider : IAsyncCompletionSourceProvider

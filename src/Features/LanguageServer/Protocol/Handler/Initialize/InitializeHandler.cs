@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 Capabilities = new LSP.VSServerCapabilities
                 {
-                    DefinitionProvider = true,
+                    /*DefinitionProvider = true,
                     RenameProvider = true,
                     ImplementationProvider = true,
                     CodeActionProvider = new LSP.CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor } },
-                    CodeActionsResolveProvider = true,
+                    CodeActionsResolveProvider = true,*/
                     CompletionProvider = new LSP.CompletionOptions { ResolveProvider = true, TriggerCharacters = triggerCharacters },
-                    SignatureHelpProvider = new LSP.SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
+                    /*SignatureHelpProvider = new LSP.SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                     DocumentSymbolProvider = true,
                     WorkspaceSymbolProvider = true,
                     DocumentFormattingProvider = true,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
                         Change = LSP.TextDocumentSyncKind.None
-                    }
+                    }*/
                 }
             });
         }
