@@ -118,6 +118,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         return codeAction;
                     }
 
+                    // TO-DO: If the change involves adding or removing a project reference, execute via command instead of
+                    // WorkspaceEdit until adding/removing project references is supported in LSP:
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1166040
+                    var projectReferences = projectChanges.SelectMany(
+                        pc => pc.GetAddedProjectReferences().Concat(pc.GetRemovedProjectReferences()));
+                    if (projectReferences.Any())
+                    {
+                        codeAction.Command = SetCommand(codeAction.Title, data);
+                        return codeAction;
+                    }
+
                     var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
                     var changedAnalyzerConfigDocuments = projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments());
                     var changedAdditionalDocuments = projectChanges.SelectMany(pc => pc.GetChangedAdditionalDocuments());
