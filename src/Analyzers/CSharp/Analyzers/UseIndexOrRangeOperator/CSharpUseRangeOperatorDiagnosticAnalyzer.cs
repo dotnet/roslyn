@@ -166,9 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Second arg needs to be a subtraction for: `end - e2`.  Once we've seen that we have
             // that, try to see if we're calling into some sort of Slice method with a matching
             // indexer or overload
-            var valid = infoCache.TryGetMemberInfo(targetMethod, out var memberInfo);
             if (!IsSubtraction(invocation.Arguments[1].Value, out var subtraction) ||
-                !valid)
+                !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
             {
                 return null;
             }
