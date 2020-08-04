@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Rename
             var isGenerated = await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false);
 
             // No need to analyze generated code, we won't be performing any extra
-            // actions for it. We still want to return an empty action set though.
+            // actions for it. Return an empty action set to allow the document to be renamed in
+            // the solution regardless.
             if (!isGenerated)
             {
                 if (newDocumentName != null && !newDocumentName.Equals(document.Name))
