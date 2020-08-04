@@ -727,6 +727,8 @@ record C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
+                "System.Boolean C.op_Inequality(C? r1, C? r2)",
+                "System.Boolean C.op_Equality(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -5746,6 +5748,8 @@ record C(int X, int Y, int Z) : B
                 "System.Int32 C.<Y>k__BackingField",
                 "System.Int32 C.Y { get; }",
                 "System.Int32 C.Y.get",
+                "System.Boolean C.op_Inequality(C? r1, C? r2)",
+                "System.Boolean C.op_Equality(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -6259,6 +6263,8 @@ record C(object P)
                 "System.Object B.Q.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
                 "System.Object B.Q { get; init; }",
+                "System.Boolean B.op_Inequality(B? r1, B? r2)",
+                "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -6280,6 +6286,8 @@ record C(object P)
                 "System.Object C.P { get; init; }",
                 "System.Object C.get_P()",
                 "System.Object C.set_Q()",
+                "System.Boolean C.op_Inequality(C? r1, C? r2)",
+                "System.Boolean C.op_Equality(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -10800,6 +10808,8 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
+                "System.Boolean B.op_Inequality(B? r1, B? r2)",
+                "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -10851,6 +10861,8 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
+                "System.Boolean B.op_Inequality(B? r1, B? r2)",
+                "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -11437,17 +11449,11 @@ public record C : B {
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15),
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15)
                 );
 
             comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
                 // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override int GetHashCode() => 0;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
@@ -11457,52 +11463,28 @@ public record C : B {
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15),
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
-                // (4,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record C : B {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(4, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15)
                 );
 
             comp = CreateCompilationWithIL(new[] { source1 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15),
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
-                // (4,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record C : B {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(4, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15)
                 );
 
             comp = CreateCompilationWithIL(new[] { source2 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
                 // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25),
-                // (5,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record C : B {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(5, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
 
             comp = CreateCompilationWithIL(new[] { source2 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
                 // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25),
-                // (5,15): warning CS0659: 'C' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record C : B {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "C").WithArguments("C").WithLocation(5, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
         }
 
@@ -11596,10 +11578,7 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(2, 15),
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(2, 15)
                 );
 
             var source2 = @"
@@ -11608,9 +11587,6 @@ public record B : A {
 }";
             comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
                 // (3,25): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
                 //     public override int GetHashCode() => throw null;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(3, 25)
@@ -11707,10 +11683,7 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'B.GetHashCode()': return type must be 'bool' to match overridden member 'A.GetHashCode()'
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(2, 15),
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(2, 15)
                 );
 
             var source2 = @"
@@ -11719,9 +11692,6 @@ public record B : A {
 }";
             comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
                 // (3,25): error CS0508: 'B.GetHashCode()': return type must be 'bool' to match overridden member 'A.GetHashCode()'
                 //     public override int GetHashCode() => throw null;
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "bool").WithLocation(3, 25)
@@ -11756,9 +11726,6 @@ public record B : A {
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,8): warning CS0659: 'A' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // record A
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "A").WithArguments("A").WithLocation(1, 8),
                 // (3,20): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public new int GetHashCode() => throw null;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 20)
@@ -11778,18 +11745,12 @@ record B : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,8): warning CS0659: 'A' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // record A
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "A").WithArguments("A").WithLocation(1, 8),
                 // (3,27): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public static new int GetHashCode() => throw null;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 27),
                 // (6,8): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
                 // record B : A;
-                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(6, 8),
-                // (6,8): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // record B : A;
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(6, 8)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(6, 8)
                 );
         }
 
@@ -11821,9 +11782,6 @@ record B : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,8): warning CS0659: 'A' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // record A
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "A").WithArguments("A").WithLocation(1, 8),
                 // (3,21): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public new void GetHashCode() => throw null;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 21)
@@ -12071,9 +12029,6 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
                 // (3,23): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override A GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 23)
@@ -12169,9 +12124,6 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0659: 'B' overrides Object.Equals(object o) but does not override Object.GetHashCode()
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "B").WithArguments("B").WithLocation(2, 15),
                 // (3,23): error CS8830: 'B.GetHashCode()': Target runtime doesn't support covariant return types in overrides. Return type must be 'A' to match overridden member 'A.GetHashCode()'
                 //     public override B GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "GetHashCode").WithArguments("B.GetHashCode()", "A.GetHashCode()", "A").WithLocation(3, 23)
@@ -13369,6 +13321,48 @@ record A
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.MakeTypeMissing(SpecialType.System_Boolean);
             comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"record A
+{
+    public virtual bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}").WithArguments("System.Boolean").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"record A
+{
+    public virtual bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}").WithArguments("System.Boolean").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"record A
+{
+    public virtual bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}").WithArguments("System.Boolean").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"record A
+{
+    public virtual bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}").WithArguments("System.Boolean").WithLocation(2, 1),
+                // (2,8): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 // record A
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
@@ -14884,6 +14878,391 @@ record B : A;
                 // record B : A;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(7, 8)
                 );
+        }
+
+        [Fact]
+        public void EqualityOperators_01()
+        {
+            var source =
+@"
+record A(int X) 
+{
+    public virtual bool Equals(ref A other)
+        => throw null;
+
+    static void Main()
+    {
+        Test(null, null);
+        Test(null, new A(0));
+        Test(new A(1), new A(1));
+        Test(new A(2), new A(3));
+        Test(new A(4), new B(4, 5));
+        Test(new B(6, 7), new B(6, 7));
+        Test(new B(8, 9), new B(8, 10));
+        var a = new A(11);
+        Test(a, a);
+    }
+
+    static void Test(A a1, A a2)
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == a2, a2 == a1, a1 != a2, a2 != a1);
+    }
+}
+
+record B(int X, int Y) : A(X);
+";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"
+True True False False
+False False True True
+True True False False
+False False True True
+False False True True
+True True False False
+False False True True
+True True False False
+").VerifyDiagnostics();
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
+            Assert.Equal("System.Boolean A.op_Equality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
+            Assert.True(op.IsStatic);
+            Assert.False(op.IsAbstract);
+            Assert.False(op.IsVirtual);
+            Assert.False(op.IsOverride);
+            Assert.False(op.IsSealed);
+            Assert.True(op.IsImplicitlyDeclared);
+
+            op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
+            Assert.Equal("System.Boolean A.op_Inequality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
+            Assert.True(op.IsStatic);
+            Assert.False(op.IsAbstract);
+            Assert.False(op.IsVirtual);
+            Assert.False(op.IsOverride);
+            Assert.False(op.IsSealed);
+            Assert.True(op.IsImplicitlyDeclared);
+
+            verifier.VerifyIL("bool A.op_Equality(A, A)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0011
+  IL_0004:  ldarg.0
+  IL_0005:  brfalse.s  IL_000f
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  callvirt   ""bool A.Equals(A)""
+  IL_000e:  ret
+  IL_000f:  ldc.i4.0
+  IL_0010:  ret
+  IL_0011:  ldc.i4.1
+  IL_0012:  ret
+}
+");
+
+            verifier.VerifyIL("bool A.op_Inequality(A, A)", @"
+
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.op_Equality(A, A)""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EqualityOperators_02()
+        {
+            var source =
+@"
+record B;
+
+record A(int X) : B
+{
+    public virtual bool Equals(A other)
+    {
+        System.Console.WriteLine(""Equals(A other)"");
+        return base.Equals(other) && X == other.X;
+    }
+
+    static void Main()
+    {
+        Test(null, null);
+        Test(null, new A(0));
+        Test(new A(1), new A(1));
+        Test(new A(2), new A(3));
+        var a = new A(11);
+        Test(a, a);
+        Test(new A(3), new B());
+    }
+
+    static void Test(A a1, A a2)
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == a2, a2 == a1, a1 != a2, a2 != a1);
+    }
+
+    static void Test(A a1, B b2)
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == b2, b2 == a1, a1 != b2, b2 != a1);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"
+True True False False
+Equals(A other)
+Equals(A other)
+False False True True
+Equals(A other)
+Equals(A other)
+Equals(A other)
+Equals(A other)
+True True False False
+Equals(A other)
+Equals(A other)
+Equals(A other)
+Equals(A other)
+False False True True
+True True False False
+Equals(A other)
+Equals(A other)
+False False True True
+").VerifyDiagnostics();
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
+            Assert.Equal("System.Boolean A.op_Equality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
+            Assert.True(op.IsStatic);
+            Assert.False(op.IsAbstract);
+            Assert.False(op.IsVirtual);
+            Assert.False(op.IsOverride);
+            Assert.False(op.IsSealed);
+            Assert.True(op.IsImplicitlyDeclared);
+
+            op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
+            Assert.Equal("System.Boolean A.op_Inequality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
+            Assert.True(op.IsStatic);
+            Assert.False(op.IsAbstract);
+            Assert.False(op.IsVirtual);
+            Assert.False(op.IsOverride);
+            Assert.False(op.IsSealed);
+            Assert.True(op.IsImplicitlyDeclared);
+
+            verifier.VerifyIL("bool A.op_Equality(A, A)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0011
+  IL_0004:  ldarg.0
+  IL_0005:  brfalse.s  IL_000f
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  callvirt   ""bool A.Equals(A)""
+  IL_000e:  ret
+  IL_000f:  ldc.i4.0
+  IL_0010:  ret
+  IL_0011:  ldc.i4.1
+  IL_0012:  ret
+}
+");
+
+            verifier.VerifyIL("bool A.op_Inequality(A, A)", @"
+
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.op_Equality(A, A)""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EqualityOperators_03()
+        {
+            var source =
+@"
+record A
+{
+    public static bool operator==(A r1, A r2)
+        => throw null;
+    public static bool operator==(A r1, string r2)
+        => throw null;
+    public static bool operator!=(A r1, string r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS0111: Type 'A' already defines a member called 'op_Equality' with the same parameter types
+                //     public static bool operator==(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "==").WithArguments("op_Equality", "A").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_04()
+        {
+            var source =
+@"
+record A
+{
+    public static bool operator!=(A r1, A r2)
+        => throw null;
+    public static bool operator!=(string r1, A r2)
+        => throw null;
+    public static bool operator==(string r1, A r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS0111: Type 'A' already defines a member called 'op_Inequality' with the same parameter types
+                //     public static bool operator!=(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "!=").WithArguments("op_Inequality", "A").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_05()
+        {
+            var source =
+@"
+record A
+{
+    public static bool op_Equality(A r1, A r2)
+        => throw null;
+    public static bool op_Equality(string r1, A r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS0111: Type 'A' already defines a member called 'op_Equality' with the same parameter types
+                //     public static bool op_Equality(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Equality").WithArguments("op_Equality", "A").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_06()
+        {
+            var source =
+@"
+record A
+{
+    public static bool op_Inequality(A r1, A r2)
+        => throw null;
+    public static bool op_Inequality(A r1, string r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS0111: Type 'A' already defines a member called 'op_Inequality' with the same parameter types
+                //     public static bool op_Inequality(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Inequality").WithArguments("op_Inequality", "A").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_07()
+        {
+            var source =
+@"
+record A
+{
+    public static bool Equals(A other)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // record A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
+                // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
+                //     public static bool Equals(A other)
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_08()
+        {
+            var source =
+@"
+record A
+{
+    public virtual string Equals(A other)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0738: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement 'IEquatable<A>.Equals(A)' because it does not have the matching return type of 'bool'.
+                // record A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)", "bool").WithLocation(2, 8),
+                // (4,27): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
+                //     public virtual string Equals(A other)
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 27)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void EqualityOperators_09(bool useImageReference)
+        {
+            var source1 =
+@"
+public record A(int X) 
+{
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        Test(null, null);
+        Test(null, new A(0));
+        Test(new A(1), new A(1));
+        Test(new A(2), new A(3));
+    }
+
+    static void Test(A a1, A a2)
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == a2, a2 == a1, a1 != a2, a2 != a1);
+    }
+}
+";
+            CompileAndVerify(source2, references: new[] { useImageReference ? comp1.EmitToImageReference() : comp1.ToMetadataReference() }, expectedOutput:
+@"
+True True False False
+False False True True
+True True False False
+False False True True
+").VerifyDiagnostics();
         }
 
         [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
@@ -17603,6 +17982,8 @@ record C : B;
             {
                 "System.Type B.EqualityContract { get; }",
                 "System.Type B.EqualityContract.get",
+                "System.Boolean B.op_Inequality(B? r1, B? r2)",
+                "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -17733,6 +18114,8 @@ False").VerifyDiagnostics();
                 "System.Int32 B1.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B1.P.init",
                 "System.Int32 B1.P { get; init; }",
+                "System.Boolean B1.op_Inequality(B1? r1, B1? r2)",
+                "System.Boolean B1.op_Equality(B1? r1, B1? r2)",
                 "System.Int32 B1.GetHashCode()",
                 "System.Boolean B1.Equals(System.Object? obj)",
                 "System.Boolean B1.Equals(A? other)",

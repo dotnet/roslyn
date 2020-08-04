@@ -1076,6 +1076,8 @@ record C
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
+                "System.Boolean C.operator !=(C? r1, C? r2)",
+                "System.Boolean C.operator ==(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
