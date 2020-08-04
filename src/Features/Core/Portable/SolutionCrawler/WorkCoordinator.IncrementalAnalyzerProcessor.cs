@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private partial class IncrementalAnalyzerProcessor
             {
@@ -407,18 +407,33 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return false;
                 }
 
-                internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                internal TestAccessor GetTestAccessor()
                 {
-                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
-
-                    var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
-                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
+                    return new TestAccessor(this);
                 }
 
-                internal void WaitUntilCompletion_ForTestingPurposesOnly()
+                internal readonly struct TestAccessor
                 {
-                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
-                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+                    private readonly IncrementalAnalyzerProcessor _incrementalAnalyzerProcessor;
+
+                    internal TestAccessor(IncrementalAnalyzerProcessor incrementalAnalyzerProcessor)
+                    {
+                        _incrementalAnalyzerProcessor = incrementalAnalyzerProcessor;
+                    }
+
+                    internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    {
+                        _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
+
+                        var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
+                        _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
+                    }
+
+                    internal void WaitUntilCompletion()
+                    {
+                        _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
+                        _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
+                    }
                 }
 
                 private class NullDisposable : IDisposable

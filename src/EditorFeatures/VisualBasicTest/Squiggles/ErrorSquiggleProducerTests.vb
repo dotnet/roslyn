@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46463"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
             Dim spans = Await ProduceSquiggles("^")
@@ -49,7 +49,7 @@ End Class")
             Dim count = spans.Count
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46463"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function ErrorDoesNotCrashPastEOF() As Task
             Dim spans = Await ProduceSquiggles(
 "Class C1
