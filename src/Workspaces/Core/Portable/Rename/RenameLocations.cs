@@ -35,28 +35,18 @@ namespace Microsoft.CodeAnalysis.Rename
 
         private readonly SearchResult _mergedResult;
 
-        private readonly ImmutableArray<SearchResult> _overloadsResult;
-        private readonly ImmutableArray<RenameLocation> _stringsResult;
-        private readonly ImmutableArray<RenameLocation> _commentsResult;
-
         private RenameLocations(
             ISymbol symbol,
             Solution solution,
             RenameOptionSet options,
             SearchResult? originalSymbolResult,
-            SearchResult mergedResult,
-            ImmutableArray<SearchResult> overloadsResult,
-            ImmutableArray<RenameLocation> stringsResult,
-            ImmutableArray<RenameLocation> commentsResult)
+            SearchResult mergedResult)
         {
             Solution = solution;
             Symbol = symbol;
             Options = options;
             _originalSymbolResult = originalSymbolResult;
             _mergedResult = mergedResult;
-            _overloadsResult = overloadsResult;
-            _stringsResult = stringsResult;
-            _commentsResult = commentsResult;
         }
 
         internal static RenameLocations Create(
@@ -69,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             return new RenameLocations(
                 symbol, solution, options, originalSymbolResult: null,
-                new SearchResult(locations, implicitLocations, referencedSymbols),
-                overloadsResult: default, stringsResult: default, commentsResult: default);
+                new SearchResult(locations, implicitLocations, referencedSymbols));
         }
 
         private static RenameLocations Create(
@@ -108,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return new RenameLocations(
                 symbol, solution, options, originalSymbolResult,
-                new SearchResult(mergedLocations.ToImmutable(), mergedImplicitLocations.ToImmutable(), mergedReferencedSymbols.ToImmutable()),
-                overloadsResult, stringsResult, commentsResult);
+                new SearchResult(mergedLocations.ToImmutable(), mergedImplicitLocations.ToImmutable(), mergedReferencedSymbols.ToImmutable()));
         }
 
         public ISet<RenameLocation> Locations => _mergedResult.Locations;
@@ -207,8 +195,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 return new RenameLocations(
                     symbol, solution, optionSet, originalSymbolResult,
-                    new SearchResult(mergedLocations.ToImmutable(), mergedImplicitLocations.ToImmutable(), mergedReferencedSymbols.ToImmutable()),
-                    overloadsResult, strings, comments);
+                    new SearchResult(mergedLocations.ToImmutable(), mergedImplicitLocations.ToImmutable(), mergedReferencedSymbols.ToImmutable()));
             }
         }
 

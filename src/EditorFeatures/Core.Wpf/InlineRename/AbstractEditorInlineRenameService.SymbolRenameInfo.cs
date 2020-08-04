@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             private const string AttributeSuffix = "Attribute";
 
-            private readonly object _gate = new object();
-
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
