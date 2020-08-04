@@ -722,16 +722,6 @@
         <target state="translated">부동 소수점 NaN에는 관계형 패턴을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
-        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
-        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
-        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
-        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">대상 런타임이 인터페이스 멤버의 'protected', 'protected internal' 또는 'private protected' 접근성을 지원하지 않습니다.</target>
@@ -1269,11 +1259,6 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">병합 할당</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -7558,8 +7543,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
-        <target state="needs-review-translation">{1}' 멤버는 '{0}'을(를) 재정의합니다. 런타임에 여러 재정의 후보가 있습니다. 호출되는 메서드는 구현에 따라 다릅니다.</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
+        <target state="translated">{1}' 멤버는 '{0}'을(를) 재정의합니다. 런타임에 여러 재정의 후보가 있습니다. 호출되는 메서드는 구현에 따라 다릅니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly OverriddenOrHiddenMembersResult Empty =
             new OverriddenOrHiddenMembersResult(
                 ImmutableArray<Symbol>.Empty,
+                ImmutableArray<Symbol>.Empty,
                 ImmutableArray<Symbol>.Empty);
 
         private readonly ImmutableArray<Symbol> _overriddenMembers;
@@ -27,25 +28,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Symbol> _hiddenMembers;
         public ImmutableArray<Symbol> HiddenMembers { get { return _hiddenMembers; } }
 
+        private readonly ImmutableArray<Symbol> _runtimeOverriddenMembers;
+        public ImmutableArray<Symbol> RuntimeOverriddenMembers { get { return _runtimeOverriddenMembers; } }
+
         private OverriddenOrHiddenMembersResult(
             ImmutableArray<Symbol> overriddenMembers,
-            ImmutableArray<Symbol> hiddenMembers)
+            ImmutableArray<Symbol> hiddenMembers,
+            ImmutableArray<Symbol> runtimeOverriddenMembers)
         {
             _overriddenMembers = overriddenMembers;
             _hiddenMembers = hiddenMembers;
+            _runtimeOverriddenMembers = runtimeOverriddenMembers;
         }
 
         public static OverriddenOrHiddenMembersResult Create(
             ImmutableArray<Symbol> overriddenMembers,
-            ImmutableArray<Symbol> hiddenMembers)
+            ImmutableArray<Symbol> hiddenMembers,
+            ImmutableArray<Symbol> runtimeOverriddenMembers)
         {
-            if (overriddenMembers.IsEmpty && hiddenMembers.IsEmpty)
+            if (overriddenMembers.IsEmpty && hiddenMembers.IsEmpty && runtimeOverriddenMembers.IsEmpty)
             {
                 return Empty;
             }
             else
             {
-                return new OverriddenOrHiddenMembersResult(overriddenMembers, hiddenMembers);
+                return new OverriddenOrHiddenMembersResult(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
             }
         }
 

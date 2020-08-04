@@ -313,7 +313,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
-        System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,
 
         NextAvailable,
 
@@ -620,7 +619,6 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.NativeIntegerAttribute",
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
-            "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -628,6 +626,7 @@ namespace Microsoft.CodeAnalysis
         static WellKnownTypes()
         {
             AssertEnumAndTableInSync();
+
 
             for (int i = 0; i < s_metadataNames.Length; i++)
             {

@@ -166,7 +166,6 @@ namespace Roslyn.Test.Utilities
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
         public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
-        public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
     }
 
     public enum ExecutionArchitecture
@@ -259,12 +258,6 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => !ExecutionConditionUtil.IsWindowsDesktop;
         public override string SkipReason => "Test only supported on Windows desktop";
-    }
-
-    public class CovariantReturnRuntimeOnly : ExecutionCondition
-    {
-        public override bool ShouldSkip => !ExecutionConditionUtil.RuntimeSupportsCovariantReturnsOfClasses;
-        public override string SkipReason => "Test only supported on runtimes that support covariant returns";
     }
 
     public class UnixLikeOnly : ExecutionCondition

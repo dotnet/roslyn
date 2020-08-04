@@ -1597,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             MethodSymbol actualMethodTargetedByTheCall = method;
             if (method.IsOverride && callKind != CallKind.Call)
             {
-                actualMethodTargetedByTheCall = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
+                actualMethodTargetedByTheCall = method.GetConstructedLeastOverriddenMethod(_method.ContainingType);
             }
 
             if (callKind == CallKind.ConstrainedCallVirt && actualMethodTargetedByTheCall.ContainingType.IsValueType)

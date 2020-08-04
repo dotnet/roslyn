@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // whether or not to call a method with a value type receiver directly).
             if (!method.ContainingType.IsValueType || !Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.MayUseCallForStructMethod(method))
             {
-                method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type, requireSameReturnType: true);
+                method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type);
             }
 
             return new BoundMethodInfo(

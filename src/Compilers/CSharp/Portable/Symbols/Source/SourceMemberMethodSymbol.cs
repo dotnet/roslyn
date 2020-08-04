@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // override explicitly (see GetExplicitImplementationOverrides
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
-                this.RequiresExplicitOverride(out _) :
+                this.RequiresExplicitOverride() :
                 this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
@@ -872,13 +872,6 @@ done:
                 ShouldEmitNullableContextValue(out byte nullableContextValue))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
-            }
-
-            if (this.RequiresExplicitOverride(out _))
-            {
-                // If present, we add PreserveBaseOverridesAttribute when a methodimpl is used to override a class method.
-                var attr = moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor, isOptionalUse: true);
-                AddSynthesizedAttribute(ref attributes, attr);
             }
 
             bool isAsync = this.IsAsync;

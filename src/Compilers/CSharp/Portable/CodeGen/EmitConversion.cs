@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitOpCode(ILOpCode.Ldvirtftn);
 
                 //  substitute the method with original virtual method
-                method = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
+                method = method.GetConstructedLeastOverriddenMethod(_method.ContainingType);
             }
             else
             {

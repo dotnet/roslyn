@@ -70,10 +70,3 @@
     }
     ```
 
-5. The fix for https://github.com/dotnet/roslyn/issues/44067 generates correct (different) code.
-   In certain cases the compiler used to generate code whose behavior was ambiguous according
-   to the CLR's specification. The compiler used to produce the warning CS1957 in those cases.
-   The compiler now generates correct unambiguous code rather than reporting CS1957. Because
-   it is possible that the runtime behavior of a program will change due to the change in our code
-   generation strategy, this could be a breaking change. If your program did not elicit the warning
-   CS1957 before then this does not affect your code.

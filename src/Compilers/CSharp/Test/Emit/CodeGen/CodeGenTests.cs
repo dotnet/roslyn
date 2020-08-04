@@ -628,14 +628,6 @@ class C
         [Fact, WorkItem(540019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540019")]
         public void TestBug6156()
         {
-            // Note: this test originally required a mismatch between the compile-time view of what the
-            // program should do and the runtime view.  The runtime considers `ref` and `out` to be the
-            // same, so it had a different view of what one method was overriding than C# did.  However,
-            // in the context of implementing the covariant return types feature, we added code in the compiler to
-            // cause the compiler to emit methodimpl records whenever there is a mismatch.  As a consequence
-            // of that, we updated this test to now require that the runtime behavior and the compile-time behavior
-            // of this program match, so that at runtime it obeys the behavior specified by the C#
-            // language specification.
             var source = @"
 class Ref1 
 { public virtual void M(ref int x) { x = 1; } }
@@ -653,64 +645,64 @@ class M
     Ref1 r1;
     r1 = new Ref1();
     r1.M(ref x);
-    System.Console.Write(x); // 1
+    System.Console.Write(x);
     r1 = new Out1();
     r1.M(ref x);
-    System.Console.Write(x); // 1
+    System.Console.Write(x);
     r1 = new Ref2();
     r1.M(ref x);
-    System.Console.Write(x); // 3
+    System.Console.Write(x);
     r1 = new Out2();
     r1.M(ref x);
-    System.Console.WriteLine(x); // 3
+    System.Console.WriteLine(x);
     Out1 o1;
     o1 = new Out1();
     o1.M(ref x);
-    System.Console.Write(x); // 1
+    System.Console.Write(x);
     o1 = new Ref2();
     o1.M(ref x);
-    System.Console.Write(x); // 3
+    System.Console.Write(x);
     o1 = new Out2();
     o1.M(ref x);
-    System.Console.WriteLine(x); // 3
+    System.Console.WriteLine(x);
     Ref2 r2;
     r2 = new Ref2();
     r2.M(ref x);
-    System.Console.Write(x); // 3
+    System.Console.Write(x);
     r2 = new Out2();
     r2.M(ref x);
-    System.Console.WriteLine(x); // 3
+    System.Console.WriteLine(x);
     Out2 o2;
     o2 = new Out2();
     o2.M(ref x);
-    System.Console.WriteLine(x); // 3
+    System.Console.WriteLine(x);
     o1 = new Out1();
     o1.M(out x);
-    System.Console.Write(x); // 2
+    System.Console.Write(x);
     o1 = new Ref2();
     o1.M(out x);
-    System.Console.Write(x); // 2
+    System.Console.Write(x);
     o1 = new Out2();
     o1.M(out x);
-    System.Console.WriteLine(x); // 4
+    System.Console.WriteLine(x);
     r2 = new Ref2();
     r2.M(out x);
-    System.Console.Write(x); // 2
+    System.Console.Write(x);
     r2 = new Out2();
     r2.M(out x);
-    System.Console.WriteLine(x); // 4
+    System.Console.WriteLine(x);
     o2 = new Out2();
     o2.M(out x);
-    System.Console.WriteLine(x); // 4
+    System.Console.WriteLine(x);
   }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
-1133
-133
-33
-3
-224
-24
+1111
+111
+11
+1
+234
+34
 4
 ");
         }

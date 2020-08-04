@@ -2111,7 +2111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var method in this.GetMembers(name).OfType<MethodSymbol>())
             {
-                if (method.IsOverride && method.GetConstructedLeastOverriddenMethod(this, requireSameReturnType: false).ContainingType.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
+                if (method.IsOverride && method.GetConstructedLeastOverriddenMethod(this).ContainingType.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
                 {
                     return true;
                 }

@@ -722,16 +722,6 @@
         <target state="translated">リレーショナル パターンは、浮動小数点の NaN に使用することはできません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
-        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
-        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
-        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
-        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">ターゲット ランタイムは、インターフェイスのメンバーに対して 'protected'、'protected internal'、'private protected' アクセシビリティをサポートしていません。</target>
@@ -1269,11 +1259,6 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">合体代入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -7558,8 +7543,8 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
-        <target state="needs-review-translation">メンバー '{1}' は '{0}' をオーバーライドします。実行時にオーバーライドされる可能性のある候補は複数あります。どのメソッドが呼び出されるかは実装に依存しています。</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
+        <target state="translated">メンバー '{1}' は '{0}' をオーバーライドします。実行時にオーバーライドされる可能性のある候補は複数あります。どのメソッドが呼び出されるかは実装に依存しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
