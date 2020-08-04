@@ -81,6 +81,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private bool ShouldBeTracked(AnalysisEntity analysisEntity)
                 => PointsToAnalysis.ShouldBeTracked(analysisEntity, DataFlowAnalysisContext.PointsToAnalysisKind);
+            private PointsToAbstractValue GetValueForEntityThatShouldNotBeTracked(AnalysisEntity analysisEntity)
+            {
+                Debug.Assert(!ShouldBeTracked(analysisEntity));
+                Debug.Assert(!CurrentAnalysisData.TryGetValue(analysisEntity, out var existingValue) || existingValue == PointsToAbstractValue.NoLocation);
+
+                return !PointsToAnalysis.ShouldBeTracked(analysisEntity.Type) ?
+                    PointsToAbstractValue.NoLocation :
+                    _defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
+            }
 
             public override PointsToAnalysisData Flow(IOperation statement, BasicBlock block, PointsToAnalysisData input)
             {
@@ -141,8 +150,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 if (!ShouldBeTracked(analysisEntity))
                 {
-                    Debug.Assert(!CurrentAnalysisData.TryGetValue(analysisEntity, out var existingValue) || existingValue == PointsToAbstractValue.NoLocation);
-                    return !PointsToAnalysis.ShouldBeTracked(analysisEntity.Type) ? PointsToAbstractValue.NoLocation : PointsToAbstractValue.Unknown;
+                    return GetValueForEntityThatShouldNotBeTracked(analysisEntity);
                 }
 
                 if (!CurrentAnalysisData.TryGetValue(analysisEntity, out var value))
@@ -295,7 +303,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 if (!ShouldBeTracked(analysisEntity))
                 {
-                    return PointsToAbstractValue.NoLocation;
+                    return GetValueForEntityThatShouldNotBeTracked(analysisEntity);
                 }
 
                 var location = AbstractLocation.CreateAllocationLocation(operation, analysisEntity.Type, DataFlowAnalysisContext);
