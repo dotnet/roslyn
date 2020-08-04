@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal interface IDummyLanguageService : ILanguageService { }
 
-    [ExportLanguageService(typeof(IDummyLanguageService), LanguageName), Shared]
+    [ExportLanguageService(typeof(IDummyLanguageService), LanguageName, ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class DummyLanguageService : IDummyLanguageService
     {
         public const string LanguageName = "Dummy";
