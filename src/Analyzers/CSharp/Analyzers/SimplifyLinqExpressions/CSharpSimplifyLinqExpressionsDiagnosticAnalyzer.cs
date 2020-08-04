@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
                 return;
             }
 
-            // check to make sure that .Where is not user defined
-           /* var descendants = context.Node.Parent?.DescendantNodes().Select(m => semanticModel.GetSymbolInfo(m).Symbol);
-            var originalDefinition = descendants.OfType<IMethodSymbol>()?.FirstOrDefault(m => m.OriginalDefinition.Name.Equals("Where"))?.OriginalDefinition;
+           /* // check to make sure that .Where is not user defined
+            var descendants = context.Node.Parent?.DescendantNodes().Select(m => semanticModel.GetSymbolInfo(m).Symbol);
+            var originalDefinition = descendants.OfType<IMethodSymbol>().FirstOrDefault(m => m.OriginalDefinition.Name.Equals("Where")).OriginalDefinition;
             var namedType = context.Compilation?.GetTypeByMetadataName("System.Linq.Enumerable");
             var methods = namedType?.GetMembers("Where").OfType<IMethodSymbol>();
 
             if (originalDefinition != null && !methods.Contains(originalDefinition))
             {
                 return;
-            }*/
-
+            }
+*/
             // check to ensure that the .Where is followed by a call with no predicate
             if (context.Node.Parent is InvocationExpressionSyntax parent && parent.ArgumentList.Arguments.Any())
             {
