@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
         private readonly SearchResult _mergedResult;
 
+        public ISet<RenameLocation> Locations => _mergedResult.Locations;
+        public ImmutableArray<ISymbol> ReferencedSymbols => _mergedResult.ReferencedSymbols;
+        public ImmutableArray<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
+
         private RenameLocations(
             ISymbol symbol,
             Solution solution,
@@ -98,10 +102,6 @@ namespace Microsoft.CodeAnalysis.Rename
                     mergedImplicitLocations.ToImmutable(),
                     mergedReferencedSymbols.ToImmutable()));
         }
-
-        public ISet<RenameLocation> Locations => _mergedResult.Locations;
-        public ImmutableArray<ISymbol> ReferencedSymbols => _mergedResult.ReferencedSymbols;
-        public ImmutableArray<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
 
         /// <summary>
         /// Find the locations that need to be renamed.
