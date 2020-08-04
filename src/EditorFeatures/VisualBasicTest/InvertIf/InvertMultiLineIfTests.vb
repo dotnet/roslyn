@@ -655,5 +655,29 @@ Imports System
 
             Await TestAsync(markup, expected)
         End Function
+
+        <WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function TestNewLineIsPreserved() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Function Main(args As String()) As Integer
+        If [||]False Then
+            Return 0
+        End If
+
+        Return 1
+    End Sub
+End Module",
+"Module Program
+    Function Main(args As String()) As Integer
+        If [||]True Then
+            Return 1
+        End If
+
+        Return 0
+    End Sub
+End Module")
+        End Function
     End Class
 End Namespace
