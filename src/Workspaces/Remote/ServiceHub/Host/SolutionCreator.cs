@@ -16,6 +16,7 @@ using Roslyn.Utilities;
 using System;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -24,14 +25,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SolutionCreator
     {
+        private readonly HostServices _hostServices;
         private readonly AssetProvider _assetProvider;
         private readonly Solution _baseSolution;
         private readonly CancellationToken _cancellationToken;
 
-        public SolutionCreator(AssetProvider assetService, Solution baseSolution, CancellationToken cancellationToken)
+        public SolutionCreator(HostServices hostServices, AssetProvider assetService, Solution baseSolution, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(baseSolution);
-
+            _hostServices = hostServices;
             _assetProvider = assetService;
             _baseSolution = baseSolution;
             _cancellationToken = cancellationToken;
@@ -520,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Remote
             async Task<Solution> CreateSolutionFromScratchAsync(Checksum checksum)
             {
                 var (solutionInfo, options) = await _assetProvider.CreateSolutionInfoAndOptionsAsync(checksum, _cancellationToken).ConfigureAwait(false);
-                var workspace = new TemporaryWorkspace(solutionInfo, options);
+                var workspace = new TemporaryWorkspace(_hostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
                 return workspace.CurrentSolution;
             }
         }

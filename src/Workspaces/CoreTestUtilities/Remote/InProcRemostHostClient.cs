@@ -24,10 +24,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private readonly HostWorkspaceServices _services;
         private readonly InProcRemoteServices _inprocServices;
         private readonly RemoteEndPoint _endPoint;
+        private readonly TraceSource _logger;
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, bool runCacheCleanup)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, RemoteHostTestData testData)
         {
-            var inprocServices = new InProcRemoteServices(runCacheCleanup);
+            var inprocServices = new InProcRemoteServices(testData);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
@@ -57,13 +58,24 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         {
             ClientId = clientId;
             _services = services;
+            _logger = new TraceSource("Default");
 
             _inprocServices = inprocServices;
 
-            _endPoint = new RemoteEndPoint(stream, inprocServices.Logger, incomingCallTarget: this);
+            _endPoint = new RemoteEndPoint(stream, _logger, incomingCallTarget: this);
             _endPoint.Disconnected += OnDisconnected;
             _endPoint.StartListening();
         }
+
+        public static async Task<InProcRemoteHostClient> GetTestClientAsync(Workspace workspace)
+        {
+            var client = (InProcRemoteHostClient?)await TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
+            Contract.ThrowIfNull(client);
+            return client;
+        }
+
+        public RemoteWorkspace GetRemoteWorkspace()
+            => TestData.WorkspaceManager.GetWorkspace();
 
         /// <summary>
         /// Remote API.
@@ -82,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
             => Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
 
-        public AssetStorage AssetStorage => _inprocServices.AssetStorage;
+        public RemoteHostTestData TestData => _inprocServices.TestData;
 
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
             => _inprocServices.RegisterService(serviceName, serviceCreator);
@@ -98,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return new JsonRpcConnection(_services, _inprocServices.Logger, callbackTarget, serviceStream, poolReclamation: null);
+            return new JsonRpcConnection(_services, _logger, callbackTarget, serviceStream, poolReclamation: null);
         }
 
         public override void Dispose()
@@ -113,51 +125,43 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
             => Dispose();
 
-        public class ServiceProvider : IServiceProvider
+        public sealed class ServiceProvider : IServiceProvider
         {
-            private static readonly TraceSource s_traceSource = new TraceSource("inprocRemoteClient");
-            private static readonly RemoteHostService.TestDataProvider s_testDataProvider = new RemoteHostService.TestDataProvider(isInProc: true);
+            public readonly TraceSource TraceSource;
+            public readonly RemoteHostTestData TestData;
 
-            private readonly AssetStorage _storage;
-
-            public ServiceProvider(bool runCacheCleanup)
+            public ServiceProvider(TraceSource traceSource, RemoteHostTestData testData)
             {
-                _storage = runCacheCleanup ?
-                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(5)) :
-                    new AssetStorage();
+                TraceSource = traceSource;
+                TestData = testData;
             }
-
-            public AssetStorage AssetStorage => _storage;
 
             public object GetService(Type serviceType)
             {
                 if (typeof(TraceSource) == serviceType)
                 {
-                    return s_traceSource;
+                    return TraceSource;
                 }
 
-                if (typeof(AssetStorage) == serviceType)
+                if (typeof(RemoteHostTestData) == serviceType)
                 {
-                    return _storage;
-                }
-
-                if (typeof(RemoteHostService.TestDataProvider) == serviceType)
-                {
-                    return s_testDataProvider;
+                    return TestData;
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(serviceType);
             }
         }
 
-        private class InProcRemoteServices
+        private sealed class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
             private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceBase>> _creatorMap;
 
-            public InProcRemoteServices(bool runCacheCleanup)
+            public InProcRemoteServices(RemoteHostTestData testData)
             {
-                _serviceProvider = new ServiceProvider(runCacheCleanup);
+                var remoteLogger = new TraceSource("inprocRemoteClient");
+
+                _serviceProvider = new ServiceProvider(remoteLogger, testData);
                 _creatorMap = new Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceBase>>();
 
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p) => new RemoteHostService(s, p));
@@ -169,8 +173,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 
-            public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
-            public TraceSource Logger { get; } = new TraceSource("Default");
+            public RemoteHostTestData TestData => _serviceProvider.TestData;
 
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
                 => _creatorMap.Add(name, serviceCreator);
@@ -186,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 throw ExceptionUtilities.UnexpectedValue(serviceName);
             }
 
-            private class WrappedStream : Stream
+            private sealed class WrappedStream : Stream
             {
                 private readonly IDisposable _service;
                 private readonly Stream _stream;

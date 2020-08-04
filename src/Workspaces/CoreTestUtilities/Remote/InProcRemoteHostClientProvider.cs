@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
@@ -29,15 +30,37 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 => new InProcRemoteHostClientProvider(workspaceServices);
         }
 
+        private sealed class WorkspaceManager : RemoteWorkspaceManager
+        {
+            private readonly Lazy<RemoteWorkspace> _lazyWorkspace;
+
+            public WorkspaceManager(Type[]? additionalRemoteParts)
+            {
+                _lazyWorkspace = new Lazy<RemoteWorkspace>(
+                    () => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices(), WorkspaceKind.RemoteWorkspace));
+            }
+
+            public override RemoteWorkspace GetWorkspace()
+                => _lazyWorkspace.Value;
+        }
+
         private readonly HostWorkspaceServices _services;
         private readonly AsyncLazy<RemoteHostClient> _lazyClient;
+
+        public AssetStorage? RemoteAssetStorage { get; set; }
+        public Type[]? AdditionalRemoteParts { get; set; }
 
         public InProcRemoteHostClientProvider(HostWorkspaceServices services)
         {
             _services = services;
 
             _lazyClient = new AsyncLazy<RemoteHostClient>(
-                cancellationToken => InProcRemoteHostClient.CreateAsync(_services, runCacheCleanup: false),
+                cancellationToken => InProcRemoteHostClient.CreateAsync(
+                    _services,
+                    new RemoteHostTestData(
+                        RemoteAssetStorage ?? new AssetStorage(),
+                        new WorkspaceManager(AdditionalRemoteParts),
+                        isInProc: true)),
                 cacheResult: true);
         }
 

@@ -8,46 +8,48 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// primary workspace for remote host. no one except solution service can update this workspace
+    /// Workspace created by the remote host that mirrors the corresponding client workspace.
     /// </summary>
-    internal class RemoteWorkspace : Workspace
+    internal sealed class RemoteWorkspace : Workspace
     {
         private readonly ISolutionCrawlerRegistrationService? _registrationService;
 
         // guard to make sure host API doesn't run concurrently
         private readonly object _gate = new object();
 
+        private readonly SemaphoreSlim _solutionSynchronizationGate = new SemaphoreSlim(initialCount: 1);
+
+        // the last solution for the the primary branch fetched from the client
+        private volatile Tuple<Checksum, Solution>? _primaryBranchSolutionWithChecksum;
+
+        // the last solution requested by a service:
+        private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
+
         // this is used to make sure we never move remote workspace backward.
         // this version is the WorkspaceVersion of primary solution in client (VS) we are
         // currently caching
         private int _currentRemoteWorkspaceVersion = -1;
 
-        public RemoteWorkspace()
-            : this(applyStartupOptions: true)
-        {
-        }
-
         // internal for testing purposes.
-        internal RemoteWorkspace(bool applyStartupOptions)
-            : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteWorkspace)
+        internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
+            : base(hostServices, workspaceKind)
         {
             var exportProvider = (IMefHostExportProvider)Services.HostServices;
-            var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
-            primaryWorkspace.Register(this);
-
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
 
-            if (applyStartupOptions)
-                SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
+            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
             _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService?.Register(this);
@@ -60,29 +62,164 @@ namespace Microsoft.CodeAnalysis.Remote
             _registrationService?.Unregister(this);
         }
 
-        // constructor for testing
-        public RemoteWorkspace(string workspaceKind)
-            : base(RoslynServices.HostServices, workspaceKind: workspaceKind)
+        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
         {
+            var serializerService = Services.GetRequiredService<ISerializerService>();
+            return new AssetProvider(solutionInfo.ScopeId, assetStorage, serializerService);
         }
 
-        // this workspace doesn't allow modification by calling TryApplyChanges.
-        // consumer of solution is still free to fork solution as they want, they just can't apply those changes
-        // back to primary workspace. only solution service can update primary workspace
-        public override bool CanApplyChange(ApplyChangesKind feature) => false;
+        public async Task UpdatePrimaryBranchSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
+        {
+            var currentSolution = CurrentSolution;
 
-        public override bool CanOpenDocuments => false;
+            var currentSolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            if (currentSolutionChecksum == solutionChecksum)
+            {
+                return;
+            }
+
+            using (await _solutionSynchronizationGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var solution = await CreateSolution_NoLockAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
+                _primaryBranchSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
+            }
+        }
+
+        /// <summary>
+        /// The workspace is designed to be stateless. If someone asks for a solution (through solution checksum), 
+        /// it will create one and return the solution. The engine takes care of synching required data and creating a solution
+        /// correspoing to the given checksum.
+        /// 
+        /// but doing that from scratch all the time wil be expansive in terms of synching data, compilation being cached, file being parsed
+        /// and etc. so even if the service itself is stateless, internally it has several caches to improve perf of various parts.
+        /// 
+        /// first, it holds onto last solution got built. this will take care of common cases where multiple services running off same solution.
+        /// second, it uses assets cache to hold onto data just synched (within 3 min) so that if it requires to build new solution, 
+        ///         it can save some time to re-sync data which might just used by other solution.
+        /// third, it holds onto solution from primary branch from Host. and it will try to see whether it can build new solution off the
+        ///        primary solution it is holding onto. this will make many solution level cache to be re-used.
+        ///
+        /// the primary solution can be updated in 2 ways.
+        /// first, host will keep track of primary solution changes in host, and call OOP to synch to latest time to time.
+        /// second, engine keeps track of whether a certain request is for primary solution or not, and if it is, 
+        ///         it let that request to update primary solution cache to latest.
+        /// 
+        /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
+        /// solution be not stale as much as possible. (pull)
+        /// </summary>
+        private async Task<Solution> CreateSolution_NoLockAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            Solution baseSolution,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
+
+                // check whether solution is update to the given base solution
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                {
+                    // create updated solution off the baseSolution
+                    var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+
+                    if (fromPrimaryBranch)
+                    {
+                        // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
+                        return UpdateSolutionIfPossible(solution, workspaceVersion);
+                    }
+
+                    // otherwise, just return the solution
+                    return solution;
+                }
+
+                // we need new solution. bulk sync all asset for the solution first.
+                await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                // get new solution info and options
+                var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                if (fromPrimaryBranch)
+                {
+                    // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
+                    if (TrySetCurrentSolution(solutionInfo, workspaceVersion, options, out var solution))
+                    {
+                        return solution;
+                    }
+                }
+
+                // otherwise, just return new solution
+                var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                return workspace.CurrentSolution;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private Solution? GetAvailableSolution(Checksum solutionChecksum)
+        {
+            var currentSolution = _primaryBranchSolutionWithChecksum;
+            if (currentSolution?.Item1 == solutionChecksum)
+            {
+                // asked about primary solution
+                return currentSolution.Item2;
+            }
+
+            var lastSolution = _lastRequestedSolutionWithChecksum;
+            if (lastSolution?.Item1 == solutionChecksum)
+            {
+                // asked about last solution
+                return lastSolution.Item2;
+            }
+
+            return null;
+        }
+
+        public async Task<Solution> GetSolutionAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            CancellationToken cancellationToken)
+        {
+            var availableSolution = GetAvailableSolution(solutionChecksum);
+            if (availableSolution != null)
+            {
+                return availableSolution;
+            }
+
+            // make sure there is always only one that creates a new solution
+            using (await _solutionSynchronizationGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                availableSolution = GetAvailableSolution(solutionChecksum);
+                if (availableSolution != null)
+                {
+                    return availableSolution;
+                }
+
+                var solution = await CreateSolution_NoLockAsync(
+                    assetProvider,
+                    solutionChecksum,
+                    fromPrimaryBranch,
+                    workspaceVersion,
+                    CurrentSolution,
+                    cancellationToken).ConfigureAwait(false);
+
+                _lastRequestedSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
+
+                return solution;
+            }
+        }
 
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, [NotNullWhen(true)] out Solution? solution)
+        internal bool TrySetCurrentSolution(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, [NotNullWhen(true)] out Solution? solution)
         {
-            if (solutionInfo == null)
-            {
-                throw new ArgumentNullException(nameof(solutionInfo));
-            }
-
             lock (_gate)
             {
                 if (workspaceVersion <= _currentRemoteWorkspaceVersion)
@@ -97,13 +234,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // clear previous solution data if there is one
                 // it is required by OnSolutionAdded
-                this.ClearSolutionData();
+                ClearSolutionData();
 
-                this.OnSolutionAdded(solutionInfo);
+                OnSolutionAdded(solutionInfo);
 
                 SetOptions(options);
 
-                solution = this.CurrentSolution;
+                solution = CurrentSolution;
                 return true;
             }
         }
@@ -111,13 +248,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// update primary solution
         /// </summary>
-        public Solution UpdateSolutionIfPossible(Solution solution, int workspaceVersion)
+        internal Solution UpdateSolutionIfPossible(Solution solution, int workspaceVersion)
         {
-            if (solution == null)
-            {
-                throw new ArgumentNullException(nameof(solution));
-            }
-
             lock (_gate)
             {
                 if (workspaceVersion <= _currentRemoteWorkspaceVersion)
@@ -129,10 +261,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // move version forward
                 _currentRemoteWorkspaceVersion = workspaceVersion;
 
-                var oldSolution = this.CurrentSolution;
+                var oldSolution = CurrentSolution;
                 Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
 
-                var newSolution = this.SetCurrentSolution(solution);
+                var newSolution = SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 
                 SetOptions(newSolution.Options);
