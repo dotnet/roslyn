@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             SyntaxNode condition,
             StatementSyntax trueStatement,
             StatementSyntax falseStatementOpt = null,
-            bool shouldAddElasticTrivia = false)
+            bool shouldAddElasticNewLine = false)
         {
             var isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken());
             if (isSingleLine && falseStatementOpt != null)
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
                 updatedIf = updatedIf.WithElse(elseClause);
             }
-            else if (!isSingleLine && shouldAddElasticTrivia)
+            else if (!isSingleLine && shouldAddElasticNewLine)
             {
                 updatedIf = updatedIf.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
             }
