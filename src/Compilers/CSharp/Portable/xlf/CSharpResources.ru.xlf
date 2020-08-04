@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">Позиционная запись должна иметь модификатор "data" и непустой список параметров.</target>
+        <source>A positional record must have a non-empty parameter list</source>
+        <target state="needs-review-translation">Позиционная запись должна иметь модификатор "data" и непустой список параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
@@ -722,6 +722,16 @@
         <target state="translated">Реляционные шаблоны не могут использоваться для NaN с плавающей запятой.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Целевая среда выполнения не поддерживает специальные возможности "защищенный", "внутренний защищенный" или "частный защищенный" для члена интерфейса.</target>
@@ -1259,6 +1269,11 @@
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="translated">назначение объединения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -2386,6 +2401,16 @@
         <target state="translated">Тип значения, допускающего NULL, может быть NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned">
+        <source>The out parameter '{0}' must be assigned to before control leaves the current method</source>
+        <target state="new">The out parameter '{0}' must be assigned to before control leaves the current method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned_Title">
+        <source>An out parameter must be assigned to before control leaves the method</source>
+        <target state="new">An out parameter must be assigned to before control leaves the method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
         <target state="translated">Параметр "{0}" должен иметь значение, отличное от NULL, при выходе с "{1}".</target>
@@ -2404,6 +2429,16 @@
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
         <target state="translated">Параметр должен иметь значение, отличное от NULL, при выходе.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion">
+        <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
+        <target state="new">Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion_Title">
+        <source>Operator cannot be used here due to precedence.</source>
+        <target state="new">Operator cannot be used here due to precedence.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -2556,6 +2591,26 @@
         <target state="translated">Параметр типа имеет то же имя, что и параметр типа во внешнем методе.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedThis">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
+        <target state="new">An auto-implemented property must be fully assigned before control is returned to the caller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThis_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
+        <target state="new">Fields of a struct must be fully assigned in a constructor before control is returned to the caller</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
         <target state="translated">Распаковка-преобразование вероятного значения NULL.</target>
@@ -2594,6 +2649,56 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
         <target state="translated">Поле, не допускающее значение NULL, не инициализировано. Рекомендуется объявить его как допускающее значение NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation">
+        <source>Use of unassigned local variable '{0}'</source>
+        <target state="new">Use of unassigned local variable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField">
+        <source>Use of possibly unassigned field '{0}'</source>
+        <target state="new">Use of possibly unassigned field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField_Title">
+        <source>Use of possibly unassigned field</source>
+        <target state="new">Use of possibly unassigned field</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut">
+        <source>Use of unassigned out parameter '{0}'</source>
+        <target state="new">Use of unassigned out parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut_Title">
+        <source>Use of unassigned out parameter</source>
+        <target state="new">Use of unassigned out parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty">
+        <source>Use of possibly unassigned auto-implemented property '{0}'</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty_Title">
+        <source>Use of possibly unassigned auto-implemented property</source>
+        <target state="new">Use of possibly unassigned auto-implemented property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis">
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
+        <target state="new">The 'this' object cannot be used in a constructor before all of its fields have been assigned</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation_Title">
+        <source>Use of unassigned local variable</source>
+        <target state="new">Use of unassigned local variable</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -3037,8 +3142,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">Переменная объявлена с тем же именем, что и переменная в базовом классе, однако, не было использовано новое ключевое слово. Это предупреждение сообщает о том, что следует использовать новое ключевое слово: переменная объявлена с учетом использования нового ключевого слова в декларации.</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="needs-review-translation">Переменная объявлена с тем же именем, что и переменная в базовом классе, однако, не было использовано новое ключевое слово. Это предупреждение сообщает о том, что следует использовать новое ключевое слово: переменная объявлена с учетом использования нового ключевого слова в декларации.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -3197,8 +3302,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">Не удается создать экземпляр абстрактного класса или интерфейса "{0}".</target>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
+        <target state="needs-review-translation">Не удается создать экземпляр абстрактного класса или интерфейса "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3207,8 +3312,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">Циклическая зависимость базового класса включает "{0}" и "{1}".</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="needs-review-translation">Циклическая зависимость базового класса включает "{0}" и "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">
@@ -3462,8 +3567,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields are assigned to</source>
-        <target state="translated">Невозможно использовать объект this, пока не будут назначены все его поля.</target>
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="needs-review-translation">Невозможно использовать объект this, пока не будут назначены все его поля.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -3707,8 +3812,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
-        <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">Не вызывайте метод Finalize базового класса напрямую. Он вызывается автоматически из деструктора.</target>
+        <source>Do not directly call your base type Finalize method. It is called automatically from your destructor.</source>
+        <target state="needs-review-translation">Не вызывайте метод Finalize базового класса напрямую. Он вызывается автоматически из деструктора.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">
@@ -3792,13 +3897,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Модификатор "partial" может использоваться только перед "class", "struct", "interface" или "void".</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <target state="needs-review-translation">Модификатор "partial" может использоваться только перед "class", "struct", "interface" или "void".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">Недопустимый импортированный тип "{0}". Он содержит циклическую зависимость базового класса.</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="needs-review-translation">Недопустимый импортированный тип "{0}". Он содержит циклическую зависимость базового класса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
@@ -4052,8 +4157,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
-        <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'"{0}": абстрактный класс не может быть запечатанным или статическим.</target>
+        <source>'{0}': an abstract type cannot be sealed or static</source>
+        <target state="needs-review-translation">'"{0}": абстрактный класс не может быть запечатанным или статическим.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -4187,8 +4292,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
-        <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'"{0}": класс не может быть одновременно статическим и запечатанным.</target>
+        <source>'{0}': a type cannot be both static and sealed</source>
+        <target state="needs-review-translation">'"{0}": класс не может быть одновременно статическим и запечатанным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -4426,8 +4531,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'"{0}" является абстрактным, но содержится в классе "{1}", который не является абстрактным.</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="needs-review-translation">'"{0}" является абстрактным, но содержится в классе "{1}", который не является абстрактным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
@@ -4546,8 +4651,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">"{0}": явное объявление интерфейса может содержаться только в классе, структуре или интерфейсе.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">"{0}": явное объявление интерфейса может содержаться только в классе, структуре или интерфейсе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -4586,8 +4691,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
-        <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0}" — новый виртуальный член в запечатанном классе "{1}".</target>
+        <source>'{0}' is a new virtual member in sealed type '{1}'</source>
+        <target state="needs-review-translation">'{0}" — новый виртуальный член в запечатанном классе "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -4606,13 +4711,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'{0}": не разрешено пользовательское преобразование в базовый класс или из базового класса.</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="needs-review-translation">'{0}": не разрешено пользовательское преобразование в базовый класс или из базового класса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'{0}": не разрешено пользовательское преобразование в производный класс или из производного класса.</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="needs-review-translation">'{0}": не разрешено пользовательское преобразование в производный класс или из производного класса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
@@ -4691,8 +4796,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">Имя деструктора должно соответствовать имени класса.</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">Имя деструктора должно соответствовать имени класса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">
@@ -4896,13 +5001,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'"{0}": новый защищенный член объявлен в запечатанном классе</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'"{0}": новый защищенный член объявлен в запечатанном классе</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">Новый защищенный член объявлен в запечатанном классе</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">Новый защищенный член объявлен в запечатанном классе</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -5446,8 +5551,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">Разделяемый метод должен быть объявлен в разделяемом классе, разделяемой структуре или разделяемом интерфейсе</target>
+        <source>A partial method must be declared within a partial type</source>
+        <target state="needs-review-translation">Разделяемый метод должен быть объявлен в разделяемом классе, разделяемой структуре или разделяемом интерфейсе</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -6070,8 +6175,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">Недопустимый токен "{0}" в объявлении класса, структуры или члена интерфейса.</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">Недопустимый токен "{0}" в объявлении класса, структуры или члена интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -6190,8 +6295,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">'{0}", определенный для метода Main, должен быть неуниверсальным классом, структурой или интерфейсом.</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">'{0}", определенный для метода Main, должен быть неуниверсальным классом, структурой или интерфейсом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -6670,8 +6775,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Полю, которое доступно только для чтения, не может быть присвоено значение (значение может быть присвоено только в классе, в котором определено поле: в конструкторе класса или в методе задания значения, вызываемом только при инициализации класса, либо в инициализаторе переменной)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">Полю, которое доступно только для чтения, не может быть присвоено значение (значение может быть присвоено только в классе, в котором определено поле: в конструкторе класса или в методе задания значения, вызываемом только при инициализации класса, либо в инициализаторе переменной)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -7453,8 +7558,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Член "{1}" переопределяет "{0}". Возникает множественное переопределение в ходе выполнения. Реализация зависит от того, какой метод будет вызван.</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="needs-review-translation">Член "{1}" переопределяет "{0}". Возникает множественное переопределение в ходе выполнения. Реализация зависит от того, какой метод будет вызван.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">

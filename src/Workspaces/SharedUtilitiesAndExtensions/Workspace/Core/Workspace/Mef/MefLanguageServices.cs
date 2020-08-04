@@ -77,9 +77,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private Lazy<ILanguageService, LanguageServiceMetadata> PickLanguageService(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services)
         {
-
+            Lazy<ILanguageService, LanguageServiceMetadata> service;
+#if !CODE_STYLE
+            // test layer overrides everything else
+            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
+            {
+                return service;
+            }
+#endif
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspaceServices.Workspace.Kind, services, out var service))
+            if (TryGetServiceByLayer(_workspaceServices.Workspace.Kind, services, out service))
             {
                 return service;
             }
