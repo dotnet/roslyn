@@ -8,9 +8,7 @@ Option Strict Off
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Reflection
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -26,13 +24,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTest
         Protected Const DestinationDocument = "DestinationDocument"
 
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
-            GetType(TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService))
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
+        Private Shared ReadOnly s_composition As TestComposition = s_compositionWithMockDiagnosticUpdateSourceRegistrationService _
+            .AddParts(GetType(TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService))
 
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Async Function TestMissing(definition As XElement) As Task
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = TestWorkspace.Create(definition, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnosticAndFix)
             End Using
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             Optional verifySolutions As Func(Of Solution, Solution, Task) = Nothing,
                             Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing,
                             Optional glyphTags As ImmutableArray(Of String) = Nothing) As Task
-            Using workspace = TestWorkspace.CreateWorkspace(definition)
+            Using workspace = TestWorkspace.CreateWorkspace(definition, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 onAfterWorkspaceCreated?.Invoke(workspace)
 
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
@@ -179,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Dim root = Await document.GetSyntaxRootAsync()
             Dim start = syntaxFacts.GetContainingMemberDeclaration(root, invocationPoint)
 
-            Dim result = Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, start.FullSpan)
+            Dim result = Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, start.FullSpan)
 
             '' currently, we don't test compilation level user diagnostic
             Return Tuple.Create(document, result.Where(Function(d) d.Location.SourceSpan.IntersectsWith(invocationPoint)))
@@ -190,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                               expectedProjectReferenceTo As String,
                                               Optional index As Integer = 0) As Task
 
-            Using workspace = TestWorkspace.Create(xmlDefinition)
+            Using workspace = TestWorkspace.Create(xmlDefinition, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
