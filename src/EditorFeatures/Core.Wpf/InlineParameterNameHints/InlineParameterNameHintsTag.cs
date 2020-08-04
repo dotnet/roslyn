@@ -160,11 +160,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// <summary>
         /// Determines if the border is being moused over and shows the info accordingly
         /// </summary>
-        private async void Border_ToolTipOpening(object sender, ToolTipEventArgs e)
+        private void Border_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
             var border = (Border)sender;
             e.Handled = true;
-            var uiList = await CreateDescriptionAsync(CancellationToken.None).ConfigureAwait(false);
 
             bool KeepOpen()
             {
@@ -172,7 +171,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 return !(mousePoint.X > border.ActualWidth || mousePoint.X < 0 || mousePoint.Y > border.ActualHeight || mousePoint.Y < 0);
             }
 
-            _toolTipService.CreatePresenter(_textView, new ToolTipParameters(true, false, KeepOpen)).StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
+            var toolTipPresenter = _toolTipService.CreatePresenter(_textView, new ToolTipParameters(true, false, KeepOpen));
+            var startToolTip = StartToolTipServiceAsync(toolTipPresenter);
+        }
+
+        /// <summary>
+        /// Waits for the description to be created and updates the tooltip with the associated information
+        /// </summary>
+        private async Task<IReadOnlyCollection<object>> StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
+        {
+            var uiList = await CreateDescriptionAsync(CancellationToken.None).ConfigureAwait(false);
+            toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
+            return uiList;
         }
     }
 }
