@@ -47,15 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var syntaxTree = context.Node.SyntaxTree;
             var semanticModel = context.SemanticModel;
 
-            // check that this is linq to object and not something else
-
             // linq was implemented in C# 3.0, return is language version is less that 3.0
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp3)
             {
                 return;
             }
 
-            // check if it is SimpleMemberAccessExpression is Collection.Where(...)
+            // check if it is SimpleMemberAccessExpression is of the form Collection.Where(...)
             if (memberAccess == null ||
                 invocation == null ||
                 !(invocation.Expression is MemberAccessExpressionSyntax expression) ||
@@ -65,16 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             }
 
             // check to make sure that .Where is not user defined
+           /* var descendants = context.Node.Parent?.DescendantNodes().Select(m => semanticModel.GetSymbolInfo(m).Symbol);
+            var originalDefinition = descendants.OfType<IMethodSymbol>()?.FirstOrDefault(m => m.OriginalDefinition.Name.Equals("Where"))?.OriginalDefinition;
             var namedType = context.Compilation?.GetTypeByMetadataName("System.Linq.Enumerable");
             var methods = namedType?.GetMembers("Where").OfType<IMethodSymbol>();
-
-            var descendants = context.Node.Parent?.DescendantNodes().Select(m => semanticModel.GetSymbolInfo(m).Symbol);
-            var originalDefinition = descendants.OfType<IMethodSymbol>()?.FirstOrDefault(m => m.OriginalDefinition.Name.Equals("Where"))?.OriginalDefinition;
 
             if (originalDefinition != null && !methods.Contains(originalDefinition))
             {
                 return;
-            }
+            }*/
 
             // check to ensure that the .Where is followed by a call with no predicate
             if (context.Node.Parent is InvocationExpressionSyntax parent && parent.ArgumentList.Arguments.Any())
@@ -84,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
             // check if .Where() is followed by one of First, Last, Single, Any, Count, SingleOrDefault, FirstOrDefault, LastOrDefault
             if (!validIdentifiers.Contains(memberAccess.Name.Identifier.ValueText, StringComparer.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (context.Compilation == null)
             {
                 return;
             }
