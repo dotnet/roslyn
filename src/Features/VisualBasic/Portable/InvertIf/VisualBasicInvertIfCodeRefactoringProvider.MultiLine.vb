@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return ifNode.ElseBlock.Statements
         End Function
 
-        Protected Overrides Function ShouldAddElasicTrivia(statementsAfterIf As IEnumerable(Of StatementSyntax)) As Boolean
+        Protected Overrides Function ShouldAddElasticTrivia(statementsAfterIf As IEnumerable(Of StatementSyntax)) As Boolean
             Return False
         End Function
 

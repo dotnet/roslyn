@@ -398,6 +398,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
         protected abstract bool CanInvert(TIfStatementSyntax ifNode);
         protected abstract bool IsElseless(TIfStatementSyntax ifNode);
 
+        protected abstract bool ShouldAddElasticTrivia(IEnumerable<TStatementSyntax> statementsAfterIf);
+
         protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
         protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
 
@@ -478,7 +480,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                         var ifBody = GetIfBody(ifNode);
 
-                        var shouldAddElasicTrivia = ShouldAddElasicTrivia(statementsAfterIf);
+                        var shouldAddElasicTrivia = ShouldAddElasticTrivia(statementsAfterIf);
 
                         var updatedIf = UpdateIf(
                             text,
@@ -598,8 +600,6 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     throw ExceptionUtilities.UnexpectedValue(invertIfStyle);
             }
         }
-
-        protected abstract bool ShouldAddElasicTrivia(IEnumerable<TStatementSyntax> statementsAfterIf);
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
