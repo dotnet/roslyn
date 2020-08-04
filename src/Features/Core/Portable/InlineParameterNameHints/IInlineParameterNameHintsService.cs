@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
             Position = position;
         }
 
+        public readonly SymbolKey ParameterSymbolKey { get; }
         public readonly string Name { get; }
         public readonly int Position { get; }
-        public readonly SymbolKey ParameterSymbolKey { get; }
     }
 
     internal interface IInlineParameterNameHintsService : ILanguageService

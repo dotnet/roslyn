@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// </summary>
     internal class InlineParameterNameHintDataTag : ITag
     {
-        public readonly string ParameterName;
         public readonly SymbolKey ParameterSymbolKey;
+        public readonly string ParameterName;
 
         public InlineParameterNameHintDataTag(SymbolKey symbolKey, string parameterName)
         {
@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 throw new ArgumentException("Must have a length greater than 0", nameof(parameterName));
             }
 
-            ParameterName = parameterName;
             ParameterSymbolKey = symbolKey;
+            ParameterName = parameterName;
         }
     }
 }
