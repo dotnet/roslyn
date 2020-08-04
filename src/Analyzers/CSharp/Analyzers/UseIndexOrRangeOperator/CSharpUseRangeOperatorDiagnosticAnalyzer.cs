@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static bool IsConstantInt32(IOperation operation)
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
 
-        private static bool isWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)
+        private static bool IsWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)
         {
             var refReturnMismatch = indexer.ReturnsByRef != invocation.TargetMethod.ReturnsByRef;
             var indexerIsReadWrite = indexer.IsWriteableFieldOrProperty();
