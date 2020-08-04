@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get;
         }
 
-        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity)
         {
             return new ExtendedErrorTypeSymbol(
                        container.EnsureCSharpSymbolOrNull(nameof(container)),
