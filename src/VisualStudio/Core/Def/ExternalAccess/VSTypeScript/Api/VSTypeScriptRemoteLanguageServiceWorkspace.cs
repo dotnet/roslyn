@@ -3,13 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
     /// <summary>
-    /// Used to acquire the RemoteLanguageServiceWorkspace. Its members should be accessed by casting to <see cref="Workspace"/>.
+    /// Used by TypeScript to acquire the RemoteLanguageServiceWorkspace.
     /// </summary>
-    interface IVsTypeScriptRemoteLanguageServiceWorkspace
+    internal abstract class VSTypeScriptRemoteLanguageServiceWorkspace : Workspace
     {
+        protected VSTypeScriptRemoteLanguageServiceWorkspace(HostServices host, string workspaceKind) : base(host, workspaceKind)
+        {
+        }
     }
 }

@@ -40,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     /// A Roslyn workspace that contains projects that exist on a remote machine.
     /// </summary>
     [Export(typeof(RemoteLanguageServiceWorkspace))]
-    [Export(typeof(IVsTypeScriptRemoteLanguageServiceWorkspace))]
-    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IRunningDocumentTableEventListener, IVsTypeScriptRemoteLanguageServiceWorkspace
+    [Export(typeof(VSTypeScriptRemoteLanguageServiceWorkspace))]
+    internal sealed class RemoteLanguageServiceWorkspace : VSTypeScriptRemoteLanguageServiceWorkspace, IDisposable, IRunningDocumentTableEventListener
     {
         /// <summary>
         /// Gate to make sure we only update the paths and trigger RDT one at a time.
