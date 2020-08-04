@@ -5,9 +5,8 @@
 Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
-Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -19,6 +18,10 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
     Public Class RenameTagProducerTests
+        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
+            Return workspace.ExportProvider.GetCommandHandler(Of RenameCommandHandler)(PredefinedCommandHandlerNames.Rename)
+        End Function
+
         Private Shared Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, SpecializedCollections.EmptyEnumerable(Of Span))
         End Function
@@ -565,9 +568,7 @@ class C
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(
-                    workspace.GetService(Of IThreadingContext)(),
-                    workspace.GetService(Of InlineRenameService))
+                Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim session = StartSession(workspace)
                 textBuffer.Replace(New Span(location, 3), "Goo")
@@ -1073,9 +1074,7 @@ End Class
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(
-                    workspace.GetService(Of IThreadingContext)(),
-                    workspace.GetService(Of InlineRenameService))
+                Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim textViewService = Assert.IsType(Of TextBufferAssociatedViewService)(workspace.ExportProvider.GetExportedValue(Of ITextBufferAssociatedViewService)())
                 Dim buffers = New Collection(Of ITextBuffer)
@@ -1157,9 +1156,7 @@ End Class
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(
-                    workspace.GetService(Of IThreadingContext)(),
-                    workspace.GetService(Of InlineRenameService))
+                Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim textViewService = Assert.IsType(Of TextBufferAssociatedViewService)(workspace.ExportProvider.GetExportedValue(Of ITextBufferAssociatedViewService)())
                 Dim buffers = New Collection(Of ITextBuffer)
