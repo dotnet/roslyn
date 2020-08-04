@@ -104,14 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private static bool CanRename(RenameCommandArgs args)
         {
-            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
-                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                !args.SubjectBuffer.SupportsRename())
-            {
-                return false;
-            }
-
-            return true;
+            return args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
+                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+                args.SubjectBuffer.SupportsRename();
         }
 
         private static void ShowErrorDialog(Workspace workspace, string message)
