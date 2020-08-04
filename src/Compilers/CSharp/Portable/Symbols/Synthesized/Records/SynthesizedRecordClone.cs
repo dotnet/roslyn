@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        // Note: this method was replicated in SymbolDisplayVisitor.FindValidCloneMethod
         internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             MethodSymbol? candidate = null;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (candidate is object)
                     {
-                        // An ammbiguity case, can come from metadata, treat as an error for simplicity.
+                        // An ambiguity case, can come from metadata, treat as an error for simplicity.
                         return null;
                     }
 

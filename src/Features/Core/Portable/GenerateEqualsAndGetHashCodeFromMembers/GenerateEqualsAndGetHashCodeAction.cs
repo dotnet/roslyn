@@ -80,8 +80,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
                 }
 
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var newTypeDeclaration = CodeGenerator.AddMemberDeclarations(
-                    _typeDeclaration, methods, _document.Project.Solution.Workspace);
+                    _typeDeclaration, methods, _document.Project.Solution.Workspace,
+                    new CodeGenerationOptions(options: options));
 
                 if (constructedTypeToImplement is object)
                 {

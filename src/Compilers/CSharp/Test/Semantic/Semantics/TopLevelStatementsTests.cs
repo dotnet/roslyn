@@ -620,7 +620,7 @@ class Test
             var comp = CreateCompilation(text, parseOptions: DefaultParseOptions);
 
             var expected = new[] {
-                // (4,29): error CS1519: Invalid token '(' in class, struct, or interface member declaration
+                // (4,29): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 29),
                 // (4,30): error CS1031: Type expected
@@ -632,7 +632,7 @@ class Test
                 // (4,30): error CS1026: ) expected
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""Hi!""").WithLocation(4, 30),
-                // (4,30): error CS1519: Invalid token '"Hi!"' in class, struct, or interface member declaration
+                // (4,30): error CS1519: Invalid token '"Hi!"' in class, record, struct, or interface member declaration
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @"""Hi!""").WithArguments(@"""Hi!""").WithLocation(4, 30)
                 };
@@ -4388,7 +4388,7 @@ localI();
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
-                // (14,14): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                // (14,14): error CS0751: A partial method must be declared within a partial type
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "localG").WithLocation(14, 14),
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context

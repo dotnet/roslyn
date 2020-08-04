@@ -503,14 +503,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim diagnostic = (Await workspace.CurrentSolution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
 
                 Dim helpMessage = diagnostic.GetBingHelpMessage(workspace.Options)
-                Assert.Equal("Invalid token '111' in class, struct, or interface member declaration", helpMessage)
+                Assert.Equal("Invalid token '111' in class, record, struct, or interface member declaration", helpMessage)
 
                 ' turn off custom type search
                 Dim optionServices = workspace.Services.GetService(Of IOptionService)()
                 optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch, False))
 
                 Dim helpMessage2 = diagnostic.GetBingHelpMessage(optionServices.GetOptions())
-                Assert.Equal("Invalid token '{0}' in class, struct, or interface member declaration", helpMessage2)
+                Assert.Equal("Invalid token '{0}' in class, record, struct, or interface member declaration", helpMessage2)
             End Using
         End Function
 

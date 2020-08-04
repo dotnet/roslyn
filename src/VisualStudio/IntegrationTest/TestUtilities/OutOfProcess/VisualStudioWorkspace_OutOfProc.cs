@@ -15,12 +15,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent
     {
         private readonly VisualStudioWorkspace_InProc _inProc;
-        private readonly VisualStudioInstance _instance;
 
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
         public void SetOptionInfer(string projectName, bool value)
