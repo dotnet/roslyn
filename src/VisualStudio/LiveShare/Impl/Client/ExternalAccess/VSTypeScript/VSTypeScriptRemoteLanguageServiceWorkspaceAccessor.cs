@@ -7,7 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.ExternalAccess.VSTypeScript
 {
     [Export(typeof(IVsTypeScriptRemoteLanguageServiceWorkspaceAccessor))]
     internal sealed class VSTypeScriptRemoteLanguageServiceWorkspaceAccessor : IVsTypeScriptRemoteLanguageServiceWorkspaceAccessor
