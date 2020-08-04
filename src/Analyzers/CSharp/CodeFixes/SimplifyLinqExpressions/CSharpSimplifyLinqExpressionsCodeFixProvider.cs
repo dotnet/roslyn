@@ -60,14 +60,24 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
                 var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
 
                 // Get the data or object the query is being called on
-                var objectNode = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
-                var objectInvokedOn = ((InvocationExpressionSyntax)objectNode).Expression;
-
-                //Create the new node
-                var newNode = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
-                    SyntaxFactory.InvocationExpression(objectInvokedOn), memberAccess.Name))
+                var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
+                SyntaxNode newNode;
+                if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression))
+                {
+                    newNode = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    (InvocationExpressionSyntax)objectNodeSyntax, memberAccess.Name))
                                            .WithArgumentList(lambda);
+                }
+                else
+                {
+                    newNode = SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text),
+                                        SyntaxFactory.IdentifierName(memberAccess.Name.Identifier.Text)))
+                                .WithArgumentList(lambda);
+                };
                 editor.ReplaceNode(node.Parent, newNode);
             }
         }

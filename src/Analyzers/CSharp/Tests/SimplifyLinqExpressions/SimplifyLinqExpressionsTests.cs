@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
             => (new CSharpSimplifyLinqExpressionsDiagnosticAnalyzer(), new CSharpSimplifyLinqExpressionsCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
-        public async Task TestBasicCase1()
+        public async Task TestEnumerableType()
 
         {
             var source = @"
@@ -61,7 +61,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
-        public async Task TestBasicCase2()
+        public async Task TestEnumerableFromQueryType()
 
         {
             var source = @"
@@ -92,7 +92,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
-        public async Task TestBasicCase3()
+        public async Task TestEnumerableListType()
 
         {
             var source = @"
@@ -104,7 +104,7 @@ class Test
 {
     static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
 
-        var _test2 = [||]_test1.Where(x => x == '!').Any();
+    var _test2 = [||]_test1.Where(x => x == '!').Any();
 }";
             var fixedSource = @"
 using System;
@@ -115,7 +115,7 @@ class Test
 {
     static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
 
-        var _test2 = _test1.Any(x => x == '!');
+    var _test2 = _test1.Any(x => x == '!');
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
