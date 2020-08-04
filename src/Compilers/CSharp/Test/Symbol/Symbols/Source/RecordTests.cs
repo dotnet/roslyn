@@ -1177,6 +1177,21 @@ partial record C
         }
 
         [Fact]
+        public void PartialTypes_04_PartialBeforeModifiers()
+        {
+            var src = @"
+partial public record C
+{
+}
+";
+            CreateCompilation(src).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // partial public record C
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
         public void DataClassAndStruct()
         {
             var src = @"
