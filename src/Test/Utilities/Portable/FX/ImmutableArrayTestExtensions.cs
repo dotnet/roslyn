@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -24,8 +22,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="path">File path.</param>
         internal static void WriteToFile(this ImmutableArray<byte> bytes, string path)
         {
-            using var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, BufferSize);
-            WriteToStream(bytes, fileStream);
+            try
+            {
+                using var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, BufferSize);
+                WriteToStream(bytes, fileStream);
+            }
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException($"Path '{path}'", e);
+            }
         }
 
         internal static void WriteToStream(this ImmutableArray<byte> bytes, Stream stream)
