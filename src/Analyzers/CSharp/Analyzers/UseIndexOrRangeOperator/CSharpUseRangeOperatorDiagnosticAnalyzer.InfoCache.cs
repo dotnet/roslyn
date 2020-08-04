@@ -128,10 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-range-support
                 if (sliceLikeMethod.ReturnType.Equals(containingType))
                 {
-                    var indexer = GetIndexer(containingType, RangeType, containingType);
-
                     // it's a method like:  MyType MyType.Get(int start, int length).  Look for an
                     // indexer like  `MyType MyType.this[Range range]`.
+                    var indexer = GetIndexer(containingType, RangeType, containingType);
                     if (indexer != null)
                     {
                         return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
