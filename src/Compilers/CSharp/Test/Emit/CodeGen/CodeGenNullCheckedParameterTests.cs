@@ -18,7 +18,7 @@ using System;
 public class C
 {
     public static void Main() { }
-    public void M(string input!) { }
+    public void M(string input!!) { }
 }";
 
             // Release
@@ -58,7 +58,7 @@ using System;
 public class C
 {
     public static void Main() { }
-    public void M(string x, string y!) { }
+    public void M(string x, string y!!) { }
 }
 ";
 
@@ -98,7 +98,7 @@ public class C
 class C
 {
     public static void Main() { }
-    void M(string name! = ""rose"") { }
+    void M(string name!! = ""rose"") { }
 }";
 
             // Release
@@ -137,7 +137,7 @@ class C
 class Box 
 {
     public static void Main() { }
-    public static int operator+ (Box b!, Box c)  
+    public static int operator+ (Box b!!, Box c)  
     { 
         return 2;
     }
@@ -187,7 +187,7 @@ class C
 {
     void M()
     {
-        M2(__arglist(1!, 'M'));
+        M2(__arglist(1!!, 'M'));
     }
     void M2(__arglist)
     {
@@ -229,7 +229,7 @@ class C
             var source = @"
 class C
 {
-    public string this[string index!] => null;
+    public string this[string index!!] => null;
     public static void Main() { }
 }";
 
@@ -272,7 +272,7 @@ using System;
 class C
 {
     private object[] items = {'h', ""hello""};
-    public string this[object item!]
+    public string this[object item!!]
     {
         get
         {
@@ -335,7 +335,7 @@ class C
             var source = @"
 class C
 {
-    object this[object index!] { set { } }
+    object this[object index!!] { set { } }
     public static void Main() { }
 }";
             // Release
@@ -374,11 +374,11 @@ class C
             var source = @"
 class A<T>
 {
-    internal virtual void M<U>(U u!) where U : T { }
+    internal virtual void M<U>(U u!!) where U : T { }
 }
 class B1<T> : A<T> where T : class
 {
-    internal override void M<U>(U u!) { }
+    internal override void M<U>(U u!!) { }
 }
 ";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -414,11 +414,11 @@ class B1<T> : A<T> where T : class
             var source = @"
 class A<T>
 {
-    internal virtual void M<U>(U u!) where U : T { }
+    internal virtual void M<U>(U u!!) where U : T { }
 }
 class B3<T> : A<T?> where T : struct
 {
-    internal override void M<U>(U u!) { }
+    internal override void M<U>(U u!!) { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B3<T>.M<U>(U)", @"
@@ -441,11 +441,11 @@ class B3<T> : A<T?> where T : struct
             var source = @"
 class A<T>
 {
-    internal virtual void M<U>(U u!) where U : T { }
+    internal virtual void M<U>(U u!!) where U : T { }
 }
 class B5 : A<object>
 {
-    internal override void M<U>(U u!) { }
+    internal override void M<U>(U u!!) { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B5.M<U>(U)", @"
@@ -468,7 +468,7 @@ class B5 : A<object>
             var source = @"
 class C
 {
-    void M<T>(T value!) where T : notnull { }
+    void M<T>(T value!!) where T : notnull { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.M<T>(T)", @"
@@ -531,7 +531,7 @@ System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
 using System;
 class Program
 {
-    static void M(int? i!)
+    static void M(int? i!!)
     {
     }
     static void Main()
@@ -564,11 +564,11 @@ System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
 using System;
 class A<T>
 {
-    internal virtual void M<U>(U u!) where U : T { }
+    internal virtual void M<U>(U u!!) where U : T { }
 }
 class B1<T> : A<T> where T : class
 {
-    internal override void M<U>(U u!) { }
+    internal override void M<U>(U u!!) { }
 }
 class Program
 {
@@ -603,11 +603,11 @@ System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
 using System;
 class A<T>
 {
-    internal virtual void M<U>(U u!) where U : T { }
+    internal virtual void M<U>(U u!!) where U : T { }
 }
 class B3<T> : A<T?> where T : struct
 {
-    internal override void M<U>(U u!) { }
+    internal override void M<U>(U u!!) { }
 }
 class Program
 {
@@ -642,11 +642,11 @@ System.ArgumentNullException", parseOptions: TestOptions.RegularPreview);
 using System;
 class A<T>
 {
-    internal virtual void M<U>(U u!) where U : T { }
+    internal virtual void M<U>(U u!!) where U : T { }
 }
 class B5 : A<object>
 {
-    internal override void M<U>(U u!) { }
+    internal override void M<U>(U u!!) { }
 }
 class Program
 {
@@ -705,7 +705,7 @@ class C
 {
     public void M()
     {
-        Func<string, string> func1 = x! => x;
+        Func<string, string> func1 = x!! => x;
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -732,7 +732,7 @@ class C
 {
     public void M()
     {
-        Func<string, string, string> func1 = (x!, y) => x;
+        Func<string, string, string> func1 = (x!!, y) => x;
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -759,7 +759,7 @@ class C
 {
     public void M()
     {
-        Func<string, string, string> func1 = (x!, y!) => x;
+        Func<string, string, string> func1 = (x!!, y!!) => x;
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -791,7 +791,7 @@ class C
 {
     public void M()
     {
-        Func<string, string> func1 = _! => null;
+        Func<string, string> func1 = _!! => null;
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -816,7 +816,7 @@ class C
 using System;
 class C
 {
-    Func<string, string> func1 = x! => x;
+    Func<string, string> func1 = x!! => x;
     public void M()
     {
     }
@@ -846,7 +846,7 @@ class C
     public void M()
     {
         InnerM(""hello world"");
-        void InnerM(string x!) { }
+        void InnerM(string x!!) { }
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -873,7 +873,7 @@ class C
     public void M()
     {
         InnerM(""hello"",  ""world"");
-        void InnerM(string x!, string y) { }
+        void InnerM(string x!!, string y) { }
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -900,7 +900,7 @@ class C
     public void M()
     {
         InnerM(""hello"",  ""world"");
-        void InnerM(string x!, string y!) { }
+        void InnerM(string x!!, string y!!) { }
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -932,7 +932,7 @@ class C
     public void M(string x)
     {
         InnerM(""hello"");
-        void InnerM(string x!) { }
+        void InnerM(string x!!) { }
     }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -964,7 +964,7 @@ class C
 using System;
 class C
 {
-    public void M(string x!)
+    public void M(string x!!)
     {
         InnerM(""hello"");
         void InnerM(string x) { }
@@ -998,7 +998,7 @@ class C
             var source = @"
 class C
 {
-    public C(string x!) { }
+    public C(string x!!) { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
@@ -1026,7 +1026,7 @@ class B
 }
 class C : B
 {
-    public C(string x!) : base(x) { }
+    public C(string x!!) : base(x) { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
@@ -1060,7 +1060,7 @@ class C : B
 class C
 {
     public C() { }
-    public C(string x!) : this() { }
+    public C(string x!!) : this() { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
@@ -1085,7 +1085,7 @@ class C
 class C
 {
     int y = 5;
-    public C(string x!) { }
+    public C(string x!!) { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C..ctor(string)", @"
@@ -1112,7 +1112,7 @@ class C
             var source = @"
 class C
 {
-    object Local(object arg!) => arg;
+    object Local(object arg!!) => arg;
     public static void Main() { }
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
@@ -1137,7 +1137,7 @@ class C
 using System;
 class C
 {
-    public Func<string, string> M(string s1!) => s2! => s2 + s1;
+    public Func<string, string> M(string s1!!) => s2!! => s2 + s1;
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("C.<>c__DisplayClass0_0.<M>b__0(string)", @"
@@ -1189,7 +1189,7 @@ class C
 using System.Collections.Generic;
 class C
 {
-    IEnumerable<char> GetChars(string s!)
+    IEnumerable<char> GetChars(string s!!)
     {
         foreach (var c in s)
         {
@@ -1232,7 +1232,7 @@ class Iterators
     void Use()
     {
         IEnumerable<char> e = GetChars(""hello"");
-        IEnumerable<char> GetChars(string s!)
+        IEnumerable<char> GetChars(string s!!)
         {
             foreach (var c in s)
             {
@@ -1271,7 +1271,7 @@ class Iterators
     void Use()
     {
         IEnumerator<char> e = GetChars(""hello"");
-        IEnumerator<char> GetChars(string s!)
+        IEnumerator<char> GetChars(string s!!)
         {
             foreach (var c in s)
             {
@@ -1308,7 +1308,7 @@ using System;
 using System.Collections.Generic;
 class Program
 {
-    IEnumerable<char> GetChars(string s!)
+    IEnumerable<char> GetChars(string s!!)
     {
         foreach (var c in s)
         {
@@ -1355,7 +1355,7 @@ class Program
 {
     public static void Main()
     {
-        Func<string, string> func = x! => x;
+        Func<string, string> func = x!! => x;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -1363,7 +1363,7 @@ class Program
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
                     // (7,37): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
-                    //         Func<string, string> func = x! => x;
+                    //         Func<string, string> func = x!! => x;
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 37));
         }
 
@@ -1377,7 +1377,7 @@ class Program
     public static void Main()
     {
         M(""ok"");
-        void M(string x!) { }
+        void M(string x!!) { }
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -1385,7 +1385,7 @@ class Program
             comp.MakeTypeMissing(WellKnownType.System_ArgumentNullException);
             comp.VerifyDiagnostics(
                     // (7,23): error CS0656: Missing compiler required member 'System.ArgumentNullException..ctor'
-                    //         void M(string x!) { }
+                    //         void M(string x!!) { }
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ArgumentNullException", ".ctor").WithLocation(7, 23));
         }
 
@@ -1397,7 +1397,7 @@ using System.Collections.Generic;
 class C
 {
     public static void Main() { }
-    static IEnumerable<char> GetChars(string s!)
+    static IEnumerable<char> GetChars(string s!!)
     {
         yield break;
     }
@@ -1425,7 +1425,7 @@ using System.Collections.Generic;
 class C
 {
     public static void Main() { }
-    static IEnumerator<char> GetChars(string s!)
+    static IEnumerator<char> GetChars(string s!!)
     {
         yield break;
     }
@@ -1452,7 +1452,7 @@ class C
 class C
 {
     public static void Main() { }
-    public void M(params int[] number!) {}
+    public void M(params int[] number!!) {}
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.M(params int[])", @"
 {
