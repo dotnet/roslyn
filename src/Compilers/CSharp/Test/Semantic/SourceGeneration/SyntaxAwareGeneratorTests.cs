@@ -214,10 +214,8 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
-            Exception ex = new Exception("Test Exception");
-
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => throw ex),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => throw new Exception("Test Exception")),
                 onExecute: (e) => { }
                 );
 
@@ -231,7 +229,7 @@ class C
             Assert.Single(results.Results[0].Diagnostics);
 
             Assert.NotNull(results.Results[0].Exception);
-            Assert.Equal("Test Exception", ex.Message);
+            Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
             outputDiagnostics.Verify(
                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
@@ -259,10 +257,8 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
-            Exception ex = new Exception("Test Exception");
-
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw ex; })),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw new Exception("Test Exception"); })),
                 onExecute: (e) => { e.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)); }
                 );
 
@@ -276,7 +272,7 @@ class C
             Assert.Single(results.Results[0].Diagnostics);
 
             Assert.NotNull(results.Results[0].Exception);
-            Assert.Equal("Test Exception", ex.Message);
+            Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
             outputDiagnostics.Verify(
                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
@@ -304,10 +300,8 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
-            Exception ex = new Exception("Test Exception");
-
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw ex; })),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw new Exception("Test Exception"); })),
                 onExecute: (e) => { }
                 );
 
@@ -327,7 +321,7 @@ class C
 
             Assert.Single(results.Results[0].Diagnostics);
             Assert.NotNull(results.Results[0].Exception);
-            Assert.Equal("Test Exception", ex.Message);
+            Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
             Assert.Empty(results.Results[1].Diagnostics);
 

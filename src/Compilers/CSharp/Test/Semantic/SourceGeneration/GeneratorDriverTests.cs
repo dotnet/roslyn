@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
@@ -862,7 +863,44 @@ class C { }
 
             Assert.Equal(3, results.Diagnostics.Length);
             Assert.Equal(3, fullDiagnostics.Length);
-            Assert.True(results.Diagnostics.SequenceEqual(fullDiagnostics));
+            AssertEx.Equal(results.Diagnostics, fullDiagnostics);
+        }
+
+        [Fact]
+        public void Cancellation_During_Execution_Doesnt_Report_As_Generator_Error()
+        {
+            var source = @"
+class C 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { },
+                onExecute: (e) => { cts.Cancel(); }
+                );
+
+            // test generator cancels the token. Check that the call to this generator doesn't make it look like it errored.
+            var testGenerator2 = new CallbackGenerator2(
+                onInit: (i) => { },
+                onExecute: (e) => { e.AddSource("a", SourceText.From("public class E {}", Encoding.UTF8)); }
+                );
+
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator, testGenerator2), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            var oldDriver = driver;
+
+            Assert.Throws<OperationCanceledException>(() =>
+               driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics, cts.Token)
+               );
+            Assert.Same(oldDriver, driver);
         }
     }
 }

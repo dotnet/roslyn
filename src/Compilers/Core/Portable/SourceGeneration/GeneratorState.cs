@@ -9,6 +9,16 @@ using System.Diagnostics;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// Represents the current state of a generator
+    /// </summary>
+    /// <remarks>
+    /// A generator state is essentially a small state machine:
+    ///     1. We start with just info
+    ///     2. We can optionally set a receiver that will be used in the next iteration
+    ///     3. We set either the result or error of the iteration that just happened
+    ///     4. We either go back to state 2 or 3.
+    /// </remarks>
     internal readonly struct GeneratorState
     {
         public GeneratorState(GeneratorInfo info)
@@ -38,8 +48,15 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
 
+        /// <summary>
+        /// Called to save the created syntax receiver
+        /// </summary>
+        /// <remarks>
+        /// We retain the existing state, as it may be needed for the upcoming generation pass.
+        /// </remarks>
         internal GeneratorState WithReceiver(ISyntaxReceiver syntaxReceiver)
         {
+            Debug.Assert(this.SyntaxReceiver is null);
             return new GeneratorState(this.Info,
                                       sourceTexts: this.SourceTexts,
                                       trees: this.Trees,
@@ -48,6 +65,13 @@ namespace Microsoft.CodeAnalysis
                                       exception: null);
         }
 
+        /// <summary>
+        /// Called when the generator has a result to store.
+        /// </summary>
+        /// <remarks>
+        /// We discard any receiver that was set as it is no longer needed.
+        /// We discard any saved exception as it must refer to a previous iteration.
+        /// </remarks>
         internal GeneratorState WithResult(ImmutableArray<GeneratedSourceText> sourceTexts,
                                           ImmutableArray<SyntaxTree> trees,
                                           ImmutableArray<Diagnostic> diagnostics)
@@ -61,6 +85,12 @@ namespace Microsoft.CodeAnalysis
                                       exception: null);
         }
 
+        /// <summary>
+        /// Called when the generator threw an exception
+        /// </summary>
+        /// <remarks>
+        /// We discard any other saved state, as it must refer to a previous iteration and is no longer needed.
+        /// </remarks>
         internal GeneratorState WithError(Exception e, Diagnostic diagnostic)
         {
             return new GeneratorState(this.Info,
