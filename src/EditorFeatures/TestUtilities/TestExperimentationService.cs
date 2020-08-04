@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     [Export(typeof(TestExperimentationService))]
-    [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared, PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal sealed class TestExperimentationService : IExperimentationService
     {
         private readonly Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();

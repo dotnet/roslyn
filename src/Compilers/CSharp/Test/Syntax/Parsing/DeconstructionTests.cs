@@ -2357,7 +2357,7 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,10): error CS1519: Invalid token 'object' in class, struct, or interface member declaration
+                // (4,10): error CS1519: Invalid token 'object' in class, record, struct, or interface member declaration
                 //     void object M(string e)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "object").WithArguments("object").WithLocation(4, 10),
                 // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.

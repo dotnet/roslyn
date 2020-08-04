@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         [Export]
-        [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Host), Shared, PartNotDiscoverable]
+        [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
         public sealed class TestDocumentTrackingServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]

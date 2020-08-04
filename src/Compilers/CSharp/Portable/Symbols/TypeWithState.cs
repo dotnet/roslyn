@@ -16,11 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public readonly TypeSymbol? Type;
         public readonly NullableFlowState State;
+        // https://github.com/dotnet/roslyn/issues/41964: [MemberNotNullWhen(true, nameof(Type))]
         public bool HasNullType => Type is null;
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
 
-        public static TypeWithState ForType(TypeSymbol type)
+        public static TypeWithState ForType(TypeSymbol? type)
         {
             return Create(type, NullableFlowState.MaybeDefault);
         }
@@ -73,8 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Type = type;
             State = state;
         }
-
-        public void Deconstruct(out TypeSymbol? type, out NullableFlowState state) => (type, state) = (Type, State);
 
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
 
