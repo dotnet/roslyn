@@ -2119,6 +2119,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override SemanticModel GetSemanticModelCore(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull)
         {
+            if (syntaxTree == null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            if (!_syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree))
+            {
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
+            }
+
             if (SemanticModelProvider != null && useSemanticModelProviderIfNonNull)
             {
                 Debug.Assert(!ignoreAccessibility);
