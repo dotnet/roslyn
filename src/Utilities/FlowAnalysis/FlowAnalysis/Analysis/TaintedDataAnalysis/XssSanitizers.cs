@@ -64,8 +64,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemWebHttpServerUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "HtmlEncode",
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 1,
+                        new[] { ("s", TaintedTargetValue.Return) }
+                    ),
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 2,
+                        new[] { ("s", "output") }
+                    ),
                 });
             builder.AddSanitizerInfo(
                 WellKnownTypeNames.SystemWebHttpServerUtilityBase,
