@@ -508,6 +508,8 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
         {
+            MSBuildPropertyOptionNamesHelpers.VerifySupportedPropertyOptionName(optionName);
+
             // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
             // So, we default to first syntax tree.
             if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
@@ -519,6 +521,29 @@ namespace Analyzer.Utilities
             return analyzerConfigOptions.GetOptionValue(optionName, tree, rule: null,
                 tryParseValue: (string value, out string? result) => { result = value; return true; },
                 defaultValue: null, OptionKind.BuildProperty);
+        }
+
+        public static ImmutableArray<string> GetMSBuildItemMetadataValues(
+            this AnalyzerOptions options,
+            string itemOptionName,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            MSBuildItemOptionNamesHelpers.VerifySupportedItemOptionName(itemOptionName);
+
+            // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
+            // So, we default to first syntax tree.
+            if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            var propertyOptionName = MSBuildItemOptionNamesHelpers.GetPropertyNameForItemOptionName(itemOptionName);
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
+            var propertyValue = analyzerConfigOptions.GetOptionValue(propertyOptionName, tree, rule: null,
+                tryParseValue: (string value, out string? result) => { result = value; return true; },
+                defaultValue: null, OptionKind.BuildProperty);
+            return MSBuildItemOptionNamesHelpers.ParseItemOptionValue(propertyValue);
         }
 
 #pragma warning disable CA1801 // Review unused parameters - 'compilation' is used conditionally.
