@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // init-only is unverifiable
                 verify: Verification.Skipped);
 
-        [Fact]
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordLanguageVersion()
         {
             var src1 = @"
@@ -144,6 +144,86 @@ record Point(int x, int y);
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
             );
+            comp = CreateCompilation(src2);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src3);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordLanguageVersion_Nested()
+        {
+            var src1 = @"
+class C
+{
+    class Point(int x, int y);
+}
+";
+            var src2 = @"
+class D
+{
+    record Point { }
+}
+";
+            var src3 = @"
+class E
+{
+    record Point(int x, int y);
+}
+";
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS1514: { expected
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 16),
+                // (4,16): error CS1513: } expected
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 16),
+                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30),
+                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30)
+                );
+
+            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                //     record Point { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(4, 5),
+                // (4,12): error CS0548: 'D.Point': property or indexer must have at least one accessor
+                //     record Point { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("D.Point").WithLocation(4, 12)
+                );
+
+            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                //     record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(4, 5),
+                // (4,12): error CS0501: 'E.Point(int, int)' must declare a body because it is not marked abstract, extern, or partial
+                //     record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Point").WithArguments("E.Point(int, int)").WithLocation(4, 12)
+                );
+
+            comp = CreateCompilation(src1);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS1514: { expected
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(4, 16),
+                // (4,16): error CS1513: } expected
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(4, 16),
+                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30),
+                // (4,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 30)
+                );
+
             comp = CreateCompilation(src2);
             comp.VerifyDiagnostics();
 
@@ -410,7 +490,7 @@ public record C(int i)
         }
 
         [Fact]
-        public void PartialRecordMixedWithClass()
+        public void PartialRecord_MixedWithClass()
         {
             var src = @"
 partial record C(int X, int Y)
@@ -426,6 +506,43 @@ partial class C
                 // partial class C
                 Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C").WithArguments("C").WithLocation(5, 15)
                 );
+        }
+
+        [Fact]
+        public void PartialRecord_ParametersInScopeOfBothParts()
+        {
+            var src = @"
+var c = new C(2);
+System.Console.Write((c.P1, c.P2));
+
+public partial record C(int X)
+{
+    public int P1 { get; set; } = X;
+}
+public partial record C
+{
+    public int P2 { get; set; } = X;
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput: "(2, 2)", verify: Verification.Skipped /* init-only */).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RecordInsideGenericType()
+        {
+            var src = @"
+var c = new C<int>.Nested(2);
+System.Console.Write(c.T);
+
+public class C<T>
+{
+    public record Nested(T T);
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]
@@ -702,7 +819,7 @@ record C(); ";
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,9): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
+                // (2,9): error CS8850: A positional record must have a non-empty parameter list
                 // record C();
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9)
             );
@@ -1465,6 +1582,204 @@ record C(int X)
                 //         b = b with { Y = 2 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Y").WithArguments("B", "Y").WithLocation(12, 22)
             );
+        }
+
+        [Fact]
+        public void WithExpr24_Dynamic()
+        {
+            var src = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        dynamic c = new C(1);
+        var x = c with { X = 2 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS8858: The receiver type 'dynamic' is not a valid record type.
+                //         var x = c with { X = 2 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("dynamic").WithLocation(7, 17)
+                );
+        }
+
+        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427")]
+        public void WithExpr25_TypeParameterWithRecordConstraint()
+        {
+            var src = @"
+record R(int X);
+
+class C
+{
+    public static void M<T>(T t) where T : R
+    {
+        _ = t with { X = 2 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8858: The receiver type 'T' is not a valid record type.
+                //         _ = t with { X = 2 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(8, 13)
+                );
+        }
+
+        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427")]
+        public void WithExpr26_TypeParameterWithRecordAndInterfaceConstraint()
+        {
+            var src = @"
+record R(int X);
+interface I { int Property { get; set; } }
+
+class C
+{
+    public static void M<T>(T t) where T : R, I
+    {
+        _ = t with { X = 2, Property = 3 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8858: The receiver type 'T' is not a valid record type.
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void WithExpr27_InExceptionFilter()
+        {
+            var src = @"
+var r = new R(1);
+
+try
+{
+    throw new System.Exception();
+}
+catch (System.Exception) when ((r = r with { X = 2 }).X == 2)
+{
+    System.Console.Write(""RAN "");
+    System.Console.Write(r.X);
+}
+
+record R(int X);
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN 2", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void WithExpr28_WithAwait()
+        {
+            var src = @"
+var r = new R(1);
+r = r with { X = await System.Threading.Tasks.Task.FromResult(42) };
+System.Console.Write(r.X);
+
+record R(int X);
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var x = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Last().Left;
+            Assert.Equal("X", x.ToString());
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal("System.Int32 R.X { get; init; }", symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(46465, "https://github.com/dotnet/roslyn/issues/46465")]
+        public void WithExpr29_DisallowedAsExpressionStatement()
+        {
+            var src = @"
+record R(int X)
+{
+    void M()
+    {
+        var r = new R(1);
+        r with { X = 2 };
+    }
+}
+";
+            // Note: we didn't parse the `with` as a `with` expression, but as a broken local declaration
+            // Tracked by https://github.com/dotnet/roslyn/issues/46465
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS0118: 'r' is a variable but is used like a type
+                //         r with { X = 2 };
+                Diagnostic(ErrorCode.ERR_BadSKknown, "r").WithArguments("r", "variable", "type").WithLocation(7, 9),
+                // (7,11): warning CS0168: The variable 'with' is declared but never used
+                //         r with { X = 2 };
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "with").WithArguments("with").WithLocation(7, 11),
+                // (7,16): error CS1002: ; expected
+                //         r with { X = 2 };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(7, 16),
+                // (7,18): error CS8852: Init-only property or indexer 'R.X' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         r with { X = 2 };
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "X").WithArguments("R.X").WithLocation(7, 18),
+                // (7,24): error CS1002: ; expected
+                //         r with { X = 2 };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 24)
+                );
+        }
+
+        [Fact]
+        public void TypeNamedRecord()
+        {
+            var src = @"
+class record { }
+
+class C
+{
+    record M(record r) => r;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,24): error CS1514: { expected
+                //     record M(record r) => r;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 24),
+                // (6,24): error CS1513: } expected
+                //     record M(record r) => r;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 24),
+                // (6,24): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //     record M(record r) => r;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 24),
+                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     record M(record r) => r;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28),
+                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     record M(record r) => r;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28)
+                );
+        }
+
+        [Fact]
+        public void TypeNamedRecord_EscapedReturnType()
+        {
+            var src = @"
+class record { }
+
+class C
+{
+    @record M(record r)
+    {
+        System.Console.Write(""RAN"");
+        return r;
+    }
+
+    public static void Main()
+    {
+        var c = new C();
+        _ = c.M(new record());
+    }
+}";
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
         [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
@@ -9957,7 +10272,7 @@ record C()
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,9): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
+                // (2,9): error CS8850: A positional record must have a non-empty parameter list
                 // record C()
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9));
 
@@ -18561,6 +18876,34 @@ class A<T>
         }
 
         [Fact]
+        public void InterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    int P1 { get; init; }
+    int P2 { get; init; }
+    int P3 { get; set; }
+}
+record R(int P1) : I
+{
+    public int P2 { get; init; }
+    int I.P3 { get; set; }
+
+    public static void Main()
+    {
+        I r = new R(42) { P2 = 43 };
+        r.P3 = 44;
+        System.Console.Write((r.P1, r.P2, r.P3));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44)", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
         public void Initializers_01()
         {
             var src = @"
@@ -19503,6 +19846,28 @@ record C<T>([property: NotNull] T? P1, T? P2) where T : class
         }
 
         [Fact]
+        public void AttributesOnPrimaryConstructorParameters_09_CallerMemberName()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+record R([CallerMemberName] string S = """");
+
+class C
+{
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.S);
+    }
+}
+";
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput: "Main",
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, verify: Verification.Skipped /* init-only */);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void RecordWithConstraints_NullableWarning()
         {
             var src = @"
@@ -19789,30 +20154,9 @@ class C<T, U>
 sealed static record R;
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (2,22): error CS0441: 'R': a type cannot be both static and sealed
+                // (2,22): error CS0106: The modifier 'static' is not valid for this item
                 // sealed static record R;
-                Diagnostic(ErrorCode.ERR_SealedStaticClass, "R").WithArguments("R").WithLocation(2, 22),
-                // (2,22): error CS0708: 'R.EqualityContract': cannot declare instance members in a static class
-                // sealed static record R;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("R.EqualityContract").WithLocation(2, 22),
-                // (2,22): error CS0715: 'R.operator ==(R?, R?)': static classes cannot contain user-defined operators
-                // sealed static record R;
-                Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "R").WithArguments("R.operator ==(R?, R?)").WithLocation(2, 22),
-                // (2,22): error CS0715: 'R.operator !=(R?, R?)': static classes cannot contain user-defined operators
-                // sealed static record R;
-                Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "R").WithArguments("R.operator !=(R?, R?)").WithLocation(2, 22),
-                // (2,22): error CS0708: 'GetHashCode': cannot declare instance members in a static class
-                // sealed static record R;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 22),
-                // (2,22): error CS0722: 'R': static types cannot be used as return types
-                // sealed static record R;
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "R").WithArguments("R").WithLocation(2, 22),
-                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static class
-                // sealed static record R;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 22),
-                // (2,22): error CS0708: 'Equals': cannot declare instance members in a static class
-                // sealed static record R;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("static").WithLocation(2, 22)
                 );
         }
 
@@ -19931,48 +20275,15 @@ public partial record C1
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (2,15): error CS0708: 'NV.EqualityContract': cannot declare instance members in a static class
+                // (2,15): error CS0106: The modifier 'static' is not valid for this item
                 // static record NV
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("NV.EqualityContract").WithLocation(2, 15),
-                // (2,15): error CS0715: 'NV.operator ==(NV?, NV?)': static classes cannot contain user-defined operators
-                // static record NV
-                Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "NV").WithArguments("NV.operator ==(NV?, NV?)").WithLocation(2, 15),
-                // (2,15): error CS0715: 'NV.operator !=(NV?, NV?)': static classes cannot contain user-defined operators
-                // static record NV
-                Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "NV").WithArguments("NV.operator !=(NV?, NV?)").WithLocation(2, 15),
-                // (2,15): error CS0722: 'NV': static types cannot be used as return types
-                // static record NV
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "NV").WithArguments("NV").WithLocation(2, 15),
-                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static class
-                // static record NV
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("GetHashCode").WithLocation(2, 15),
-                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
-                // static record NV
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("Equals").WithLocation(2, 15),
-                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
-                // static record NV
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "NV").WithArguments("Equals").WithLocation(2, 15),
-                // (2,15): error CS1057: 'NV.NV(NV)': static classes cannot contain protected members
-                // static record NV
-                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.NV(NV)").WithLocation(2, 15),
-                // (2,15): error CS1057: 'NV.EqualityContract': static classes cannot contain protected members
-                // static record NV
-                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.EqualityContract").WithLocation(2, 15),
-                // (2,15): error CS1057: 'NV.EqualityContract.get': static classes cannot contain protected members
-                // static record NV
-                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "NV").WithArguments("NV.EqualityContract.get").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "NV").WithArguments("static").WithLocation(2, 15),
                 // (6,23): error CS0050: Inconsistent accessibility: return type 'NV' is less accessible than method 'C1.<Clone>$()'
                 // public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "C1").WithArguments("C1.<Clone>$()", "NV").WithLocation(6, 23),
-                // (6,23): error CS0722: 'NV': static types cannot be used as return types
-                // public partial record C1
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C1").WithArguments("NV").WithLocation(6, 23),
                 // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
                 // public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
-                // (10,16): error CS0709: 'C1': cannot derive from static class 'NV'
-                // partial record C1 : NV
-                Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 16),
                 // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
                 // partial record C1 : NV
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
@@ -19991,48 +20302,9 @@ static record R(int I)
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (2,15): error CS0708: 'R.EqualityContract': cannot declare instance members in a static class
+                // (2,15): error CS0106: The modifier 'static' is not valid for this item
                 // static record R(int I)
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("R.EqualityContract").WithLocation(2, 15),
-                // (2,15): error CS0715: 'R.operator ==(R?, R?)': static classes cannot contain user-defined operators
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "R").WithArguments("R.operator ==(R?, R?)").WithLocation(2, 15),
-                // (2,15): error CS0715: 'R.operator !=(R?, R?)': static classes cannot contain user-defined operators
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "R").WithArguments("R.operator !=(R?, R?)").WithLocation(2, 15),
-                // (2,15): error CS0708: 'Deconstruct': cannot declare instance members in a static class
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Deconstruct").WithLocation(2, 15),
-                // (2,15): error CS0722: 'R': static types cannot be used as return types
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "R").WithArguments("R").WithLocation(2, 15),
-                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 15),
-                // (2,15): error CS0708: 'Equals': cannot declare instance members in a static class
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("Equals").WithLocation(2, 15),
-                // (2,15): error CS0708: 'GetHashCode': cannot declare instance members in a static class
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "R").WithArguments("GetHashCode").WithLocation(2, 15),
-                // (2,15): error CS1057: 'R.R(R)': static classes cannot contain protected members
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.R(R)").WithLocation(2, 15),
-                // (2,15): error CS1057: 'R.EqualityContract': static classes cannot contain protected members
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.EqualityContract").WithLocation(2, 15),
-                // (2,15): error CS1057: 'R.EqualityContract.get': static classes cannot contain protected members
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "R").WithArguments("R.EqualityContract.get").WithLocation(2, 15),
-                // (2,21): error CS0708: 'R.I': cannot declare instance members in a static class
-                // static record R(int I)
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "I").WithArguments("R.I").WithLocation(2, 21),
-                // (4,5): error CS0710: Static classes cannot have instance constructors
-                //     R() : this(0) { }
-                Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "R").WithLocation(4, 5),
-                // (5,6): error CS0711: Static classes cannot contain destructors
-                //     ~R() { }
-                Diagnostic(ErrorCode.ERR_DestructorInStaticClass, "R").WithArguments("R.~R()").WithLocation(5, 6)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("static").WithLocation(2, 15)
                 );
         }
 

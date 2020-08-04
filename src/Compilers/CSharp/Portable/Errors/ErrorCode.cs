@@ -1874,6 +1874,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CopyConstructorWrongAccessibility = 8878,
         ERR_NonPrivateAPIInRecord = 8879,
 
+        // The following warnings correspond to errors of the same name, but are reported
+        // when a definite assignment issue is reported due to private fields imported from metadata.
+        WRN_UnassignedThisAutoProperty = 8880,
+        WRN_UnassignedThis = 8881,
+        WRN_ParamUnassigned = 8882,
+        WRN_UseDefViolationProperty = 8883,
+        WRN_UseDefViolationField = 8884,
+        WRN_UseDefViolationThis = 8885,
+        WRN_UseDefViolationOut = 8886,
+        WRN_UseDefViolation = 8887,
+
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
