@@ -257,6 +257,11 @@
         <target state="new">'{0}' does not override expected method from '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBasePrintMembers">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="new">'{0}' does not override expected method from '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
         <source>'{0}' does not override expected method from 'object'.</source>
         <target state="new">'{0}' does not override expected method from 'object'.</target>
@@ -737,7 +742,7 @@
         <target state="translated">目标运行时不支持对接口的成员使用 "protected"、"protected internal" 或 "private protected" 辅助功能。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SealedGetHashCodeInRecord">
+      <trans-unit id="ERR_SealedMethodInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>
         <note />

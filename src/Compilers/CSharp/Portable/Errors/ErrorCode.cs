@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidWithReceiverType = 8857,
         ERR_NoSingleCloneMethod = 8858,
         ERR_CloneDisallowedInRecord = 8859,
-        // Unused 8860
+        ERR_DoesNotOverrideBasePrintMembers = 8860,
         ERR_UnexpectedArgumentList = 8861,
         ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
         ERR_MultipleRecordParameterLists = 8863,
@@ -1863,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
         ERR_DoesNotOverrideMethodFromObject = 8869,
-        ERR_SealedGetHashCodeInRecord = 8870,
+        ERR_SealedMethodInRecord = 8870,
         ERR_DoesNotOverrideBaseEquals = 8871,
         ERR_NotOverridableAPIInRecord = 8872,
         ERR_NonPublicAPIInRecord = 8873,

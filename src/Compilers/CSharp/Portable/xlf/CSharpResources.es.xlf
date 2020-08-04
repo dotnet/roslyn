@@ -257,6 +257,11 @@
         <target state="new">'{0}' does not override expected method from '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBasePrintMembers">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="new">'{0}' does not override expected method from '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
         <source>'{0}' does not override expected method from 'object'.</source>
         <target state="new">'{0}' does not override expected method from 'object'.</target>
@@ -737,7 +742,7 @@
         <target state="translated">El entorno de ejecución de destino no admite la accesibilidad protegida, protegida interna o protegida privada para un miembro de una interfaz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SealedGetHashCodeInRecord">
+      <trans-unit id="ERR_SealedMethodInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>
         <note />
