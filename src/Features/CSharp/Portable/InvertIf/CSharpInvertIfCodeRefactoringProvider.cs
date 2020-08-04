@@ -264,6 +264,22 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         }
 
         protected override bool ShouldAddElasticNewLine(IEnumerable<StatementSyntax> statementsAfterIf)
-            => CSharpSyntaxFacts.Instance.IsEndOfLineTrivia(statementsAfterIf.First().GetLeadingTrivia().First());
+        {
+            if (statementsAfterIf is null)
+            {
+                return false;
+            }
+
+            var firstStatementAfterIf = statementsAfterIf.FirstOrDefault();
+
+            if (firstStatementAfterIf is null)
+            {
+                return false;
+            }
+
+            var leadingTriviaAfterIf = firstStatementAfterIf.GetLeadingTrivia();
+
+            return leadingTriviaAfterIf.Any() && CSharpSyntaxFacts.Instance.IsEndOfLineTrivia(leadingTriviaAfterIf[0]);
+        }
     }
 }
