@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
     /// 
     /// public static bool operator==(R? r1, R? r2)
-    ///      => (object) r1 == r2 || (r1?.Equals(r2) ?? false);
+    ///      => (object) r1 == r2 || ((object)r1 != null && r1.Equals(r2));
     /// public static bool operator !=(R? r1, R? r2)
     ///      => !(r1 == r2);
     ///        
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
-                // => (object)r1 == r2 || (r1?.Equals(r2) ?? false);
+                // => (object)r1 == r2 || ((object)r1 != null && r1.Equals(r2));
                 MethodSymbol? equals = null;
                 foreach (var member in ContainingType.GetMembers(WellKnownMemberNames.ObjectEquals))
                 {

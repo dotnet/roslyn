@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsRecord)
             {
-                // For records the warnings reported below are simply going to eco record specific errors,
+                // For records the warnings reported below are simply going to echo record specific errors,
                 // producing more noise.
                 return;
             }

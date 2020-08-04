@@ -14584,6 +14584,8 @@ record A(int X)
         Test(new A(4), new B(4, 5));
         Test(new B(6, 7), new B(6, 7));
         Test(new B(8, 9), new B(8, 10));
+        var a = new A(11);
+        Test(a, a);
     }
 
     static void Test(A a1, A a2)
@@ -14603,6 +14605,7 @@ False False True True
 False False True True
 True True False False
 False False True True
+True True False False
 ").VerifyDiagnostics();
 
             var comp = (CSharpCompilation)verifier.Compilation;
@@ -14682,11 +14685,19 @@ record A(int X) : B
         Test(null, new A(0));
         Test(new A(1), new A(1));
         Test(new A(2), new A(3));
+        var a = new A(11);
+        Test(a, a);
+        Test(new A(3), new B());
     }
 
     static void Test(A a1, A a2)
     {
         System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == a2, a2 == a1, a1 != a2, a2 != a1);
+    }
+
+    static void Test(A a1, B b2)
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == b2, b2 == a1, a1 != b2, b2 != a1);
     }
 }
 ";
@@ -14703,6 +14714,10 @@ Equals(A other)
 True True False False
 Equals(A other)
 Equals(A other)
+Equals(A other)
+Equals(A other)
+False False True True
+True True False False
 Equals(A other)
 Equals(A other)
 False False True True
