@@ -31,22 +31,22 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly ISymbol Symbol;
         public readonly RenameOptionSet Options;
 
-        private readonly SearchResult _mergedResult;
+        private readonly SearchResult _result;
 
-        public ISet<RenameLocation> Locations => _mergedResult.Locations;
-        public ImmutableArray<ISymbol> ReferencedSymbols => _mergedResult.ReferencedSymbols;
-        public ImmutableArray<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
+        public ISet<RenameLocation> Locations => _result.Locations;
+        public ImmutableArray<ISymbol> ReferencedSymbols => _result.ReferencedSymbols;
+        public ImmutableArray<ReferenceLocation> ImplicitLocations => _result.ImplicitLocations;
 
         private RenameLocations(
             ISymbol symbol,
             Solution solution,
             RenameOptionSet options,
-            SearchResult mergedResult)
+            SearchResult result)
         {
             Solution = solution;
             Symbol = symbol;
             Options = options;
-            _mergedResult = mergedResult;
+            _result = result;
         }
 
         internal static RenameLocations Create(

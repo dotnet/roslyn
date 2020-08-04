@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 Symbol = SerializableSymbolAndProjectId.Dehydrate(solution, Symbol, cancellationToken),
                 Options = SerializableRenameOptionSet.Dehydrate(Options),
-                MergedResult = SerializableSearchResult.Dehydrate(solution, _mergedResult, cancellationToken),
+                Result = SerializableSearchResult.Dehydrate(solution, _result, cancellationToken),
             };
 
         internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, SerializableRenameLocations locations, CancellationToken cancellationToken)
@@ -180,13 +180,13 @@ namespace Microsoft.CodeAnalysis.Rename
             if (symbol == null)
                 return null;
 
-            Contract.ThrowIfNull(locations.MergedResult);
+            Contract.ThrowIfNull(locations.Result);
 
             return new RenameLocations(
                 symbol,
                 solution,
                 locations.Options.Rehydrate(),
-                await locations.MergedResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+                await locations.Result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
         }
     }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public SerializableSymbolAndProjectId? Symbol;
         public SerializableRenameOptionSet Options;
-        public SerializableSearchResult? MergedResult;
+        public SerializableSearchResult? Result;
     }
 
     internal class SerializableComplexifiedSpan
