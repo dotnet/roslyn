@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 Symbol = SerializableSymbolAndProjectId.Dehydrate(solution, Symbol, cancellationToken),
                 Options = SerializableRenameOptionSet.Dehydrate(Options),
-                OriginalSymbolResult = SerializableSearchResult.Dehydrate(solution, _originalSymbolResult, cancellationToken),
                 MergedResult = SerializableSearchResult.Dehydrate(solution, _mergedResult, cancellationToken),
             };
 
@@ -181,17 +180,12 @@ namespace Microsoft.CodeAnalysis.Rename
             if (symbol == null)
                 return null;
 
-            var originalSymbolResult = locations.OriginalSymbolResult == null
-                ? null
-                : await locations.OriginalSymbolResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-
             Contract.ThrowIfNull(locations.MergedResult);
 
             return new RenameLocations(
                 symbol,
                 solution,
                 locations.Options.Rehydrate(),
-                originalSymbolResult,
                 await locations.MergedResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
         }
     }
@@ -200,7 +194,6 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public SerializableSymbolAndProjectId? Symbol;
         public SerializableRenameOptionSet Options;
-        public SerializableSearchResult? OriginalSymbolResult;
         public SerializableSearchResult? MergedResult;
     }
 

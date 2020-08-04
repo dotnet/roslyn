@@ -31,21 +31,17 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly ISymbol Symbol;
         public readonly RenameOptionSet Options;
 
-        private readonly SearchResult? _originalSymbolResult;
-
         private readonly SearchResult _mergedResult;
 
         private RenameLocations(
             ISymbol symbol,
             Solution solution,
             RenameOptionSet options,
-            SearchResult? originalSymbolResult,
             SearchResult mergedResult)
         {
             Solution = solution;
             Symbol = symbol;
             Options = options;
-            _originalSymbolResult = originalSymbolResult;
             _mergedResult = mergedResult;
         }
 
@@ -58,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Rename
             RenameOptionSet options)
         {
             return new RenameLocations(
-                symbol, solution, options, originalSymbolResult: null,
+                symbol, solution, options,
                 new SearchResult(locations, implicitLocations, referencedSymbols));
         }
 
@@ -96,8 +92,11 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return new RenameLocations(
-                symbol, solution, options, originalSymbolResult,
-                new SearchResult(mergedLocations.ToImmutable(), mergedImplicitLocations.ToImmutable(), mergedReferencedSymbols.ToImmutable()));
+                symbol, solution, options,
+                new SearchResult(
+                    mergedLocations.ToImmutable(),
+                    mergedImplicitLocations.ToImmutable(),
+                    mergedReferencedSymbols.ToImmutable()));
         }
 
         public ISet<RenameLocation> Locations => _mergedResult.Locations;
@@ -194,8 +193,11 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 return new RenameLocations(
-                    symbol, solution, optionSet, originalSymbolResult,
-                    new SearchResult(mergedLocations.ToImmutable(), mergedImplicitLocations.ToImmutable(), mergedReferencedSymbols.ToImmutable()));
+                    symbol, solution, optionSet,
+                    new SearchResult(
+                        mergedLocations.ToImmutable(),
+                        mergedImplicitLocations.ToImmutable(),
+                        mergedReferencedSymbols.ToImmutable()));
             }
         }
 
