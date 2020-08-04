@@ -7,16 +7,16 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.ExternalAccess.VSTypeScript.Api
 {
     [Export(typeof(IVsTypeScriptRemoteLanguageServiceWorkspaceAccessor))]
-    internal sealed class RemoteLanguageServiceWorkspaceAccessor : IVsTypeScriptRemoteLanguageServiceWorkspaceAccessor
+    internal sealed class VSTypeScriptRemoteLanguageServiceWorkspaceAccessor : IVsTypeScriptRemoteLanguageServiceWorkspaceAccessor
     {
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteLanguageServiceWorkspaceAccessor(RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+        public VSTypeScriptRemoteLanguageServiceWorkspaceAccessor(RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace;
         }

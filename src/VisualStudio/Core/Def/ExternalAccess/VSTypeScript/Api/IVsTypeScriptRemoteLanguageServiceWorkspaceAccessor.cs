@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
+
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
+    // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1162267
     internal interface IVsTypeScriptRemoteLanguageServiceWorkspaceAccessor
     {
-        CodeAnalysis.Workspace RemoteLanguageServiceWorkspace { get; }
+        Workspace RemoteLanguageServiceWorkspace { get; }
     }
 }

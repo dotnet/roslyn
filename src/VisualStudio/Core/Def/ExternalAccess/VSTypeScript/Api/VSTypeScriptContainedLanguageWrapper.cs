@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         public VSTypeScriptContainedLanguageWrapper(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
-            CodeAnalysis.Workspace workspace,
+            Workspace workspace,
             IVsHierarchy hierarchy,
             uint itemid,
             Guid languageServiceGuid)
