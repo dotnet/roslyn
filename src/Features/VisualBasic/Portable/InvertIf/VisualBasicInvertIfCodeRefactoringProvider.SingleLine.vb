@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                             .WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Protected Overrides Function ShouldAddElasticTrivia(statementsAfterIf As IEnumerable(Of StatementSyntax)) As Boolean
+        Protected Overrides Function ShouldAddElasticNewLine(statementsAfterIf As IEnumerable(Of StatementSyntax)) As Boolean
             Return False
         End Function
     End Class

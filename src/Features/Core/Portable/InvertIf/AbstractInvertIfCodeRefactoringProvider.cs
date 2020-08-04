@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         protected abstract bool CanInvert(TIfStatementSyntax ifNode);
         protected abstract bool IsElseless(TIfStatementSyntax ifNode);
 
-        protected abstract bool ShouldAddElasticTrivia(IEnumerable<TStatementSyntax> statementsAfterIf);
+        protected abstract bool ShouldAddElasticNewLine(IEnumerable<TStatementSyntax> statementsAfterIf);
 
         protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
         protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             SyntaxNode condition,
             TEmbeddedStatement trueStatement,
             TEmbeddedStatement falseStatementOpt = default,
-            bool shouldAddElasicTrivia = false);
+            bool shouldAddElasticNewLine = false);
 
         protected abstract SyntaxNode WithStatements(
             SyntaxNode node,
@@ -480,12 +480,12 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                         var ifBody = GetIfBody(ifNode);
 
-                        var shouldAddElasicTrivia = ShouldAddElasticTrivia(statementsAfterIf);
+                        var shouldAddElasticNewLine = ShouldAddElasticNewLine(statementsAfterIf);
 
                         var updatedIf = UpdateIf(
                             text,
                             ifNode: ifNode,
-                            shouldAddElasicTrivia: shouldAddElasicTrivia,
+                            shouldAddElasticNewLine: shouldAddElasticNewLine,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(statementsAfterIf, original: ifBody));
 
