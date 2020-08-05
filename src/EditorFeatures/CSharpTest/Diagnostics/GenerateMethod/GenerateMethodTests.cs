@@ -8862,22 +8862,22 @@ class Class
         [|M2(y)|];
     }}
 }}",
-@"
+$@"
 using System;
 
 class Class
-{
+{{
     unsafe void M()
-    {
+    {{
         delegate* unmanaged[{convention}]<int, float> y;
         [|M2(y)|];
-    }
+    }}
 
     private unsafe void M2(delegate* unmanaged[{convention}]<int, float> y)
-    {
+    {{
         throw new NotImplementedException();
-    }
-}");
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
