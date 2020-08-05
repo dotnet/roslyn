@@ -5,10 +5,12 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -46,88 +48,106 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
-            var updatedTokens = await SemanticTokensHelpers.ComputeSemanticTokensAsync(
+            var newSemanticTokens = await SemanticTokensHelpers.ComputeSemanticTokensAsync(
                 request.TextDocument, resultId, clientName, SolutionProvider,
                 range: null, cancellationToken).ConfigureAwait(false);
 
             // Getting the cached tokens for the document. If we don't have an applicable cached token set,
             // we can't calculate edits, so we must return all semantic tokens instead.
-            var cachedTokens = await _tokensCache.GetCachedTokensAsync(
+            var oldSemanticTokens = await _tokensCache.GetCachedTokensAsync(
                 request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
-            if (cachedTokens == null)
+            if (oldSemanticTokens == null)
             {
-                return updatedTokens;
+                return newSemanticTokens;
             }
 
             // The Data property is always populated on the server side, so it should never be null.
-            Contract.ThrowIfNull(cachedTokens.Data);
-            Contract.ThrowIfNull(updatedTokens.Data);
+            Contract.ThrowIfNull(oldSemanticTokens.Data);
+            Contract.ThrowIfNull(newSemanticTokens.Data);
 
-            var edits = ComputeSemanticTokensEdits(resultId, cachedTokens.Data, updatedTokens.Data);
-            await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+            var edits = new SemanticTokensEdits
+            {
+                Edits = ComputeSemanticTokensEdits(oldSemanticTokens.Data, newSemanticTokens.Data),
+                ResultId = resultId
+            };
+
+            await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, newSemanticTokens, cancellationToken).ConfigureAwait(false);
             return edits;
         }
 
         /// <summary>
         /// Compares two sets of SemanticTokens and returns the edits between them.
         /// </summary>
-        private static LSP.SemanticTokensEdits ComputeSemanticTokensEdits(
-            string resultId,
-            int[] cachedSemanticTokens,
-            int[] updatedSemanticTokens)
+        private static LSP.SemanticTokensEdit[] ComputeSemanticTokensEdits(
+            int[] oldSemanticTokens,
+            int[] newSemanticTokens)
         {
-            using var _1 = ArrayBuilder<LSP.SemanticTokensEdit>.GetInstance(out var edits);
-            var index = 0;
+            // We use Roslyn's version of the Myers' Diff Algorithm to compute the minimal edits
+            // between the old and new tokens.
+            // Edits are computed by token (i.e. in sets of five integers), so if one value in the token
+            // is changed, the entire token is replaced. We do this instead of directly comparing each
+            // value in the token individually so that we can potentially save on computation costs, since
+            // we can return early if we find that one value in the token doesn't match. However, there
+            // are trade-offs since our insertions/deletions are usually larger.
+            using var _ = ArrayBuilder<LSP.SemanticTokensEdit>.GetInstance(out var semanticTokensEdits);
 
-            // There are three cases where we might need to create an edit:
-            //     Case 1: Both cached and updated tokens have values at an index, but the tokens don't match
-            //     Case 2: Cached tokens set is longer than updated tokens set - need to make deletion
-            //     Case 3: Updated tokens set is longer than cached tokens set - need to make insertion
+            // Turning arrays into tuples of five ints, each representing one token
+            var oldGroupedSemanticTokens = ConvertToGroupedSemanticTokens(oldSemanticTokens);
+            var newGroupedSemanticTokens = ConvertToGroupedSemanticTokens(newSemanticTokens);
 
-            using var _2 = ArrayBuilder<int>.GetInstance(out var currentEdit);
-            while (index < cachedSemanticTokens.Length && index < updatedSemanticTokens.Length)
+            var edits = LongestCommonSemanticTokensSubsequence.GetEdits(oldGroupedSemanticTokens, newGroupedSemanticTokens);
+
+            // Since edits are reported relative to each other, we only care about an 'Update' EditKind
+            // if it's preceded by an insertion or deletion.
+            var adjustToken = false;
+
+            foreach (var edit in edits)
             {
-                // Case 1: Both cached and updated tokens have values at index, but the tokens don't match.
-                // We want to make the least number of edits possible, so we keep track of consecutive changes
-                // and report them as a singular edit.
-                if (cachedSemanticTokens[index] != updatedSemanticTokens[index])
+                switch (edit.Kind)
                 {
-                    currentEdit.Add(updatedSemanticTokens[index]);
+                    case EditKind.Insert:
+                        semanticTokensEdits.Add(
+                            GenerateEdit(start: edit.NewIndex * 5, deleteCount: 0, newGroupedSemanticTokens[edit.NewIndex].ToArray()));
+                        adjustToken = true;
+                        break;
+                    case EditKind.Delete:
+                        semanticTokensEdits.Add(
+                            GenerateEdit(start: edit.OldIndex * 5, deleteCount: 5, data: Array.Empty<int>()));
+                        adjustToken = true;
+                        break;
+                    case EditKind.Update:
+                        // We only care about an update if (1) the original token has moved somewhere else and
+                        // (2) it is immediately preceded by an insertion or deletion.
+                        if (edit.NewIndex == edit.OldIndex || !adjustToken)
+                        {
+                            break;
+                        }
+
+                        semanticTokensEdits.Add(
+                            GenerateEdit(start: edit.OldIndex * 5, deleteCount: 5, data: newGroupedSemanticTokens[edit.NewIndex].ToArray()));
+                        adjustToken = false;
+                        break;
+                    default:
+                        break;
                 }
-                else if (!currentEdit.IsEmpty())
-                {
-                    edits.Add(GenerateEdit(
-                        start: index - currentEdit.Count, deleteCount: currentEdit.Count, data: currentEdit.ToArray()));
-                    currentEdit.Clear();
-                }
-
-                index += 1;
             }
 
-            // Report any edit in progress. If step 3 applies, we skip this step since we can just report
-            // one giant edit later on.
-            if (!currentEdit.IsEmpty() && index >= updatedSemanticTokens.Length)
+            return semanticTokensEdits.ToArray();
+        }
+
+        /// <summary>
+        /// Converts an array of individual semantic token values to an array of values grouped
+        /// together by semantic token.
+        /// </summary>
+        private static SemanticToken[] ConvertToGroupedSemanticTokens(int[] tokens)
+        {
+            using var _ = ArrayBuilder<SemanticToken>.GetInstance(out var fullTokens);
+            for (var i = 0; i < tokens.Length; i += 5)
             {
-                edits.Add(GenerateEdit(
-                    start: index - currentEdit.Count, deleteCount: currentEdit.Count, data: currentEdit.ToArray()));
+                fullTokens.Add(new SemanticToken(tokens[i], tokens[i + 1], tokens[i + 2], tokens[i + 3], tokens[i + 4]));
             }
 
-            // Case 2: Cached token set is longer than updated tokens - need to make deletion edit
-            if (index < cachedSemanticTokens.Length)
-            {
-                var deleteCount = cachedSemanticTokens.Length - updatedSemanticTokens.Length;
-                edits.Add(GenerateEdit(start: index, deleteCount: deleteCount, data: Array.Empty<int>()));
-            }
-            // Case 3: Updated tokens set is longer than cached tokens set - need to make insertion edit
-            else if (index < updatedSemanticTokens.Length)
-            {
-                // If there are any leftover edits that we haven't reported from case 1, report them
-                // in one giant edit.
-                var data = updatedSemanticTokens.Skip(index - currentEdit.Count).ToArray();
-                edits.Add(GenerateEdit(start: index, deleteCount: 0, data: data));
-            }
-
-            return new LSP.SemanticTokensEdits { Edits = edits.ToArray(), ResultId = resultId };
+            return fullTokens.ToArray();
         }
 
         internal static LSP.SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)
@@ -137,5 +157,56 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 DeleteCount = deleteCount,
                 Data = data
             };
+
+        private sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<SemanticToken[]>
+        {
+            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new LongestCommonSemanticTokensSubsequence();
+
+            protected override bool ItemsEqual(
+                SemanticToken[] oldSemanticTokens, int oldIndex,
+                SemanticToken[] newSemanticTokens, int newIndex)
+            {
+                var oldToken = oldSemanticTokens[oldIndex];
+                var newToken = newSemanticTokens[newIndex];
+
+                return oldToken.DeltaLine == newToken.DeltaLine && oldToken.DeltaStartCharacter == newToken.DeltaStartCharacter &&
+                    oldToken.Length == newToken.Length && oldToken.TokenType == newToken.TokenType &&
+                    oldToken.TokenModifiers == newToken.TokenModifiers;
+            }
+
+            // We reverse the result array since the original edits are reported with last tokens in the
+            // document output first in the IEnumerable. This is due to the nature of the Myers diff
+            // algorithm in which the optimal steps are retraced from the goal. However, when creating
+            // SemanticTokensEdits to report back to LSP, we need to analyze the edits in chronological order.
+            public static IEnumerable<SequenceEdit> GetEdits(
+                SemanticToken[] oldSemanticTokens, SemanticToken[] newSemanticTokens)
+                => s_instance.GetEdits(oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length).Reverse();
+        }
+
+        /// <summary>
+        /// Stores the values that make up the LSP representation of an individual semantic token.
+        /// </summary>
+        private struct SemanticToken
+        {
+            public int DeltaLine { get; }
+            public int DeltaStartCharacter { get; }
+            public int Length { get; }
+            public int TokenType { get; }
+            public int TokenModifiers { get; }
+
+            public SemanticToken(int deltaLine, int deltaStartCharacter, int length, int tokenType, int tokenModifiers)
+            {
+                DeltaLine = deltaLine;
+                DeltaStartCharacter = deltaStartCharacter;
+                Length = length;
+                TokenType = tokenType;
+                TokenModifiers = tokenModifiers;
+            }
+
+            public int[] ToArray()
+            {
+                return new int[] { DeltaLine, DeltaStartCharacter, Length, TokenType, TokenModifiers };
+            }
+        }
     }
 }
