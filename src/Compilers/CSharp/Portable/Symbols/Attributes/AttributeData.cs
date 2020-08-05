@@ -735,6 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             IsTargetAttribute(target, AttributeDescription.DllImportAttribute) ||
                             IsTargetAttribute(target, AttributeDescription.PreserveSigAttribute) ||
                             IsTargetAttribute(target, AttributeDescription.DynamicSecurityMethodAttribute) ||
+                            IsTargetAttribute(target, AttributeDescription.ModuleInitializerAttribute) ||
                             IsSecurityAttribute(target.DeclaringCompilation))
                         {
                             return false;
