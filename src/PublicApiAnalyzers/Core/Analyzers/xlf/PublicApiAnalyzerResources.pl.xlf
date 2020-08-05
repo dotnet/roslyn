@@ -127,6 +127,16 @@
         <target state="translated">Publiczny interfejs API z opcjonalnymi parametrami powinien mieć najwięcej parametrów spośród przeciążeń publicznych.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="new">Missing shipped or unshipped public API file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
         <target state="translated">Zawartość plików publicznego interfejsu API jest nieprawidłowa: {0}</target>
