@@ -61,11 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
                 var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
 
                 // Get the data or object the query is being called on
-                var t = (Operations.IInvocationOperation)model.GetOperation(memberAccess.Expression);
-                var r = model.GetOperation(memberAccess.Expression).Children;
-                var g = model.GetSymbolInfo(memberAccess.Expression);
-                var y = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault();
-                var x = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
                 var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
                 SyntaxNode newNode;
                 if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression))
@@ -83,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
                                         SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text),
                                         SyntaxFactory.IdentifierName(memberAccess.Name.Identifier.Text)))
                                 .WithArgumentList(lambda);
-                };
+                }
                 editor.ReplaceNode(node.Parent, newNode);
             }
         }
