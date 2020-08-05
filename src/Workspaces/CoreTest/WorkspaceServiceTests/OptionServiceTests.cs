@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             TestChangedOptionsCore(
                 workspace,
                 GenerationOptions.PlaceSystemNamespaceFirst,
-                optionProvider: new GenerationOptionsProvider(),
+                optionProvider: ((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValues<IOptionProvider>().OfType<GenerationOptionsProvider>().Single(),
                 isSerializable: true);
 
             // Apply a non-serializable changed option to the option service
