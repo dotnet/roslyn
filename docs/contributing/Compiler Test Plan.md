@@ -64,6 +64,7 @@ This document provides guidance for thinking about language interactions and tes
 - Ref structs, Readonly structs
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
+- Method override or explicit implementation with `where T : { class, struct, default }`
  
 # Code
 - Operators (see Eric's list below)

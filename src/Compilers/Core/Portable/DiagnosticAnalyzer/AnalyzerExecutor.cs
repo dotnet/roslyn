@@ -943,7 +943,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ExecuteBlockActionsCore<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNodeAnalyzerStateData, SyntaxNode, TLanguageKindEnum>(
                         codeBlockStartActions, codeBlockActions, codeBlockEndActions, analyzer,
-                        declaredNode, declaredSymbol, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf()),
+                        declaredNode, declaredSymbol, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(
+                            cb =>
+                            {
+                                var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(cb, declaredSymbol);
+
+                                if (filter is object)
+                                {
+                                    return cb.DescendantNodesAndSelf(descendIntoChildren: filter).Where(filter);
+                                }
+                                else
+                                {
+                                    return cb.DescendantNodesAndSelf();
+                                }
+                            }),
                         semanticModel, getKind, analyzerStateOpt?.CodeBlockAnalysisState, isGeneratedCode);
                     return true;
                 }

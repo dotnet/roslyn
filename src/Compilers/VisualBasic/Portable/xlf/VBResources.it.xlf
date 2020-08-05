@@ -378,12 +378,12 @@
       </trans-unit>
       <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
         <source>There are no function pointer types in VB.</source>
-        <target state="new">There are no function pointer types in VB.</target>
+        <target state="translated">Non ci sono tipi puntatore a funzione in VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">Non ci sono tipi Integer nativi in VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">

@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CompleteStatement = nameof(CompleteStatement);
             public const string Completion = nameof(Completion);
             public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
+            public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
             public const string DebuggingDataTips = "Debugging.DataTips";
             public const string DebuggingEditAndContinue = "Debugging.EditAndContinue";
@@ -233,6 +234,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string GoToBase = nameof(GoToBase);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);
+            public const string InlineParameterNameHints = nameof(InlineParameterNameHints);
             public const string Interactive = nameof(Interactive);
             public const string InteractiveHost = nameof(InteractiveHost);
             public const string KeywordHighlighting = nameof(KeywordHighlighting);

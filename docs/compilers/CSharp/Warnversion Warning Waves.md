@@ -1,25 +1,32 @@
-﻿# /warnversion warning "waves"
+﻿# /warn warning "waves"
 
-The C# compiler flag `/warnversion` controls optional warnings.
+The C# compiler flag `/warn` controls optional warnings.
 When we introduce new warnings that can be reported on existing code,
 we do so under an opt-in system so that programmers do not see new warnings
 without taking action to enable them.
-For that purpose, we have introduced the compiler flag "`/warnversion=n`"
-where `n` is a whole number or a decimal number.
-For a warning that was introduced in dotnet version `k`,
-that warning will be produced if the warning version `n` specified when compiling is
-greater than or equal to `k` and a compiler shipped with dotnet version
-`k` or later is used to compile the code.
+For that purpose, we have the compiler flag "`/warn:n`"
+where `n` is a whole number.
 
-The default warning version is `0` (produce no optional warnings).
-Our first warning under control of `/warnversion` was introduced in version `5`
-as part of .NET 5.
+The compiler shipped with dotnet 5 (the C# 9 compiler) contains some warnings, documented below, that
+are reported only under `/warn:5` or higher.
+
+The default warning level when the command-line compiler is used is `4`.
+
 If you want the compiler to produce all applicable warnings, you can specify
-`/warnversion=9999`.
-In the project file, the property used to specify the warning version is `AnalysisLevel`.
+`/warn:9999`.
 
-The table below describes all of the warnings controlled by `/warnversion`.
+The table below describes all of the warnings controlled by warning levels `5` or greater.
 
-| Warning ID | warnversion | Description |
+| Warning ID | warning level | Description |
 |------------|---------|-------------|
+| CS7023 | 5 | [A static type is used in an 'is' or 'as' expression](https://github.com/dotnet/roslyn/issues/30198) |
 | CS8073 | 5 | [Expression always true (or false) when comparing a struct to null](https://github.com/dotnet/roslyn/issues/45744) |
+| CS8848 | 5 | [Diagnose precedence error with query expression](https://github.com/dotnet/roslyn/issues/30231) |
+| CS8880 | 5 | [Struct constructor does not assign auto property (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8881 | 5 | [Struct constructor does not assign field (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8882 | 5 | [Out parameter not assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8883 | 5 | [Auto-property used before assigned in struct constructor (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8884 | 5 | [Field used before assigned in struct constructor (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8885 | 5 | [Struct constructor reads 'this' before assigning all fields (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8886 | 5 | [Out parameter used before being assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8887 | 5 | [Local variable used before being assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
