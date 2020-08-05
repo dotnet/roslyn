@@ -76,6 +76,7 @@ namespace Test.Utilities
         public static MetadataReference PresentationFramework { get; } = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
         public static MetadataReference SystemWeb { get; } = MetadataReference.CreateFromFile(typeof(System.Web.HttpRequest).Assembly.Location);
         public static MetadataReference SystemWebExtensions { get; } = MetadataReference.CreateFromFile(typeof(System.Web.Script.Serialization.JavaScriptSerializer).Assembly.Location);
+        public static MetadataReference SystemServiceModel { get; } = MetadataReference.CreateFromFile(typeof(System.ServiceModel.OperationContractAttribute).Assembly.Location);
 #endif
 
         private static ReferenceAssemblies CreateDefaultReferenceAssemblies()
