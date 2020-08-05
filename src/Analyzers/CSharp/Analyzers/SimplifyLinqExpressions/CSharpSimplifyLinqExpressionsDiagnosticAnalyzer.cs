@@ -4,16 +4,14 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Linq.Expressions;
+using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Operations;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -36,65 +34,82 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeAction, SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private void AnalyzeAction(SyntaxNodeAnalysisContext context)
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            var validIdentifiers = new List<string> { "First", "Last", "Single", "Any", "Count", "SingleOrDefault", "FirstOrDefault", "LastOrDefault" };
-            var memberAccess = context.Node as MemberAccessExpressionSyntax;
-            var invocation = memberAccess?.Expression as InvocationExpressionSyntax;
-            var syntaxTree = context.Node.SyntaxTree;
-            var semanticModel = context.SemanticModel;
+            var whereMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
+            var linqMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
+            var validLinqCalls = new List<string> { "First", "Last", "Single", "Any", "Count", "SingleOrDefault", "FirstOrDefault", "LastOrDefault" };
 
-            // linq was implemented in C# 3.0, return is language version is less that 3.0
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp3)
-            {
-                return;
-            }
-
-            // check if it is SimpleMemberAccessExpression is of the form Collection.Where(...)
-            if (memberAccess == null ||
-                invocation == null ||
-                !(invocation.Expression is MemberAccessExpressionSyntax expression) ||
-                expression.Name.Identifier.ValueText != "Where")
-            {
-                return;
-            }
-
-           /* // check to make sure that .Where is not user defined
-            var descendants = context.Node.Parent?.DescendantNodes().Select(m => semanticModel.GetSymbolInfo(m).Symbol);
-            var originalDefinition = descendants.OfType<IMethodSymbol>().FirstOrDefault(m => m.OriginalDefinition.Name.Equals("Where")).OriginalDefinition;
-            var namedType = context.Compilation?.GetTypeByMetadataName("System.Linq.Enumerable");
+            var namedType = context.Compilation.GetTypeByMetadataName("System.Linq.Enumerable");
             var methods = namedType?.GetMembers("Where").OfType<IMethodSymbol>();
+            AddIfNotNull(whereMethods, methods);
 
-            if (originalDefinition != null && !methods.Contains(originalDefinition))
+            // add all valid linq identifiers
+            foreach (var id in validLinqCalls)
+            {
+                methods = namedType?.GetMembers(id).OfType<IMethodSymbol>();
+                AddIfNotNull(linqMethods, methods);
+            }
+
+            if (whereMethods.Count > 0 && linqMethods.Count > 0)
+            {
+                context.RegisterOperationAction(
+                    context => AnalyzeAction(
+                        context, whereMethods.ToImmutable(), linqMethods.ToImmutable()), OperationKind.Invocation);
+            }
+
+            static void AddIfNotNull(ImmutableHashSet<IMethodSymbol>.Builder set, IEnumerable<IMethodSymbol>? others)
+            {
+                if (others != null)
+                {
+                    set.UnionWith(others);
+                }
+            }
+        }
+
+        public void AnalyzeAction(OperationAnalysisContext context, ImmutableHashSet<IMethodSymbol> whereMethods, ImmutableHashSet<IMethodSymbol> linqMethods)
+        {
+            var invocationOperation = (IInvocationOperation)context.Operation;
+
+            // Check that .Where(...) is not user defined
+            var argument = invocationOperation.Children.FirstOrDefault(c => c is IArgumentOperation);
+            if (argument != null)
+            {
+                var baseOp = argument.Children.FirstOrDefault(c => c is IInvocationOperation);
+
+                if (baseOp is IInvocationOperation method)
+                {
+                    var argDefinition = method.TargetMethod.OriginalDefinition;
+
+                    if (argDefinition != null && !whereMethods.Contains(argDefinition))
+                    {
+                        return;
+                    }
+                }
+            }
+            // check that the Where clause is followed by a call to a valid method i.e. one of First, FirstOrDefault, Single, SingleOrDefault, etc..
+            // and that it is also not user defined
+            var originalDefinition = (invocationOperation.TargetMethod.ReducedFrom ?? invocationOperation.TargetMethod).OriginalDefinition;
+            if (!linqMethods.Contains(originalDefinition))
             {
                 return;
             }
-*/
-            // check to ensure that the .Where is followed by a call with no predicate
-            if (context.Node.Parent is InvocationExpressionSyntax parent && parent.ArgumentList.Arguments.Any())
+
+            // Check that the Where clause is followed by a call with no predicate
+            var hasArguments = invocationOperation.TargetMethod.Parameters.IsEmpty;
+            if (hasArguments)
             {
                 return;
             }
 
-            // check if .Where() is followed by one of First, Last, Single, Any, Count, SingleOrDefault, FirstOrDefault, LastOrDefault
-            if (!validIdentifiers.Contains(memberAccess.Name.Identifier.ValueText, StringComparer.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            if (context.Compilation == null)
-            {
-                return;
-            }
-
-            var location = context.Node.GetLocation();
-            var options = context.Compilation.Options;
-
+            var operation = context.Operation;
+            var node = operation.Syntax;
+            var location = node.GetLocation();
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, location, Descriptor.GetEffectiveSeverity(options),
+                DiagnosticHelper.Create(Descriptor, location, Descriptor.GetEffectiveSeverity(context.Compilation.Options),
                 additionalLocations: null, properties: null));
         }
     }
