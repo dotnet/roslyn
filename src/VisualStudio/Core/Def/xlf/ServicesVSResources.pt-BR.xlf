@@ -802,6 +802,11 @@
         <target state="translated">Atualizando a severidade</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
+        <source>Use 64-bit process for code analysis (requires restart)</source>
+        <target state="new">Use 64-bit process for code analysis (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
         <source>Use .editorconfig compatibility mode (requires restart)</source>
         <target state="translated">Usar o modo de compatibilidade .editorconfig (exige reinicialização)</target>

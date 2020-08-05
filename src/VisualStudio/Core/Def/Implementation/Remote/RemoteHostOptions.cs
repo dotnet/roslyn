@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -33,13 +31,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
         // use 64bit OOP
-        public static readonly Option<bool> OOP64Bit = new Option<bool>(
+        public static readonly Option2<bool> OOP64Bit = new Option2<bool>(
             nameof(InternalFeatureOnOffOptions), nameof(OOP64Bit), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(OOP64Bit)));
 
         public static bool IsServiceHubProcess64Bit(HostWorkspaceServices services)
-            => services.GetRequiredService<IOptionService>().GetOption(OOP64Bit) ||
-               services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
+            => services.GetRequiredService<IOptionService>().GetOption(OOP64Bit);
     }
 
     [ExportOptionProvider, Shared]
