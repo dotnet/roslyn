@@ -273,26 +273,19 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalStringFormattingMethods, rule, tree, compilation, cancellationToken, namePrefix: "M:");
 
-
-        /// <summary>
-        /// Returns true if the given source symbol has been configured to be excluded from analysis by options.
-        /// </summary>
         public static bool IsConfiguredToSkipAnalysis(
-            this ISymbol symbol,
-            AnalyzerOptions options,
+            this AnalyzerOptions options,
             DiagnosticDescriptor rule,
+            ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => symbol.IsConfiguredToSkipAnalysis(symbol, options, rule, compilation, cancellationToken);
+            => options.IsConfiguredToSkipAnalysis(rule, symbol, symbol, compilation, cancellationToken);
 
-        /// <summary>
-        /// Returns true if the given symbol has been configured to be excluded from analysis by options in context of the given containing symbol.
-        /// </summary>
         public static bool IsConfiguredToSkipAnalysis(
-            this ISymbol symbol,
-            ISymbol containingContextSymbol,
-            AnalyzerOptions options,
+            this AnalyzerOptions options,
             DiagnosticDescriptor rule,
+            ISymbol symbol,
+            ISymbol containingContextSymbol,
             Compilation compilation,
             CancellationToken cancellationToken)
         {
@@ -336,13 +329,16 @@ namespace Analyzer.Utilities
                     ? options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedSymbolNames, rule, tree, compilation, cancellationToken)
                     : SymbolNamesWithValueOption<Unit>.Empty;
 
-        public static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
-            this AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            SyntaxTree tree,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, tree, compilation, cancellationToken, namePrefix: "T:");
+            static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
+                AnalyzerOptions options,
+                DiagnosticDescriptor rule,
+                ISymbol symbol,
+                Compilation compilation,
+                CancellationToken cancellationToken)
+                => TryGetSyntaxTreeForOption(symbol, out var tree)
+                    ? options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, tree, compilation, cancellationToken, namePrefix: "T:")
+                    : SymbolNamesWithValueOption<Unit>.Empty;
+        }
 
         public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
