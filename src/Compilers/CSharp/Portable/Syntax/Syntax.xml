@@ -3496,7 +3496,7 @@
   </Node>
   <Node Name="ClassOrStructConstraintSyntax" Base="TypeParameterConstraintSyntax">
     <TypeComment>
-      <summary>Base type for class or struct constraint syntax.</summary>
+      <summary>Class or struct constraint syntax.</summary>
     </TypeComment>
     <Kind Name="ClassConstraint"/>
     <Kind Name="StructConstraint"/>
@@ -3523,6 +3523,18 @@
       <PropertyComment>
         <summary>Gets the type syntax.</summary>
       </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="DefaultConstraintSyntax" Base="TypeParameterConstraintSyntax">
+    <TypeComment>
+      <summary>Default constraint syntax.</summary>
+    </TypeComment>
+    <Kind Name="DefaultConstraint"/>
+    <Field Name="DefaultKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "default" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="DefaultKeyword"/>
     </Field>
   </Node>
   <AbstractNode Name="BaseFieldDeclarationSyntax" Base="MemberDeclarationSyntax">

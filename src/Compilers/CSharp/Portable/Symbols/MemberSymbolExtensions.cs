@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt);
+                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt, requireSameReturnType: false);
 
                 case SymbolKind.Property:
                     var property = (PropertySymbol)member;

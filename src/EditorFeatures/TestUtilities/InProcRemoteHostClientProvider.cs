@@ -33,28 +33,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         OutOfProcess,
     }
 
-    internal static class RemoteTestHostOptions
-    {
-        public static readonly Option2<bool> RemoteHostTest = new Option2<bool>(
-            nameof(RemoteTestHostOptions), nameof(RemoteHostTest), defaultValue: false);
-    }
-
-    [ExportOptionProvider, Shared]
-    internal sealed class RemoteHostOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteHostOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RemoteTestHostOptions.RemoteHostTest);
-    }
-
     internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider
     {
-        [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider)), Shared]
+        [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
@@ -68,25 +49,18 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         }
 
         private readonly HostWorkspaceServices _services;
-        private readonly AsyncLazy<RemoteHostClient?> _lazyClient;
+        private readonly AsyncLazy<RemoteHostClient> _lazyClient;
 
         public InProcRemoteHostClientProvider(HostWorkspaceServices services)
         {
             _services = services;
 
-            _lazyClient = new AsyncLazy<RemoteHostClient?>(cancellationToken =>
-            {
-                var optionService = _services.GetRequiredService<IOptionService>();
-                if (optionService.GetOption(RemoteTestHostOptions.RemoteHostTest))
-                {
-                    return InProcRemoteHostClient.CreateAsync(_services, runCacheCleanup: false).AsNullable();
-                }
-
-                return SpecializedTasks.Null<RemoteHostClient>();
-            }, cacheResult: true);
+            _lazyClient = new AsyncLazy<RemoteHostClient>(
+                cancellationToken => InProcRemoteHostClient.CreateAsync(_services, runCacheCleanup: false),
+                cacheResult: true);
         }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => _lazyClient.GetValueAsync(cancellationToken);
+            => _lazyClient.GetValueAsync(cancellationToken).AsNullable();
     }
 }

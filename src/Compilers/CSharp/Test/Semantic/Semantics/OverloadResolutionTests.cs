@@ -11263,5 +11263,78 @@ public static class Extensions
 
             CompileAndVerify(code, expectedOutput: @"2");
         }
+
+        [Fact]
+        public void GenericTypeOverriddenMethod()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue F(TKey key) => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue F(A key) => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d.F(a);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenProperty()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue this[TKey key] => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue this[A key] => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d[a];
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

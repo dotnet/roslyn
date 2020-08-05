@@ -646,7 +646,7 @@ void I1.M() {}
             var s = CreateSubmission(test);
 
             s.VerifyDiagnostics(
-                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, struct or interface
+                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, record, struct or interface
                 // void I1.M() {}
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("M()").WithLocation(7, 9)
                 );

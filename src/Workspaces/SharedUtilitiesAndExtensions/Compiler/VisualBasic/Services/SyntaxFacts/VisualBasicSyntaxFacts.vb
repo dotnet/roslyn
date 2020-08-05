@@ -1671,6 +1671,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsOnWhileStatementHeader(root As SyntaxNode, position As Integer, ByRef whileStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnWhileStatementHeader
+            whileStatement = Nothing
+
+            Dim whileBlock = TryGetAncestorForLocation(Of WhileBlockSyntax)(root, position)
+            If whileBlock IsNot Nothing Then
+                whileStatement = whileBlock
+                Return IsOnHeader(root, position, whileBlock.WhileStatement, whileBlock.WhileStatement)
+            End If
+
+            Return False
+        End Function
+
         Public Function IsOnForeachHeader(root As SyntaxNode, position As Integer, ByRef foreachStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnForeachHeader
             Dim node = TryGetAncestorForLocation(Of ForEachBlockSyntax)(root, position)
             foreachStatement = node
