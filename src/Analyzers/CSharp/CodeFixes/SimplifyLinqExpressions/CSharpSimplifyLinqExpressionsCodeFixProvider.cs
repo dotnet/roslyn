@@ -52,16 +52,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
         private static void RemoveWhere(SemanticModel model, SyntaxEditor editor, SyntaxNode node)
         {
-            if (!node.IsKind(SyntaxKind.InvocationExpression))
+            if (node.IsKind(SyntaxKind.InvocationExpression))
             {
+                node = node.ChildNodes().First();
                 var memberAccess = (MemberAccessExpressionSyntax)node;
 
                 // Retrieve the lambda expression from the node
                 var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
 
                 // Get the data or object the query is being called on
-                var t = model.GetOperation(memberAccess.Expression) as Operations.IInvocationOperation;
+                var t = (Operations.IInvocationOperation)model.GetOperation(memberAccess.Expression);
                 var r = model.GetOperation(memberAccess.Expression).Children;
+                var g = model.GetSymbolInfo(memberAccess.Expression);
                 var y = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault();
                 var x = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
                 var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
