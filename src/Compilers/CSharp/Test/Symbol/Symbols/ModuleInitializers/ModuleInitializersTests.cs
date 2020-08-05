@@ -61,6 +61,31 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
+        public void CustomAttributeIsNotEmitted()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var moduleInitializerMethod = module.ContainingAssembly.GetTypeByMetadataName("C").GetMember("M");
+                    Assert.Empty(moduleInitializerMethod.GetAttributes());
+                });
+        }
+
+        [Fact]
         public void ModuleTypeStaticConstructorIsNotEmittedWhenNoMethodIsMarkedWithModuleInitializerAttribute()
         {
             string source = @"
