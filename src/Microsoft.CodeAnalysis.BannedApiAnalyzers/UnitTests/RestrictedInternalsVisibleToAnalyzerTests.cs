@@ -3,10 +3,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
 using Test.Utilities;
 using Xunit;
 
@@ -22,26 +20,20 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 {
     public class RestrictedInternalsVisibleToAnalyzerTests
     {
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
-        {
-            return new DiagnosticResult(CSharpRestrictedInternalsVisibleToAnalyzer.Rule)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
-        }
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
-        {
-            return new DiagnosticResult(BasicRestrictedInternalsVisibleToAnalyzer.Rule)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces) =>
+            VerifyVB.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
-        }
 
-        private static DiagnosticResult GetBasicResultAt(int startLine, int startColumn, int endLine, int endColumn, string bannedSymbolName, string restrictedNamespaces)
-        {
-            return new DiagnosticResult(BasicRestrictedInternalsVisibleToAnalyzer.Rule)
+        private static DiagnosticResult GetBasicResultAt(int startLine, int startColumn, int endLine, int endColumn, string bannedSymbolName, string restrictedNamespaces) =>
+            VerifyVB.Diagnostic()
                 .WithSpan(startLine, startColumn, endLine, endColumn)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
-        }
 
         private const string ApiProviderProjectName = nameof(ApiProviderProjectName);
         private const string ApiConsumerProjectName = nameof(ApiConsumerProjectName);
@@ -86,7 +78,6 @@ End Namespace";
                 {
                     (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.CSharp),
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             test.ExpectedDiagnostics.AddRange(expected);
@@ -105,7 +96,6 @@ End Namespace";
                 {
                     (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.VisualBasic),
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             test.ExpectedDiagnostics.AddRange(expected);

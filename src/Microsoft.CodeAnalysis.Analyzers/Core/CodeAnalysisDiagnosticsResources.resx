@@ -374,4 +374,151 @@
   <data name="EnableConcurrentExecutionFix" xml:space="preserve">
     <value>Enable concurrent execution</value>
   </data>
+  <data name="ClassIsNotDiagnosticAnalyzerMessage" xml:space="preserve">
+    <value>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</value>
+  </data>
+  <data name="ClassIsNotDiagnosticAnalyzerTitle" xml:space="preserve">
+    <value>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorDescription" xml:space="preserve">
+    <value>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorTitle" xml:space="preserve">
+    <value>Provide non-null 'customTags' value to diagnostic descriptor constructor.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers should not use reserved IDs.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdMessage" xml:space="preserve">
+    <value>'{0}' is a reserved diagnostic ID.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdTitle" xml:space="preserve">
+    <value>Do not use reserved diagnostic IDs.</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelDescription" xml:space="preserve">
+    <value>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelMessage" xml:space="preserve">
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelTitle" xml:space="preserve">
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
+  </data>
+  <data name="DeclareDiagnosticIdInAnalyzerReleaseTitle" xml:space="preserve">
+    <value>Add analyzer diagnostic IDs to analyzer release.</value>
+  </data>
+  <data name="DeclareDiagnosticIdInAnalyzerReleaseMessage" xml:space="preserve">
+    <value>Rule '{0}' is not part of any analyzer release.</value>
+  </data>
+  <data name="DeclareDiagnosticIdInAnalyzerReleaseDescription" xml:space="preserve">
+    <value>All supported analyzer diagnostic IDs should be part of an analyzer release.</value>
+  </data>
+  <data name="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle" xml:space="preserve">
+    <value>Add rule entry to unshipped release file</value>
+  </data>
+  <data name="UpdateDiagnosticIdInAnalyzerReleaseTitle" xml:space="preserve">
+    <value>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</value>
+  </data>
+  <data name="UpdateDiagnosticIdInAnalyzerReleaseMessage" xml:space="preserve">
+    <value>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</value>
+  </data>
+  <data name="UpdateDiagnosticIdInAnalyzerReleaseDescription" xml:space="preserve">
+    <value>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</value>
+  </data>
+  <data name="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle" xml:space="preserve">
+    <value>Update rule entry in unshipped release file</value>
+  </data>
+  <data name="RemoveUnshippedDeletedDiagnosticIdTitle" xml:space="preserve">
+    <value>Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</value>
+  </data>
+  <data name="RemoveUnshippedDeletedDiagnosticIdMessage" xml:space="preserve">
+    <value>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</value>
+  </data>
+  <data name="RemoveUnshippedDeletedDiagnosticIdDescription" xml:space="preserve">
+    <value>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</value>
+  </data>
+  <data name="RemoveShippedDeletedDiagnosticIdTitle" xml:space="preserve">
+    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</value>
+  </data>
+  <data name="RemoveShippedDeletedDiagnosticIdMessage" xml:space="preserve">
+    <value>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</value>
+  </data>
+  <data name="RemoveShippedDeletedDiagnosticIdDescription" xml:space="preserve">
+    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</value>
+  </data>
+  <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle" xml:space="preserve">
+    <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</value>
+  </data>
+  <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage" xml:space="preserve">
+    <value>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</value>
+  </data>
+  <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription" xml:space="preserve">
+    <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID in the same analyzer release.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage" xml:space="preserve">
+    <value>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID in the same analyzer release.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID between analyzer releases.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage" xml:space="preserve">
+    <value>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</value>
+  </data>
+  <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription" xml:space="preserve">
+    <value>Remove duplicate entries for diagnostic ID between analyzer releases.</value>
+  </data>
+  <data name="InvalidEntryInAnalyzerReleasesFileRuleTitle" xml:space="preserve">
+    <value>Invalid entry in analyzer release file.</value>
+  </data>
+  <data name="InvalidEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has an invalid entry '{1}'.</value>
+  </data>
+  <data name="InvalidHeaderInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has a missing or invalid release header '{1}'.</value>
+  </data>
+  <data name="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</value>
+  </data>
+  <data name="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</value>
+  </data>
+  <data name="InvalidEntryInAnalyzerReleasesFileRuleDescription" xml:space="preserve">
+    <value>Invalid entry in analyzer release file.</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleTitle" xml:space="preserve">
+    <value>Enable analyzer release tracking</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleMessage" xml:space="preserve">
+    <value>Enable analyzer release tracking for the analyzer project containing rule '{0}'</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleDescription" xml:space="preserve">
+    <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
+  </data>
+  <data name="DefineDiagnosticTitleCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic title should not contain a period or any line return character</value>
+  </data>
+  <data name="DefineDiagnosticTitleCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic title correctly</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic message correctly</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic description correctly</value>
+  </data>
 </root>

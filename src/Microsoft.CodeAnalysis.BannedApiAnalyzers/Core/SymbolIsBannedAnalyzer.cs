@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -82,12 +83,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 compilationContext.RegisterCompilationEndAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes());
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes());
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes(), context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes(), context.CancellationToken);
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes()),
+                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken),
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -234,13 +235,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return result;
             }
 
-            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
+            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
                 foreach (var attribute in attributes)
                 {
                     if (entryByAttributeSymbol.TryGetValue(attribute.AttributeClass, out var entry))
                     {
-                        var node = attribute.ApplicationSyntaxReference?.GetSyntax();
+                        var node = attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken);
                         if (node != null)
                         {
                             reportDiagnostic(
@@ -326,16 +327,34 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 RoslynDebug.Assert(entryBySymbol != null);
 
-                symbol = symbol.OriginalDefinition;
-
-                if (entryBySymbol.TryGetValue(symbol, out var entry))
+                foreach (var currentSymbol in GetSymbolAndOverridenSymbols(symbol))
                 {
-                    reportDiagnostic(
-                        Diagnostic.Create(
-                            SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                            syntaxNode.GetLocation(),
-                            symbol.ToDisplayString(SymbolDisplayFormat),
-                            string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                    if (entryBySymbol.TryGetValue(currentSymbol, out var entry))
+                    {
+                        reportDiagnostic(
+                            Diagnostic.Create(
+                                SymbolIsBannedAnalyzer.SymbolIsBannedRule,
+                                syntaxNode.GetLocation(),
+                                currentSymbol.ToDisplayString(SymbolDisplayFormat),
+                                string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                        return;
+                    }
+                }
+
+                static IEnumerable<ISymbol> GetSymbolAndOverridenSymbols(ISymbol symbol)
+                {
+                    ISymbol? currentSymbol = symbol.OriginalDefinition;
+
+                    while (currentSymbol != null)
+                    {
+                        yield return currentSymbol;
+
+                        // It's possible to have `IsOverride` true and yet have `GetOverriddeMember` returning null when the code is invalid
+                        // (e.g. base symbol is not marked as `virtual` or `abstract` and current symbol has the `overrides` modifier).
+                        currentSymbol = currentSymbol.IsOverride
+                            ? currentSymbol.GetOverriddenMember()?.OriginalDefinition
+                            : null;
+                    }
                 }
             }
 
@@ -374,7 +393,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
                 else if (index == text.Length - 1)
                 {
-                    DeclarationId = text.Substring(0, text.Length - 1).Trim();
+                    DeclarationId = text[0..^1].Trim();
                     Message = "";
                 }
                 else

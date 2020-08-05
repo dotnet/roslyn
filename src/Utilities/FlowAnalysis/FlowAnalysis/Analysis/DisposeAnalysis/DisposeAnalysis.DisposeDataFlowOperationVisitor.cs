@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         /// </summary>
         private sealed class DisposeDataFlowOperationVisitor : AbstractLocationDataFlowOperationVisitor<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
         {
-            private readonly Dictionary<IFieldSymbol, PointsToAbstractValue>? _trackedInstanceFieldLocationsOpt;
+            private readonly Dictionary<IFieldSymbol, PointsToAbstractValue>? _trackedInstanceFieldLocations;
             private ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes => DataFlowAnalysisContext.DisposeOwnershipTransferLikelyTypes;
             private bool DisposeOwnershipTransferAtConstructor => DataFlowAnalysisContext.DisposeOwnershipTransferAtConstructor;
             private bool DisposeOwnershipTransferAtMethodCall => DataFlowAnalysisContext.DisposeOwnershipTransferAtMethodCall;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
                 if (analysisContext.TrackInstanceFields)
                 {
-                    _trackedInstanceFieldLocationsOpt = new Dictionary<IFieldSymbol, PointsToAbstractValue>();
+                    _trackedInstanceFieldLocations = new Dictionary<IFieldSymbol, PointsToAbstractValue>();
                 }
             }
 
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 get
                 {
-                    if (_trackedInstanceFieldLocationsOpt == null)
+                    if (_trackedInstanceFieldLocations == null)
                     {
                         throw new InvalidOperationException();
                     }
 
-                    return _trackedInstanceFieldLocationsOpt.ToImmutableDictionary();
+                    return _trackedInstanceFieldLocations.ToImmutableDictionary();
                 }
             }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 if (!location.IsNull &&
                     location.LocationTypeOpt != null &&
-                    !location.LocationTypeOpt.IsValueType &&
+                    (!location.LocationTypeOpt.IsValueType || location.LocationTypeOpt.IsRefLikeType) &&
                     IsDisposable(location.LocationTypeOpt))
                 {
                     CurrentAnalysisData[location] = value;
@@ -93,6 +93,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Special case: Do not track System.Threading.Tasks.Task as you are not required to dispose them.
                 if (TaskNamedType != null &&
                     instanceType.DerivesFrom(TaskNamedType, baseTypesOnly: true))
+                {
+                    return defaultValue;
+                }
+
+                // StringReader doesn't need to be disposed: https://docs.microsoft.com/en-us/dotnet/api/system.io.stringreader?view=netframework-4.8
+                if (StringReaderType != null &&
+                    instanceType.Equals(StringReaderType))
+                {
+                    return defaultValue;
+                }
+
+                // Handle user option for additional excluded types
+                if (DataFlowAnalysisContext.ExcludedSymbols.Contains(instanceType))
                 {
                     return defaultValue;
                 }
@@ -189,7 +202,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 if (operation.Parent is IInvocationOperation invocation &&
                     invocation.TargetMethod.ReturnType.SpecialType == SpecialType.System_Boolean &&
                     invocation.TargetMethod.Name.StartsWith("TryGet", StringComparison.Ordinal) &&
-                    invocation.Arguments[invocation.Arguments.Length - 1] == operation)
+                    invocation.Arguments[^1] == operation)
                 {
                     return DisposeAbstractValue.NotDisposable;
                 }
@@ -223,19 +236,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 var value = base.Visit(operation, argument);
                 HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
-
-                // HACK: Workaround for missing IOperation/CFG support for C# 'using' declarations
-                // https://github.com/dotnet/roslyn-analyzers/issues/2152
-                if (operation?.Kind == OperationKind.None &&
-                    operation.Syntax.GetFirstToken().ToString() == "using" &&
-                    operation.Language == LanguageNames.CSharp)
-                {
-                    var previousOperation = CurrentBasicBlock.GetPreviousOperationInBlock(operation);
-                    if (previousOperation is ISimpleAssignmentOperation simpleAssignment)
-                    {
-                        HandleDisposingOperation(disposingOperation: operation, disposedInstance: simpleAssignment.Value);
-                    }
-                }
 
                 return value;
             }
@@ -317,14 +317,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, interproceduralResult);
 
                 // Apply the tracked instance field locations from interprocedural analysis.
-                if (_trackedInstanceFieldLocationsOpt != null &&
+                if (_trackedInstanceFieldLocations != null &&
                     interproceduralResult.TrackedInstanceFieldPointsToMap != null)
                 {
                     foreach (var (field, pointsToValue) in interproceduralResult.TrackedInstanceFieldPointsToMap)
                     {
-                        if (!_trackedInstanceFieldLocationsOpt.ContainsKey(field))
+                        if (!_trackedInstanceFieldLocations.ContainsKey(field))
                         {
-                            _trackedInstanceFieldLocationsOpt.Add(field, pointsToValue);
+                            _trackedInstanceFieldLocations.Add(field, pointsToValue);
                         }
                     }
                 }
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             public override DisposeAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object? argument)
             {
                 var value = base.VisitFieldReference(operation, argument);
-                if (_trackedInstanceFieldLocationsOpt != null &&
+                if (_trackedInstanceFieldLocations != null &&
                     !operation.Field.IsStatic &&
                     operation.Instance?.Kind == OperationKind.InstanceReference)
                 {
@@ -414,14 +414,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         var location = pointsToAbstractValue.Locations.Single();
                         if (location.IsAnalysisEntityDefaultLocation)
                         {
-                            if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out _))
+                            if (!_trackedInstanceFieldLocations.TryGetValue(operation.Field, out _))
                             {
                                 // First field reference on any control flow path.
                                 // Create a default instance to represent the object referenced by the field at start of the method and
                                 // check if the instance has NotDisposed state, indicating it is a disposable field that must be tracked.
                                 if (HandleInstanceCreation(operation, pointsToAbstractValue, defaultValue: DisposeAbstractValue.NotDisposable) == DisposeAbstractValue.NotDisposed)
                                 {
-                                    _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);
+                                    _trackedInstanceFieldLocations.Add(operation.Field, pointsToAbstractValue);
                                 }
                             }
                             else if (!CurrentAnalysisData.ContainsKey(location))
