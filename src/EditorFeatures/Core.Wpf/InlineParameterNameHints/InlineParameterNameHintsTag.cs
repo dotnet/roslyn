@@ -35,19 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         public const string TagId = "inline parameter name hints";
         private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
-        private SnapshotSpan _span;
+        private readonly SnapshotSpan _span;
         private readonly SymbolKey _key;
         private readonly IThreadingContext _threadingContext;
-        public Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        public readonly Lazy<IStreamingFindUsagesPresenter> StreamingPresenter;
 
-        /// <summary>
-        /// Creates the UIElement on call
-        /// Uses PositionAffinity.Predecessor because we want the tag to be associated with the preceding character
-        /// </summary>
-        /// <param name="adornment">The adornment that we are creating</param>
-        /// <param name="textView">The view of the editor</param>
-        /// <param name="span">The span that has the location of the hint</param>
-        /// <param name="key">The symbolkey associated with each parameter</param>
         private InlineParameterNameHintsTag(FrameworkElement adornment, ITextView textView, SnapshotSpan span,
                                             SymbolKey key, InlineParameterNameHintsTaggerProvider taggerProvider)
             : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
@@ -55,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _textView = textView;
             _span = span;
             _key = key;
-            _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
+            StreamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
             _threadingContext = taggerProvider.ThreadingContext;
             _toolTipService = taggerProvider.ToolTipService;
 
@@ -65,6 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             adornment.ToolTipOpening += Border_ToolTipOpening;
         }
 
+        /// <summary>
+        /// Creates the UIElement on call
+        /// Uses PositionAffinity.Predecessor because we want the tag to be associated with the preceding character
+        /// </summary>
+        /// <param name="textView">The view of the editor</param>
+        /// <param name="span">The span that has the location of the hint</param>
+        /// <param name="key">The symbolkey associated with each parameter</param>
         public static InlineParameterNameHintsTag Create(string text, double lineHeight, TextFormattingRunProperties format,
                                                          ITextView textView, SnapshotSpan span, SymbolKey key,
                                                          InlineParameterNameHintsTaggerProvider taggerProvider)
@@ -82,19 +81,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             {
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = _key.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-                var workspace = document.Project.Solution.Workspace;
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
 
-                if (symbolDisplayService != null)
+                if (symbol != null)
                 {
+                    var workspace = document.Project.Solution.Workspace;
+                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
                     var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
                     var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
                     textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
                     if (formatter != null)
                     {
-                        AddDocumentationPart(textContentBuilder, symbol, semanticModel, _span.Start, formatter, cancellationToken);
+                        var documentation = symbol.GetDocumentationParts(semanticModel, _span.Start, formatter, cancellationToken);
+
+                        if (documentation.Any())
+                        {
+                            textContentBuilder.AddLineBreak();
+                            textContentBuilder.AddRange(documentation);
+                        }
                     }
+
                     if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out var parts))
                     {
                         if (!parts.IsDefaultOrEmpty)
@@ -107,20 +113,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 }
             }
 
-            var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(), document, _threadingContext, _streamingPresenter);
+            var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
+                document, _threadingContext, StreamingPresenter);
             return uiCollection;
-        }
-
-        private static void AddDocumentationPart(
-            List<TaggedText> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        {
-            var documentation = symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
-
-            if (documentation.Any())
-            {
-                textContentBuilder.AddLineBreak();
-                textContentBuilder.AddRange(documentation);
-            }
         }
 
         private static FrameworkElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format)
@@ -171,18 +166,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 return !(mousePoint.X > border.ActualWidth || mousePoint.X < 0 || mousePoint.Y > border.ActualHeight || mousePoint.Y < 0);
             }
 
-            var toolTipPresenter = _toolTipService.CreatePresenter(_textView, new ToolTipParameters(true, false, KeepOpen));
+            var toolTipPresenter = _toolTipService.CreatePresenter(_textView, new ToolTipParameters(trackMouse: true, ignoreBufferChange: false, KeepOpen));
             var startToolTip = StartToolTipServiceAsync(toolTipPresenter);
         }
 
         /// <summary>
         /// Waits for the description to be created and updates the tooltip with the associated information
         /// </summary>
-        private async Task<IReadOnlyCollection<object>> StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
+        private async Task StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
         {
             var uiList = await CreateDescriptionAsync(CancellationToken.None).ConfigureAwait(false);
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
-            return uiList;
         }
     }
 }

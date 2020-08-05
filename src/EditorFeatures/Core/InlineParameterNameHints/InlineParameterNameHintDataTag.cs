@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         public readonly SymbolKey ParameterSymbolKey;
         public readonly string ParameterName;
 
-        public InlineParameterNameHintDataTag(SymbolKey symbolKey, string parameterName)
+        public InlineParameterNameHintDataTag(SymbolKey parameterSymbolKey, string parameterName)
         {
             if (parameterName.Length == 0)
             {
                 throw new ArgumentException("Must have a length greater than 0", nameof(parameterName));
             }
 
-            ParameterSymbolKey = symbolKey;
+            ParameterSymbolKey = parameterSymbolKey;
             ParameterName = parameterName;
         }
     }

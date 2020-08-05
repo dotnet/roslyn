@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                     If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing AndAlso IsExpressionWithNoName(simpleArgument.Expression) Then
                         Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
                         If param IsNot Nothing AndAlso param.Name.Length > 0 Then
-                            spans.Add(New InlineParameterHint(param.GetSymbolKey(), param.Name, simpleArgument.Span.Start))
+                            spans.Add(New InlineParameterHint(param.GetSymbolKey(cancellationToken), param.Name, simpleArgument.Span.Start))
                         End If
                     End If
                 End If

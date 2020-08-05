@@ -127,7 +127,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight, Format, _textView, dataTagSpan, textTag.ParameterSymbolKey, _inlineParameterNameHintsTaggerProvider)));
+                        var parameterHintSnapshotSpan = new SnapshotSpan(dataTagSpan.Start, 0);
+                        var parameterHintUITag = InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight,
+                                   Format, _textView, dataTagSpan, textTag.ParameterSymbolKey, _inlineParameterNameHintsTaggerProvider);
+
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(parameterHintSnapshotSpan, parameterHintUITag));
                     }
                 }
             }
