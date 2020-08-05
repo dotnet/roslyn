@@ -9,13 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions;
 using Xunit;
-<<<<<<< HEAD
-using Microsoft.CodeAnalysis.Testing;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsCodeFixProvider>;
-=======
->>>>>>> 4da68b2848515c522118b04037f3ab54ba7da7d9
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressions
 {
@@ -65,15 +58,7 @@ class Test
     }
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
-<<<<<<< HEAD
-            /*            await new VerifyCS.Test
-                        {
-                            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                            TestCode = source,
-                            FixedCode = fixedSource,
-                        }.RunAsync().ConfigureAwait(true);*/
-=======
->>>>>>> 4da68b2848515c522118b04037f3ab54ba7da7d9
+
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
