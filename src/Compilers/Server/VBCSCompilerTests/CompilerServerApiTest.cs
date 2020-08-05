@@ -32,12 +32,6 @@ class Hello
     }
 }";
 
-        public override void Dispose()
-        {
-            base.Dispose();
-            HackUtil.DisposeAll();
-
-        }
         private static Task TaskFromException(Exception e)
         {
             return TaskFromException<bool>(e);
@@ -175,9 +169,7 @@ class Hello
             using var serverData = await ServerUtil.CreateServer().ConfigureAwait(false);
             var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
             var response = await serverData.SendAsync(request).ConfigureAwait(false);
-            CompilerServerLogger.Log("here we are1");
             Assert.Equal(ResponseType.Rejected, response.Type);
-            CompilerServerLogger.Log("here we are2");
         }
 
         [Fact]
