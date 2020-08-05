@@ -7715,20 +7715,20 @@ unsafe class C
             var @string = comp1.GetSpecialType(SpecialType.System_String);
             var testMod = CSharpCustomModifier.CreateOptional(comp1.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest`1"));
 
-            var funcPtr = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtr = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
                 returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 parameterRefCustomModifiers: default, compilation: comp1);
-            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
                 parameterRefCustomModifiers: default, returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 compilation: comp1);
 
-            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string, customModifiers: ImmutableArray.Create(testMod)), refCustomModifiers: default,
                 parameterRefCustomModifiers: default, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 compilation: comp1);
-            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
                 parameterRefCustomModifiers: default, returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 compilation: comp1);
@@ -7802,20 +7802,20 @@ unsafe class C
             var @string = comp2.GetSpecialType(SpecialType.System_String);
             var testMod = CSharpCustomModifier.CreateOptional(comp2.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest"));
 
-            var funcPtr = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtr = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
                 returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 parameterRefCustomModifiers: default, compilation: comp2);
-            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
                 returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 parameterRefCustomModifiers: default, compilation: comp2);
 
-            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string, customModifiers: ImmutableArray.Create(testMod)), refCustomModifiers: default,
                 returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 parameterRefCustomModifiers: default, compilation: comp2);
-            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
                 returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
                 parameterRefCustomModifiers: default, compilation: comp2);

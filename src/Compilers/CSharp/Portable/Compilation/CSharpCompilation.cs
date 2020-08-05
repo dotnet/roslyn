@@ -3304,7 +3304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypesRequireUnmanaged, nameof(callingConventionTypes), nameof(callingConvention)));
             }
 
-            if (!callingConvention.IsValid() || callingConvention == SignatureCallingConvention.VarArgs)
+            if (!callingConvention.IsValid())
             {
                 throw new ArgumentOutOfRangeException(nameof(callingConvention));
             }
@@ -3314,11 +3314,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
             var internalCallingConvention = callingConvention.FromSignatureConvention();
             var conventionModifiers = internalCallingConvention == CallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty
-                ? callingConventionTypes.SelectAsArray((type, i) => getCustomModifierForType(type, i))
+                ? callingConventionTypes.SelectAsArray((type, i, @this) => getCustomModifierForType(type, @this, i), this)
                 : ImmutableArray<CustomModifier>.Empty;
 
             return FunctionPointerTypeSymbol.CreateFromParts(
-                callingConvention.FromSignatureConvention(),
+                internalCallingConvention,
                 conventionModifiers,
                 returnTypeWithAnnotations,
                 returnRefKind: returnRefKind,
@@ -3326,10 +3326,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds: parameterRefKinds,
                 compilation: this).GetPublicSymbol();
 
-            static CustomModifier getCustomModifierForType(INamedTypeSymbol type, int index)
+            static CustomModifier getCustomModifierForType(INamedTypeSymbol type, CSharpCompilation @this, int index)
             {
+                if (type is null)
+                {
+                    throw new ArgumentNullException($"{nameof(callingConventionTypes)}[{index}]");
+                }
+
                 var internalType = type.EnsureCSharpSymbolOrNull($"{nameof(callingConventionTypes)}[{index}]");
-                if (!FunctionPointerTypeSymbol.IsCallingConventionModifier(internalType))
+                if (!FunctionPointerTypeSymbol.IsCallingConventionModifier(internalType) || @this.Assembly.CorLibrary != internalType.ContainingAssembly.CorLibrary)
                 {
                     throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypeIsInvalid, type.ToDisplayString()));
                 }

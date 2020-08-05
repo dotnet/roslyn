@@ -1535,9 +1535,9 @@ unsafe class C
             Assert.Throws<ArgumentNullException>("parameterTypes", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: default, parameterRefKinds: ImmutableArray<RefKind>.Empty));
             Assert.Throws<ArgumentNullException>("parameterTypes[0]", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray.Create((ITypeSymbol?)null)!, parameterRefKinds: ImmutableArray.Create(RefKind.None)));
             Assert.Throws<ArgumentNullException>("parameterRefKinds", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: default));
+            Assert.Throws<ArgumentNullException>("callingConventionTypes[0]", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.Unmanaged, ImmutableArray.Create((INamedTypeSymbol)null!)));
             Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray.Create(RefKind.None)));
             Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.Out, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty));
-            Assert.Throws<ArgumentOutOfRangeException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.VarArgs));
             Assert.Throws<ArgumentOutOfRangeException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: (SignatureCallingConvention)10));
             Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.Default, callingConventionTypes: ImmutableArray.Create(cdeclType)!));
             Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.StdCall, callingConventionTypes: ImmutableArray.Create(cdeclType)!));
@@ -1545,6 +1545,17 @@ unsafe class C
             Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.CDecl, callingConventionTypes: ImmutableArray.Create(cdeclType)!));
             Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.ThisCall, callingConventionTypes: ImmutableArray.Create(cdeclType)!));
             Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.Unmanaged, callingConventionTypes: ImmutableArray.Create(@string)!));
+        }
+
+        [Fact]
+        public void PublicApi_VarargsHasUseSiteDiagnostic()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+            var ptr = comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.VarArgs);
+
+            Assert.Equal(SignatureCallingConvention.VarArgs, ptr.Signature.CallingConvention);
+            AssertEx.Equal("error CS8806: The calling convention of 'delegate* unmanaged[]<string>' is not supported by the language.", ptr.EnsureCSharpSymbolOrNull(nameof(ptr)).GetUseSiteDiagnostic().ToString());
         }
 
         [Fact]
@@ -1928,6 +1939,43 @@ unsafe class C
         }
 
         [Fact]
+        public void PublicApi_NonApplicationCorLibrary()
+        {
+            var otherCorLib = CreateEmptyCompilation(@"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public class String { }
+    namespace Runtime.CompilerServices
+    {
+        internal class CallConvTest {}
+        public static class RuntimeFeature
+        {
+            public const string UnmanagedSignatureCallingConvention = nameof(UnmanagedSignatureCallingConvention);
+        }
+    }
+}
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            var mainComp = CreateCompilation("", references: new[] { otherCorLib.ToMetadataReference() });
+            var returnType = mainComp.GetSpecialType(SpecialType.System_String).GetPublicSymbol();
+            var testConvention = otherCorLib.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest");
+            Assert.NotNull(testConvention);
+            Assert.True((object)testConvention!.ContainingAssembly.CorLibrary != mainComp.Assembly.CorLibrary);
+            Assert.True(FunctionPointerTypeSymbol.IsCallingConventionModifier(testConvention));
+
+            Assert.Throws<ArgumentException>(() => mainComp.CreateFunctionPointerTypeSymbol(
+                returnType!,
+                returnRefKind: RefKind.None,
+                parameterTypes: ImmutableArray<ITypeSymbol>.Empty,
+                parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                callingConvention: SignatureCallingConvention.Unmanaged,
+                callingConventionTypes: ImmutableArray.Create(testConvention.GetPublicSymbol()!)));
+        }
+
+        [Fact]
         public void Equality_UnmanagedExtensionModifiers()
         {
             var comp = CreateFunctionPointerCompilation("");
@@ -1996,7 +2044,7 @@ unsafe class C
             }
 
             (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) createTypeSymbol(ImmutableArray<CustomModifier> customModifiers, CallingConvention callingConvention = CallingConvention.Unmanaged)
-                => (FunctionPointerTypeSymbol.CreateFromParts(
+                => (FunctionPointerTypeSymbol.CreateFromPartsForTests(
                         callingConvention,
                         TypeWithAnnotations.Create(returnType, customModifiers: customModifiers),
                         refCustomModifiers: default,
@@ -2005,7 +2053,7 @@ unsafe class C
                         parameterRefCustomModifiers: default,
                         parameterRefKinds: ImmutableArray<RefKind>.Empty,
                         compilation: comp),
-                    FunctionPointerTypeSymbol.CreateFromParts(
+                    FunctionPointerTypeSymbol.CreateFromPartsForTests(
                         callingConvention,
                         TypeWithAnnotations.Create(returnType),
                         customModifiers,
@@ -2063,7 +2111,7 @@ namespace System
             }
 
             (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) createTypeSymbol(ImmutableArray<CustomModifier> customModifiers, CallingConvention callingConvention = CallingConvention.Unmanaged)
-                => (FunctionPointerTypeSymbol.CreateFromParts(
+                => (FunctionPointerTypeSymbol.CreateFromPartsForTests(
                         callingConvention,
                         TypeWithAnnotations.Create(returnType, customModifiers: customModifiers),
                         refCustomModifiers: default,
@@ -2072,7 +2120,7 @@ namespace System
                         parameterRefCustomModifiers: default,
                         parameterRefKinds: ImmutableArray<RefKind>.Empty,
                         compilation: comp),
-                    FunctionPointerTypeSymbol.CreateFromParts(
+                    FunctionPointerTypeSymbol.CreateFromPartsForTests(
                         callingConvention,
                         TypeWithAnnotations.Create(returnType),
                         customModifiers,
@@ -2122,7 +2170,7 @@ namespace System
             }
 
             (FunctionPointerTypeSymbol NoRef, FunctionPointerTypeSymbol ByRef) createTypeSymbol(ImmutableArray<CustomModifier> typeCustomModifiers, ImmutableArray<CustomModifier> refCustomModifiers, CallingConvention callingConvention = CallingConvention.Unmanaged)
-                => (FunctionPointerTypeSymbol.CreateFromParts(
+                => (FunctionPointerTypeSymbol.CreateFromPartsForTests(
                         callingConvention,
                         TypeWithAnnotations.Create(returnType, customModifiers: typeCustomModifiers),
                         refCustomModifiers: default,
@@ -2131,7 +2179,7 @@ namespace System
                         parameterRefCustomModifiers: default,
                         parameterRefKinds: ImmutableArray<RefKind>.Empty,
                         compilation: comp),
-                    FunctionPointerTypeSymbol.CreateFromParts(
+                    FunctionPointerTypeSymbol.CreateFromPartsForTests(
                         callingConvention,
                         TypeWithAnnotations.Create(returnType, customModifiers: typeCustomModifiers),
                         refCustomModifiers,

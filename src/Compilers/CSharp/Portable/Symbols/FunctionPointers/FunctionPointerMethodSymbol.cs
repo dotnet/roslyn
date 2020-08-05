@@ -240,8 +240,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Creates a function pointer method symbol from individual parts. This method should only be used when diagnostics are not needed.
+        /// This should only be used from testing code.
         /// </summary>
-        internal static FunctionPointerMethodSymbol CreateFromParts(
+        internal static FunctionPointerMethodSymbol CreateFromPartsForTest(
             CallingConvention callingConvention,
             TypeWithAnnotations returnType,
             ImmutableArray<CustomModifier> refCustomModifiers,
@@ -282,13 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiersBuilder.AddRange(callingConventionModifiers);
             }
 
-            if (GetCustomModifierForRefKind(returnRefKind, compilation) is CustomModifier modifier)
-            {
-                modifiersBuilder.Add(modifier);
-            }
-
             ImmutableArray<CustomModifier> refCustomModifiers;
-
             if (returnRefKind == RefKind.None)
             {
                 refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
@@ -296,14 +291,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
+                if (GetCustomModifierForRefKind(returnRefKind, compilation) is CustomModifier modifier)
+                {
+                    modifiersBuilder.Add(modifier);
+                }
                 refCustomModifiers = modifiersBuilder.ToImmutableAndFree();
             }
 
-            return CreateFromParts(
+            return new FunctionPointerMethodSymbol(
                 callingConvention,
+                returnRefKind,
                 returnTypeWithAnnotations,
                 refCustomModifiers,
-                returnRefKind,
                 parameterTypes,
                 parameterRefCustomModifiers: default,
                 parameterRefKinds,

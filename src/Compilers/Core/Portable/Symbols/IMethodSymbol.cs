@@ -216,15 +216,14 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<AttributeData> GetReturnTypeAttributes();
 
         /// <summary>
-        /// The calling convention enum of the method method symbol. If this value is <see cref="SignatureCallingConvention.Unmanaged"/>,
-        /// then <see cref="CallingConventionTypes"/> may have additional calling convention types that are considered part of the
-        /// calling convention of the method.
+        /// The calling convention enum of the method method symbol.
         /// </summary>
         SignatureCallingConvention CallingConvention { get; }
 
         /// <summary>
-        /// Modifier types that are considered part of the calling convention of this method. If <see cref="CallingConvention"/> is not
-        /// <see cref="SignatureCallingConvention.Unmanaged"/>, then this will be an empty array.
+        /// Modifier types that are considered part of the calling convention of this method, if the <see cref="MethodKind"/> is <see cref="MethodKind.FunctionPointerSignature"/>
+        /// and the <see cref="CallingConvention"/> is <see cref="SignatureCallingConvention.Unmanaged"/>. If this is not a function pointer signature or the calling convention is
+        /// not unmanaged, this is an empty array. Order and duplication of these modifiers reflect source/metadata order and duplication, whichever this symbol came from.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> CallingConventionTypes { get; }
 
