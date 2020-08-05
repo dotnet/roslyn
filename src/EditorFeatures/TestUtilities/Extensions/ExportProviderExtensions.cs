@@ -17,5 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var lazyCommandHandlers = exportProvider.GetExports<ICommandHandler, OrderableMetadata>();
             return Assert.IsType<TCommandHandler>(lazyCommandHandlers.Single(lazyCommandHandler => lazyCommandHandler.Metadata.Name == name).Value);
         }
+
+        public static TCommandHandler GetCommandHandler<TCommandHandler>(this ExportProvider exportProvider, string name, string contentType)
+            where TCommandHandler : ICommandHandler
+        {
+            var lazyCommandHandlers = exportProvider.GetExports<ICommandHandler, OrderableContentTypeMetadata>();
+            return Assert.IsType<TCommandHandler>(lazyCommandHandlers.Single(lazyCommandHandler => lazyCommandHandler.Metadata.Name == name && lazyCommandHandler.Metadata.ContentTypes.Contains(contentType)).Value);
+        }
     }
 }
