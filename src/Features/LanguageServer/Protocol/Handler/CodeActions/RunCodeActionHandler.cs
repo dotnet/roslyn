@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportExecuteWorkspaceCommand(CodeActionsHandler.RunCodeActionCommandName)]
     internal class RunCodeActionHandler : IExecuteWorkspaceCommandHandler
     {
+        private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly ILspSolutionProvider _solutionProvider;
@@ -38,11 +39,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RunCodeActionHandler(
+            CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             ILspSolutionProvider solutionProvider,
             IThreadingContext threadingContext)
         {
+            _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
             _solutionProvider = solutionProvider;
@@ -57,8 +60,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                document, _codeFixService, _codeRefactoringService,
-                _threadingContext, runRequest.Range, cancellationToken).ConfigureAwait(false);
+                _codeActionsCache, document, runRequest.Range, _codeFixService, _codeRefactoringService,
+                _threadingContext, cancellationToken).ConfigureAwait(false);
 
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(actionToRun);

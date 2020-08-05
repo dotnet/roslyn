@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName), Shared]
     internal class CodeActionsHandler : AbstractRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
     {
+        private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IThreadingContext _threadingContext;
@@ -35,12 +36,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsHandler(
+            CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             ILspSolutionProvider solutionProvider,
             IThreadingContext threadingContext)
             : base(solutionProvider)
         {
+            _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
             _threadingContext = threadingContext;
@@ -59,8 +62,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-                request, document, _codeFixService, _codeRefactoringService, _threadingContext,
-                request.Range, cancellationToken).ConfigureAwait(false);
+                request, _codeActionsCache, document, _codeFixService, _codeRefactoringService, _threadingContext,
+                cancellationToken).ConfigureAwait(false);
 
             return codeActions;
         }

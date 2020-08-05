@@ -32,19 +32,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public static async Task<VSCodeAction[]> GetVSCodeActionsAsync(
             CodeActionParams request,
+            CodeActionsCache codeActionsCache,
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             IThreadingContext threadingContext,
-            LSP.Range selection,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, threadingContext, request.Range, cancellationToken).ConfigureAwait(false);
             if (!actionSets.HasValue)
             {
                 return Array.Empty<VSCodeAction>();
             }
+
+            codeActionsCache.UpdateCache(document, request.Range, actionSets.Value);
 
             var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var codeActions);
             foreach (var set in actionSets)
@@ -105,18 +107,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Used by CodeActionResolveHandler and RunCodeActionHandler.
         /// </remarks>
         public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            CodeActionsCache codeActionsCache,
             Document document,
+            LSP.Range selection,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             IThreadingContext threadingContext,
-            LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
-            if (!actionSets.HasValue)
+            if (!codeActionsCache.TryGetCache(document, selection, out var actionSets))
             {
-                return ImmutableArray<CodeAction>.Empty;
+                actionSets = await GetActionSetsAsync(
+                    document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
+
+                if (!actionSets.HasValue)
+                {
+                    return ImmutableArray<CodeAction>.Empty;
+                }
+
+                codeActionsCache.UpdateCache(document, selection, actionSets.Value);
             }
 
             var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
