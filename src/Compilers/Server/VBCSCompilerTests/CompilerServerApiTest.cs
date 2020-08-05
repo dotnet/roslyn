@@ -116,7 +116,7 @@ class Hello
         }
 
         [Fact]
-        public async Task MutexAcquiredWhenRunningServer()
+        public void MutexAcquiredWhenRunningServer()
         {
             var pipeName = Guid.NewGuid().ToString("N");
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
