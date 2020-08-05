@@ -37,11 +37,6 @@
         <target state="translated">正確比較符號</target>
         <note />
       </trans-unit>
-      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
-        <source>Configure generated code analysis.</source>
-        <target state="needs-review-translation">設定產生的程式碼分析</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
         <source>Configure generated code analysis</source>
         <target state="translated">設定產生的程式碼分析</target>
@@ -147,11 +142,6 @@
         <target state="translated">啟用分析器版本追蹤</target>
         <note />
       </trans-unit>
-      <trans-unit id="EnableConcurrentExecutionDescription">
-        <source>Enable concurrent execution.</source>
-        <target state="needs-review-translation">啟用同時執行</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EnableConcurrentExecutionFix">
         <source>Enable concurrent execution</source>
         <target state="translated">啟用同時執行</target>
@@ -253,7 +243,7 @@
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionTitle">
-        <source>Missing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer action</source>
+        <source>Missing kind argument when registering an analyzer action</source>
         <target state="needs-review-translation">註冊分析器動作時，遺漏 kind 引數。</target>
         <note />
       </trans-unit>

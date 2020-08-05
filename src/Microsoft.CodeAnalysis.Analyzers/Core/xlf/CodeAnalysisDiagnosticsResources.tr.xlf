@@ -37,11 +37,6 @@
         <target state="translated">Simgeleri doğru karşılaştır</target>
         <note />
       </trans-unit>
-      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
-        <source>Configure generated code analysis.</source>
-        <target state="needs-review-translation">Oluşturulan kod analizini yapılandır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
         <source>Configure generated code analysis</source>
         <target state="translated">Oluşturulan kod analizini yapılandır</target>
@@ -147,11 +142,6 @@
         <target state="translated">Çözümleyici yayını izlemeyi etkinleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="EnableConcurrentExecutionDescription">
-        <source>Enable concurrent execution.</source>
-        <target state="needs-review-translation">Eşzamanlı yürütmeyi etkinleştir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EnableConcurrentExecutionFix">
         <source>Enable concurrent execution</source>
         <target state="translated">Eşzamanlı yürütmeyi etkinleştir</target>
@@ -253,7 +243,7 @@
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionTitle">
-        <source>Missing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer action</source>
+        <source>Missing kind argument when registering an analyzer action</source>
         <target state="needs-review-translation">Bir çözümleyici eylemi kaydedilirken tür bağımsız değişkeni eksik.</target>
         <note />
       </trans-unit>

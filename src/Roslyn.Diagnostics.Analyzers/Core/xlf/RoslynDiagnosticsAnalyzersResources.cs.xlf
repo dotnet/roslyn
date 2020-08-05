@@ -22,11 +22,6 @@
         <target state="translated">Nepoužívejte příponu Opt</target>
         <note />
       </trans-unit>
-      <trans-unit id="BlankLinesDescription">
-        <source>Avoid multiple blank lines.</source>
-        <target state="new">Avoid multiple blank lines.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
         <target state="needs-review-translation">Nepoužívejte několik prázdných řádků.</target>

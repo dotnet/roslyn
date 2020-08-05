@@ -37,11 +37,6 @@
         <target state="translated">Comparer les symboles correctement</target>
         <note />
       </trans-unit>
-      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
-        <source>Configure generated code analysis.</source>
-        <target state="needs-review-translation">Configurer l'analyse du code générée</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
         <source>Configure generated code analysis</source>
         <target state="translated">Configurer l'analyse du code générée</target>
@@ -147,11 +142,6 @@
         <target state="translated">Activer le suivi de version d'analyseur</target>
         <note />
       </trans-unit>
-      <trans-unit id="EnableConcurrentExecutionDescription">
-        <source>Enable concurrent execution.</source>
-        <target state="needs-review-translation">Activer l'exécution simultanée</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EnableConcurrentExecutionFix">
         <source>Enable concurrent execution</source>
         <target state="translated">Activer l'exécution simultanée</target>
@@ -253,7 +243,7 @@
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionTitle">
-        <source>Missing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer action</source>
+        <source>Missing kind argument when registering an analyzer action</source>
         <target state="needs-review-translation">Argument kind manquant au moment d'inscrire une action d'analyseur.</target>
         <note />
       </trans-unit>

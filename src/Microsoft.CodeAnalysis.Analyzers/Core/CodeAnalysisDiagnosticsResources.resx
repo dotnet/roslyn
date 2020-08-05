@@ -151,7 +151,7 @@
     <value>Specify at least one OperationKind of interest when registering an operation analyzer action</value>
   </data>
   <data name="MissingKindArgumentToRegisterActionTitle" xml:space="preserve">
-    <value>Missing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer actionMissing kind argument when registering an analyzer action</value>
+    <value>Missing kind argument when registering an analyzer action</value>
   </data>
   <data name="MissingKindArgumentToRegisterActionDescription" xml:space="preserve">
     <value>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</value>
@@ -349,17 +349,11 @@
   <data name="CompareSymbolsCorrectlyCodeFix" xml:space="preserve">
     <value>Compare symbols correctly</value>
   </data>
-  <data name="ConfigureGeneratedCodeAnalysisDescription" xml:space="preserve">
-    <value>Configure generated code analysis.</value>
-  </data>
   <data name="ConfigureGeneratedCodeAnalysisMessage" xml:space="preserve">
     <value>Configure generated code analysis</value>
   </data>
   <data name="ConfigureGeneratedCodeAnalysisTitle" xml:space="preserve">
     <value>Configure generated code analysis</value>
-  </data>
-  <data name="EnableConcurrentExecutionDescription" xml:space="preserve">
-    <value>Enable concurrent execution.</value>
   </data>
   <data name="EnableConcurrentExecutionMessage" xml:space="preserve">
     <value>Enable concurrent execution</value>

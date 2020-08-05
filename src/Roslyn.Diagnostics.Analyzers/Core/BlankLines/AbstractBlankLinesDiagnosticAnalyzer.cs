@@ -17,8 +17,6 @@ namespace Roslyn.Diagnostics.Analyzers.BlankLines
             nameof(RoslynDiagnosticsAnalyzersResources.BlankLinesTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(
             nameof(RoslynDiagnosticsAnalyzersResources.BlankLinesMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(
-            nameof(RoslynDiagnosticsAnalyzersResources.BlankLinesDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.BlankLinesRuleId,
@@ -27,7 +25,6 @@ namespace Roslyn.Diagnostics.Analyzers.BlankLines
             DiagnosticCategory.RoslynDiagnosticsMaintainability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
