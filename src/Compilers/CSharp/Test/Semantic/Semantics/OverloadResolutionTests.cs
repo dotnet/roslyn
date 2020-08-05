@@ -11293,11 +11293,23 @@ class Program
 
             var comp = CreateCompilation(new[] { source0, source1, source2 });
             comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
 
             var ref0 = CreateCompilation(source0).EmitToImageReference();
             var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
             comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
             comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<MethodSymbol>();
+                Assert.Equal("B Derived<B>.F(A key)", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenMethod(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.F(A key)", symbol.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -11330,11 +11342,73 @@ class Program
 
             var comp = CreateCompilation(new[] { source0, source1, source2 });
             comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
 
             var ref0 = CreateCompilation(source0).EmitToImageReference();
             var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
             comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
             comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<PropertySymbol>();
+                Assert.Equal("B Derived<B>.this[A key] { get; }", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenProperty(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.this[A key] { get; }", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenEvent()
+        {
+            var source0 =
+@"public delegate TValue D<TKey, TValue>(TKey key);
+public abstract class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public abstract event D<TKey, TValue> E;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override event D<A, TValue> E { add { } remove { } }
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        d.E += (A a) => default(B);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<EventSymbol>();
+                Assert.Equal("event D<A, B> Derived<B>.E", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
+                Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
+            }
         }
     }
 }
