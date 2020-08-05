@@ -5130,8 +5130,9 @@ namespace B
 }", testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestAddUsingForExtensionGetEnumeratorReturningIEnumerator()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningIEnumerator(TestHost testHost)
         {
             await TestAsync(
 @"
@@ -5177,11 +5178,12 @@ namespace B
     {
         public static IEnumerator<int> GetEnumerator(this C instance) => null;
     }
-}");
+}", testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumerator()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumerator(TestHost testHost)
         {
             await TestAsync(
 @"
@@ -5237,10 +5239,10 @@ namespace B
         public int Current { get; }
         public bool MoveNext();
     }
-}");
+}", testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestMissingForExtensionInvalidGetEnumerator()
         {
             await TestMissingAsync(
@@ -5266,8 +5268,9 @@ namespace B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumeratorWrongAsync()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumeratorWrongAsync(TestHost testHost)
         {
             await TestAsync(
 @"
@@ -5343,10 +5346,10 @@ namespace B
         public int Current { get; }
         public bool MoveNext();
     }
-}");
+}", testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestMissingForExtensionGetAsyncEnumeratorOnForeach()
         {
             await TestMissingAsync(
@@ -5373,8 +5376,9 @@ namespace B
 }" + IAsyncEnumerable);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningIAsyncEnumerator()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningIAsyncEnumerator(TestHost testHost)
         {
             await TestAsync(
 @"
@@ -5422,11 +5426,12 @@ namespace B
     {
         public static IAsyncEnumerator<int> GetAsyncEnumerator(this C instance) => null;
     }
-}" + IAsyncEnumerable);
+}" + IAsyncEnumerable, testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumerator()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumerator(TestHost testHost)
         {
             await TestAsync(
 @"
@@ -5484,10 +5489,10 @@ namespace B
         public int Current { get; }
         public Task<bool> MoveNextAsync();
     }
-}");
+}", testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestMissingForExtensionInvalidGetAsyncEnumerator()
         {
             await TestMissingAsync(
@@ -5515,8 +5520,9 @@ namespace B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumeratorWrongAsync()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumeratorWrongAsync(TestHost testHost)
         {
             await TestAsync(
 @"
@@ -5596,10 +5602,10 @@ namespace B
         public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
         public int Current => throw null;
     }
-}");
+}", testHost);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestMissingForExtensionGetEnumeratorOnAsyncForeach()
         {
             await TestMissingAsync(
@@ -5628,6 +5634,8 @@ namespace B
 }");
         }
 
+        [Theory]
+        [CombinatorialData]
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         public async Task UsingPlacedWithStaticUsingInNamespace_WhenNoExistingUsings(TestHost testHost)
         {
