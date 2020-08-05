@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static void AnalyzeAllowedIdsInfoList(
             string ruleId,
             IArgumentOperation argument,
-            AdditionalText? additionalTextOpt,
+            AdditionalText? additionalText,
             string? category,
             ImmutableArray<(string? prefix, int start, int end)> allowedIdsInfoList,
             Action<Diagnostic> addDiagnostic)
         {
             RoslynDebug.Assert(!allowedIdsInfoList.IsDefaultOrEmpty);
             RoslynDebug.Assert(category != null);
-            RoslynDebug.Assert(additionalTextOpt != null);
+            RoslynDebug.Assert(additionalText != null);
 
             var foundMatch = false;
             static bool ShouldValidateRange((string? prefix, int start, int end) range)
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     arg3 += !ShouldValidateRange(range) ? range.prefix + "XXXX" : $"{range.prefix}{range.start}-{range.prefix}{range.end}";
                 }
 
-                string arg4 = Path.GetFileName(additionalTextOpt.Path);
+                string arg4 = Path.GetFileName(additionalText.Path);
                 var diagnostic = Diagnostic.Create(DiagnosticIdMustBeInSpecifiedFormatRule, argument.Value.Syntax.GetLocation(), arg1, arg2, arg3, arg4);
                 addDiagnostic(diagnostic);
             }

@@ -262,7 +262,7 @@ namespace Analyzer.Utilities
             SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.NullCheckValidationMethods, rule, tree, compilation, cancellationToken, namePrefixOpt: "M:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.NullCheckValidationMethods, rule, tree, compilation, cancellationToken, namePrefix: "M:");
 
         public static SymbolNamesWithValueOption<Unit> GetAdditionalStringFormattingMethodsOption(
             this AnalyzerOptions options,
@@ -270,7 +270,7 @@ namespace Analyzer.Utilities
             SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalStringFormattingMethods, rule, tree, compilation, cancellationToken, namePrefixOpt: "M:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalStringFormattingMethods, rule, tree, compilation, cancellationToken, namePrefix: "M:");
 
         public static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
@@ -306,7 +306,7 @@ namespace Analyzer.Utilities
             SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, tree, compilation, cancellationToken, namePrefixOpt: "T:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, tree, compilation, cancellationToken, namePrefix: "T:");
 
         public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
@@ -339,7 +339,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
         {
-            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredSuffixes, rule, tree, compilation, cancellationToken, namePrefixOpt: "T:", getTypeAndSuffixFunc: GetParts);
+            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredSuffixes, rule, tree, compilation, cancellationToken, namePrefix: "T:", getTypeAndSuffixFunc: GetParts);
 
             static SymbolNamesWithValueOption<string>.NameParts GetParts(string name)
             {
@@ -390,7 +390,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
         {
-            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredGenericInterfaces, rule, tree, compilation, cancellationToken, namePrefixOpt: "T:", getTypeAndSuffixFunc: x => GetParts(x, compilation));
+            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredGenericInterfaces, rule, tree, compilation, cancellationToken, namePrefix: "T:", getTypeAndSuffixFunc: x => GetParts(x, compilation));
 
             static SymbolNamesWithValueOption<INamedTypeSymbol>.NameParts GetParts(string name, Compilation compilation)
             {
@@ -438,7 +438,7 @@ namespace Analyzer.Utilities
             SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalUseResultsMethods, rule, tree, compilation, cancellationToken, namePrefixOpt: "M:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalUseResultsMethods, rule, tree, compilation, cancellationToken, namePrefix: "M:");
 
         private static SymbolNamesWithValueOption<TValue> GetSymbolNamesWithValueOption<TValue>(
             this AnalyzerOptions options,
@@ -447,7 +447,7 @@ namespace Analyzer.Utilities
             SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken,
-            string? namePrefixOpt = null,
+            string? namePrefix = null,
             string? optionDefaultValue = null,
             string? optionForcedValue = null,
             Func<string, SymbolNamesWithValueOption<TValue>.NameParts>? getTypeAndSuffixFunc = null)
@@ -474,7 +474,7 @@ namespace Analyzer.Utilities
                 }
 
                 var names = optionValue.Split('|').ToImmutableArray();
-                option = SymbolNamesWithValueOption<TValue>.Create(names, compilation, namePrefixOpt, getTypeAndSuffixFunc);
+                option = SymbolNamesWithValueOption<TValue>.Create(names, compilation, namePrefix, getTypeAndSuffixFunc);
                 return true;
             }
 
@@ -508,6 +508,8 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
         {
+            MSBuildPropertyOptionNamesHelpers.VerifySupportedPropertyOptionName(optionName);
+
             // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
             // So, we default to first syntax tree.
             if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
@@ -519,6 +521,29 @@ namespace Analyzer.Utilities
             return analyzerConfigOptions.GetOptionValue(optionName, tree, rule: null,
                 tryParseValue: (string value, out string? result) => { result = value; return true; },
                 defaultValue: null, OptionKind.BuildProperty);
+        }
+
+        public static ImmutableArray<string> GetMSBuildItemMetadataValues(
+            this AnalyzerOptions options,
+            string itemOptionName,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            MSBuildItemOptionNamesHelpers.VerifySupportedItemOptionName(itemOptionName);
+
+            // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
+            // So, we default to first syntax tree.
+            if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            var propertyOptionName = MSBuildItemOptionNamesHelpers.GetPropertyNameForItemOptionName(itemOptionName);
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
+            var propertyValue = analyzerConfigOptions.GetOptionValue(propertyOptionName, tree, rule: null,
+                tryParseValue: (string value, out string? result) => { result = value; return true; },
+                defaultValue: null, OptionKind.BuildProperty);
+            return MSBuildItemOptionNamesHelpers.ParseItemOptionValue(propertyValue);
         }
 
 #pragma warning disable CA1801 // Review unused parameters - 'compilation' is used conditionally.

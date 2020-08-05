@@ -214,14 +214,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         ISymbol argSymbol = semanticModel.GetSymbolInfo(argument, symbolContext.CancellationToken).Symbol;
                         if (argSymbol != null)
                         {
-                            SyntaxNode? diagnosticInitializerOpt = null;
+                            SyntaxNode? diagnosticInitializer = null;
 
                             if (argSymbol is ILocalSymbol local)
                             {
                                 SyntaxReference syntaxRef = local.DeclaringSyntaxReferences.FirstOrDefault();
                                 if (syntaxRef != null)
                                 {
-                                    diagnosticInitializerOpt = syntaxRef.GetSyntax(symbolContext.CancellationToken).FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
+                                    diagnosticInitializer = syntaxRef.GetSyntax(symbolContext.CancellationToken).FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
                                 }
                             }
                             else
@@ -230,13 +230,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     method.ContainingType.Equals(_diagnosticType) &&
     method.Name.Equals(nameof(Diagnostic.Create), StringComparison.OrdinalIgnoreCase))
                                 {
-                                    diagnosticInitializerOpt = argument;
+                                    diagnosticInitializer = argument;
                                 }
                             }
 
-                            if (diagnosticInitializerOpt != null)
+                            if (diagnosticInitializer != null)
                             {
-                                ImmutableArray<IFieldSymbol> descriptorFields = GetReferencedDescriptorFields(diagnosticInitializerOpt, semanticModel, symbolContext.CancellationToken);
+                                ImmutableArray<IFieldSymbol> descriptorFields = GetReferencedDescriptorFields(diagnosticInitializer, semanticModel, symbolContext.CancellationToken);
                                 if (descriptorFields.Length == 1 &&
                                     !_supportedDescriptorFieldsMap[(INamedTypeSymbol)symbolContext.Symbol].Contains(descriptorFields[0]))
                                 {

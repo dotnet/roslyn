@@ -434,12 +434,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments,
                 IOperation originalOperation)
             {
-                if (this.IsMethodArgumentASink(targetMethod, taintedArguments, out HashSet<SinkKind>? sinkKinds))
+                if (targetMethod.ContainingType != null && taintedArguments.Any())
                 {
-                    foreach (IArgumentOperation taintedArgument in taintedArguments)
+                    IEnumerable<SinkInfo>? infosForType = this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(targetMethod.ContainingType);
+                    if (infosForType != null)
                     {
-                        TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
-                        this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax.GetLocation(), sinkKinds, abstractValue.SourceOrigins);
+                        foreach (IArgumentOperation taintedArgument in taintedArguments)
+                        {
+                            if (IsMethodArgumentASink(targetMethod, infosForType, taintedArgument, out HashSet<SinkKind>? sinkKinds))
+                            {
+                                TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
+                                this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax.GetLocation(), sinkKinds, abstractValue.SourceOrigins);
+                            }
+                        }
                     }
                 }
 
@@ -524,19 +531,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// Determines if tainted data passed as arguments to a method enters a tainted data sink.
             /// </summary>
             /// <param name="method">Method being invoked.</param>
-            /// <param name="taintedArguments">Arguments passed to the method invocation that are tainted.</param>
+            /// <param name="taintedArgument">Argument passed to the method invocation that is tainted.</param>
             /// <returns>True if any of the tainted data arguments enters a sink, false otherwise.</returns>
-            private bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<IArgumentOperation> taintedArguments, [NotNullWhen(returnValue: true)] out HashSet<SinkKind>? sinkKinds)
+            private static bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<SinkInfo> infosForType, IArgumentOperation taintedArgument, [NotNullWhen(returnValue: true)] out HashSet<SinkKind>? sinkKinds)
             {
                 sinkKinds = null;
-
-                if (method.ContainingType == null || !taintedArguments.Any())
-                {
-                    return false;
-                }
-
                 Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
-                foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(method.ContainingType))
+                foreach (SinkInfo sinkInfo in infosForType)
                 {
                     if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.IsSupersetOf(sinkInfo.SinkKinds))
                     {
@@ -545,12 +546,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                     if (method.MethodKind == MethodKind.Constructor
                         && sinkInfo.IsAnyStringParameterInConstructorASink
-                        && taintedArguments.Any(a => a.Parameter.Type.SpecialType == SpecialType.System_String))
+                        && taintedArgument.Parameter.Type.SpecialType == SpecialType.System_String)
                     {
                         lazySinkKinds.Value.UnionWith(sinkInfo.SinkKinds);
                     }
                     else if (sinkInfo.SinkMethodParameters.TryGetValue(method.MetadataName, out ImmutableHashSet<string> sinkParameters)
-                        && taintedArguments.Any(a => sinkParameters.Contains(a.Parameter.MetadataName)))
+                        && sinkParameters.Contains(taintedArgument.Parameter.MetadataName))
                     {
                         lazySinkKinds.Value.UnionWith(sinkInfo.SinkKinds);
                     }
