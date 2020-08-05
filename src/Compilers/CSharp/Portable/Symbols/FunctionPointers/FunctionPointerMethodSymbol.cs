@@ -628,27 +628,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<INamedTypeSymbol> CallingConventionTypes
+        internal override ImmutableArray<NamedTypeSymbol> CallingConventionTypes
         {
             get
             {
                 if (!CallingConvention.IsCallingConvention(CallingConvention.Unmanaged))
                 {
-                    return ImmutableArray<INamedTypeSymbol>.Empty;
+                    return ImmutableArray<NamedTypeSymbol>.Empty;
                 }
 
                 var modifiersToSearch = RefKind != RefKind.None ? RefCustomModifiers : ReturnTypeWithAnnotations.CustomModifiers;
                 if (modifiersToSearch.IsEmpty)
                 {
-                    return ImmutableArray<INamedTypeSymbol>.Empty;
+                    return ImmutableArray<NamedTypeSymbol>.Empty;
                 }
 
-                var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance(modifiersToSearch.Length);
+                var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance(modifiersToSearch.Length);
                 foreach (CSharpCustomModifier modifier in modifiersToSearch)
                 {
                     if (FunctionPointerTypeSymbol.IsCallingConventionModifier(modifier.ModifierSymbol))
                     {
-                        builder.Add(modifier.Modifier);
+                        builder.Add(modifier.ModifierSymbol);
                     }
                 }
 

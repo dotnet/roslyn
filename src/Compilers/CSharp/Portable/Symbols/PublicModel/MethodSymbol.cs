@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         SignatureCallingConvention IMethodSymbol.CallingConvention => _underlying.CallingConvention.ToSignatureConvention();
 
-        ImmutableArray<INamedTypeSymbol> IMethodSymbol.CallingConventionTypes => _underlying.CallingConventionTypes;
+        ImmutableArray<INamedTypeSymbol> IMethodSymbol.CallingConventionTypes => _underlying.CallingConventionTypes.SelectAsArray(t => t.GetPublicSymbol());
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] typeArguments)
         {

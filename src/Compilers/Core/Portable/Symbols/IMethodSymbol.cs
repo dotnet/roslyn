@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<AttributeData> GetReturnTypeAttributes();
 
         /// <summary>
-        /// The calling convention enum of the method method symbol.
+        /// The calling convention enum of the method symbol.
         /// </summary>
         SignatureCallingConvention CallingConvention { get; }
 
