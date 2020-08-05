@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                 ImmutableHashSet<IFieldSymbol> getFilteredFieldsForComplexity()
                 {
-                    ImmutableHashSet<IFieldSymbol>.Builder? builderOpt = null;
+                    ImmutableHashSet<IFieldSymbol>.Builder? builder = null;
                     var orderedFieldDatas = children.Where(c => c.Symbol.Kind == SymbolKind.Field).OrderBy(c => c.MaintainabilityIndex);
                     var indexThreshold = 99;
                     foreach (CodeAnalysisMetricData fieldData in orderedFieldDatas)
@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             break;
                         }
 
-                        builderOpt ??= ImmutableHashSet.CreateBuilder<IFieldSymbol>();
-                        builderOpt.Add((IFieldSymbol)fieldData.Symbol);
+                        builder ??= ImmutableHashSet.CreateBuilder<IFieldSymbol>();
+                        builder.Add((IFieldSymbol)fieldData.Symbol);
                         indexThreshold -= 4;
                     }
 
-                    return builderOpt?.ToImmutable() ?? ImmutableHashSet<IFieldSymbol>.Empty;
+                    return builder?.ToImmutable() ?? ImmutableHashSet<IFieldSymbol>.Empty;
                 }
             }
 

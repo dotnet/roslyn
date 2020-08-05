@@ -198,6 +198,25 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0048": {
+          "id": "RS0048",
+          "shortDescription": "Missing shipped or unshipped public API file",
+          "fullDescription": "Public API file '{0}' is missing or not marked as an additional analyzer file",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },

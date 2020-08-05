@@ -251,7 +251,6 @@ public struct MyStruct
     }
 }";
 
-
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(10,31): warning HAA0603: This will allocate a delegate instance
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithSpan(10, 31, 10, 42),
@@ -475,7 +474,6 @@ public struct AStruct
             await VerifyCS.VerifyAnalyzerAsync(programWithImplicitCastOperator);
         }
 
-
         [Fact]
         public async Task TypeConversionAllocation_YieldReturnImplicitStringCastOperator()
         {
@@ -692,7 +690,6 @@ public class MyClass
                 // Test0.cs(12,22): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(12, 22));
         }
-
 
         [Fact]
         public async Task TypeConversionAllocation_NoDiagnosticWhenPassingDelegateAsArgument()

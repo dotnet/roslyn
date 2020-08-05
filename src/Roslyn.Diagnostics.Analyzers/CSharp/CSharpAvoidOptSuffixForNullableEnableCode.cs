@@ -55,6 +55,12 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 var variableDeclarator = (VariableDeclaratorSyntax)context.Node;
                 ReportOnInvalidIdentifier(variableDeclarator.Identifier, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
             }, SyntaxKind.VariableDeclarator);
+
+            context.RegisterSyntaxNodeAction(context =>
+            {
+                var propertyDeclaration = (PropertyDeclarationSyntax)context.Node;
+                ReportOnInvalidIdentifier(propertyDeclaration.Identifier, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
+            }, SyntaxKind.PropertyDeclaration);
         }
 
         private static void ReportOnInvalidIdentifier(SyntaxToken identifier, SemanticModel semanticModel, Action<Diagnostic> reportAction, CancellationToken cancellationToken)
@@ -66,7 +72,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(identifier.Parent, cancellationToken);
-
 
             if (ShouldReport(symbol))
             {
@@ -82,18 +87,17 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 return false;
             }
 
-            if (symbol.Kind != SymbolKind.Parameter ||
-                symbol.ContainingSymbol == null)
+            return symbol.Kind switch
             {
-                return true;
-            }
+                SymbolKind.Property => !symbol.IsOverride
+                    && !symbol.IsImplementationOfAnyInterfaceMember(),
 
-            if (!symbol.ContainingSymbol.IsOverride && !symbol.ContainingSymbol.IsImplementationOfAnyInterfaceMember())
-            {
-                return true;
-            }
+                SymbolKind.Parameter => symbol.ContainingSymbol != null
+                    && !symbol.ContainingSymbol.IsOverride
+                    && !symbol.ContainingSymbol.IsImplementationOfAnyInterfaceMember(),
 
-            return false;
+                _ => true
+            };
         }
     }
 }

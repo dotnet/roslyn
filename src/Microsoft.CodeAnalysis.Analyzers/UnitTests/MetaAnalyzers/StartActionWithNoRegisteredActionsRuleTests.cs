@@ -268,12 +268,17 @@ class MyAnalyzer2 : DiagnosticAnalyzer
                     Sources = { source },
                     ExpectedDiagnostics =
                     {
+#if !NETCOREAPP
                         // Test0.cs(3,26): error CS0234: The type or namespace name 'Immutable' does not exist in the namespace 'System.Collections' (are you missing an assembly reference?)
                         DiagnosticResult.CompilerError("CS0234").WithSpan(3, 26, 3, 35).WithArguments("Immutable", "System.Collections"),
                         // Test0.cs(4,17): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
                         DiagnosticResult.CompilerError("CS0234").WithSpan(4, 17, 4, 29).WithArguments("CodeAnalysis", "Microsoft"),
                         // Test0.cs(5,17): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
                         DiagnosticResult.CompilerError("CS0234").WithSpan(5, 17, 5, 29).WithArguments("CodeAnalysis", "Microsoft"),
+#else
+                        // Test0.cs(5,30): error CS0234: The type or namespace name 'Diagnostics' does not exist in the namespace 'Microsoft.CodeAnalysis' (are you missing an assembly reference?)
+                        DiagnosticResult.CompilerError("CS0234").WithSpan(5, 30, 5, 41).WithArguments("Diagnostics", "Microsoft.CodeAnalysis"),
+#endif
                         // Test0.cs(7,2): error CS0246: The type or namespace name 'DiagnosticAnalyzer' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(7, 2, 7, 20).WithArguments("DiagnosticAnalyzer"),
                         // Test0.cs(7,2): error CS0246: The type or namespace name 'DiagnosticAnalyzerAttribute' could not be found (are you missing a using directive or an assembly reference?)
@@ -282,8 +287,10 @@ class MyAnalyzer2 : DiagnosticAnalyzer
                         DiagnosticResult.CompilerError("CS0103").WithSpan(7, 21, 7, 34).WithArguments("LanguageNames"),
                         // Test0.cs(8,20): error CS0246: The type or namespace name 'DiagnosticAnalyzer' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(8, 20, 8, 38).WithArguments("DiagnosticAnalyzer"),
+#if !NETCOREAPP
                         // Test0.cs(10,21): error CS0246: The type or namespace name 'ImmutableArray<>' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(10, 21, 10, 57).WithArguments("ImmutableArray<>"),
+#endif
                         // Test0.cs(10,36): error CS0246: The type or namespace name 'DiagnosticDescriptor' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(10, 36, 10, 56).WithArguments("DiagnosticDescriptor"),
                         // Test0.cs(10,58): error CS0115: 'MyAnalyzer.SupportedDiagnostics': no suitable method found to override
@@ -302,8 +309,10 @@ class MyAnalyzer2 : DiagnosticAnalyzer
                         DiagnosticResult.CompilerError("CS0103").WithSpan(28, 21, 28, 34).WithArguments("LanguageNames"),
                         // Test0.cs(29,21): error CS0246: The type or namespace name 'DiagnosticAnalyzer' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(29, 21, 29, 39).WithArguments("DiagnosticAnalyzer"),
+#if !NETCOREAPP
                         // Test0.cs(31,21): error CS0246: The type or namespace name 'ImmutableArray<>' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(31, 21, 31, 57).WithArguments("ImmutableArray<>"),
+#endif
                         // Test0.cs(31,36): error CS0246: The type or namespace name 'DiagnosticDescriptor' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(31, 36, 31, 56).WithArguments("DiagnosticDescriptor"),
                         // Test0.cs(31,58): error CS0115: 'MyAnalyzer2.SupportedDiagnostics': no suitable method found to override
@@ -380,12 +389,17 @@ class MyAnalyzer : DiagnosticAnalyzer
                     Sources = { source },
                     ExpectedDiagnostics =
                     {
+#if !NETCOREAPP
                         // Test0.cs(3,26): error CS0234: The type or namespace name 'Immutable' does not exist in the namespace 'System.Collections' (are you missing an assembly reference?)
                         DiagnosticResult.CompilerError("CS0234").WithSpan(3, 26, 3, 35).WithArguments("Immutable", "System.Collections"),
                         // Test0.cs(4,17): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
                         DiagnosticResult.CompilerError("CS0234").WithSpan(4, 17, 4, 29).WithArguments("CodeAnalysis", "Microsoft"),
                         // Test0.cs(5,17): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
                         DiagnosticResult.CompilerError("CS0234").WithSpan(5, 17, 5, 29).WithArguments("CodeAnalysis", "Microsoft"),
+#else
+                        // Test0.cs(5,30): error CS0234: The type or namespace name 'Diagnostics' does not exist in the namespace 'Microsoft.CodeAnalysis' (are you missing an assembly reference?)
+                        DiagnosticResult.CompilerError("CS0234").WithSpan(5, 30, 5, 41).WithArguments("Diagnostics", "Microsoft.CodeAnalysis"),
+#endif
                         // Test0.cs(7,2): error CS0246: The type or namespace name 'DiagnosticAnalyzer' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(7, 2, 7, 20).WithArguments("DiagnosticAnalyzer"),
                         // Test0.cs(7,2): error CS0246: The type or namespace name 'DiagnosticAnalyzerAttribute' could not be found (are you missing a using directive or an assembly reference?)
@@ -394,8 +408,10 @@ class MyAnalyzer : DiagnosticAnalyzer
                         DiagnosticResult.CompilerError("CS0103").WithSpan(7, 21, 7, 34).WithArguments("LanguageNames"),
                         // Test0.cs(8,20): error CS0246: The type or namespace name 'DiagnosticAnalyzer' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(8, 20, 8, 38).WithArguments("DiagnosticAnalyzer"),
+#if !NETCOREAPP
                         // Test0.cs(10,21): error CS0246: The type or namespace name 'ImmutableArray<>' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(10, 21, 10, 57).WithArguments("ImmutableArray<>"),
+#endif
                         // Test0.cs(10,36): error CS0246: The type or namespace name 'DiagnosticDescriptor' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(10, 36, 10, 56).WithArguments("DiagnosticDescriptor"),
                         // Test0.cs(10,58): error CS0115: 'MyAnalyzer.SupportedDiagnostics': no suitable method found to override
@@ -558,8 +574,10 @@ End Class
                         DiagnosticResult.CompilerError("BC30002").WithSpan(9, 11, 9, 29).WithArguments("DiagnosticAnalyzer"),
                         // Test0.vb(10) : error BC30284: property 'SupportedDiagnostics' cannot be declared 'Overrides' because it does not override a property in a base class.
                         DiagnosticResult.CompilerError("BC30284").WithSpan(10, 37, 10, 57).WithArguments("property", "SupportedDiagnostics"),
+#if !NETCOREAPP
                         // Test0.vb(10) : error BC30002: Type 'ImmutableArray' is not defined.
                         DiagnosticResult.CompilerError("BC30002").WithSpan(10, 63, 10, 102).WithArguments("ImmutableArray"),
+#endif
                         // Test0.vb(10) : error BC30002: Type 'DiagnosticDescriptor' is not defined.
                         DiagnosticResult.CompilerError("BC30002").WithSpan(10, 81, 10, 101).WithArguments("DiagnosticDescriptor"),
                         // Test0.vb(16) : error BC30284: sub 'Initialize' cannot be declared 'Overrides' because it does not override a sub in a base class.
@@ -578,8 +596,10 @@ End Class
                         DiagnosticResult.CompilerError("BC30002").WithSpan(26, 11, 26, 29).WithArguments("DiagnosticAnalyzer"),
                         // Test0.vb(27) : error BC30284: property 'SupportedDiagnostics' cannot be declared 'Overrides' because it does not override a property in a base class.
                         DiagnosticResult.CompilerError("BC30284").WithSpan(27, 37, 27, 57).WithArguments("property", "SupportedDiagnostics"),
+#if !NETCOREAPP
                         // Test0.vb(27) : error BC30002: Type 'ImmutableArray' is not defined.
                         DiagnosticResult.CompilerError("BC30002").WithSpan(27, 63, 27, 102).WithArguments("ImmutableArray"),
+#endif
                         // Test0.vb(27) : error BC30002: Type 'DiagnosticDescriptor' is not defined.
                         DiagnosticResult.CompilerError("BC30002").WithSpan(27, 81, 27, 101).WithArguments("DiagnosticDescriptor"),
                         // Test0.vb(33) : error BC30284: sub 'Initialize' cannot be declared 'Overrides' because it does not override a sub in a base class.
@@ -655,8 +675,10 @@ End Class
                         DiagnosticResult.CompilerError("BC30002").WithSpan(9, 11, 9, 29).WithArguments("DiagnosticAnalyzer"),
                         // Test0.vb(10) : error BC30284: property 'SupportedDiagnostics' cannot be declared 'Overrides' because it does not override a property in a base class.
                         DiagnosticResult.CompilerError("BC30284").WithSpan(10, 37, 10, 57).WithArguments("property", "SupportedDiagnostics"),
+#if !NETCOREAPP
                         // Test0.vb(10) : error BC30002: Type 'ImmutableArray' is not defined.
                         DiagnosticResult.CompilerError("BC30002").WithSpan(10, 63, 10, 102).WithArguments("ImmutableArray"),
+#endif
                         // Test0.vb(10) : error BC30002: Type 'DiagnosticDescriptor' is not defined.
                         DiagnosticResult.CompilerError("BC30002").WithSpan(10, 81, 10, 101).WithArguments("DiagnosticDescriptor"),
                         // Test0.vb(16) : error BC30284: sub 'Initialize' cannot be declared 'Overrides' because it does not override a sub in a base class.

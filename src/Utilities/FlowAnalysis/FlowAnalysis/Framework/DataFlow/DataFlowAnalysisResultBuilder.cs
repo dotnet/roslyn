@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<BasicBlock, TAnalysisData, TBlockAnalysisResult> getBlockResult,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> stateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
-            (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKindOpt,
+            (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKind,
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TAnalysisData entryBlockOutputData,
             TAnalysisData exitBlockData,
-            TAnalysisData? exceptionPathsExitBlockDataOpt,
-            TAnalysisData? mergedDataForUnhandledThrowOperationsOpt,
-            Dictionary<ThrownExceptionInfo, TAnalysisData>? analysisDataForUnhandledThrowOperationsOpt,
-            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? taskWrappedValuesMapOpt,
+            TAnalysisData? exceptionPathsExitBlockData,
+            TAnalysisData? mergedDataForUnhandledThrowOperations,
+            Dictionary<ThrownExceptionInfo, TAnalysisData>? analysisDataForUnhandledThrowOperations,
+            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? taskWrappedValuesMap,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
             where TBlockAnalysisResult : AbstractBlockAnalysisResult
@@ -64,21 +64,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 resultBuilder.Add(block, result);
             }
 
-            var mergedStateForUnhandledThrowOperationsOpt = mergedDataForUnhandledThrowOperationsOpt != null ?
-                getBlockResult(cfg.GetExit(), mergedDataForUnhandledThrowOperationsOpt) :
+            var mergedStateForUnhandledThrowOperations = mergedDataForUnhandledThrowOperations != null ?
+                getBlockResult(cfg.GetExit(), mergedDataForUnhandledThrowOperations) :
                 null;
 
             var entryBlockOutputResult = getBlockResult(cfg.GetEntry(), entryBlockOutputData);
             var exitBlockOutputResult = getBlockResult(cfg.GetExit(), exitBlockData);
-            var exceptionPathsExitBlockOutputResultOpt = exceptionPathsExitBlockDataOpt != null ?
-                getBlockResult(cfg.GetExit(), exceptionPathsExitBlockDataOpt) :
+            var exceptionPathsExitBlockOutputResult = exceptionPathsExitBlockData != null ?
+                getBlockResult(cfg.GetExit(), exceptionPathsExitBlockData) :
                 null;
 
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutableDictionaryAndFree(), stateMap,
-                predicateValueKindMap, returnValueAndPredicateKindOpt, interproceduralResultsMap,
-                entryBlockOutputResult, exitBlockOutputResult, exceptionPathsExitBlockOutputResultOpt,
-                mergedStateForUnhandledThrowOperationsOpt, analysisDataForUnhandledThrowOperationsOpt,
-                taskWrappedValuesMapOpt, cfg, defaultUnknownValue);
+                predicateValueKindMap, returnValueAndPredicateKind, interproceduralResultsMap,
+                entryBlockOutputResult, exitBlockOutputResult, exceptionPathsExitBlockOutputResult,
+                mergedStateForUnhandledThrowOperations, analysisDataForUnhandledThrowOperations,
+                taskWrappedValuesMap, cfg, defaultUnknownValue);
         }
 
         public void Dispose()

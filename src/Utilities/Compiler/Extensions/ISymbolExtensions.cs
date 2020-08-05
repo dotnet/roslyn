@@ -675,7 +675,6 @@ namespace Analyzer.Utilities.Extensions
             return isAttributePresent;
         }
 
-
         /// <summary>
         /// Gets enumeration of attributes that are of the specified type.
         /// </summary>

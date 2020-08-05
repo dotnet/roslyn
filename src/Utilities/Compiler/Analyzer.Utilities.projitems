@@ -59,6 +59,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\SemanticModelExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildItemOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildPropertyOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SyntaxTreeCategorizedAnalyzerConfigOptions.cs" />
