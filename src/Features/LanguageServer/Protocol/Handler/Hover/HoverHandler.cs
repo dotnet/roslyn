@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
                 Contents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+                // Build the classified text without navigation actions - they are not serializable.
                 RawContent = await IntellisenseQuickInfoBuilder.BuildContentWithoutNavigationActionsAsync(info, document, cancellationToken).ConfigureAwait(false)
             };
         }

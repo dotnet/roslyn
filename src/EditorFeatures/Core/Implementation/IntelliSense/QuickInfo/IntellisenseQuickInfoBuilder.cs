@@ -124,7 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                                 elements);
         }
 
-        internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(ITrackingSpan trackingSpan,
+        internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(
+            ITrackingSpan trackingSpan,
             CodeAnalysisQuickInfoItem quickInfoItem,
             Document document,
             IThreadingContext threadingContext,
@@ -142,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         /// TODO - This can be removed once LSP supports colorization in markupcontent
         /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
         /// </summary>
-        internal static Task<ContainerElement> BuildContentWithoutNavigationActionsAsync(CodeAnalysisQuickInfoItem quickInfoItem,
+        internal static Task<ContainerElement> BuildContentWithoutNavigationActionsAsync(
+            CodeAnalysisQuickInfoItem quickInfoItem,
             Document document,
             CancellationToken cancellationToken)
         {
