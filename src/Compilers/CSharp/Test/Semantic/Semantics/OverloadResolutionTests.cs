@@ -11274,8 +11274,6 @@ public static class Extensions
 {
     public virtual TValue F(TKey key) => throw null;
 }";
-            var ref0 = CreateCompilation(source0).EmitToImageReference();
-
             var source1 =
 @"public class A { }
 public class Derived<TValue> : Base<A, TValue>
@@ -11283,8 +11281,6 @@ public class Derived<TValue> : Base<A, TValue>
 {
     public override TValue F(A key) => throw null;
 }";
-            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
-
             var source2 =
 @"class B { }
 class Program
@@ -11294,7 +11290,13 @@ class Program
         _ = d.F(a);
     }
 }";
-            var comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
             comp.VerifyEmitDiagnostics();
         }
 
@@ -11309,8 +11311,6 @@ class Program
 {
     public virtual TValue this[TKey key] => throw null;
 }";
-            var ref0 = CreateCompilation(source0).EmitToImageReference();
-
             var source1 =
 @"public class A { }
 public class Derived<TValue> : Base<A, TValue>
@@ -11318,8 +11318,6 @@ public class Derived<TValue> : Base<A, TValue>
 {
     public override TValue this[A key] => throw null;
 }";
-            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
-
             var source2 =
 @"class B { }
 class Program
@@ -11329,7 +11327,13 @@ class Program
         _ = d[a];
     }
 }";
-            var comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
             comp.VerifyEmitDiagnostics();
         }
     }
