@@ -327,16 +327,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        public class Misc : VBCSCompilerServerTests
+        public class MiscTests : VBCSCompilerServerTests
         {
             [Fact]
-            public async Task RequestErrorShouldShutdown()
+            public async Task CompilationExceptionShouldShutdown()
             {
-                var compilerServerHost = new TestableCompilerServerHost(delegate { throw new Exception(""); });
+                var hitCompilation = false;
+                var compilerServerHost = new TestableCompilerServerHost(delegate
+                { 
+                    hitCompilation = true;
+                    throw new Exception("");
+                });
                 using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest).ConfigureAwait(false);
                 Assert.True(response is RejectedBuildResponse);
+
+                // Don't use Complete here because we want to see the server shutdown naturally
+                var listener = await serverData.ServerTask.ConfigureAwait(false);
+                Assert.False(listener.KeepAliveHit);
+                Assert.Equal(CompletionData.RequestError, listener.CompletionDataList.Single());
+                Assert.True(hitCompilation);
+            }
+
+            [Fact]
+            public async Task AnalyzerInconsistencyShouldShutdown()
+            {
+                var compilerServerHost = new TestableCompilerServerHost(delegate
+                { 
+                    return new AnalyzerInconsistencyBuildResponse();
+                });
+
+                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+
+                var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest).ConfigureAwait(false);
+                Assert.True(response is AnalyzerInconsistencyBuildResponse);
 
                 // Don't use Complete here because we want to see the server shutdown naturally
                 var listener = await serverData.ServerTask.ConfigureAwait(false);

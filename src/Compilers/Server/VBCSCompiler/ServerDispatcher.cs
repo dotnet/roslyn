@@ -101,7 +101,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     _clientConnectionHost.EndListening();
                 }
+
+                // This type is responsible for cleaning up resources associated with _listenTask. Once EndListening
+                // is complete this task is guaranteed to be completed. If it ran to completion we need to 
+                // dispose of the value.
+                Console.WriteLine(_listenTask?.Status);
+                Debug.Assert(_listenTask is null || _listenTask.IsCompleted);
+                if (_listenTask?.Status == TaskStatus.RanToCompletion)
+                {
+                    try
+                    {
+                        _listenTask.Result.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        CompilerServerLogger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                    }
+                }
             }
+            CompilerServerLogger.Log($"End ListenAndDispatchConnections");
         }
 
         public void ListenAndDispatchConnectionsCore(CancellationToken cancellationToken)
@@ -281,7 +299,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                             shutdown = true;
                         }
 
-                        // These are all normal shutdown states.  Nothing to do here.
                         break;
                     case CompletionReason.RequestError:
                         CompilerServerLogger.LogError("Client request failed");

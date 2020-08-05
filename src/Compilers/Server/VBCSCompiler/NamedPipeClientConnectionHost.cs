@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private ImmutableArray<Task> _listenTasks;
         private AsyncQueue<ListenResult>? _queue;
 
-        internal string PipeName { get; }
+        public string PipeName { get; }
         public bool IsListening { get; private set; }
 
         internal NamedPipeClientConnectionHost(string pipeName)
@@ -66,8 +66,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // The choice of 4 here is a bit arbitrary. The compiler server needs to scale to the number of clients that 
             // msbuild is going to attempt to connect here and be able to establish each connection in one second. In the 
-            // majority of cases even one is enough to accomplish this.
-            //
+            // majority of cases even one is enough to accomplish this. Four though gives us enough wiggle room to handle
+            // severe load scenarios.
+            // 
+            // Should you ever want to change this number in the future make sure to test the new values on sufficiently
+            // large builds such as dotnet/roslyn or dotnet/runtime
             var listenCount = Math.Min(4, Environment.ProcessorCount);
             var listenTasks = new List<Task>(capacity: listenCount);
             int clientLoggingIdentifier = 0;
@@ -160,39 +163,55 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Func<string> getClientLoggingIdentifier,
             CancellationToken cancellationToken)
         {
-            try
+            // Task that only completes when the cancellationToken is cancelled.
+            var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (!cancellationToken.IsCancellationRequested)
+                NamedPipeServerStream? pipeStream = null;;
+
+                try
                 {
                     // Create the pipe and begin waiting for a connection. This 
                     // doesn't block, but could fail in certain circumstances, such
                     // as Windows refusing to create the pipe for some reason 
                     // (out of handles?), or the pipe was disconnected before we 
-                    // starting listening.
-                    CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
-                    var pipeStream = NamedPipeUtil.CreateServer(pipeName);
-                    CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);
+                    // starting listening
+                    CompilerServerLogger.Log($"Constructing pipe and waiting for connections '{pipeName}'");
+                    pipeStream = NamedPipeUtil.CreateServer(pipeName);
 
-                    try
+                    // The WaitForConnectionAsync API does not fully respect the provided CancellationToken
+                    // on all platforms:
+                    //
+                    //  https://github.com/dotnet/runtime/issues/40289
+                    //
+                    // To mitigate this we need to setup a cancellation Task and dispose the NamedPipeServerStream
+                    // if it ever completes. Once all of the NamedPipeServerStream for the given pipe name are
+                    // disposed they will all exit the WaitForConnectionAsync method
+                    var connectTask = pipeStream.WaitForConnectionAsync(cancellationToken);
+                    var completedTask = await Task.WhenAny(new[] { connectTask, cancelTask }).ConfigureAwait(false);
+                    if (completedTask == cancelTask)
                     {
-
-                        CompilerServerLogger.Log("Waiting for new connection");
-                        await pipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-                        CompilerServerLogger.Log("Pipe connection detected.");
-
-                        var connection = new NamedPipeClientConnection(pipeStream, getClientLoggingIdentifier());
-                        queue.Enqueue(new ListenResult(connection: connection));
+                        throw new OperationCanceledException();
                     }
-                    catch (OperationCanceledException)
-                    {
-                        // Expected when the host is shutting down.
-                        pipeStream.Dispose();
-                    }
+
+                    await connectTask.ConfigureAwait(false);
+
+                    CompilerServerLogger.Log("Pipe connection established.");
+                    var connection = new NamedPipeClientConnection(pipeStream, getClientLoggingIdentifier());
+                    queue.Enqueue(new ListenResult(connection: connection));
                 }
-            }
-            catch (Exception ex)
-            {
-                queue.Enqueue(new ListenResult(exception: ex));
+                catch (OperationCanceledException)
+                {
+                    // Expected when the host is shutting down.
+                    CompilerServerLogger.Log($"Pipe connection cancelled");
+                    pipeStream?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    CompilerServerLogger.LogException(ex, $"Pipe connection error");
+                    queue.Enqueue(new ListenResult(exception: ex));
+                    pipeStream?.Dispose();
+                }
             }
         }
     }

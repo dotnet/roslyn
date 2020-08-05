@@ -56,44 +56,63 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
                 {
-                    var response = new MismatchedVersionBuildResponse();
-                    await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                    return CompletionData.RequestCompleted;
+                    return await WriteBuildResponseAsync(
+                        clientConnection,
+                        new MismatchedVersionBuildResponse(),
+                        CompletionData.RequestError,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
                 {
-                    var response = new IncorrectHashBuildResponse();
-                    await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                    return CompletionData.RequestCompleted;
+                    return await WriteBuildResponseAsync(
+                        clientConnection,
+                        new IncorrectHashBuildResponse(),
+                        CompletionData.RequestError,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 if (request.Arguments.Count == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown)
                 {
-                    var id = Process.GetCurrentProcess().Id;
-                    var response = new ShutdownBuildResponse(id);
-                    await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                    return new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true);
+                    return await WriteBuildResponseAsync(
+                        clientConnection,
+                        new ShutdownBuildResponse(Process.GetCurrentProcess().Id),
+                        new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true),
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 if (!allowCompilationRequests)
                 {
-                    var response = new RejectedBuildResponse("Compilation not allowed at this time");
-                    await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                    return CompletionData.RequestCompleted;
+                    return await WriteBuildResponseAsync(
+                        clientConnection,
+                        new RejectedBuildResponse("Compilation not allowed at this time"),
+                        CompletionData.RequestCompleted,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 if (!Environment.Is64BitProcess && !MemoryHelper.IsMemoryAvailable())
                 {
-                    var message = "Not enough resources to accept connection";
-                    CompilerServerLogger.Log(message);
-                    var response = new RejectedBuildResponse(message);
-                    await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                    return CompletionData.RequestError;
+                    return await WriteBuildResponseAsync(
+                        clientConnection,
+                        new RejectedBuildResponse("Not enough resources to accept connection"),
+                        CompletionData.RequestError,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 return await ProcessCompilationRequestAsync(clientConnection, request, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
+        {
+            var message = response switch
+            {
+                RejectedBuildResponse r => $"Writing {r.Type} response '{r.Reason}' for {clientConnection.LoggingIdentifier}",
+                _ => $"Writing {response.Type} response for {clientConnection.LoggingIdentifier}"
+            };
+            CompilerServerLogger.Log(message);
+            await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
+            return completionData;
         }
 
         private async Task<CompletionData> ProcessCompilationRequestAsync(IClientConnection clientConnection, BuildRequest request, CancellationToken cancellationToken)
@@ -110,25 +129,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (compilationTask.IsCompleted)
                 {
                     BuildResponse response;
+                    CompletionData completionData;
                     try
                     {
                         response = await compilationTask.ConfigureAwait(false);
+                        completionData = response switch
+                        {
+                            // Once there is an analyzer inconsistency the assembly load space is polluted. The 
+                            // request is an error.
+                            AnalyzerInconsistencyBuildResponse _ => CompletionData.RequestError,
+                            _ => new CompletionData(CompletionReason.RequestCompleted, newKeepAlive: CheckForNewKeepAlive(request))
+                        };
                     }
                     catch (Exception ex)
                     {
+                        // The compilation task should never throw. If it does we need to assume that the compiler is
+                        // in a bad state and need to issue a RequestError
                         CompilerServerLogger.LogException(ex, $"Exception running compilation for {clientConnection.LoggingIdentifier}");
                         response = new RejectedBuildResponse($"Exception during compilation: {ex.Message}");
+                        completionData = CompletionData.RequestError;
                     }
 
-                    await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                    var newKeepAlive = CheckForNewKeepAlive(request);
-                    var completionReason = response switch
-                    {
-                        AnalyzerInconsistencyBuildResponse _ => CompletionReason.RequestError,
-                        RejectedBuildResponse _ => CompletionReason.RequestError,
-                        _ => CompletionReason.RequestCompleted
-                    };
-                    return new CompletionData(completionReason, newKeepAlive);
+                    return await WriteBuildResponseAsync(
+                        clientConnection,
+                        response,
+                        completionData,
+                        cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
