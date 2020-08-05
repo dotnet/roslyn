@@ -699,6 +699,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a new compilation with the given semantic model provider.
         ''' </summary>
         Friend Overrides Function WithSemanticModelProvider(semanticModelProvider As SemanticModelProvider) As Compilation
+            If Me.SemanticModelProvider Is semanticModelProvider Then
+                Return Me
+            End If
+
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
                 Me.Options,

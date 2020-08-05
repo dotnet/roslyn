@@ -650,6 +650,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal override Compilation WithSemanticModelProvider(SemanticModelProvider? semanticModelProvider)
         {
+            if (this.SemanticModelProvider == semanticModelProvider)
+            {
+                return this;
+            }
+
             return new CSharpCompilation(
                 this.AssemblyName,
                 _options,
@@ -2103,19 +2108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
         public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
-        {
-            if (syntaxTree == null)
-            {
-                throw new ArgumentNullException(nameof(syntaxTree));
-            }
-
-            if (!_syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree))
-            {
-                throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
-            }
-
-            return GetSemanticModelCore(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
-        }
+            => GetSemanticModelCore(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
 
         internal override SemanticModel GetSemanticModelCore(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull)
         {

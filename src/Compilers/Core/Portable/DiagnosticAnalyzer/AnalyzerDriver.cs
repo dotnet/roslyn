@@ -1515,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else if (compilationEvent is CompilationUnitCompletedEvent compilationUnitCompletedEvent)
             {
-                SemanticModelProvider.RemoveCachedSemanticModel(compilationUnitCompletedEvent.CompilationUnit);
+                SemanticModelProvider.RemoveCachedSemanticModel(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
             }
 
             return;

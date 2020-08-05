@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal SuppressMessageAttributeState(Compilation compilation)
         {
-            Debug.Assert(compilation.SemanticModelProvider != null);
             _compilation = compilation;
             _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>>();
         }

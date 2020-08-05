@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 currentEvents = new HashSet<CompilationEvent>();
                 _pendingSourceEvents[tree] = currentEvents;
-                _semanticModelProvider.RemoveCachedSemanticModel(tree);
+                _semanticModelProvider.RemoveCachedSemanticModel(tree, compilationEvent.Compilation);
             }
 
             currentEvents.Add(compilationEvent);
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (currentEvents.Remove(compilationEvent) && currentEvents.Count == 0)
                 {
                     _pendingSourceEvents.Remove(tree);
-                    _semanticModelProvider.RemoveCachedSemanticModel(tree);
+                    _semanticModelProvider.RemoveCachedSemanticModel(tree, compilationEvent.Compilation);
                 }
             }
         }
