@@ -422,6 +422,11 @@
         <target state="translated">'in' 修飾子を持つ引数を、動的ディスパッチされる式で使用することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">インターフェイス内のインスタンス プロパティは初期化子を持つことができません。</target>

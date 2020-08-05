@@ -422,6 +422,11 @@
         <target state="translated">No se pueden usar argumentos con el modificador "in" en expresiones distribuidas dinámicamente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Las propiedades de la instancia en las interfaces no pueden tener inicializadores.</target>

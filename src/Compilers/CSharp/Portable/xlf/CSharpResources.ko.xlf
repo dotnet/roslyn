@@ -422,6 +422,11 @@
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">인터페이스의 인스턴스 속성은 이니셜라이저를 사용할 수 없습니다.</target>

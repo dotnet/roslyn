@@ -87,7 +87,7 @@ abstract class C
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "FirstName").WithArguments("C.FirstName").WithLocation(4, 12),
                 // (4,21): error CS1003: Syntax error, ',' expected
                 //     string FirstName!! { get; set; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!!").WithArguments(",", "!!").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(4, 21),
                 // (4,26): error CS1002: ; expected
                 //     string FirstName!! { get; set; }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "get").WithLocation(4, 26),
@@ -215,7 +215,8 @@ class C
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (8,22): error CS1003: Syntax error, ',' expected
                     //     void M2(__arglist!!)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!!").WithArguments(",", "!!").WithLocation(8, 22));
+                    // PROTOTYPE(BangBang): Perhaps have the error target both !s.
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(8, 22));
         }
 
         [Fact(Skip = "PROTOTYPE(BangBang)")]

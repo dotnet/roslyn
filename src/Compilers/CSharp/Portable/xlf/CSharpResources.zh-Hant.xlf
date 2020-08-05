@@ -422,6 +422,11 @@
         <target state="translated">具有 'in' 修飾元的引數不可用於動態分派的運算式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">介面中的執行個體屬性不可有初始設定式。</target>

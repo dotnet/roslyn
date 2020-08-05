@@ -422,6 +422,11 @@
         <target state="translated">Non è possibile usare argomenti con il modificatore 'in' nelle espressioni inviate in modo dinamico.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Le proprietà di istanza nelle interfacce non possono avere inizializzatori.</target>

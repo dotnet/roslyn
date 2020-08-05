@@ -422,6 +422,11 @@
         <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky volaných výrazech.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Vlastnosti instance v rozhraních nemůžou mít inicializátory.</target>
