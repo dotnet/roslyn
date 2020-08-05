@@ -103,7 +103,6 @@ using System.Collections.Generic;
 class Test
 {
     static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
-
     var _test2 = [||]_test1.Where(x => x == '!').Any();
 }";
             var fixedSource = @"
@@ -114,7 +113,6 @@ using System.Collections.Generic;
 class Test
 {
     static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
-
     var _test2 = _test1.Any(x => x == '!');
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);

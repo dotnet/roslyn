@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
                 RemoveWhere(model, editor, node);
             }
         }
@@ -60,13 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
                 var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
 
                 // Get the data or object the query is being called on
+                var t = model.GetOperation(memberAccess.Expression) as Operations.IInvocationOperation;
+                var r = model.GetOperation(memberAccess.Expression).Children;
+                var y = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault();
+                var x = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
                 var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
                 SyntaxNode newNode;
-                if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression))
+                if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {
                     newNode = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                    (InvocationExpressionSyntax)objectNodeSyntax, memberAccess.Name))
+                    (ExpressionSyntax)objectNodeSyntax, memberAccess.Name))
                                            .WithArgumentList(lambda);
                 }
                 else
