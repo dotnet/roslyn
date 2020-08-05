@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
             => TestWorkspace.CreateCSharp(content, exportProvider: exportProvider);
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task NoItemsForEmptyFile(TestHost testHost)
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindClass(TestHost testHost)
         {
@@ -55,7 +55,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindVerbatimClass(TestHost testHost)
         {
@@ -73,7 +73,7 @@ testHost, @"class @static
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindNestedClass(TestHost testHost)
         {
@@ -93,7 +93,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindMemberInANestedClass(TestHost testHost)
         {
@@ -116,7 +116,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindGenericClassWithConstraints(TestHost testHost)
         {
@@ -132,7 +132,7 @@ class Goo<T> where T : IEnumerable
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindGenericMethodWithConstraints(TestHost testHost)
         {
@@ -151,7 +151,7 @@ class Goo<U>
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindPartialClass(TestHost testHost)
         {
@@ -175,7 +175,7 @@ partial class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindTypesInMetadata(TestHost testHost)
         {
@@ -189,7 +189,7 @@ Class Program { FileStyleUriParser f; }", async w =>
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindClassInNamespace(TestHost testHost)
         {
@@ -206,7 +206,7 @@ testHost, @"namespace Bar
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindStruct(TestHost testHost)
         {
@@ -220,7 +220,7 @@ testHost, @"struct Bar
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindEnum(TestHost testHost)
         {
@@ -237,7 +237,7 @@ testHost, @"enum Colors
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindEnumMember(TestHost testHost)
         {
@@ -254,7 +254,7 @@ testHost, @"enum Colors
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindField1(TestHost testHost)
         {
@@ -269,7 +269,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindField2(TestHost testHost)
         {
@@ -284,7 +284,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindField3(TestHost testHost)
         {
@@ -298,7 +298,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindVerbatimField(TestHost testHost)
         {
@@ -317,7 +317,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindPtrField1(TestHost testHost)
         {
@@ -331,7 +331,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindPtrField2(TestHost testHost)
         {
@@ -346,7 +346,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindConstField(TestHost testHost)
         {
@@ -361,7 +361,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindIndexer(TestHost testHost)
         {
@@ -373,7 +373,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindEvent(TestHost testHost)
         {
@@ -385,7 +385,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindAutoProperty(TestHost testHost)
         {
@@ -400,7 +400,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindMethod(TestHost testHost)
         {
@@ -415,7 +415,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindVerbatimMethod(TestHost testHost)
         {
@@ -434,7 +434,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindParameterizedMethod(TestHost testHost)
         {
@@ -451,7 +451,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindConstructor(TestHost testHost)
         {
@@ -468,7 +468,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindParameterizedConstructor(TestHost testHost)
         {
@@ -485,7 +485,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindStaticConstructor(TestHost testHost)
         {
@@ -502,7 +502,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindPartialMethods(TestHost testHost)
         {
@@ -517,7 +517,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindPartialMethodDefinitionOnly(TestHost testHost)
         {
@@ -532,7 +532,7 @@ testHost, @"partial class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindPartialMethodImplementationOnly(TestHost testHost)
         {
@@ -549,7 +549,7 @@ testHost, @"partial class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindOverriddenMembers(TestHost testHost)
         {
@@ -579,7 +579,7 @@ testHost, @"partial class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindInterface(TestHost testHost)
         {
@@ -593,7 +593,7 @@ testHost, @"public interface IGoo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindDelegateInNamespace(TestHost testHost)
         {
@@ -608,7 +608,7 @@ testHost, @"namespace Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindLambdaExpression(TestHost testHost)
         {
@@ -625,7 +625,7 @@ class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindArray(TestHost testHost)
         {
@@ -640,7 +640,7 @@ testHost, @"class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindClassAndMethodWithSameName(TestHost testHost)
         {
@@ -666,7 +666,7 @@ class Test
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindMethodNestedInGenericTypes(TestHost testHost)
         {
@@ -689,7 +689,7 @@ testHost, @"class A<T>
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task OrderingOfConstructorsAndTypes(TestHost testHost)
         {
@@ -726,7 +726,7 @@ class C2
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task NavigateToMethodWithNullableParameter(TestHost testHost)
         {
@@ -743,7 +743,7 @@ testHost, @"class C
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task StartStopSanity(TestHost testHost)
         {
@@ -766,7 +766,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task DescriptionItems(TestHost testHost)
         {
@@ -789,7 +789,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TermSplittingTest1(TestHost testHost)
         {
@@ -809,7 +809,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TermSplittingTest2(TestHost testHost)
         {
@@ -826,7 +826,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TermSplittingTest3(TestHost testHost)
         {
@@ -843,7 +843,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TermSplittingTest4(TestHost testHost)
         {
@@ -855,7 +855,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TermSplittingTest5(TestHost testHost)
         {
@@ -867,7 +867,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TermSplittingTest6(TestHost testHost)
         {
@@ -886,7 +886,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TermSplittingTest7(TestHost testHost)
         {
@@ -898,7 +898,7 @@ testHost, @"public class Goo
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task TestIndexer1(TestHost testHost)
         {
@@ -929,7 +929,7 @@ class D
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task DottedPattern1(TestHost testHost)
         {
@@ -947,7 +947,7 @@ class D
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task DottedPattern2(TestHost testHost)
         {
@@ -964,7 +964,7 @@ class D
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task DottedPattern3(TestHost testHost)
         {
@@ -982,7 +982,7 @@ class D
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task DottedPattern4(TestHost testHost)
         {
@@ -1000,7 +1000,7 @@ class D
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task DottedPattern5(TestHost testHost)
         {
@@ -1018,7 +1018,7 @@ class D
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task DottedPattern6(TestHost testHost)
         {
@@ -1035,7 +1035,7 @@ class D
             });
         }
 
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         [WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")]
         public async Task DottedPattern7(TestHost testHost)
@@ -1054,7 +1054,7 @@ class D
             });
         }
 
-        [WpfTheory, WorkItem(46267, "https://github.com/dotnet/roslyn/issues/46267")]
+        [Theory, WorkItem(46267, "https://github.com/dotnet/roslyn/issues/46267")]
         [CombinatorialData]
         public async Task DottedPatternMatchKind(TestHost testHost)
         {
@@ -1119,7 +1119,7 @@ class D
         }
 
         [WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task FindFuzzy1(TestHost testHost)
         {
@@ -1137,7 +1137,7 @@ testHost, @"class C
         }
 
         [WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
-        [WpfTheory]
+        [Theory]
         [CombinatorialData]
         public async Task Test__arglist(TestHost testHost)
         {
