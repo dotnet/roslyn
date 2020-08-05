@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.Options
         {
             var serializableOptionKeys = GetRegisteredSerializableOptions(languages);
             var serializableOptionValues = GetSerializableOptionValues(serializableOptionKeys, languages);
-            var changedOptionsKeys = _changedOptionKeys.Where(key => serializableOptionKeys.Contains(key.Option)).ToImmutableHashSet();
-            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues, changedOptionsKeys);
+            var changedOptionsKeysSerializable = _changedOptionKeys.Where(key => serializableOptionKeys.Contains(key.Option)).ToImmutableHashSet();
+            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues, changedOptionsKeysSerializable);
         }
 
         private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
