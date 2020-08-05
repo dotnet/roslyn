@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetProjectLanguages());
+            var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetRemoteSupportedProjectLanguages());
             return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
         }
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetProjectLanguages());
+            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetRemoteSupportedProjectLanguages());
             this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 

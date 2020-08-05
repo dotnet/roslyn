@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -62,6 +63,8 @@ namespace Microsoft.CodeAnalysis.Options
             ImmutableHashSet<OptionKey> changedOptionKeysSerializable,
             ImmutableHashSet<OptionKey> changedOptionKeysNonSerializable)
         {
+            Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
+
             _languages = languages;
             _workspaceOptionSet = workspaceOptionSet;
             _serializableOptions = serializableOptions;
@@ -87,9 +90,11 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Returns an option set with all the serializable option values prefetched for given <paramref name="languages"/>,
         /// while also retaining all the explicitly changed option values in this option set for any language.
+        /// NOTE: All the provided <paramref name="languages"/> must be <see cref="RemoteSupportedLanguages.IsSupported(string)"/>.
         /// </summary>
         public SerializableOptionSet WithLanguages(ImmutableHashSet<string> languages)
         {
+            Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
             if (_languages.SetEquals(languages))
             {
                 return this;
@@ -194,6 +199,7 @@ namespace Microsoft.CodeAnalysis.Options
             writer.WriteInt32(_languages.Count);
             foreach (var language in _languages.Order())
             {
+                Debug.Assert(RemoteSupportedLanguages.IsSupported(language));
                 writer.WriteString(language);
             }
 
@@ -315,7 +321,9 @@ namespace Microsoft.CodeAnalysis.Options
             var languagesBuilder = ImmutableHashSet.CreateBuilder<string>();
             for (var i = 0; i < count; i++)
             {
-                languagesBuilder.Add(reader.ReadString());
+                var language = reader.ReadString();
+                Debug.Assert(RemoteSupportedLanguages.IsSupported(language));
+                languagesBuilder.Add(language);
             }
 
             var languages = languagesBuilder.ToImmutable();

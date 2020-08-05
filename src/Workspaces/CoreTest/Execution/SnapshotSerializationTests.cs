@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -360,9 +358,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task OptionSet_Serialization()
         {
-            var workspace = new AdhocWorkspace();
-
-            await VerifyOptionSetsAsync(workspace, _ => { }).ConfigureAwait(false);
+            await VerifyOptionSetsAsync(_ => { }).ConfigureAwait(false);
         }
 
         [Fact]
@@ -559,6 +555,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var recovered = await validator.GetSolutionAsync(snapshot).ConfigureAwait(false);
         }
 
+        [Fact, WorkItem(44791, "https://github.com/dotnet/roslyn/issues/44791")]
+        public async Task UnknownLanguageOptionsTest()
+        {
+            var hostServices = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
+            using var workspace = new AdhocWorkspace(hostServices);
+            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName)
+                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.CSharp);
+            workspace.TryApplyChanges(project.Solution);
+
+            await VerifyOptionSetsAsync(workspace, verifyOptionValues: _ => { });
+        }
+
         [Fact]
         public async Task EmptyAssetChecksumTest()
         {
@@ -700,12 +708,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        private static Task VerifyOptionSetsAsync(Action<OptionSet> verifyOptionValues)
+        {
+            var workspace = new AdhocWorkspace()
+                .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
+                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic)
+                .Solution.Workspace;
+            return VerifyOptionSetsAsync(workspace, verifyOptionValues);
+        }
+
         private static async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
         {
-            var solution = new AdhocWorkspace()
-                .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
-                .Solution.AddProject("Project2", "Project.dll", LanguageNames.VisualBasic)
-                .Solution;
+            var solution = workspace.CurrentSolution;
+
             verifyOptionValues(workspace.Options);
             verifyOptionValues(solution.Options);
 
@@ -725,6 +740,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             verifyOptionValues(workspace.Options);
             verifyOptionValues(recoveredSolution.Options);
+
+            // checksum for recovered solution should be the same.
+            using var recoveredSnapshot = await validator.RemotableDataService.CreatePinnedRemotableDataScopeAsync(recoveredSolution, CancellationToken.None).ConfigureAwait(false);
+            var recoveredChecksum = recoveredSnapshot.SolutionChecksum;
+            Assert.Equal(checksum, recoveredChecksum);
         }
 
         private static async Task<RemotableData> CloneAssetAsync(ISerializerService serializer, RemotableData asset)
