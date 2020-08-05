@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,15 +25,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
-            CancellationToken cancellationToken)
-            => OnAutoInsertAsync(request, clientName, cancellationToken);
-
-        private async Task<LSP.DocumentOnAutoInsertResponseItem[]> OnAutoInsertAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context)
         {
             using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
-            var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, context.ClientName);
 
             if (document == null)
             {
@@ -49,16 +44,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return response.ToArray();
             }
 
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
 
             var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = autoInsertParams.Character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, context.CancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, context.CancellationToken);
 
             if (result == null)
             {

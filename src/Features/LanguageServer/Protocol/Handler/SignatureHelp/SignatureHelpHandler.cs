@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -31,23 +30,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             : base(solutionProvider)
             => _allProviders = allProviders;
 
-        public override async Task<LSP.SignatureHelp> HandleRequestAsync(LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.SignatureHelp> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return new LSP.SignatureHelp();
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
 
             var providers = _allProviders.Where(p => p.Metadata.Language == document.Project.Language);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
 
             foreach (var provider in providers)
             {
-                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, context.CancellationToken).ConfigureAwait(false);
 
                 if (items != null)
                 {
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     foreach (var item in items.Items)
                     {
                         LSP.SignatureInformation sigInfo;
-                        if (clientCapabilities?.HasVisualStudioLspCapability() == true)
+                        if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                         {
                             sigInfo = new LSP.VSSignatureInformation
                             {
@@ -69,11 +67,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         }
 
                         sigInfo.Label = GetSignatureText(item);
-                        sigInfo.Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = item.DocumentationFactory(cancellationToken).GetFullText() };
+                        sigInfo.Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = item.DocumentationFactory(context.CancellationToken).GetFullText() };
                         sigInfo.Parameters = item.Parameters.Select(p => new LSP.ParameterInformation
                         {
                             Label = p.Name,
-                            Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = p.DocumentationFactory(cancellationToken).GetFullText() }
+                            Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = p.DocumentationFactory(context.CancellationToken).GetFullText() }
                         }).ToArray();
                         sigInfos.Add(sigInfo);
                     }

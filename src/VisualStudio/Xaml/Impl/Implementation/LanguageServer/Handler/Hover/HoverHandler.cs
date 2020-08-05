@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
@@ -18,8 +17,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
@@ -33,16 +32,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context)
         {
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
 
             var quickInfoService = document.Project.LanguageServices.GetService<IXamlQuickInfoService>();
             if (quickInfoService == null)
@@ -50,14 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var info = await quickInfoService.GetQuickInfoAsync(document, position, context.CancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
             }
 
             var descriptionBuilder = new List<TaggedText>(info.Description);
-            var description = await info.Symbol.GetDescriptionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var description = await info.Symbol.GetDescriptionAsync(document, position, context.CancellationToken).ConfigureAwait(false);
             if (description.Any())
             {
                 if (descriptionBuilder.Any())
@@ -67,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 description.Concat(description);
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             return new VSHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),

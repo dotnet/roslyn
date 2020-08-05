@@ -7,7 +7,6 @@
 using System;
 using System.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -25,25 +24,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
 
             var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
-            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var info = await quickInfoService.GetQuickInfoAsync(document, position, context.CancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             return new Hover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),

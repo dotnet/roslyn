@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -25,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public Task<InitializeResult> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context)
         {
 
             return Task.FromResult(new InitializeResult

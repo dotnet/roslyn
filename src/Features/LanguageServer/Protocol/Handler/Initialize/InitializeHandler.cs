@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .ToImmutableArray();
         }
 
-        public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, RequestContext context)
         {
             var triggerCharacters = _completionProviders.SelectMany(lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 

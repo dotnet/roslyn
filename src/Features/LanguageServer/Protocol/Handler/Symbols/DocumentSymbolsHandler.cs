@@ -29,10 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, ClientCapabilities clientCapabilities,
-            string clientName, CancellationToken cancellationToken)
+        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();
@@ -41,35 +40,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var symbols = ArrayBuilder<object>.GetInstance();
 
             var navBarService = document.Project.LanguageServices.GetRequiredService<INavigationBarItemService>();
-            var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+            var navBarItems = await navBarService.GetItemsAsync(document, context.CancellationToken).ConfigureAwait(false);
             if (navBarItems.Count == 0)
             {
                 return symbols.ToArrayAndFree();
             }
 
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
-            if (clientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
+            if (context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
             {
                 foreach (var item in navBarItems)
                 {
                     // only top level ones
-                    symbols.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
+                    symbols.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, context.CancellationToken).ConfigureAwait(false));
                 }
             }
             else
             {
                 foreach (var item in navBarItems)
                 {
-                    symbols.Add(GetSymbolInformation(item, compilation, tree, document, text, cancellationToken, containerName: null));
+                    symbols.Add(GetSymbolInformation(item, compilation, tree, document, text, context.CancellationToken, containerName: null));
 
                     foreach (var childItem in item.ChildItems)
                     {
-                        symbols.Add(GetSymbolInformation(childItem, compilation, tree, document, text, cancellationToken, item.Text));
+                        symbols.Add(GetSymbolInformation(childItem, compilation, tree, document, text, context.CancellationToken, item.Text));
                     }
                 }
             }

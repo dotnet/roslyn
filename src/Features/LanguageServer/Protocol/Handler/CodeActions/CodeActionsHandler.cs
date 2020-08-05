@@ -8,8 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -49,13 +47,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(
-            LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken)
+        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return Array.Empty<VSCodeAction>();
@@ -63,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var (codeFixCollections, codeRefactorings) = await CodeActionHelpers.GetCodeFixesAndRefactoringsAsync(
                 document, _codeFixService, _codeRefactoringService,
-                request.Range, cancellationToken).ConfigureAwait(false);
+                request.Range, context.CancellationToken).ConfigureAwait(false);
 
             var codeFixes = codeFixCollections.SelectMany(c => c.Fixes);
             using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var results);

@@ -7,7 +7,6 @@
 using System;
 using System.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -28,31 +27,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context)
         {
             WorkspaceEdit? workspaceEdit = null;
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document != null)
             {
                 var oldSolution = document.Project.Solution;
                 var renameService = document.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
-                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
 
-                var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var renameInfo = await renameService.GetRenameInfoAsync(document, position, context.CancellationToken).ConfigureAwait(false);
                 if (!renameInfo.CanRename)
                 {
                     return workspaceEdit;
                 }
 
-                var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Workspace.Options, cancellationToken).ConfigureAwait(false);
-                var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+                var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Workspace.Options, context.CancellationToken).ConfigureAwait(false);
+                var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Workspace.Options, context.CancellationToken).ConfigureAwait(false);
 
                 var renamedSolution = renameReplacementInfo.NewSolution;
                 var solutionChanges = renamedSolution.GetChanges(oldSolution);
 
                 // Linked files can correspond to multiple roslyn documents each with changes.  Merge the changes in the linked files so that all linked documents have the same text.
                 // Then we can just take the text changes from the first document to avoid returning duplicate edits.
-                renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
+                renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: context.CancellationToken).ConfigureAwait(false);
                 solutionChanges = renamedSolution.GetChanges(oldSolution);
                 var changedDocuments = solutionChanges
                     .GetProjectChanges()
@@ -65,8 +64,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var oldDoc = oldSolution.GetRequiredDocument(docId);
                     var newDoc = renamedSolution.GetRequiredDocument(docId);
 
-                    var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
-                    var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var textChanges = await newDoc.GetTextChangesAsync(oldDoc, context.CancellationToken).ConfigureAwait(false);
+                    var oldText = await oldDoc.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
                     var textDocumentEdit = new TextDocumentEdit
                     {
                         TextDocument = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() },

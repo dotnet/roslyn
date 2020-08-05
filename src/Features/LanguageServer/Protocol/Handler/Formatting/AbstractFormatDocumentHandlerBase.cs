@@ -21,22 +21,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, string? clientName, CancellationToken cancellationToken, LSP.Range? range = null)
+        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, RequestContext context, LSP.Range? range = null)
         {
             var edits = new ArrayBuilder<LSP.TextEdit>();
-            var document = SolutionProvider.GetDocument(documentIdentifier, clientName);
+            var document = SolutionProvider.GetDocument(documentIdentifier, context.ClientName);
 
             if (document != null)
             {
                 var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
                 TextSpan? textSpan = null;
                 if (range != null)
                 {
                     textSpan = ProtocolConversions.RangeToTextSpan(range, text);
                 }
 
-                var textChanges = await GetFormattingChangesAsync(formattingService, document, textSpan, cancellationToken).ConfigureAwait(false);
+                var textChanges = await GetFormattingChangesAsync(formattingService, document, textSpan, context.CancellationToken).ConfigureAwait(false);
                 edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
             }
 

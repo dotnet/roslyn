@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -50,29 +49,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public async Task<object> HandleRequestAsync(
-            LSP.ExecuteCommandParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+        public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                document, _codeFixService, _codeRefactoringService, runRequest.Range, cancellationToken).ConfigureAwait(false);
+                document, _codeFixService, _codeRefactoringService, runRequest.Range, context.CancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(codeActions);
 
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions.ToImmutableArray());
             Contract.ThrowIfNull(actionToRun);
 
-            var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await actionToRun.GetOperationsAsync(context.CancellationToken).ConfigureAwait(false);
 
             // TODO - This UI thread dependency should be removed.
             // https://github.com/dotnet/roslyn/projects/45#card-20619668
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(context.CancellationToken);
 
             foreach (var operation in operations)
             {
-                operation.Apply(document.Project.Solution.Workspace, cancellationToken);
+                operation.Apply(document.Project.Solution.Workspace, context.CancellationToken);
             }
 
             return true;

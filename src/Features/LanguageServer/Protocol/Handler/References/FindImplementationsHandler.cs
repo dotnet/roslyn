@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -25,36 +24,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();
             }
 
             var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
 
-            var context = new SimpleFindUsagesContext(cancellationToken);
+            var findUsagesContext = new SimpleFindUsagesContext(context.CancellationToken);
 
-            await FindImplementationsAsync(findUsagesService, document, position, context).ConfigureAwait(false);
+            await FindImplementationsAsync(findUsagesService, document, position, findUsagesContext).ConfigureAwait(false);
 
-            foreach (var definition in context.GetDefinitions())
+            foreach (var definition in findUsagesContext.GetDefinitions())
             {
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    if (clientCapabilities?.HasVisualStudioLspCapability() == true)
+                    if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
-                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, context.CancellationToken).ConfigureAwait(false));
                     }
                     else
                     {
-                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, context.CancellationToken).ConfigureAwait(false));
                     }
                 }
             }

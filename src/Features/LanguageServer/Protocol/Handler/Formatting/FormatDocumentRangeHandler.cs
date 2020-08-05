@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,8 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities, string? clientName,
-            CancellationToken cancellationToken)
-            => GetTextEditsAsync(request.TextDocument, clientName, cancellationToken, range: request.Range);
+        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, RequestContext context)
+            => GetTextEditsAsync(request.TextDocument, context, range: request.Range);
     }
 }

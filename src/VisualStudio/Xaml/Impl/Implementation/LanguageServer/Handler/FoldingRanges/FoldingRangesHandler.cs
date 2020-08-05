@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -28,12 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return foldingRanges.ToArrayAndFree();
@@ -45,13 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return foldingRanges.ToArrayAndFree();
             }
 
-            var structureTags = await xamlStructureService.GetStructureTagsAsync(document, cancellationToken).ConfigureAwait(false);
+            var structureTags = await xamlStructureService.GetStructureTagsAsync(document, context.CancellationToken).ConfigureAwait(false);
             if (structureTags == null)
             {
                 return foldingRanges.ToArrayAndFree();
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
             foreach (var structureTag in structureTags)
             {
