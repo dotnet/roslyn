@@ -9,10 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsCodeFixProvider>;
-using Microsoft.CodeAnalysis.Testing;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressions
 {
@@ -61,12 +57,7 @@ class Test
         var test = Data().Single(x => x==1);
     }
 }";
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                FixedCode = fixedSource,
-            }.RunAsync().ConfigureAwait(true);
+            await TestInRegularAndScriptAsync(source, fixedSource);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -80,10 +71,8 @@ using System.Collections.Generic;
  
 class Test
 {
-    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10)
-            select value;
-
-        private var test2 = [||]test1.Where(x => x==1).First();
+    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
+    private var test2 = [||]test1.Where(x => x==1).First();
 }";
             var fixedSource = @"
 using System;
@@ -92,17 +81,10 @@ using System.Collections.Generic;
  
 class Test
 {
-    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10)
-            select value;
-
-        private var test2 = test1.First(x => x==1);
+    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
+    private var test2 = test1.First(x => x==1);
 }";
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                FixedCode = fixedSource,
-            }.RunAsync().ConfigureAwait(true);
+            await TestInRegularAndScriptAsync(source, fixedSource);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -129,12 +111,7 @@ class Test
     static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
     var _test2 = _test1.Any(x => x == '!');
 }";
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                FixedCode = fixedSource,
-            }.RunAsync().ConfigureAwait(true);
+            await TestInRegularAndScriptAsync(source, fixedSource);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -171,42 +148,7 @@ namespace demo
         }
     }
 }";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        public class TestClass4
-        {
-            private string test;
-            public TestClass4() => test = 'hello';
-
-            public TestClass4 Where(Func<string, bool> input)
-            {
-                return this;
-            }
-
-            public string Single()
-            {
-                return test;
-            }
-        }
-        static void Main()
-        {
-            TestClass4 Test1 = new TestClass4();
-            TestClass4 test = Test1.Where(y => true);
-        }
-    }
-}";
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                FixedCode = fixedSource,
-            }.RunAsync().ConfigureAwait(true);
+            await TestMissingInRegularAndScriptAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -226,25 +168,7 @@ namespace demo
         int output = [||]testvar2.Where(x => x == 4).Count();
     }
 }";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
-        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
-        int output = testvar2.Where(x => x == 4).Count();
-    }
-}";
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                FixedCode = fixedSource,
-            }.RunAsync().ConfigureAwait(true);
+            await TestMissingInRegularAndScriptAsync(source);
         }
     }
 }
