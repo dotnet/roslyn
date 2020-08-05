@@ -876,8 +876,8 @@ testHost, @"public class Goo
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null,s_emptyPrefixPatternMatch, null),
-                    new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptyPrefixPatternMatch_NotCaseSensitive, null)
+                    new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null,s_emptySubstringPatternMatch, null),
+                    new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch_NotCaseSensitive, null)
                 };
 
                 var items = await _aggregator.GetItemsAsync("get word");
@@ -1049,6 +1049,25 @@ class D
                 };
 
                 var items = await _aggregator.GetItemsAsync("Baz.Q");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            });
+        }
+
+        [WpfTheory, WorkItem(46267, "https://github.com/dotnet/roslyn/issues/46267")]
+        [CombinatorialData]
+        public async Task DottedPatternMatchKind(TestHost testHost)
+        {
+            var source = "namespace System { class Console { void Write(string s) { } void WriteLine(string s) { } } }";
+            await TestAsync(testHost, source, async w =>
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                    new NavigateToItem("Write", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("WriteLine", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)
+                };
+
+                var items = await _aggregator.GetItemsAsync("Console.Write");
 
                 VerifyNavigateToResultItems(expecteditems, items);
             });
