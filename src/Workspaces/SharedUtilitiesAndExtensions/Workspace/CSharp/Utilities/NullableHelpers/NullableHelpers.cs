@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var foreachInfo = semanticModel.GetForEachStatementInfo((ForEachStatementSyntax)forEachLoop.Syntax);
 
-                    // Use NotAnnotated here to keep both Annotated and None treated the same, since
+                    // Use NotAnnotated here to keep both Annotated and None (oblivious) treated the same, since
                     // this is directly looking at the annotation and not the flow state
                     if (foreachInfo.ElementType.NullableAnnotation != NullableAnnotation.NotAnnotated)
                     {
