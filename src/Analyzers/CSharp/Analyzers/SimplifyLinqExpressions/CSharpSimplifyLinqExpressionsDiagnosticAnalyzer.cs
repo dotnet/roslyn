@@ -75,12 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var invocationOperation = (IInvocationOperation)context.Operation;
 
             // Check that .Where(...) is not user defined
-            var argument = invocationOperation.Children.FirstOrDefault(c => c is IArgumentOperation);
-            if (argument != null)
-            {
-                var baseOp = argument.Children.FirstOrDefault(c => c is IInvocationOperation);
+            var child = invocationOperation.Children.FirstOrDefault(c => c is IArgumentOperation);
 
-                if (baseOp is IInvocationOperation method)
+            if (child != null)
+            {
+                var whereClause = child.Children.FirstOrDefault(c => c is IInvocationOperation);
+
+                if (whereClause != null && whereClause is IInvocationOperation method)
                 {
                     var argDefinition = method.TargetMethod.OriginalDefinition;
 

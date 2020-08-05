@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions;
 using Xunit;
+using Microsoft.CodeAnalysis.Testing;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsCodeFixProvider>;
-using Microsoft.CodeAnalysis.Testing;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressions
 {
@@ -61,12 +61,13 @@ class Test
         var test = Data().Single(x => x==1);
     }
 }";
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                FixedCode = fixedSource,
-            }.RunAsync().ConfigureAwait(true);
+            await TestInRegularAndScriptAsync(source, fixedSource);
+            /*            await new VerifyCS.Test
+                        {
+                            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                            TestCode = source,
+                            FixedCode = fixedSource,
+                        }.RunAsync().ConfigureAwait(true);*/
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
