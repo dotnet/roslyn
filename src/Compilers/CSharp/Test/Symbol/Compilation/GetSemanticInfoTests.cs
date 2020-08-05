@@ -6003,5 +6003,29 @@ class B<T, U, U>
             symbol = model.GetDeclaredSymbol(typeParameters[typeParameters.Length - 2]);
             Assert.True(symbol.IsReferenceType);
         }
+
+        [Fact]
+        [WorkItem(25262, "https://github.com/dotnet/roslyn/issues/25262")]
+        public void IncompleteInvocationSpeculativeSymbolInfo()
+        {
+            var source = @"
+class Foo
+{
+    void Bar(string s)
+    {
+        s?.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            var newInvocation = invocation.WithoutTrivia();
+
+            var symbolInfo = model.GetSpeculativeSymbolInfo(invocation.SpanStart, newInvocation, SpeculativeBindingOption.BindAsExpression);
+            Assert.True(symbolInfo.IsEmpty);
+        }
     }
 }

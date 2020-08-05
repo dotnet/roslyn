@@ -2235,10 +2235,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // In a well formed tree, the corresponding access node should be one of the ancestors
             // and its "?" token should precede the binding syntax.
-            while (currentNode != null)
+            while (true)
             {
                 currentNode = currentNode.Parent;
-                Debug.Assert(currentNode != null, "binding should be enclosed in a conditional access");
+
+                if (currentNode == null)
+                {
+                    return null;
+                }
 
                 if (currentNode.Kind() == SyntaxKind.ConditionalAccessExpression)
                 {
@@ -2249,8 +2253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-
-            return null;
         }
 
         /// <summary>
