@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 {
     public abstract class CoreFormatterTestsBase
     {
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestFormattingRuleFactoryServiceFactory));
+
         private readonly ITestOutputHelper _output;
         public CoreFormatterTestsBase(ITestOutputHelper output)
             => this._output = output;
@@ -131,8 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
         private TestWorkspace CreateWorkspace(string codeWithMarker)
             => this.GetLanguageName() == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(codeWithMarker)
-                : TestWorkspace.CreateVisualBasic(codeWithMarker);
+                ? TestWorkspace.CreateCSharp(codeWithMarker, composition: s_composition)
+                : TestWorkspace.CreateVisualBasic(codeWithMarker, composition: s_composition);
 
         internal void AssertFormatWithTransformation(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root)
         {
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
             if (baseIndentation.HasValue)
             {
-                var factory = formattingRuleProvider as TestFormattingRuleFactoryServiceFactory.Factory;
+                var factory = (TestFormattingRuleFactoryServiceFactory.Factory)formattingRuleProvider;
                 factory.BaseIndentation = baseIndentation.Value;
                 factory.TextSpan = spans.First();
             }

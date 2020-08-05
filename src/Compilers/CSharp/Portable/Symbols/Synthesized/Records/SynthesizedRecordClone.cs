@@ -118,27 +118,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            if (ReturnType.IsErrorType())
+            try
             {
-                F.CloseMethod(F.ThrowNull());
-                return;
-            }
-
-            var members = ContainingType.InstanceConstructors;
-            foreach (var member in members)
-            {
-                var ctor = (MethodSymbol)member;
-                if (ctor.ParameterCount == 1 && ctor.Parameters[0].RefKind == RefKind.None &&
-                    ctor.Parameters[0].Type.Equals(ContainingType, TypeCompareKind.AllIgnoreOptions))
+                if (ReturnType.IsErrorType())
                 {
-                    F.CloseMethod(F.Return(F.New(ctor, F.This())));
+                    F.CloseMethod(F.ThrowNull());
                     return;
                 }
-            }
 
-            throw ExceptionUtilities.Unreachable;
+                var members = ContainingType.InstanceConstructors;
+                foreach (var member in members)
+                {
+                    var ctor = (MethodSymbol)member;
+                    if (ctor.ParameterCount == 1 && ctor.Parameters[0].RefKind == RefKind.None &&
+                        ctor.Parameters[0].Type.Equals(ContainingType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        F.CloseMethod(F.Return(F.New(ctor, F.This())));
+                        return;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
         }
 
+        // Note: this method was replicated in SymbolDisplayVisitor.FindValidCloneMethod
         internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             MethodSymbol? candidate = null;
@@ -155,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (candidate is object)
                     {
-                        // An ammbiguity case, can come from metadata, treat as an error for simplicity.
+                        // An ambiguity case, can come from metadata, treat as an error for simplicity.
                         return null;
                     }
 

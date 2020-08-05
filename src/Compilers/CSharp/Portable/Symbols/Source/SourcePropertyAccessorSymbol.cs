@@ -647,12 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
-                // '{0}' is abstract but it is contained in non-abstract class '{1}'
+                // '{0}' is abstract but it is contained in non-abstract type '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
             }
             else if (IsVirtual && ContainingType.IsSealed && ContainingType.TypeKind != TypeKind.Struct) // error CS0106 on struct already
             {
-                // '{0}' is a new virtual member in sealed class '{1}'
+                // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
             else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)

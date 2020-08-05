@@ -511,6 +511,8 @@
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
     <Field Name="LeftConversion" Type="Conversion"/>
@@ -2030,7 +2032,7 @@
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="ConvertedType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">

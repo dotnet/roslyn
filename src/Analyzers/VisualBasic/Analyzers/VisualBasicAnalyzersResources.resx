@@ -133,4 +133,7 @@
     <value>'ByVal' keyword is unnecessary and can be removed.</value>
     <comment>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</comment>
   </data>
+  <data name="GetType_can_be_converted_to_NameOf" xml:space="preserve">
+    <value>'GetType' can be converted to 'NameOf'</value>
+  </data>
 </root>
