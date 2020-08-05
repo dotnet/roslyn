@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             _queue = null;
+            _cancellationTokenSource.Dispose();
             _cancellationTokenSource = null;
             _listenTasks = default;
             IsListening = false;
@@ -163,11 +164,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Func<string> getClientLoggingIdentifier,
             CancellationToken cancellationToken)
         {
-            // Task that only completes when the cancellationToken is cancelled.
-            var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
             while (!cancellationToken.IsCancellationRequested)
             {
-                NamedPipeServerStream? pipeStream = null;;
+                NamedPipeServerStream? pipeStream = null;
 
                 try
                 {
@@ -188,14 +187,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // if it ever completes. Once all of the NamedPipeServerStream for the given pipe name are
                     // disposed they will all exit the WaitForConnectionAsync method
                     var connectTask = pipeStream.WaitForConnectionAsync(cancellationToken);
-                    var completedTask = await Task.WhenAny(new[] { connectTask, cancelTask }).ConfigureAwait(false);
-                    if (completedTask == cancelTask)
+                    if (!PlatformInformation.IsWindows)
                     {
-                        throw new OperationCanceledException();
+                        var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
+                        var completedTask = await Task.WhenAny(new[] { connectTask, cancelTask }).ConfigureAwait(false);
+                        if (completedTask == cancelTask)
+                        {
+                            throw new OperationCanceledException();
+                        }
                     }
 
                     await connectTask.ConfigureAwait(false);
-
                     CompilerServerLogger.Log("Pipe connection established.");
                     var connection = new NamedPipeClientConnection(pipeStream, getClientLoggingIdentifier());
                     queue.Enqueue(new ListenResult(connection: connection));
