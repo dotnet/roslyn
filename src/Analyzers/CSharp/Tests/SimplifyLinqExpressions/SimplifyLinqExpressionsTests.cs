@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsCodeFixProvider>;
+using Microsoft.CodeAnalysis.Testing;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressions
 {
@@ -57,7 +61,12 @@ class Test
         var test = Data().Single(x => x==1);
     }
 }";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync().ConfigureAwait(true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -88,7 +97,12 @@ class Test
 
         private var test2 = test1.First(x => x==1);
 }";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync().ConfigureAwait(true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -115,7 +129,12 @@ class Test
     static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
     var _test2 = _test1.Any(x => x == '!');
 }";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync().ConfigureAwait(true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -182,7 +201,12 @@ namespace demo
         }
     }
 }";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync().ConfigureAwait(true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
@@ -215,7 +239,12 @@ namespace demo
         int output = testvar2.Where(x => x == 4).Count();
     }
 }";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync().ConfigureAwait(true);
         }
     }
 }
