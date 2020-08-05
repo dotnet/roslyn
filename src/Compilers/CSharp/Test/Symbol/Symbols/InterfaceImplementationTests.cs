@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2497,6 +2496,414 @@ class OneToOneUnicodeComparer : StringComparer
             var implementation = derivedType.FindImplementationForInterfaceMember(baseType.Interfaces().Single().GetMember("GetHashCode"));
 
             Assert.Equal("System.Int32 StringComparer.GetHashCode(System.String obj)", implementation.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_01(bool useCompilationReference)
+        {
+            var source0 =
+@"#nullable enable
+public struct S<T>
+{
+}
+public interface I
+{
+    S<object?> F();
+}";
+            var source1 =
+@"#nullable enable
+public class A<T> : I where T : class
+{
+    public S<T?> F() => throw null;
+    S<object?> I.F() => default;
+}";
+            var source2A =
+@"#nullable enable
+class B<T> : A<T>, I where T : class
+{
+}";
+            var source2B =
+@"#nullable disable
+class B<T> : A<T>, I where T : class
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F();
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "S<System.Object?> A<T>.I.F()");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "S<System.Object?> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_02(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    S<dynamic> F();
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public S<T> F() => default;
+    S<dynamic> I.F() => default;
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F();
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<dynamic> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_03(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    S<dynamic> F();
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public S<T> F() => default;
+    S<object> I.F() => default;
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F();
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<System.Object> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_04(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    S<object> F();
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public S<T> F() => default;
+    S<dynamic> I.F() => default;
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F();
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<dynamic> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_05(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    S<(int X, int Y)> F();
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public S<T> F() => default;
+    S<(int X, int Y)> I.F() => default;
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F();
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<(System.Int32 X, System.Int32 Y)> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_06(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    S<nint> F();
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public S<T> F() => default;
+    S<nint> I.F() => default;
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F();
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<nint> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_07(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<object?> s);
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public void F(S<T> s) { }
+    void I.F(S<object?> s) { }
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F(default);
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<System.Object?> s)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_08(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<(int X, int Y)> s);
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public void F(S<T> s) { }
+    void I.F(S<(int X, int Y)> s) { }
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F(default);
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<(System.Int32 X, System.Int32 Y)> s)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_09(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<dynamic> s);
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public void F(S<T> s) { }
+    void I.F(S<dynamic> s) { }
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F(default);
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<dynamic> s)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_10(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<dynamic> s);
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public void F(S<T> s) { }
+    void I.F(S<object> s) { }
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F(default);
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<System.Object> s)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_11(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<object> s);
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public void F(S<T> s) { }
+    void I.F(S<dynamic> s) { }
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F(default);
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<dynamic> s)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_12(bool useCompilationReference)
+        {
+            var source0 =
+@"public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<nint> s);
+}";
+            var source1 =
+@"public class A<T> : I
+{
+    public void F(S<T> s) { }
+    void I.F(S<nint> s) { }
+}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main() => ((I)new B<string>()).F(default);
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<nint> s)");
+        }
+
+        private void ExplicitImplementationInBaseType(
+            bool useCompilationReference,
+            string source0,
+            string source1,
+            string source2,
+            string source3,
+            string derivedTypeName,
+            string interfaceMemberName,
+            string expectedImplementingMember)
+        {
+            var comp = CreateCompilation(source0);
+            var ref0 = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(source1, references: new[] { ref0 });
+            var ref1 = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(new[] { source2, source3 }, references: new[] { ref0, ref1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "");
+
+            var derivedType = comp.GetMember<SourceNamedTypeSymbol>(derivedTypeName);
+            Assert.True(derivedType.GetSynthesizedExplicitImplementations(cancellationToken: default).IsEmpty);
+
+            var interfaceMember = comp.GetMember<MethodSymbol>(interfaceMemberName);
+            var implementingMember = derivedType.FindImplementationForInterfaceMember(interfaceMember);
+            Assert.Equal(expectedImplementingMember, implementingMember.ToTestDisplayString());
         }
     }
 }
