@@ -43,5 +43,198 @@ class C
     var test5 = test.FirstOrDefault(x => x.Equals('!'));
 }");
         }
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task FixAllProject()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List\<string\> { 'hello', 'world', '!' };
+    var test1 = {|FixAllProject:test.Where(x => x.Equals('!')).Any()|};
+    var test2 = test.Where(x => x.Equals('!')).SingleOrDefault();
+    var test3 = test.Where(x => x.Equals('!')).Last();
+    var test4 = test.Where(x => x.Equals('!')).Count();
+    var test5 = test.Where(x => x.Equals('!')).FirstOrDefault();
+}
+        </Document>
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List\<string\> { 'hello', 'world', '!' };
+    var test1 = test.Any(x => x.Equals('!'));
+    var test2 = test.SingleOrDefault(x => x.Equals('!'));
+    var test3 = test.Last(x => x.Equals('!'));
+    var test4 = test.Count(x => x.Equals('!'));
+    var test5 = test.FirstOrDefault(x => x.Equals('!'));
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List\<string\> { 'hello', 'world', '!' };
+    var test1 = {|FixAllProject:test.Where(x => x.Equals('!')).Any()|};
+    var test2 = test.Where(x => x.Equals('!')).SingleOrDefault();
+    var test3 = test.Where(x => x.Equals('!')).Last();
+    var test4 = test.Where(x => x.Equals('!')).Count();
+    var test5 = test.Where(x => x.Equals('!')).FirstOrDefault();
+}
+        </Document>
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List\<string\> { 'hello', 'world', '!' };
+    var test1 = test.Any(x => x.Equals('!'));
+    var test2 = test.SingleOrDefault(x => x.Equals('!'));
+    var test3 = test.Last(x => x.Equals('!'));
+    var test4 = test.Count(x => x.Equals('!'));
+    var test5 = test.FirstOrDefault(x => x.Equals('!'));
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task FixAllSolution()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List\<string\> { 'hello', 'world', '!' };
+    var test1 = {|FixAllInDocument:test.Where(x => x.Equals('!')).Any()|};
+    var test2 = test.Where(x => x.Equals('!')).SingleOrDefault();
+    var test3 = test.Where(x => x.Equals('!')).Last();
+    var test4 = test.Where(x => x.Equals('!')).Count();
+    var test5 = test.Where(x => x.Equals('!')).FirstOrDefault();
+}
+        </Document>
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List\<string\> { 'hello', 'world', '!' };
+    var test1 = {|FixAllInDocument:test.Where(x => x.Equals('!')).Any()|};
+    var test2 = test.Where(x => x.Equals('!')).SingleOrDefault();
+    var test3 = test.Where(x => x.Equals('!')).Last();
+    var test4 = test.Where(x => x.Equals('!')).Count();
+    var test5 = test.Where(x => x.Equals('!')).FirstOrDefault();
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    var test1 = {|FixAllInDocument:test.Where(x => x.Equals('!')).Any()|};
+    var test2 = test.Where(x => x.Equals('!')).SingleOrDefault();
+    var test3 = test.Where(x => x.Equals('!')).Last();
+    var test4 = test.Where(x => x.Equals('!')).Count();
+    var test5 = test.Where(x => x.Equals('!')).FirstOrDefault();
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    var test1 = test.Any(x => x.Equals('!'));
+    var test2 = test.SingleOrDefault(x => x.Equals('!'));
+    var test3 = test.Last(x => x.Equals('!'));
+    var test4 = test.Count(x => x.Equals('!'));
+    var test5 = test.FirstOrDefault(x => x.Equals('!'));
+}
+        </Document>
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    var test1 = test.Any(x => x.Equals('!'));
+    var test2 = test.SingleOrDefault(x => x.Equals('!'));
+    var test3 = test.Last(x => x.Equals('!'));
+    var test4 = test.Count(x => x.Equals('!'));
+    var test5 = test.FirstOrDefault(x => x.Equals('!'));
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class C
+{
+    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    var test1 = test.Any(x => x.Equals('!'));
+    var test2 = test.SingleOrDefault(x => x.Equals('!'));
+    var test3 = test.Last(x => x.Equals('!'));
+    var test4 = test.Count(x => x.Equals('!'));
+    var test5 = test.FirstOrDefault(x => x.Equals('!'));
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
     }
 }

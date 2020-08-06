@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 using System.Linq;
 using System.Collections.Generic;
-
+using System.Linq.Expressions;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
@@ -76,9 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             // Check that .Where(...) is not user defined
             var child = invocationOperation.Children.FirstOrDefault(c => c is IArgumentOperation);
             var whereClause = child?.Children.FirstOrDefault(c => c is IInvocationOperation);
-            if (whereClause != null &&
-                whereClause is IInvocationOperation method &&
-                method.TargetMethod.OriginalDefinition != null &&
+            if (whereClause == null ||
+                !(whereClause is IInvocationOperation method) ||
+                method.TargetMethod.OriginalDefinition == null ||
+                method.TargetMethod.Parameters is ExpressionType ||
                 !whereMethods.Contains(method.TargetMethod.OriginalDefinition))
             {
                 return;
@@ -93,11 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             }
 
             // Check that the Where clause is followed by a call with no predicate
-            var hasArguments = invocationOperation.TargetMethod.Parameters.IsEmpty;
-            if (hasArguments)
+            var arguments = invocationOperation.TargetMethod.Parameters;
+            if (arguments.IsEmpty)
             {
                 return;
             }
+
 
             var operation = context.Operation;
             var node = operation.Syntax;
