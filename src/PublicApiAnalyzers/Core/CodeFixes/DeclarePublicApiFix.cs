@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 foreach (KeyValuePair<ProjectId, SourceText> pair in addedPublicSurfaceAreaText)
                 {
                     var project = newSolution.GetProject(pair.Key);
-                    if (project.FilePath != null && uniqueProjectPaths.Add(project.FilePath))
+                    if (uniqueProjectPaths.Add(project.FilePath ?? project.Name))
                     {
                         newSolution = AddPublicApiFiles(project, pair.Value);
                     }
