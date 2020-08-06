@@ -181,7 +181,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             public override TaintedDataAbstractValue VisitConversion(IConversionOperation operation, object? argument)
             {
-                var operandValue = Visit(operation.Operand, argument);
+                TaintedDataAbstractValue operandValue = Visit(operation.Operand, argument);
 
                 if (!operation.Conversion.Exists)
                 {
