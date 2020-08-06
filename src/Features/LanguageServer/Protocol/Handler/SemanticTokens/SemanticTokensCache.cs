@@ -72,6 +72,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
+                // If the resultId of the semantic tokens is null, don't cache anything since we'll
+                // be unable to retrieve the results later.
+                if (tokens.ResultId == null)
+                {
+                    return;
+                }
+
                 // Case 1: Document does not currently have any token sets cached. Create a cache
                 // for the document and return.
                 if (!Tokens.TryGetValue(uri, out var tokenSets))
