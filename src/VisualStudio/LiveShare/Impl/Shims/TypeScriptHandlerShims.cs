@@ -63,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             // However, this works through liveshare on the LSP client, but not the LSP extension.
             // see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
             var request = ((JObject)input).ToObject<CompletionParams>(s_jsonSerializer);
-            var context = new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken);
-            return base.HandleRequestAsync(request, context);
+            var context = new LSP.RequestContext(requestContext.GetClientCapabilities(), null);
+            return base.HandleRequestAsync(request, context, cancellationToken);
         }
     }
 
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<LanguageServer.Protocol.CompletionItem> HandleAsync(LanguageServer.Protocol.CompletionItem param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentHighlightName)]
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<DocumentHighlight[]> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentSymbolName)]
@@ -112,8 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 clientCapabilities.TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport = false;
             }
 
-            var context = new LSP.RequestContext(clientCapabilities, null, cancellationToken);
-            var response = await base.HandleRequestAsync(param, context).ConfigureAwait(false);
+            var context = new LSP.RequestContext(clientCapabilities, null);
+            var response = await base.HandleRequestAsync(param, context, cancellationToken).ConfigureAwait(false);
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
             return response.Cast<SymbolInformation>().ToArray();
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
 
         protected override async Task<IList<TextChange>> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentRangeFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
 
         protected override async Task<IList<TextChange>> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentOnTypeFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
 
         protected override async Task<IList<TextChange>?> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, char typedChar, int position, CancellationToken cancellationToken)
         {
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             => _threadingContext = threadingContext;
 
         public Task<LanguageServer.Protocol.Location[]> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
 
         protected override async Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
         {
@@ -223,8 +223,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public async Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var context = new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken);
-            var initializeResult = await base.HandleRequestAsync(param, context).ConfigureAwait(false);
+            var context = new LSP.RequestContext(requestContext.GetClientCapabilities(), null);
+            var initializeResult = await base.HandleRequestAsync(param, context, cancellationToken).ConfigureAwait(false);
             initializeResult.Capabilities.Experimental = new RoslynExperimentalCapabilities { SyntacticLspProvider = true };
             return initializeResult;
         }
@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<SignatureHelp> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentRenameName)]
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<WorkspaceEdit?> HandleAsync(RenameParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
@@ -268,6 +268,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
         public Task<SymbolInformation[]> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null, cancellationToken));
+            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
     }
 }

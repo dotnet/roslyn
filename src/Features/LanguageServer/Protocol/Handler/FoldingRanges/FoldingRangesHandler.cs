@@ -6,6 +6,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context)
+        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
@@ -40,13 +41,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return foldingRanges.ToArrayAndFree();
             }
 
-            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, context.CancellationToken).ConfigureAwait(false);
+            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
             {
                 return foldingRanges.ToArrayAndFree();
             }
 
-            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var span in blockStructure.Spans)
             {

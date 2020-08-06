@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -21,7 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Handles an LSP request.
         /// </summary>
         /// <param name="context">The LSP request context.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
         /// <returns>The LSP response.</returns>
-        Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context);
+        Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }

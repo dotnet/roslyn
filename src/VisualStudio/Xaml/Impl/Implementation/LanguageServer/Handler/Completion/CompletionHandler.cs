@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context)
+        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
             if (document == null)
@@ -39,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
-            var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
-            var completions = await completionService.GetCompletionsAsync(document, offset, cancellationToken: context.CancellationToken).ConfigureAwait(false);
+            var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var completions = await completionService.GetCompletionsAsync(document, offset, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completions == null)
             {
                 return Array.Empty<CompletionItem>();

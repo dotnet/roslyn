@@ -24,16 +24,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public string? ClientName { get; }
 
-        /// <summary>
-        /// A cancellation token
-        /// </summary>
-        public CancellationToken CancellationToken { get; }
-
-        public RequestContext(ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public RequestContext(ClientCapabilities clientCapabilities, string? clientName)
         {
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
-            CancellationToken = cancellationToken;
         }
     }
 }

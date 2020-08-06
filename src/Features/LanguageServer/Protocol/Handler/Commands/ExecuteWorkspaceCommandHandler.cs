@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Handles an <see cref="LSP.Methods.WorkspaceExecuteCommand"/>
         /// by delegating to a handler for the specific command requested.
         /// </summary>
-        public Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context)
+        public Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var commandName = request.Command;
             if (string.IsNullOrEmpty(commandName) || !_executeCommandHandlers.TryGetValue(commandName, out var executeCommandHandler))
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 throw new ArgumentException(string.Format("Command name ({0}) is invalid", commandName));
             }
 
-            return executeCommandHandler.Value.HandleRequestAsync(request, context);
+            return executeCommandHandler.Value.HandleRequestAsync(request, context, cancellationToken);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -17,6 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SolutionProvider = solutionProvider;
         }
 
-        public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context);
+        public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }

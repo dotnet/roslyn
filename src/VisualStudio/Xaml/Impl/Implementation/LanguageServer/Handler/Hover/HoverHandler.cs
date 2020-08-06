@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context)
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
             if (document == null)
@@ -40,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var quickInfoService = document.Project.LanguageServices.GetService<IXamlQuickInfoService>();
             if (quickInfoService == null)
@@ -48,14 +49,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            var info = await quickInfoService.GetQuickInfoAsync(document, position, context.CancellationToken).ConfigureAwait(false);
+            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
             }
 
             var descriptionBuilder = new List<TaggedText>(info.Description);
-            var description = await info.Symbol.GetDescriptionAsync(document, position, context.CancellationToken).ConfigureAwait(false);
+            var description = await info.Symbol.GetDescriptionAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (description.Any())
             {
                 if (descriptionBuilder.Any())
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 description.Concat(description);
             }
 
-            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new VSHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),

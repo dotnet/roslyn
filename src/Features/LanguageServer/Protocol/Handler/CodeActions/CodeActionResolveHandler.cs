@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context)
+        public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
             var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _codeFixService,
                 _codeRefactoringService,
                 data.Range,
-                context.CancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(
                 data.UniqueIdentifier, codeActions.ToImmutableArray());
             Contract.ThrowIfNull(codeActionToResolve);
 
-            var operations = await codeActionToResolve.GetOperationsAsync(context.CancellationToken).ConfigureAwait(false);
+            var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             if (operations.IsEmpty)
             {
                 return codeAction;
@@ -117,19 +117,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedDocuments,
                         applyChangesOperation.ChangedSolution.GetDocument, solution.GetDocument,
-                        context.CancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
 
                     // Changed analyzer config documents
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedAnalyzerConfigDocuments,
                         applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument, solution.GetAnalyzerConfigDocument,
-                        context.CancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
 
                     // Changed additional documents
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedAdditionalDocuments,
                         applyChangesOperation.ChangedSolution.GetAdditionalDocument, solution.GetAdditionalDocument,
-                        context.CancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };

@@ -7,6 +7,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context)
+        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             if (!(completionItem.Data is CompletionResolveData data))
             {
@@ -48,15 +49,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            int offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), context.CancellationToken).ConfigureAwait(false);
+            int offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
-            var symbol = await completionService.GetSymbolAsync(document, offset, completionItem.Label, cancellationToken: context.CancellationToken).ConfigureAwait(false);
+            var symbol = await completionService.GetSymbolAsync(document, offset, completionItem.Label, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
                 return completionItem;
             }
 
-            var description = await symbol.GetDescriptionAsync(document, offset, context.CancellationToken).ConfigureAwait(false);
+            var description = await symbol.GetDescriptionAsync(document, offset, cancellationToken).ConfigureAwait(false);
 
             var vsCompletionItem = CloneVSCompletionItem(completionItem);
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));

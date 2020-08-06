@@ -7,6 +7,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context)
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
@@ -32,16 +33,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), context.CancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
-            var info = await quickInfoService.GetQuickInfoAsync(document, position, context.CancellationToken).ConfigureAwait(false);
+            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
             }
 
-            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new Hover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
