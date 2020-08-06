@@ -6458,7 +6458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (targetType.Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
                         {
                             var type = operandType.Type;
-                            if (type?.IsTypeParameterDisallowingAnnotationInCSharp8() != true)
+                            if (type is null || !type.IsTypeParameterDisallowingAnnotationInCSharp8())
                             {
                                 return NullableFlowState.MaybeDefault;
                             }
@@ -6481,7 +6481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Converting to a less-derived type (object, interface, type parameter).
-            // If the operand is MaybeNull or MaybeDefault, the result should be
+            // If the operand is MaybeNull, the result should be
             // MaybeNull (if the target type allows) or MaybeDefault otherwise.
             static NullableFlowState getBoxingConversionResultState(TypeWithAnnotations targetType, TypeWithState operandType)
             {
@@ -6495,10 +6495,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (targetType.NullableAnnotation.IsNotAnnotated() &&
                         type is TypeParameterSymbol typeParameter1 &&
-                        targetType.Type is TypeParameterSymbol typeParameter2 &&
-                        dependsOnTypeParameter(typeParameter1, typeParameter2, NullableAnnotation.NotAnnotated, out var annotation))
+                        targetType.Type is TypeParameterSymbol typeParameter2)
                     {
-                        return (annotation == NullableAnnotation.Annotated) ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                        bool dependsOn = dependsOnTypeParameter(typeParameter1, typeParameter2, NullableAnnotation.NotAnnotated, out var annotation);
+                        Debug.Assert(dependsOn); // If this case fails, add a corresponding test.
+                        if (dependsOn)
+                        {
+                            return (annotation == NullableAnnotation.Annotated) ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                        }
                     }
                 }
                 return state;
@@ -6527,8 +6531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return state;
             }
 
-            // If type parameter 1 depends on type parameter 2,
-            // returns the corresponding annotation.
+            // If type parameter 1 depends on type parameter 2 (that is, if type parameter 2 appears
+            // in the constraint types of type parameter 1), returns the effective annotation on
+            // type parameter 2 in the constraints of type parameter 1.
             static bool dependsOnTypeParameter(TypeParameterSymbol typeParameter1, TypeParameterSymbol typeParameter2, NullableAnnotation typeParameter1Annotation, out NullableAnnotation annotation)
             {
                 if (typeParameter1.Equals(typeParameter2, TypeCompareKind.AllIgnoreOptions))
