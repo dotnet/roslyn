@@ -170,11 +170,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 default:
                     if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes))
                     {
-                        var x = invocationOperation.GetInstance();
                         if (symbolEqualityComparerType != null &&
                             possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
-                            !method.TypeArguments.IsEmpty &&
-                            IsSymbolType(method.TypeArguments[0], symbolType) &&
+                            HasFirstTypeArgumentSymbolType(method, symbolType) &&
                             !invocationOperation.Arguments.Any(arg => arg.Type != null && arg.Type.Equals(symbolEqualityComparerType)))
                         {
                             context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
@@ -185,6 +183,29 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             static bool IsNotInstanceInvocationOrNotOnSymbol(IInvocationOperation invocationOperation, INamedTypeSymbol symbolType)
                 => invocationOperation.Instance is null || IsSymbolType(invocationOperation.Instance, symbolType);
+
+            static bool HasFirstTypeArgumentSymbolType(IMethodSymbol? method, INamedTypeSymbol symbolType)
+            {
+                if (method is null)
+                {
+                    return false;
+                }
+                else if (!method.TypeArguments.IsEmpty)
+                {
+                    return IsSymbolType(method.TypeArguments[0], symbolType);
+                }
+                else if (method.ReducedFrom != null && !method.ReducedFrom.TypeArguments.IsEmpty)
+                {
+                    // We are in the case where the ReducedFrom has TypeArguments but the original method doesn't.
+                    // This seems to happen only for VB.NET and the only workaround is to force the construction
+                    // of the ReducedFrom.
+                    return HasFirstTypeArgumentSymbolType(method.GetConstructedReducedFrom(), symbolType);
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
 
         private static void HandleObjectCreation(in OperationAnalysisContext context, INamedTypeSymbol symbolType,

@@ -718,23 +718,23 @@ Public Class C
         Dim x1 = [|ImmutableHashSet.Create(Of ISymbol)()|]
         Dim x2 = [|ImmutableHashSet.CreateBuilder(Of ISymbol)()|]
         Dim x3 = [|ImmutableHashSet.CreateRange(symbols)|]
-        Dim x4 = symbols.ToImmutableHashSet()
+        Dim x4 = [|symbols.ToImmutableHashSet()|]
 
         Dim x5 = [|ImmutableDictionary.Create(Of ISymbol, Integer)()|]
         Dim x6 = [|ImmutableDictionary.CreateBuilder(Of ISymbol, Integer)()|]
         Dim x7 = [|ImmutableDictionary.CreateRange(kvps)|]
-        Dim x8 = kvps.ToImmutableDictionary()
+        Dim x8 = [|kvps.ToImmutableDictionary()|]
 
-        Dim x9 = symbols.Contains(symbol)
-        Dim x10 = symbols.Distinct()
+        Dim x9 = [|symbols.Contains(symbol)|]
+        Dim x10 = [|symbols.Distinct()|]
         Dim x11 = [|symbols.GroupBy(Function(x) x)|]
         Dim x12 = [|symbols.GroupJoin(symbols, Function(x) x, Function(x) x, Function(x, y) x)|]
-        Dim x13 = symbols.Intersect(symbols)
+        Dim x13 = [|symbols.Intersect(symbols)|]
         Dim x14 = [|symbols.Join(symbols, Function(x) x, Function(x) x, Function(x, y) x)|]
-        Dim x15 = symbols.SequenceEqual(symbols)
+        Dim x15 = [|symbols.SequenceEqual(symbols)|]
         Dim x16 = [|symbols.ToDictionary(Function(x) x)|]
         Dim x17 = [|symbols.ToLookup(Function(x) x)|]
-        Dim x18 = symbols.Union(symbols)
+        Dim x18 = [|symbols.Union(symbols)|]
     End Sub
 
     Public Sub MethodWithoutDiagnostics(kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)), integers As IEnumerable(Of Integer), i As Integer)
