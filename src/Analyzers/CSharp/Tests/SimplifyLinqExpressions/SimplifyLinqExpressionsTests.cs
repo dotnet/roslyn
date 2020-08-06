@@ -515,6 +515,39 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestQueryableType()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+namespace demo
+{
+    class Test
+    {
+        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
+        int output = [||]testvar2.Where(x => x == 4).Count();
+    }
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+namespace demo
+{
+    class Test
+    {
+        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
+        int output = testvar2.Count(x => x == 4);
+    }
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
         public async Task TestUserDefinedWhere()
 
         {
@@ -551,25 +584,6 @@ namespace demo
             await TestMissingInRegularAndScriptAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
-        public async Task TestExpressionTreeType()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
-        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
-        int output = [||]testvar2.Where(x => x == 4).Count();
-    }
-}";
-            await TestMissingInRegularAndScriptAsync(source);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
         public async Task TestArgumentsInSecondCall()
@@ -623,6 +637,43 @@ namespace demo
     {
         static IEnumerable<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
         int test2 = [||]test1.Select(x => x > 0).Single();
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestExpressionTreeInput()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    void Main()
+    {
+        string[] places = { 'Beach', 'Pool', 'Store', 'House',
+                   'Car', 'Salon', 'Mall', 'Mountain'};
+
+        IQueryable<String> queryableData = companies.AsQueryable<string>();
+        ParameterExpression pe = Expression.Parameter(typeof(string), 'place');
+
+        Expression left = Expression.Call(pe, typeof(string).GetMethod('ToLower', System.Type.EmptyTypes));
+        Expression right = Expression.Constant('coho winery');
+        Expression e1 = Expression.Equal(left, right);
+
+        left = Expression.Property(pe, typeof(string).GetProperty('Length'));
+        right = Expression.Constant(16, typeof(int));
+        Expression e2 = Expression.GreaterThan(left, right);
+
+        Expression predicateBody = Expression.OrElse(e1, e2);
+        Expression<Func<int, bool>> lambda1 = num => num < 5;
+
+        string result = [||]queryableData.Where(Expression.Lambda<Func<string, bool>>(predicateBody, new ParameterExpression[] { pe })).First();
     }
 }";
             await TestMissingInRegularAndScriptAsync(source);
