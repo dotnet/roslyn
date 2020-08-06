@@ -772,11 +772,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TypeWithState ToTypeWithState()
         {
-            if (Type is null)
-            {
-                return default;
-            }
-
             // This operation reflects reading from an lvalue, which produces an rvalue.
             // Reading from a variable of a type parameter (that could be substituted with a nullable type), but which
             // cannot itself be annotated (because it isn't known to be a reference type), may yield a null value
@@ -785,6 +780,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static NullableFlowState getFlowState(TypeSymbol type, NullableAnnotation annotation)
             {
+                if (type is null)
+                {
+                    return annotation.IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                }
                 if (type.IsPossiblyNullableReferenceTypeTypeParameter())
                 {
                     return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, NullableAnnotation.NotAnnotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull };

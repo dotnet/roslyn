@@ -211,6 +211,19 @@ long _f = 0l;
             );
         }
 
+        [Fact]
+        public void WarningLevelRespectedForLexerWarnings()
+        {
+            var source = @"public class C { public long Field = 0l; }";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,39): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // public class C { public long Field = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 39)
+                );
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
+                );
+        }
+
         [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
         [WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")]
         [Fact]

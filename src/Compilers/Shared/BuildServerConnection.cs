@@ -144,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 else
                 {
                     var request = BuildRequest.Create(language,
-                                                      buildPaths.WorkingDirectory,
-                                                      buildPaths.TempDirectory,
-                                                      BuildProtocolConstants.GetCommitHash() ?? "",
                                                       arguments,
-                                                      keepAlive,
-                                                      libEnvVariable);
+                                                      workingDirectory: buildPaths.WorkingDirectory,
+                                                      tempDirectory: buildPaths.TempDirectory,
+                                                      compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                                                      keepAlive: keepAlive,
+                                                      libDirectory: libEnvVariable);
 
                     return await TryCompileAsync(pipe, request, cancellationToken).ConfigureAwait(false);
                 }
@@ -307,20 +307,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
             string? identifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var buffer = Array.Empty<byte>();
 
             while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
             {
                 // Wait a tenth of a second before trying again
-                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(millisecondsDelay: 100, cancellationToken).ConfigureAwait(false);
 
                 try
                 {
-                    Log($"Before poking pipe {identifier}.");
                     await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
-                    Log($"After poking pipe {identifier}.");
                 }
                 catch (OperationCanceledException)
                 {

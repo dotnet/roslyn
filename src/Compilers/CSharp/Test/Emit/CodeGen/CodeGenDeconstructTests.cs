@@ -4900,7 +4900,7 @@ class C
                 // (4,16): error CS1002: ; expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(4, 16),
-                // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,16): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
                 // (4,19): error CS1031: Type expected
@@ -4912,7 +4912,7 @@ class C
                 // (4,19): error CS1026: ) expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
-                // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
+                // (4,19): error CS1519: Invalid token '1' in class, record, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
                 // (4,5): error CS1520: Method must have a return type
