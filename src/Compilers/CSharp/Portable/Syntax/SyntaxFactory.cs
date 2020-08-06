@@ -1565,20 +1565,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, encoding, cancellationToken);
         }
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
-        public static SyntaxTree ParseSyntaxTree(
-            string text,
-            ParseOptions? options,
-            string path,
-            Encoding? encoding,
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
-            bool? isGeneratedCode,
-            CancellationToken cancellationToken)
-        {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
-        }
-
         /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
@@ -1587,19 +1573,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken = default)
         {
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, cancellationToken);
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
-        public static SyntaxTree ParseSyntaxTree(
-            SourceText text,
-            ParseOptions? options,
-            string path,
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
-            bool? isGeneratedCode,
-            CancellationToken cancellationToken)
-        {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
 #pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
@@ -2654,6 +2627,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken)
         {
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public static SyntaxTree ParseSyntaxTree(
+            string text,
+            ParseOptions? options,
+            string path,
+            Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
+        {
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public static SyntaxTree ParseSyntaxTree(
+            SourceText text,
+            ParseOptions? options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
+        {
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
     }
 }
