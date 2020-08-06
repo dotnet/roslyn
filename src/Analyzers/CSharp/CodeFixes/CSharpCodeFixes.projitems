@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\CSharpMakeFieldReadonlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructFieldsWritable\CSharpMakeStructFieldsWritableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MisplacedUsingDirectives\MisplacedUsingDirectivesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamespaceSync\CSharpNamespaceSyncCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\CSharpOrderModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchStatementCodeFixProvider.cs" />
