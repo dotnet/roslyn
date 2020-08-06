@@ -239,13 +239,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 PooledHashSet<string>? taintedParameterNamesCached = null;
                 try
                 {
-                    var taintedParameterNames = visitedArguments
+                    IEnumerable<string>? taintedParameterNames = visitedArguments
                             .Where(s => this.GetCachedAbstractValue(s).Kind == TaintedDataAbstractValueKind.Tainted)
                             .Select(s => s.Parameter.Name);
 
                     taintedParameterNamesCached = PooledHashSet<string>.GetInstance();
                     if (taintedParameterNames != null)
+                    {
                         taintedParameterNamesCached.UnionWith(taintedParameterNames);
+                    }
 
                     if (this.IsSanitizingMethod(
                         method,
@@ -348,7 +350,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 }
                                 else
                                 {
-                                    Debug.Fail("Are the tainted data sources misconfigured?");
+                                    Debug.Fail("Are the tainted data sanitizers misconfigured?");
                                 }
                             }
                         }
