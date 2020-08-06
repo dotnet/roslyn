@@ -1032,47 +1032,54 @@ class C {
         {
             UsingDeclaration("Func<int> func1 = (!!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
             {
-                    // (1,20): error CS1525: Invalid expression term '!!'
+                    // (1,22): error CS1525: Invalid expression term ')'
                     // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!!").WithArguments("!!").WithLocation(1, 20),
-                    // (1,20): error CS1026: ) expected
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
+                    // (1,24): error CS1003: Syntax error, ',' expected
                     // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "!!").WithLocation(1, 20),
-                    // (1,20): error CS1003: Syntax error, ',' expected
-                    // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!!").WithArguments(",", "!!").WithLocation(1, 20)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 24)
             });
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
                 {
                     N(SyntaxKind.GenericName);
-                    N(SyntaxKind.IdentifierToken, "Func");
-                    N(SyntaxKind.TypeArgumentList);
                     {
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.IdentifierToken, "Func");
+                        N(SyntaxKind.TypeArgumentList);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
-                }
-                N(SyntaxKind.VariableDeclarator);
-                {
-                    N(SyntaxKind.IdentifierToken, "func1");
-                }
-                N(SyntaxKind.EqualsValueClause);
-                {
-                    N(SyntaxKind.EqualsToken);
-                    N(SyntaxKind.ParenthesizedExpression);
+                    N(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierToken, "func1");
+                        N(SyntaxKind.EqualsValueClause);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.LogicalNotExpression);
+                                {
+                                    N(SyntaxKind.ExclamationToken);
+                                    N(SyntaxKind.LogicalNotExpression);
+                                    {
+                                        N(SyntaxKind.ExclamationToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
                         }
-                        M(SyntaxKind.CloseParenToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);

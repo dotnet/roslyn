@@ -4159,7 +4159,8 @@ tryAgain:
                 {
                     equals = this.EatToken(SyntaxKind.EqualsToken);
                 }
-                exclamationExclamation = exclamationExclamation is null ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+                exclamationExclamation = (exclamationExclamation is null || exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                        ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
                 EqualsValueClauseSyntax def = null;
                 if (!(equals is null))
                 {
@@ -12400,7 +12401,8 @@ tryAgain:
                     exclamationExclamation = this.AddError(exclamationExclamation, ErrorCode.ERR_IncorrectNullCheckSyntax);
                 }
             }
-            exclamationExclamation = exclamationExclamation is null ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+            exclamationExclamation = (exclamationExclamation is null || exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                        ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
             var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamationExclamation, null);
             _pool.Free(modifiers);
             return parameter;
