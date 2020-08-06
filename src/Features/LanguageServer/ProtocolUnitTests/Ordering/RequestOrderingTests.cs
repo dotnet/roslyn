@@ -75,6 +75,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.True(responses[2].StartTime < responses[1].EndTime);
         }
 
+        [Fact]
+        public async Task ParallelOperatesOnTheRightSolutions()
+        {
+            var requests = new[] {
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(MutatingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+            };
+
+            var responses = await TestAsync(requests);
+
+            // first two tasks should have kicked off in parallel
+            Assert.True(responses[0].StartTime < responses[1].EndTime);
+            Assert.True(responses[1].StartTime < responses[0].EndTime);
+
+            // The last two tasks should have waited for the middle
+            Assert.True(responses[3].StartTime >= responses[2].EndTime);
+            Assert.True(responses[4].StartTime >= responses[2].EndTime);
+
+            // The last two should have operated on different solutions than the first two
+            Assert.NotEqual(responses[3].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
+            Assert.NotEqual(responses[4].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
+        }
+
+
         private async Task<OrderedLspResponse[]> TestAsync(OrderedLspRequest[] requests)
         {
             using var workspace = CreateTestWorkspace("class C { }", out _);
