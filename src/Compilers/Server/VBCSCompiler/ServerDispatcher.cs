@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             if (_gcTask?.IsCompleted == true)
             {
-                RunGargbageCollection();
+                RunGC();
             }
 
             HandleCompletedConnections();
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _gcTask = null;
         }
 
-        private void RunGargbageCollection()
+        private void RunGC()
         {
             _gcTask = null;
             for (int i = 0; i < 10; i++)
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private void MaybeCreateListenTask()
         {
-            if (_listenTask is null && _clientConnectionHost.IsListening)
+            if (_listenTask is null)
             {
                 _listenTask = _clientConnectionHost.GetNextClientConnectionAsync();
             }

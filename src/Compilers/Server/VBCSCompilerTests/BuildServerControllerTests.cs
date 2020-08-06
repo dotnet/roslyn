@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public void Dispose()
         {
-            HackUtil.DisposeAll();
+            NamedPipeTestUtil.DisposeAll();
 
         }
 

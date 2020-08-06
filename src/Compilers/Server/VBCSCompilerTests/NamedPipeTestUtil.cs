@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,7 +10,6 @@ using System.IO.Pipes;
 using System.Reflection;
 using System.Net.Sockets;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 #nullable enable
 
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     ///
     /// Do NOT check this into production, it's a unit test utility only
     /// </summary>
-    internal static class HackUtil
+    internal static class NamedPipeTestUtil
     {
         private static IDictionary GetSharedServersDictionary()
         {
@@ -74,11 +73,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        internal static void AssertPipeFullyClosed(string pipeName)
-        {
-            var socket = GetSocketForPipeName(pipeName);
-            Assert.Null(socket);
-        }
+        internal static bool IsPipeFullyClosed(string pipeName) => GetSocketForPipeName(pipeName) is null;
 
         internal static void DisposeAll()
         {

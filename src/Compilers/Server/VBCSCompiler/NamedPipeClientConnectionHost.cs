@@ -2,21 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Roslyn.Utilities;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Pipes;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Security.AccessControl;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Collections.Generic;
+using Roslyn.Utilities;
 
 #nullable enable
 
@@ -38,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         private CancellationTokenSource? _cancellationTokenSource;
-        private ImmutableArray<Task> _listenTasks;
+        private Task[]? _listenTasks;
         private AsyncQueue<ListenResult>? _queue;
 
         public string PipeName { get; }
@@ -57,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             Debug.Assert(_cancellationTokenSource is null);
-            Debug.Assert(_listenTasks.IsDefault);
+            Debug.Assert(_listenTasks is null);
             Debug.Assert(_queue is null);
 
             IsListening = true;
@@ -72,14 +68,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Should you ever want to change this number in the future make sure to test the new values on sufficiently
             // large builds such as dotnet/roslyn or dotnet/runtime
             var listenCount = Math.Min(4, Environment.ProcessorCount);
-            var listenTasks = new List<Task>(capacity: listenCount);
+            _listenTasks = new Task[listenCount];
             int clientLoggingIdentifier = 0;
             for (int i = 0; i < listenCount; i++)
             {
                 var task = Task.Run(() => ListenCoreAsync(PipeName, _queue, GetNextClientLoggingIdentifier, _cancellationTokenSource.Token));
-                listenTasks.Add(task);
+                _listenTasks[i] = task;
             }
-            _listenTasks = ImmutableArray.CreateRange(listenTasks);
 
             string GetNextClientLoggingIdentifier()
             {
@@ -97,16 +92,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             Debug.Assert(_cancellationTokenSource is object);
             Debug.Assert(_queue is object);
-            Debug.Assert(!_listenTasks.IsDefault);
+            Debug.Assert(_listenTasks is object);
 
             _cancellationTokenSource.Cancel();
             try
             {
-                Task.WaitAll(_listenTasks.ToArray());
+                Task.WaitAll(_listenTasks);
             }
             catch (Exception ex)
             {
-                CompilerServerLogger.LogException(ex, "Listen tasks threw exception during EndListen");
+                CompilerServerLogger.LogException(ex, $"Listen tasks threw exception during nameof(EndListening");
             }
 
             _queue.Complete();
@@ -122,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _queue = null;
             _cancellationTokenSource.Dispose();
             _cancellationTokenSource = null;
-            _listenTasks = default;
+            _listenTasks = null;
             IsListening = false;
         }
 

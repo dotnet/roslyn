@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal interface IClientConnectionHost
     {
+        /// <summary>
+        /// True when the host is listening for new connections (after <see cref="BeginListening"/> is
+        /// called but before <see cref="EndListening"/> is called).
+        /// </summary>
         bool IsListening { get; }
 
         /// <summary>

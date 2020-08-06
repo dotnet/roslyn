@@ -72,6 +72,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
+            // This represents the maximum number of failed build attempts on the server before we will declare
+            // that the overall build itself failed. 
+            //
+            // The goal is to keep this at zero. The errors here are a mix of repository construction errors (having
+            // incompatible NuGet analyzers) and product errors (having flaky behavior in the server). Any time this
+            // number goes above zero it means we are dropping connections during developer inner loop builds and 
+            // hence measurably slowing down our productivity.
+            //
+            // When we find issues in the server or our infra we can temporarily raise this number while it is
+            // being worked out but should file a bug to track getting this to zero.
             const int maxRejectCount = 0;
             var rejectCount = 0;
             foreach (var tuple in s_failedQueue.ToList())

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             ServerTask.Wait();
-            HackUtil.AssertPipeFullyClosed(PipeName);
+            Assert.True(NamedPipeTestUtil.IsPipeFullyClosed(PipeName));
         }
     }
 

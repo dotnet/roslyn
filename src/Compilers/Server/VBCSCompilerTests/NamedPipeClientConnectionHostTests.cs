@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class NamedPipeClientConnectionHostTests : IDisposable
     {
-        private NamedPipeClientConnectionHost _host;
+        private readonly NamedPipeClientConnectionHost _host;
 
         public NamedPipeClientConnectionHostTests()
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 _host.EndListening();
             }
 
-            HackUtil.AssertPipeFullyClosed(_host.PipeName);
+            Assert.True(NamedPipeTestUtil.IsPipeFullyClosed(_host.PipeName));
         }
 
         private Task<NamedPipeClientStream> ConnectAsync(CancellationToken cancellationToken = default) => BuildServerConnection.TryConnectToServerAsync(

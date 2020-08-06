@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var hitCompilation = false;
                 var compilerServerHost = new TestableCompilerServerHost(delegate
-                { 
+                {
                     hitCompilation = true;
                     throw new Exception("");
                 });
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task AnalyzerInconsistencyShouldShutdown()
             {
                 var compilerServerHost = new TestableCompilerServerHost(delegate
-                { 
+                {
                     return new AnalyzerInconsistencyBuildResponse();
                 });
 
