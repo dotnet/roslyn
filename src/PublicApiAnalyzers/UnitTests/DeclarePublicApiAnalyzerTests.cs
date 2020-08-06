@@ -65,8 +65,30 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, params DiagnosticResult[] expected)
-            => VerifyCSharpAsync(source, shippedApiText, unshippedApiText, editorConfigText: null, expected);
+        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, params DiagnosticResult[] expected)
+        {
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { },
+                },
+            };
+
+            if (shippedApiText != null)
+            {
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+            }
+
+            if (unshippedApiText != null)
+            {
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText));
+            }
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
 
         private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, string? editorConfigText, params DiagnosticResult[] expected)
         {
