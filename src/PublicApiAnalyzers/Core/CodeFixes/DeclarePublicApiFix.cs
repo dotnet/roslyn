@@ -295,10 +295,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     newSolution = newSolution.WithAdditionalDocumentText(pair.Key, pair.Value);
                 }
 
+                using var uniqueProjectPaths = PooledHashSet<string>.GetInstance();
                 foreach (KeyValuePair<ProjectId, SourceText> pair in addedPublicSurfaceAreaText)
                 {
                     var project = newSolution.GetProject(pair.Key);
-                    newSolution = AddPublicApiFiles(project, pair.Value);
+                    if (project.FilePath != null && uniqueProjectPaths.Add(project.FilePath))
+                    {
+                        newSolution = AddPublicApiFiles(project, pair.Value);
+                    }
                 }
 
                 return newSolution;
