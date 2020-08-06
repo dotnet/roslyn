@@ -35,16 +35,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     return PointsToAbstractValue.NoLocation;
                 }
-                else if (analysisEntity.HasUnknownInstanceLocation ||
-                    PointsToAnalysisKind != PointsToAnalysisKind.Complete &&
-                    analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                else if (analysisEntity.HasUnknownInstanceLocation)
                 {
                     return PointsToAbstractValue.Unknown;
                 }
 
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
-                _trackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
-                _defaultPointsToValueMapBuilder.Add(analysisEntity, value);
+
+                // PERF: Do not track entity and its points to value for partial analysis for entities requiring complete analysis.
+                if (PointsToAnalysisKind == PointsToAnalysisKind.Complete ||
+                    !analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                {
+                    _trackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
+                    _defaultPointsToValueMapBuilder.Add(analysisEntity, value);
+                }
             }
 
             return value;
