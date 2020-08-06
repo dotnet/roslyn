@@ -2,6 +2,7 @@
 
 ## TOC
  * [Dev16](#prod-16)
+   * [Dev 16.7](#prod-16-7)
    * [Dev 16.6](#prod-16-6)
    * [Dev 16.5](#prod-16-5)
    * [Dev 16.4](#prod-16-4)
@@ -19,7 +20,11 @@
 
 ## <a id="prod-16"></a> dev16
 
-### <a id="prod-16-6"></a> 16.6 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes))
+### <a id="prod-16-7"></a> 16.7 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes))
+
+TO BE ADDED
+
+### <a id="prod-16-6"></a> 16.6 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-archive-v16.6))
 * Add explicit cast code fix
 * Simplify conditional expressions refactoring
 * Convert regular string literals to verbatim string literals (and back) refactoring
