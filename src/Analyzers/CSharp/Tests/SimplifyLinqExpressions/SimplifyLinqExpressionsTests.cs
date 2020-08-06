@@ -404,21 +404,23 @@ class Test
 using System;
 using System.Linq;
 using System.Collections.Generic;
- 
+using System.Collections.Immutable;
+
 class Test
 {
-    static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
-    var _test2 = [||]_test1.Where(x => x == '!').Any();
+    private static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
+    private bool _test2 = [||]_test1.Where(x => x.Equals('!')).Any();
 }";
             var fixedSource = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;
- 
+using System.Collections.Immutable;
+
 class Test
 {
-    static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
-    var _test2 = _test1.Any(x => x == '!');
+    private static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
+    private bool _test2 = _test1.Any(x => x.Equals('!'));
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
         }

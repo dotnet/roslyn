@@ -7,10 +7,8 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 
 #if CODE_STYLE
@@ -22,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyLinqExpressionsDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+
         public CSharpSimplifyLinqExpressionsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyLinqExpressionsDiagnosticId,
                   option: null,
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var methods = namedType?.GetMembers("Where").OfType<IMethodSymbol>();
             AddIfNotNull(whereMethods, methods);
 
-            // add all valid linq identifiers
+            // add all valid linq calls
             foreach (var id in validLinqCalls)
             {
                 methods = namedType?.GetMembers(id).OfType<IMethodSymbol>();
@@ -76,21 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
             // Check that .Where(...) is not user defined
             var child = invocationOperation.Children.FirstOrDefault(c => c is IArgumentOperation);
-
-            if (child != null)
+            var whereClause = child?.Children.FirstOrDefault(c => c is IInvocationOperation);
+            if (whereClause != null &&
+                whereClause is IInvocationOperation method &&
+                method.TargetMethod.OriginalDefinition != null &&
+                !whereMethods.Contains(method.TargetMethod.OriginalDefinition))
             {
-                var whereClause = child.Children.FirstOrDefault(c => c is IInvocationOperation);
-
-                if (whereClause != null && whereClause is IInvocationOperation method)
-                {
-                    var argDefinition = method.TargetMethod.OriginalDefinition;
-
-                    if (argDefinition != null && !whereMethods.Contains(argDefinition))
-                    {
-                        return;
-                    }
-                }
+                return;
             }
+
             // check that the Where clause is followed by a call to a valid method i.e. one of First, FirstOrDefault, Single, SingleOrDefault, etc..
             // and that it is also not user defined
             var originalDefinition = (invocationOperation.TargetMethod.ReducedFrom ?? invocationOperation.TargetMethod).OriginalDefinition;
