@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Don't add interprocedural analysis result to our static results cache.
-            if (!cacheResult || analysisContext.InterproceduralAnalysisDataOpt != null)
+            if (!cacheResult || analysisContext.InterproceduralAnalysisData != null)
             {
                 return Run(analysisContext);
             }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Initialize the input of the entry block.
                 // For context sensitive inter-procedural analysis, use the provided initial analysis data.
                 // Otherwise, initialize with the default bottom value of the analysis domain.
-                var initialAnalysisData = analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData;
+                var initialAnalysisData = analysisContext.InterproceduralAnalysisData?.InitialAnalysisData;
                 UpdateInput(resultBuilder, entry, GetClonedAnalysisDataOrEmptyData(initialAnalysisData));
 
                 // Add the block to the worklist.
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
                     resultBuilder.EntryBlockOutputData!, normalPathsExitBlockData!, exceptionPathsExitBlockData,
                     mergedDataForUnhandledThrowOperations, OperationVisitor.AnalysisDataForUnhandledThrowOperations,
-                    OperationVisitor.TaskWrappedValuesMapOpt, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
+                    OperationVisitor.TaskWrappedValuesMap, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
                 return ToResult(analysisContext, dataflowAnalysisResult);
             }
             finally
