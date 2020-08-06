@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MakeClassAbstract
     internal abstract class AbstractMakeClassAbstractCodeFixProvider<TClassDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
         where TClassDeclarationSyntax : SyntaxNode
     {
-        protected abstract bool IsValidRefactoringContext(SyntaxNode? node, out TClassDeclarationSyntax? classDeclaration);
+        protected abstract bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TClassDeclarationSyntax? classDeclaration);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
