@@ -3,20 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    [Export(typeof(RequestExecutionQueue)), Shared]
     internal partial class RequestExecutionQueue
     {
         private readonly AsyncQueue<QueueItem> _queue = new AsyncQueue<QueueItem>();
+        private readonly ILspSolutionProvider _solutionProvider;
 
-        public RequestExecutionQueue()
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _ = ProcessQueueAsync();
+            _solutionProvider = solutionProvider;
         }
 
         public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request,
@@ -57,10 +64,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             while (true)
             {
-
                 var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
-                var context = CreateContext(null, work);
+                var solution = GetCurrentSolution();
+
+                // TODO: Merge in changes to the solution that have been received from didChange LSP methods
+                // https://github.com/dotnet/roslyn/issues/45427
+
+                var context = CreateContext(solution, work);
 
                 if (work.MutatesSolutionState)
                 {
@@ -73,6 +84,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
         }
+
+        private Solution GetCurrentSolution()
+            => _solutionProvider.GetCurrentSolutionForMainWorkspace();
 
         private static RequestContext CreateContext(Solution solution, QueueItem work)
             => new RequestContext(solution, work.ClientCapabilities, work.ClientName);

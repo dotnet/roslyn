@@ -19,11 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal abstract class AbstractRequestHandlerProvider
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
+        private readonly RequestExecutionQueue _queue;
 
-        private readonly RequestExecutionQueue _queue = new RequestExecutionQueue();
-
-        public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string? languageName = null)
-            => _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == languageName));
+        public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, RequestExecutionQueue queue, string? languageName = null)
+        {
+            _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == languageName));
+            _queue = queue;
+        }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
