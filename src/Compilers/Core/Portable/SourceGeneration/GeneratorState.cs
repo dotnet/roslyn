@@ -12,17 +12,34 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents the current state of a generator
     /// </summary>
-    /// <remarks>
-    /// A generator state is essentially a small state machine:
-    ///     1. We start with just info
-    ///     2. We can optionally set a receiver that will be used in the next iteration
-    ///     3. We set either the result or error of the iteration that just happened
-    ///     4. We either go back to state 2 or 3.
-    /// </remarks>
     internal readonly struct GeneratorState
     {
+        /// <summary>
+        /// Gets an uninitalized generator state
+        /// </summary>
+        internal static GeneratorState Uninitialized;
+
+        /// <summary>
+        /// Creates a new generator state that just contains information
+        /// </summary>
         public GeneratorState(GeneratorInfo info)
             : this(info, ImmutableArray<GeneratedSourceText>.Empty, ImmutableArray<SyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, syntaxReceiver: null, exception: null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new generator state that contains an exception and the associated diagnostic
+        /// </summary>
+        public GeneratorState(GeneratorInfo info, Exception e, Diagnostic error)
+            : this(info, ImmutableArray<GeneratedSourceText>.Empty, ImmutableArray<SyntaxTree>.Empty, ImmutableArray.Create(error), syntaxReceiver: null, exception: e)
+        {
+        }
+
+        /// <summary>
+        /// Creates a generator state that contains results
+        /// </summary>
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSourceText> sourceTexts, ImmutableArray<SyntaxTree> trees, ImmutableArray<Diagnostic> diagnostics)
+            : this(info, sourceTexts, trees, diagnostics, syntaxReceiver: null, exception: null)
         {
         }
 
@@ -49,56 +66,16 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
 
         /// <summary>
-        /// Called to save the created syntax receiver
+        /// Adds an <see cref="ISyntaxReceiver"/> to this generator state
         /// </summary>
-        /// <remarks>
-        /// We retain the existing state, as it may be needed for the upcoming generation pass.
-        /// </remarks>
         internal GeneratorState WithReceiver(ISyntaxReceiver syntaxReceiver)
         {
-            Debug.Assert(this.SyntaxReceiver is null);
             return new GeneratorState(this.Info,
                                       sourceTexts: this.SourceTexts,
                                       trees: this.Trees,
                                       diagnostics: this.Diagnostics,
                                       syntaxReceiver: syntaxReceiver,
                                       exception: null);
-        }
-
-        /// <summary>
-        /// Called when the generator has a result to store.
-        /// </summary>
-        /// <remarks>
-        /// We discard any receiver that was set as it is no longer needed.
-        /// We discard any saved exception as it must refer to a previous iteration.
-        /// </remarks>
-        internal GeneratorState WithResult(ImmutableArray<GeneratedSourceText> sourceTexts,
-                                          ImmutableArray<SyntaxTree> trees,
-                                          ImmutableArray<Diagnostic> diagnostics)
-        {
-            Debug.Assert(sourceTexts.Length == trees.Length);
-            return new GeneratorState(this.Info,
-                                      sourceTexts,
-                                      trees,
-                                      diagnostics,
-                                      syntaxReceiver: null,
-                                      exception: null);
-        }
-
-        /// <summary>
-        /// Called when the generator threw an exception
-        /// </summary>
-        /// <remarks>
-        /// We discard any other saved state, as it must refer to a previous iteration and is no longer needed.
-        /// </remarks>
-        internal GeneratorState WithError(Exception e, Diagnostic diagnostic)
-        {
-            return new GeneratorState(this.Info,
-                                      sourceTexts: ImmutableArray<GeneratedSourceText>.Empty,
-                                      trees: ImmutableArray<SyntaxTree>.Empty,
-                                      diagnostics: ImmutableArray.Create(diagnostic),
-                                      syntaxReceiver: null,
-                                      exception: e);
         }
     }
 }

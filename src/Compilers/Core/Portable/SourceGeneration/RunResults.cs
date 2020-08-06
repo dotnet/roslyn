@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 #nullable enable
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// The <see cref="SyntaxTree"/>s produced during this generation pass by parsing each <see cref="SourceText"/> added by each generator.
         /// </summary>
         /// <remarks>
-        /// This is equivalent to the union of all <see cref="GeneratedSourceResult.SyntaxTree"/>s in each <see cref="GeneratorRunResult.AddedSources"/> in each <see cref="Results"/>
+        /// This is equivalent to the union of all <see cref="GeneratedSourceResult.SyntaxTree"/>s in each <see cref="GeneratorRunResult.GeneratedSources"/> in each <see cref="Results"/>
         /// </remarks>
         public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
     }
@@ -49,10 +50,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorRunResult
     {
-        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> addedSources, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
+        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> generatedSources, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
         {
+            Debug.Assert(exception is null || (generatedSources.IsEmpty && diagnostics.Length == 1));
+
             this.Generator = generator;
-            this.AddedSources = addedSources;
+            this.GeneratedSources = generatedSources;
             this.Diagnostics = diagnostics;
             this.Exception = exception;
         }
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The sources that were added by <see cref="Generator"/> during the generation pass this result represents.
         /// </summary>
-        public ImmutableArray<GeneratedSourceResult> AddedSources { get; }
+        public ImmutableArray<GeneratedSourceResult> GeneratedSources { get; }
 
         /// <summary>
         /// A collection of <see cref="Diagnostic"/>s reported by <see cref="Generator"/> 
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis
         /// An <see cref="System.Exception"/> instance that was thrown by the generator, or <c>null</c> if the generator completed without error.
         /// </summary>
         /// <remarks>
-        /// When this property has a value, <see cref="AddedSources"/> property is guaranteed to be empty, and the <see cref="Diagnostics"/>
+        /// When this property has a value, <see cref="GeneratedSources"/> property is guaranteed to be empty, and the <see cref="Diagnostics"/>
         /// collection will contain a single diagnostic indicating that the generator failed.
         /// </remarks>
         public Exception? Exception { get; }

@@ -216,7 +216,7 @@ class C
 
             var testGenerator = new CallbackGenerator(
                 onInit: (i) => i.RegisterForSyntaxNotifications(() => throw new Exception("Test Exception")),
-                onExecute: (e) => { }
+                onExecute: (e) => { Assert.True(false); }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);

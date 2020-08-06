@@ -737,8 +737,8 @@ class C { }
 
             Assert.Null(result.Exception);
             Assert.Empty(result.Diagnostics);
-            Assert.Single(result.AddedSources);
-            Assert.Equal(results.SyntaxTrees.Single(), result.AddedSources.Single().SyntaxTree);
+            Assert.Single(result.GeneratedSources);
+            Assert.Equal(results.SyntaxTrees.Single(), result.GeneratedSources.Single().SyntaxTree);
         }
 
         [Fact]
@@ -771,19 +771,19 @@ class C { }
 
             Assert.Null(result1.Exception);
             Assert.Empty(result1.Diagnostics);
-            Assert.Equal(2, result1.AddedSources.Length);
-            Assert.Equal(results.SyntaxTrees[0], result1.AddedSources[0].SyntaxTree);
-            Assert.Equal(results.SyntaxTrees[1], result1.AddedSources[1].SyntaxTree);
+            Assert.Equal(2, result1.GeneratedSources.Length);
+            Assert.Equal(results.SyntaxTrees[0], result1.GeneratedSources[0].SyntaxTree);
+            Assert.Equal(results.SyntaxTrees[1], result1.GeneratedSources[1].SyntaxTree);
 
             Assert.Null(result2.Exception);
             Assert.Empty(result2.Diagnostics);
-            Assert.Single(result2.AddedSources);
-            Assert.Equal(results.SyntaxTrees[2], result2.AddedSources[0].SyntaxTree);
+            Assert.Single(result2.GeneratedSources);
+            Assert.Equal(results.SyntaxTrees[2], result2.GeneratedSources[0].SyntaxTree);
 
             Assert.Null(result3.Exception);
             Assert.Empty(result3.Diagnostics);
-            Assert.Single(result3.AddedSources);
-            Assert.Equal(results.SyntaxTrees[3], result3.AddedSources[0].SyntaxTree);
+            Assert.Single(result3.GeneratedSources);
+            Assert.Equal(results.SyntaxTrees[3], result3.GeneratedSources[0].SyntaxTree);
         }
 
         [Fact]
@@ -823,18 +823,18 @@ class C { }
 
             Assert.Null(result1.Exception);
             Assert.Equal(2, result1.Diagnostics.Length);
-            Assert.Empty(result1.AddedSources);
+            Assert.Empty(result1.GeneratedSources);
             Assert.Equal(results.Diagnostics[0], result1.Diagnostics[0]);
             Assert.Equal(results.Diagnostics[1], result1.Diagnostics[1]);
 
             Assert.Null(result2.Exception);
             Assert.Single(result2.Diagnostics);
-            Assert.Empty(result2.AddedSources);
+            Assert.Empty(result2.GeneratedSources);
             Assert.Equal(results.Diagnostics[2], result2.Diagnostics[0]);
         }
 
         [Fact]
-        public void FullCompilation_Diagnostics_AreSame_As_RunResults()
+        public void FullGeneration_Diagnostics_AreSame_As_RunResults()
         {
             var source = @"
 class C { }
