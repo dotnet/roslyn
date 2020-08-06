@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Context for requests handled by <see cref="IRequestHandler"/>
     /// </summary>
-    internal struct RequestContext
+    internal readonly struct RequestContext
     {
         /// <summary>
         /// The client capabilities for the request.
