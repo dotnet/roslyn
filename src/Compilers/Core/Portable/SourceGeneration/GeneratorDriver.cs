@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
         {
-            var state = RunGeneratorsCore(compilation, new DiagnosticBag(), cancellationToken);
+            var state = RunGeneratorsCore(compilation, diagnosticsBag: null, cancellationToken); //don't directly collect diagnostics on this path
             return FromState(state);
         }
 
@@ -132,28 +132,19 @@ namespace Microsoft.CodeAnalysis
                 var generator = _state.Generators[i];
                 var generatorState = _state.GeneratorStates[i];
 
-                results.Add(new GeneratorRunResult(generator, getSourceResults(generatorState), generatorState.Diagnostics, generatorState.Exception));
+                var sourceResults = generatorState.SourceTexts.ZipAsArray(
+                                        generatorState.Trees,
+                                        (sourceText, tree) => new GeneratedSourceResult(tree, sourceText.Text, sourceText.HintName));
+
+                results.Add(new GeneratorRunResult(generator, sourceResults, generatorState.Diagnostics, generatorState.Exception));
                 trees.AddRange(generatorState.Trees);
                 diagnostics.AddRange(generatorState.Diagnostics);
             }
 
             return new GeneratorDriverRunResult(results.ToImmutableAndFree(), trees.ToImmutableAndFree(), diagnostics.ToImmutableAndFree());
-
-            static ImmutableArray<GeneratedSourceResult> getSourceResults(GeneratorState generatorState)
-            {
-                ArrayBuilder<GeneratedSourceResult> sourceResults = ArrayBuilder<GeneratedSourceResult>.GetInstance(generatorState.SourceTexts.Length);
-                for (int i = 0; i < generatorState.SourceTexts.Length; i++)
-                {
-                    var sourceText = generatorState.SourceTexts[i];
-                    var tree = generatorState.Trees[i];
-
-                    sourceResults.Add(new GeneratedSourceResult(tree, sourceText.Text, sourceText.HintName));
-                }
-                return sourceResults.ToImmutableAndFree();
-            }
         }
 
-        internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag diagnosticsBag, CancellationToken cancellationToken = default)
+        internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
         {
             // with no generators, there is no work to do
             if (_state.Generators.IsEmpty)
@@ -164,7 +155,7 @@ namespace Microsoft.CodeAnalysis
             // run the actual generation
             var state = StateWithPendingEditsApplied(_state);
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
-            int receiverCount = 0;
+            var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, null); // we know there is at max 1 per generator
 
             for (int i = 0; i < state.Generators.Length; i++)
             {
@@ -186,56 +177,54 @@ namespace Microsoft.CodeAnalysis
                     }
                     generatorState = ex is null
                                      ? new GeneratorState(context.InfoBuilder.ToImmutable())
-                                     : SetGeneratorException(GeneratorState.Uninitialized, generator, ex, diagnosticsBag, isInit: true);
+                                     : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, generator, ex, diagnosticsBag, isInit: true);
                 }
 
                 // create the syntax receiver if requested
                 if (generatorState.Info.SyntaxReceiverCreator is object)
                 {
-                    ISyntaxReceiver? rx = null;
                     try
                     {
-                        rx = generatorState.Info.SyntaxReceiverCreator();
+                        var rx = generatorState.Info.SyntaxReceiverCreator();
+                        walkerBuilder.Insert(i, new GeneratorSyntaxWalker(rx));
+                        generatorState = generatorState.WithReceiver(rx);
                     }
                     catch (Exception e)
                     {
-                        generatorState = SetGeneratorException(generatorState, generator, e, diagnosticsBag);
-                    }
-
-                    if (rx is object)
-                    {
-                        generatorState = generatorState.WithReceiver(rx);
-                        receiverCount++;
+                        generatorState = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
                     }
                 }
 
                 stateBuilder.Add(generatorState);
             }
 
+
             // Run a syntax walk if any of the generators requested it
-            if (receiverCount > 0)
+            if (walkerBuilder.Count > 0)
             {
-                for (int i = 0; i < stateBuilder.Count; i++)
+                foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var generatorState = stateBuilder[i];
-                    if (generatorState.SyntaxReceiver is object)
+                    var root = tree.GetRoot(cancellationToken);
+
+                    // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
+                    for (int i = 0; i < walkerBuilder.Count; i++)
                     {
-                        GeneratorSyntaxWalker walker = new GeneratorSyntaxWalker(generatorState.SyntaxReceiver);
-                        foreach (var tree in compilation.SyntaxTrees)
+                        var walker = walkerBuilder[i];
+                        if (walker is object)
                         {
-                            var root = tree.GetRoot(cancellationToken);
                             try
                             {
                                 walker.Visit(root);
                             }
                             catch (Exception e)
                             {
-                                stateBuilder[i] = SetGeneratorException(generatorState, state.Generators[i], e, diagnosticsBag);
+                                stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], e, diagnosticsBag);
                             }
                         }
                     }
                 }
             }
+            walkerBuilder.Free();
 
             // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
             for (int i = 0; i < state.Generators.Length; i++)
@@ -257,13 +246,13 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e)
                 {
-                    stateBuilder[i] = SetGeneratorException(generatorState, generator, e, diagnosticsBag);
+                    stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
                     continue;
                 }
 
                 (var sources, var diagnostics) = context.ToImmutableAndFree();
                 stateBuilder[i] = new GeneratorState(generatorState.Info, sources, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
-                diagnosticsBag.AddRange(diagnostics);
+                diagnosticsBag?.AddRange(diagnostics);
             }
             state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
             return state;
@@ -367,11 +356,11 @@ namespace Microsoft.CodeAnalysis
             return FromState(state);
         }
 
-        private GeneratorState SetGeneratorException(GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag diagnosticBag, bool isInit = false)
+        private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false)
         {
-            var message = isInit ? MessageProvider.WRN_GeneratorFailedDuringInitialization : MessageProvider.WRN_GeneratorFailedDuringGeneration;
-            var diagnostic = Diagnostic.Create(MessageProvider, message, generator.GetType().Name);
-            diagnosticBag.Add(diagnostic);
+            var message = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
+            var diagnostic = Diagnostic.Create(provider, message, generator.GetType().Name);
+            diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
         }
 

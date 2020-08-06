@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal GeneratorState WithReceiver(ISyntaxReceiver syntaxReceiver)
         {
+            Debug.Assert(this.Exception is null);
             return new GeneratorState(this.Info,
                                       sourceTexts: this.SourceTexts,
                                       trees: this.Trees,
