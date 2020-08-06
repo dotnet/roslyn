@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
-                var context = CreateContext(work);
+                var context = CreateContext(null, work);
 
                 if (work.MutatesSolutionState)
                 {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private static RequestContext CreateContext(QueueItem work)
-            => new RequestContext(work.ClientCapabilities, work.ClientName);
+        private static RequestContext CreateContext(Solution solution, QueueItem work)
+            => new RequestContext(solution, work.ClientCapabilities, work.ClientName);
     }
 }

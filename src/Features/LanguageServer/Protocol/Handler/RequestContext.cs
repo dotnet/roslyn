@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal readonly struct RequestContext
     {
         /// <summary>
+        /// The solution state that the request should operate on
+        /// </summary>
+        public Solution? Solution { get; }
+
+        /// <summary>
         /// The client capabilities for the request.
         /// </summary>
         public ClientCapabilities ClientCapabilities { get; }
@@ -24,7 +29,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string? ClientName { get; }
 
         public RequestContext(ClientCapabilities clientCapabilities, string? clientName)
+            : this(null, clientCapabilities, clientName)
         {
+        }
+
+        public RequestContext(Solution? solution, ClientCapabilities clientCapabilities, string? clientName)
+        {
+            Solution = solution;
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
         }
