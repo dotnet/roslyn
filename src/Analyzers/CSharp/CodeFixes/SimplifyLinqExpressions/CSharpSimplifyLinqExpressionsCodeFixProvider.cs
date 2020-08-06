@@ -61,29 +61,22 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
                 var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
 
                 // Get the data or object the query is being called on
-                var t = (Operations.IInvocationOperation)model.GetOperation(memberAccess.Expression);
-                var r = model.GetOperation(memberAccess.Expression).Children;
-                var g = model.GetSymbolInfo(memberAccess.Expression);
-                var y = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault();
-                var x = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
                 var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
-                SyntaxNode newNode;
+                ExpressionSyntax expression;
                 if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {
-                    newNode = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                    (ExpressionSyntax)objectNodeSyntax, memberAccess.Name))
-                                           .WithArgumentList(lambda);
+                    expression = (ExpressionSyntax)objectNodeSyntax;
                 }
                 else
                 {
-                    newNode = SyntaxFactory.InvocationExpression(
+                    expression = SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text);
+                }
+                SyntaxNode newNode = SyntaxFactory.InvocationExpression(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text),
-                                        SyntaxFactory.IdentifierName(memberAccess.Name.Identifier.Text)))
+                                        expression,
+                                        memberAccess.Name))
                                 .WithArgumentList(lambda);
-                };
                 editor.ReplaceNode(node.Parent, newNode);
             }
         }
