@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync()).ConfigureAwait(false);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
+        [Fact]
         public async Task CallAfterComplete()
         {
             _host.BeginListening();
