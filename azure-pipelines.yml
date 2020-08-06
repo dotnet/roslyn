@@ -19,6 +19,7 @@ pr:
     exclude:
       - docs/*
       - .github/*
+      - '*/**.md'
 
 jobs:
 - job: Windows_Desktop_Unit_Tests
