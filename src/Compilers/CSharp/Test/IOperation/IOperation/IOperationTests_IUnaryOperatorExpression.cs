@@ -3545,7 +3545,7 @@ Block[B2] - Exit
 
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact(Skip = "PROTOTYPE(BangBang)")]
+        [Fact]
         public void LogicalNotFlow_03()
         {
             var source = @"
