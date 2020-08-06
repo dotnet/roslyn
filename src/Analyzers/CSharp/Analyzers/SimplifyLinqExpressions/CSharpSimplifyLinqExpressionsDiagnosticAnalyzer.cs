@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Operations;
 using System.Linq;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
@@ -42,15 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var linqMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
             var validLinqCalls = new List<string> { "First", "Last", "Single", "Any", "Count", "SingleOrDefault", "FirstOrDefault", "LastOrDefault" };
 
-            var namedType = context.Compilation.GetTypeByMetadataName("System.Linq.Enumerable");
-            var methods = namedType?.GetMembers("Where").OfType<IMethodSymbol>();
-            AddIfNotNull(whereMethods, methods);
+            var enumNamedType = context.Compilation.GetTypeByMetadataName("System.Linq.Enumerable");
+            var queryNamedType = context.Compilation.GetTypeByMetadataName("System.Linq.Queryable");
+            var enumMethods = enumNamedType?.GetMembers("Where").OfType<IMethodSymbol>();
+            var queryMethods = queryNamedType?.GetMembers("Where").OfType<IMethodSymbol>();
+            AddIfNotNull(whereMethods, enumMethods);
+            AddIfNotNull(whereMethods, queryMethods);
 
             // add all valid linq calls
             foreach (var id in validLinqCalls)
             {
-                methods = namedType?.GetMembers(id).OfType<IMethodSymbol>();
-                AddIfNotNull(linqMethods, methods);
+                enumMethods = enumNamedType?.GetMembers(id).OfType<IMethodSymbol>();
+                queryMethods = queryNamedType?.GetMembers(id).OfType<IMethodSymbol>();
+                AddIfNotNull(linqMethods, enumMethods);
+                AddIfNotNull(linqMethods, queryMethods);
             }
 
             if (whereMethods.Count > 0 && linqMethods.Count > 0)
@@ -72,14 +79,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
         public void AnalyzeAction(OperationAnalysisContext context, ImmutableHashSet<IMethodSymbol> whereMethods, ImmutableHashSet<IMethodSymbol> linqMethods)
         {
             var invocationOperation = (IInvocationOperation)context.Operation;
-
+            var semanticModel = context.Operation.SemanticModel;
             // Check that .Where(...) is not user defined
             var child = invocationOperation.Children.FirstOrDefault(c => c is IArgumentOperation);
             var whereClause = child?.Children.FirstOrDefault(c => c is IInvocationOperation);
+            var isLambda = whereClause?.Children.Any(c => c.Syntax.IsKind(SyntaxKind.Argument) &&
+                                                    ((ArgumentSyntax)c.Syntax).Expression.IsKind(SyntaxKind.SimpleLambdaExpression)) ?? false;
+
             if (whereClause == null ||
                 !(whereClause is IInvocationOperation method) ||
                 method.TargetMethod.OriginalDefinition == null ||
-                method.TargetMethod.Parameters is ExpressionType ||
+                !isLambda ||
                 !whereMethods.Contains(method.TargetMethod.OriginalDefinition))
             {
                 return;
@@ -99,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             {
                 return;
             }
-
 
             var operation = context.Operation;
             var node = operation.Syntax;
