@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ProjectManagement;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
-    [ExportWorkspaceService(typeof(IGenerateTypeOptionsService), ServiceLayer.Default), Shared, PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IGenerateTypeOptionsService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestGenerateTypeOptionsService : IGenerateTypeOptionsService
     {
         public Accessibility Accessibility = Accessibility.NotApplicable;

@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Text.Tagging
@@ -113,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         End Function
 
 #Disable Warning BC40000 ' Type or member is obsolete
-        <ExportLanguageService(GetType(IClassificationService), "NoCompilation"), [Shared]>
+        <ExportLanguageService(GetType(IClassificationService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
         Private Class NoCompilationEditorClassificationService
             Implements IClassificationService
 
