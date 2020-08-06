@@ -223,7 +223,7 @@ class C
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
-            Assert.Empty(results.SyntaxTrees);
+            Assert.Empty(results.GeneratedTrees);
             Assert.Single(results.Diagnostics);
             Assert.Single(results.Results);
             Assert.Single(results.Results[0].Diagnostics);
@@ -266,7 +266,7 @@ class C
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
-            Assert.Empty(results.SyntaxTrees);
+            Assert.Empty(results.GeneratedTrees);
             Assert.Single(results.Diagnostics);
             Assert.Single(results.Results);
             Assert.Single(results.Results[0].Diagnostics);
@@ -315,7 +315,7 @@ class C
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
-            Assert.Single(results.SyntaxTrees);
+            Assert.Single(results.GeneratedTrees);
             Assert.Single(results.Diagnostics);
             Assert.Equal(2, results.Results.Length);
 

@@ -124,8 +124,6 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriverRunResult GetRunResult()
         {
-            var trees = ArrayBuilder<SyntaxTree>.GetInstance();
-            var diagnostics = ArrayBuilder<Diagnostic>.GetInstance();
             var results = ArrayBuilder<GeneratorRunResult>.GetInstance(_state.Generators.Length);
             for (int i = 0; i < _state.Generators.Length; i++)
             {
@@ -137,11 +135,9 @@ namespace Microsoft.CodeAnalysis
                                         (sourceText, tree) => new GeneratedSourceResult(tree, sourceText.Text, sourceText.HintName));
 
                 results.Add(new GeneratorRunResult(generator, sourceResults, generatorState.Diagnostics, generatorState.Exception));
-                trees.AddRange(generatorState.Trees);
-                diagnostics.AddRange(generatorState.Diagnostics);
             }
 
-            return new GeneratorDriverRunResult(results.ToImmutableAndFree(), trees.ToImmutableAndFree(), diagnostics.ToImmutableAndFree());
+            return new GeneratorDriverRunResult(results.ToImmutableAndFree());
         }
 
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)

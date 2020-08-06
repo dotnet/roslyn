@@ -706,7 +706,7 @@ class C { }
             GeneratorDriver driver = new CSharpGeneratorDriver(TestOptions.Regular, ImmutableArray<ISourceGenerator>.Empty, CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
             var results = driver.GetRunResult();
 
-            Assert.Empty(results.SyntaxTrees);
+            Assert.Empty(results.GeneratedTrees);
             Assert.Empty(results.Diagnostics);
             Assert.Empty(results.Results);
         }
@@ -729,7 +729,7 @@ class C { }
 
             var results = driver.GetRunResult();
 
-            Assert.Single(results.SyntaxTrees);
+            Assert.Single(results.GeneratedTrees);
             Assert.Single(results.Results);
             Assert.Empty(results.Diagnostics);
 
@@ -738,7 +738,7 @@ class C { }
             Assert.Null(result.Exception);
             Assert.Empty(result.Diagnostics);
             Assert.Single(result.GeneratedSources);
-            Assert.Equal(results.SyntaxTrees.Single(), result.GeneratedSources.Single().SyntaxTree);
+            Assert.Equal(results.GeneratedTrees.Single(), result.GeneratedSources.Single().SyntaxTree);
         }
 
         [Fact]
@@ -761,7 +761,7 @@ class C { }
 
             var results = driver.GetRunResult();
 
-            Assert.Equal(4, results.SyntaxTrees.Length);
+            Assert.Equal(4, results.GeneratedTrees.Length);
             Assert.Equal(3, results.Results.Length);
             Assert.Empty(results.Diagnostics);
 
@@ -772,18 +772,18 @@ class C { }
             Assert.Null(result1.Exception);
             Assert.Empty(result1.Diagnostics);
             Assert.Equal(2, result1.GeneratedSources.Length);
-            Assert.Equal(results.SyntaxTrees[0], result1.GeneratedSources[0].SyntaxTree);
-            Assert.Equal(results.SyntaxTrees[1], result1.GeneratedSources[1].SyntaxTree);
+            Assert.Equal(results.GeneratedTrees[0], result1.GeneratedSources[0].SyntaxTree);
+            Assert.Equal(results.GeneratedTrees[1], result1.GeneratedSources[1].SyntaxTree);
 
             Assert.Null(result2.Exception);
             Assert.Empty(result2.Diagnostics);
             Assert.Single(result2.GeneratedSources);
-            Assert.Equal(results.SyntaxTrees[2], result2.GeneratedSources[0].SyntaxTree);
+            Assert.Equal(results.GeneratedTrees[2], result2.GeneratedSources[0].SyntaxTree);
 
             Assert.Null(result3.Exception);
             Assert.Empty(result3.Diagnostics);
             Assert.Single(result3.GeneratedSources);
-            Assert.Equal(results.SyntaxTrees[3], result3.GeneratedSources[0].SyntaxTree);
+            Assert.Equal(results.GeneratedTrees[3], result3.GeneratedSources[0].SyntaxTree);
         }
 
         [Fact]
@@ -816,7 +816,7 @@ class C { }
 
             Assert.Equal(2, results.Results.Length);
             Assert.Equal(3, results.Diagnostics.Length);
-            Assert.Empty(results.SyntaxTrees);
+            Assert.Empty(results.GeneratedTrees);
 
             var result1 = results.Results[0];
             var result2 = results.Results[1];
