@@ -259,6 +259,7 @@ using System.Runtime.CompilerServices;
                 // (6,11): error CS0570: 'B.F1(?)' is not supported by the language
                 //         B.F1(new A<System.IntPtr, System.UIntPtr>());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(6, 11));
+            verify(comp);
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -268,20 +269,24 @@ using System.Runtime.CompilerServices;
                 // (6,11): error CS0570: 'B.F1(?)' is not supported by the language
                 //         B.F1(new A<System.IntPtr, System.UIntPtr>());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(6, 11));
+            verify(comp);
 
-            var type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("void B.F0( x,  y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F1( a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0( x,  y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1( a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
 
-            var expected =
-@"B
+                var expected =
+    @"B
     void F0(? x, ? y)
         [NativeInteger({  })] ? x
         [NativeInteger({  })] ? y
     void F1(? a)
         [NativeInteger({  })] ? a
 ";
-            AssertNativeIntegerAttributes(type.ContainingModule, expected);
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
         }
 
         [Fact]
@@ -334,17 +339,21 @@ using System.Runtime.CompilerServices;
 
             var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            verify(comp);
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+            verify(comp);
 
-            var type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("void B.F0(System.IntPtr x, System.UIntPtr y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F1(A<int, System.UIntPtr> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F2(A<System.IntPtr, uint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0(System.IntPtr x, System.UIntPtr y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1(A<int, System.UIntPtr> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<System.IntPtr, uint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
 
-            var expected =
-@"B
+                var expected =
+    @"B
     void F0(System.IntPtr x, System.UIntPtr y)
         [NativeInteger({ False })] System.IntPtr x
         [NativeInteger({ False })] System.UIntPtr y
@@ -353,7 +362,8 @@ using System.Runtime.CompilerServices;
     void F2(A<System.IntPtr, System.UInt32> a)
         [NativeInteger({ False })] A<System.IntPtr, System.UInt32> a
 ";
-            AssertNativeIntegerAttributes(type.ContainingModule, expected);
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
         }
 
         [Fact]
@@ -412,17 +422,21 @@ using System.Runtime.CompilerServices;
                 // (7,20): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         B.F2(new A<nint, uint>());
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(7, 20));
+            verify(comp);
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+            verify(comp);
 
-            var type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("void B.F0(nint x, nuint y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F1(A<int, nuint> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F2(A<nint, uint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0(nint x, nuint y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1(A<int, nuint> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<nint, uint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
 
-            var expected =
-@"B
+                var expected =
+    @"B
     void F0(System.IntPtr x, System.UIntPtr y)
         [NativeInteger({ True })] System.IntPtr x
         [NativeInteger({ True })] System.UIntPtr y
@@ -431,7 +445,8 @@ using System.Runtime.CompilerServices;
     void F2(A<System.IntPtr, System.UInt32> a)
         [NativeInteger({ True })] A<System.IntPtr, System.UInt32> a
 ";
-            AssertNativeIntegerAttributes(type.ContainingModule, expected);
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
         }
 
         [Fact]
@@ -484,17 +499,21 @@ using System.Runtime.CompilerServices;
 
             var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            verify(comp);
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+            verify(comp);
 
-            var type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("void B.F0(System.IntPtr x, System.UIntPtr y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F1(A<int, System.UIntPtr> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F2(A<System.IntPtr, System.UIntPtr> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0(System.IntPtr x, System.UIntPtr y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1(A<int, System.UIntPtr> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<System.IntPtr, System.UIntPtr> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
 
-            var expected =
-@"B
+                var expected =
+    @"B
     void F0(System.IntPtr x, System.UIntPtr y)
         [NativeInteger({ False })] System.IntPtr x
         [NativeInteger({ False })] System.UIntPtr y
@@ -503,7 +522,8 @@ using System.Runtime.CompilerServices;
     void F2(A<System.IntPtr, System.UIntPtr> a)
         [NativeInteger({ False, False })] A<System.IntPtr, System.UIntPtr> a
 ";
-            AssertNativeIntegerAttributes(type.ContainingModule, expected);
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
         }
 
         [Fact]
@@ -585,6 +605,7 @@ using System.Runtime.CompilerServices;
                 // (9,11): error CS0570: 'B.F3(?)' is not supported by the language
                 //         B.F3(a);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(9, 11));
+            verify(comp);
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -600,16 +621,19 @@ using System.Runtime.CompilerServices;
                 // (9,11): error CS0570: 'B.F3(?)' is not supported by the language
                 //         B.F3(a);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(9, 11));
+            verify(comp);
 
-            var type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("void B.F( a)", type.GetMember("F").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F0( a)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F1( a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F2(A<System.IntPtr, nuint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F3( a)", type.GetMember("F3").ToDisplayString(FormatWithSpecialTypes));
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F( a)", type.GetMember("F").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F0( a)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1( a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<System.IntPtr, nuint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F3( a)", type.GetMember("F3").ToDisplayString(FormatWithSpecialTypes));
 
-            var expected =
-@"B
+                var expected =
+    @"B
     void F(? a)
         [NativeInteger] ? a
     void F0(? a)
@@ -621,7 +645,8 @@ using System.Runtime.CompilerServices;
     void F3(? a)
         [NativeInteger({ False, True, True })] ? a
 ";
-            AssertNativeIntegerAttributes(type.ContainingModule, expected);
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
         }
 
         [Fact]
