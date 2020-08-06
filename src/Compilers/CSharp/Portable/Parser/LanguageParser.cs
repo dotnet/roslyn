@@ -4126,12 +4126,14 @@ tryAgain:
                         exclamationExclamation = this.EatToken();
                         if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                         {
-                            // no trailing trivia and no leading trivia
-                            if (exclamationExclamation.GetTrailingTriviaWidth() == 0 && this.CurrentToken.GetLeadingTriviaWidth() == 0)
-                            {
-                                var exclamation2 = this.EatToken();
-                                exclamationExclamation = SyntaxFactory.Token(exclamationExclamation.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, exclamation2.GetTrailingTrivia());
-                            }
+                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
+                        }
+                        else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                        {
+                            var exclamationEquals = this.EatToken();
+                            var exclamation2 = SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, null);
+                            exclamationExclamation = MergeTokens(exclamationExclamation, exclamation2, SyntaxKind.ExclamationExclamationToken);
+                            equals = SyntaxFactory.Token(null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
                         }
                         else
                         {
@@ -12237,18 +12239,23 @@ tryAgain:
                         exclamationExclamation = this.EatToken();
                         if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                         {
-                            // no trailing trivia and no leading trivia
-                            if (exclamationExclamation.GetTrailingTriviaWidth() == 0 && this.CurrentToken.GetLeadingTriviaWidth() == 0)
-                            {
-                                var exclamation2 = this.EatToken();
-                                exclamationExclamation = SyntaxFactory.Token(exclamationExclamation.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, exclamation2.GetTrailingTrivia());
-                            }
+                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
+                            arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                        }
+                        else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                        {
+                            var exclamationEquals = this.EatToken();
+                            var exclamation2 = SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, null);
+                            exclamationExclamation = MergeTokens(exclamationExclamation, exclamation2, SyntaxKind.ExclamationExclamationToken);
+
+                            var equals = SyntaxFactory.Token(null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
+                            var greaterThan = this.EatToken(SyntaxKind.GreaterThanToken);
+                            arrow = MergeTokens(equals, greaterThan, SyntaxKind.EqualsGreaterThanToken);
                         }
                         else
                         {
-                            exclamationExclamation = this.AddError(exclamationExclamation, ErrorCode.ERR_IncorrectNullCheckSyntax);
+                            arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                         }
-                        arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                         arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     }
                     // Case x=>, x =>
@@ -12389,16 +12396,7 @@ tryAgain:
                 exclamationExclamation = this.EatToken();
                 if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                 {
-                    // no trailing trivia and no leading trivia
-                    if (exclamationExclamation.GetTrailingTriviaWidth() == 0 && this.CurrentToken.GetLeadingTriviaWidth() == 0)
-                    {
-                        var exclamation2 = this.EatToken();
-                        exclamationExclamation = SyntaxFactory.Token(exclamationExclamation.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, exclamation2.GetTrailingTrivia());
-                    }
-                }
-                else
-                {
-                    exclamationExclamation = this.AddError(exclamationExclamation, ErrorCode.ERR_IncorrectNullCheckSyntax);
+                    exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
                 }
             }
             exclamationExclamation = (exclamationExclamation is null || exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
@@ -12952,6 +12950,16 @@ tryAgain:
             node = this.AddError(node, ErrorCode.ERR_UnexpectedToken, trailingTrash[0].ToString());
             node = this.AddTrailingSkippedSyntax(node, trailingTrash.Node);
             return node;
+        }
+
+        private SyntaxToken MergeTokens(SyntaxToken s1, SyntaxToken s2, SyntaxKind kind)
+        {
+            if (s1.GetTrailingTriviaWidth() == 0 && s2.GetLeadingTriviaWidth() == 0)
+            {
+                s1 = SyntaxFactory.Token(s1.GetLeadingTrivia(), kind, s2.GetTrailingTrivia());
+            }
+
+            return s1;
         }
     }
 }
