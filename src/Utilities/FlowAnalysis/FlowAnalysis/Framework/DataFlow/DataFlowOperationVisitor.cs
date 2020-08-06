@@ -2757,14 +2757,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             var operandValue = Visit(operation.Operand, argument);
 
-            if (!operation.Conversion.Exists)
-                return ValueDomain.UnknownOrMayBeValue;
-
-            if (operation.Conversion.IsImplicit)
-                return operandValue;
-
             // Conservative for error code and user defined operator.
-            return !operation.Conversion.IsUserDefined ? operandValue : ValueDomain.UnknownOrMayBeValue;
+            return operation.Conversion.Exists && !operation.Conversion.IsUserDefined ? operandValue : ValueDomain.UnknownOrMayBeValue;
         }
 
         public override TAbstractAnalysisValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)

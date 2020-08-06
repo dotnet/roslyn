@@ -179,6 +179,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
+            public override TaintedDataAbstractValue VisitConversion(IConversionOperation operation, object? argument)
+            {
+                var operandValue = Visit(operation.Operand, argument);
+
+                if (!operation.Conversion.Exists)
+                {
+                    return ValueDomain.UnknownOrMayBeValue;
+                }
+
+                if (operation.Conversion.IsImplicit)
+                {
+                    return operandValue;
+                }
+
+                // Conservative for error code and user defined operator.
+                return !operation.Conversion.IsUserDefined ? operandValue : ValueDomain.UnknownOrMayBeValue;
+            }
+
             protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
             {
                 // If the property reference itself is a tainted data source
