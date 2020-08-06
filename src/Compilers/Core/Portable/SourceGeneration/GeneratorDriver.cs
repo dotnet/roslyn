@@ -151,7 +151,8 @@ namespace Microsoft.CodeAnalysis
             // run the actual generation
             var state = StateWithPendingEditsApplied(_state);
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
-            var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, null); // we know there is at max 1 per generator
+            var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
+            int receiverCount = 0;
 
             for (int i = 0; i < state.Generators.Length; i++)
             {
@@ -184,6 +185,7 @@ namespace Microsoft.CodeAnalysis
                         var rx = generatorState.Info.SyntaxReceiverCreator();
                         walkerBuilder.Insert(i, new GeneratorSyntaxWalker(rx));
                         generatorState = generatorState.WithReceiver(rx);
+                        receiverCount++;
                     }
                     catch (Exception e)
                     {
@@ -196,7 +198,7 @@ namespace Microsoft.CodeAnalysis
 
 
             // Run a syntax walk if any of the generators requested it
-            if (walkerBuilder.Count > 0)
+            if (receiverCount > 0)
             {
                 foreach (var tree in compilation.SyntaxTrees)
                 {
