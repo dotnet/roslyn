@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
             // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property, 
             // or the syntax allows for the slice method to be run
-            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && isWriteableIndexer(invocation, indexer))
+            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && IsWriteableIndexer(invocation, indexer))
             {
                 return null;
             }
