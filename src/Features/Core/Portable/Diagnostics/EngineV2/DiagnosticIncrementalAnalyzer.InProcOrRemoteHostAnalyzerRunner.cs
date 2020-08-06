@@ -219,7 +219,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This data should always be correct as we're never persisting the data between sessions.
             Contract.ThrowIfNull(reader);
 
-            return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, documentAnalysisScope, project, version, cancellationToken);
+            if (!DiagnosticResultSerializer.TryReadDiagnosticAnalysisResults(reader, analyzerMap,
+                    documentAnalysisScope, project, version, cancellationToken, out var result))
+            {
+                return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+            }
+
+            return result.Value;
         }
     }
 }

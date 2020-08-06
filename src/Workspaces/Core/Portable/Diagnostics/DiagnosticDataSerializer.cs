@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -81,12 +82,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             using var stream = await readTask.ConfigureAwait(false);
             using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
 
-            if (reader == null)
+            if (reader == null ||
+                !TryReadDiagnosticData(reader, project, textDocument, cancellationToken, out var data))
             {
                 return default;
             }
 
-            return ReadDiagnosticData(reader, project, textDocument, cancellationToken);
+            return data;
         }
 
         public void WriteDiagnosticData(ObjectWriter writer, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
@@ -183,34 +185,42 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             writer.WriteInt32(item.MappedEndColumn);
         }
 
-        public ImmutableArray<DiagnosticData> ReadDiagnosticData(ObjectReader reader, Project project, TextDocument? document, CancellationToken cancellationToken)
+        public bool TryReadDiagnosticData(
+            ObjectReader reader,
+            Project project,
+            TextDocument? document,
+            CancellationToken cancellationToken,
+            out ImmutableArray<DiagnosticData> data)
         {
+            data = default;
+
             try
             {
                 var format = reader.ReadInt32();
                 if (format != FormatVersion)
                 {
-                    return default;
+                    return false;
                 }
 
                 // saved data is for same analyzer of different version of dll
                 var analyzerVersion = VersionStamp.ReadFrom(reader);
                 if (analyzerVersion != AnalyzerVersion)
                 {
-                    return default;
+                    return false;
                 }
 
                 var version = VersionStamp.ReadFrom(reader);
                 if (version != VersionStamp.Default && version != Version)
                 {
-                    return default;
+                    return false;
                 }
 
-                return ReadDiagnosticDataArray(reader, project, document, cancellationToken);
+                data = ReadDiagnosticDataArray(reader, project, document, cancellationToken);
+                return true;
             }
-            catch (Exception)
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
             {
-                return default;
+                return false;
             }
         }
 
