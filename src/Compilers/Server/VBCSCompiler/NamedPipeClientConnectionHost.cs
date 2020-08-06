@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                CompilerServerLogger.LogException(ex, $"Listen tasks threw exception during nameof(EndListening");
+                CompilerServerLogger.LogException(ex, $"Listen tasks threw exception during {nameof(EndListening)}");
             }
 
             _queue.Complete();

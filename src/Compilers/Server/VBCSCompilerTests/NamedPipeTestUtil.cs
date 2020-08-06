@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return;
             }
 
-            var list = new List<(string PipeName, Socket Socket)>();
             var servers = GetSharedServersDictionary();
 
             lock (servers)
@@ -93,7 +92,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     var sharedServer = e.Value!;
                     var socket = GetSocket(sharedServer);
                     socket.Dispose();
-                    list.Add(((string)e.Key!, socket));
                 }
 
                 servers.Clear();
