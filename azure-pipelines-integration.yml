@@ -19,6 +19,7 @@ pr:
     exclude:
       - docs/*
       - .github/*
+      - '*/**.md'
 
 jobs:
 - job: VS_Integration
