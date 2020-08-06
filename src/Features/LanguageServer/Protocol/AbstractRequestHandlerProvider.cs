@@ -42,10 +42,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(request);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
 
-            var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
+            var handlerEntry = _requestHandlers[methodName];
+            Contract.ThrowIfNull(handlerEntry, string.Format("Request handler entry not found for method {0}", methodName));
+
+            var mutatesSolutionState = handlerEntry.Metadata.MutatesSolutionState;
+
+            var handler = (IRequestHandler<RequestType, ResponseType>?)handlerEntry.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return _queue.ExecuteAsync(false, handler, request, clientCapabilities, clientName, cancellationToken);
+            return _queue.ExecuteAsync(mutatesSolutionState, handler, request, clientCapabilities, clientName, cancellationToken);
         }
     }
 }
