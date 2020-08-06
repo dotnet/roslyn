@@ -295,6 +295,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     newSolution = newSolution.WithAdditionalDocumentText(pair.Key, pair.Value);
                 }
 
+                // NOTE: We need to avoid creating duplicate files for multi-tfm projects. See https://github.com/dotnet/roslyn-analyzers/issues/3952.
                 using var uniqueProjectPaths = PooledHashSet<string>.GetInstance();
                 foreach (KeyValuePair<ProjectId, SourceText> pair in addedPublicSurfaceAreaText)
                 {
