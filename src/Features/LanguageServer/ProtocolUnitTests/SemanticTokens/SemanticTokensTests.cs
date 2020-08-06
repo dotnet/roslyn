@@ -25,21 +25,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 static class C { }";
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
+            var cache = GetSemanticTokensCache(workspace);
             var results = await RunGetSemanticTokensAsync(workspace.CurrentSolution, locations["caret"].First());
 
             var expectedResults = new LSP.SemanticTokens
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                                              | Modifier
-                       0,     0,     10,   SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Comment),  0, // '// Comment'
-                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '}'
+                    // Line | Char | Len | Token type                                              | Modifier
+                       0,     0,     10,   cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
-                ResultId = "0"
+                ResultId = "1"
             };
 
             Assert.Equal(expectedResults.Data, results.Data);
@@ -58,6 +59,7 @@ static class C { }
 ";
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
+            var cache = GetSemanticTokensCache(workspace);
             var caretLocation = locations["caret"].First();
 
             // 1. Range handler
@@ -67,14 +69,14 @@ static class C { }
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                                              | Modifier
-                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '}'
+                    // Line | Char | Len | Token type                                              | Modifier
+                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
-                ResultId = "0"
+                ResultId = "1"
             };
 
             Assert.Equal(expectedRangeResults.Data, rangeResults.Data);
@@ -86,15 +88,15 @@ static class C { }
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                                              | Modifier
-                       0,     0,     10,   SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Comment),  0, // '// Comment'
-                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '}'
+                    // Line | Char | Len | Token type                                              | Modifier
+                       0,     0,     10,   cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
-                ResultId = "1"
+                ResultId = "2"
             };
 
             Assert.Equal(expectedWholeDocResults.Data, wholeDocResults.Data);
@@ -111,12 +113,12 @@ static class C { }
             ((TestWorkspace)workspace).ChangeDocument(docId, changedSourceText);
             UpdateSolutionProvider((TestWorkspace)workspace, workspace.CurrentSolution);
 
-            var editResults = await RunGetSemanticTokensEditsAsync(workspace.CurrentSolution, caretLocation, previousResultId: "1");
+            var editResults = await RunGetSemanticTokensEditsAsync(workspace.CurrentSolution, caretLocation, previousResultId: "2");
 
             var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(0, 1, new int[] { 1 });
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)editResults).Edits.First());
-            Assert.Equal("2", ((LSP.SemanticTokensEdits)editResults).ResultId);
+            Assert.Equal("3", ((LSP.SemanticTokensEdits)editResults).ResultId);
 
             // 4. Re-request whole document handler (may happen if LSP runs into an error)
             var wholeDocResults2 = await RunGetSemanticTokensAsync(workspace.CurrentSolution, caretLocation);
@@ -124,15 +126,15 @@ static class C { }
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                                              | Modifier
-                       1,     0,     10,   SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Comment),  0, // '// Comment'
-                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '}'
+                    // Line | Char | Len | Token type                                              | Modifier
+                       1,     0,     10,   cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
-                ResultId = "3"
+                ResultId = "4"
             };
 
             Assert.Equal(expectedWholeDocResults2.Data, wholeDocResults2.Data);

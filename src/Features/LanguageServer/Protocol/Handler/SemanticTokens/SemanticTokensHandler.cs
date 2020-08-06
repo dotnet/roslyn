@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument);
-            var requestId = await _tokensCache.GetNextResultIdAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var requestId = _tokensCache.GetNextResultId();
             var tokens = await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                request.TextDocument, requestId, clientName, SolutionProvider, range: null,
-                cancellationToken).ConfigureAwait(false);
+                request.TextDocument, requestId, clientName, SolutionProvider, _tokensCache.TokenTypesToIndex,
+                range: null, cancellationToken).ConfigureAwait(false);
 
             await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, tokens, cancellationToken).ConfigureAwait(false);
             return tokens;

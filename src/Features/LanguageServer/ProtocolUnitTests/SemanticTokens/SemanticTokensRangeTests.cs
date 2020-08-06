@@ -25,20 +25,21 @@ static class C { }
             using var workspace = CreateTestWorkspace(markup, out var locations);
 
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
+            var cache = GetSemanticTokensCache(workspace);
             var results = await RunGetSemanticTokensRangeAsync(workspace.CurrentSolution, locations["caret"].First(), range);
 
             var expectedResults = new LSP.SemanticTokens
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                                              | Modifier
-                       1,     0,     6,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'static'
-                       0,     7,     5,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Keyword),  0, // 'class'
-                       0,     6,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Class),    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '{'
-                       0,     2,     1,    SemanticTokensHelpers.GetTokenTypeIndex(LSP.SemanticTokenTypes.Operator), 0, // '}'
+                    // Line | Char | Len | Token type                                              | Modifier
+                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
-                ResultId = "0"
+                ResultId = "1"
             };
 
             Assert.Equal(expectedResults.Data, results.Data);

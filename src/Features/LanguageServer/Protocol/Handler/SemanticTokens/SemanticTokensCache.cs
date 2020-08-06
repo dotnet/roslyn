@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -38,21 +39,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private readonly int _maxCachesPerDoc = 5;
 
         /// <summary>
+        /// The next resultId available to use.
+        /// </summary>
+        private long _nextResultId;
+
+        /// <summary>
         /// Maps a document URI to its n most recently cached token sets.
         /// </summary>
         private Dictionary<Uri, List<LSP.SemanticTokens>> Tokens { get; }
 
         /// <summary>
-        /// Maps a document URI to the next resultId available to use.
+        /// Maps a LSP token type to its respective index recognized by LSP.
         /// </summary>
-        private Dictionary<Uri, int> NextResultId { get; }
+        public Dictionary<string, int> TokenTypesToIndex { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensCache()
         {
             Tokens = new Dictionary<Uri, List<LSP.SemanticTokens>>();
-            NextResultId = new Dictionary<Uri, int>();
+            TokenTypesToIndex = ComputeTokenTypesToIndex();
         }
 
         /// <summary>
@@ -115,16 +121,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         /// <summary>
-        /// Returns the next available resultId for a given document URI.
+        /// Returns the next available resultId.
         /// </summary>
-        public async Task<string> GetNextResultIdAsync(Uri uri, CancellationToken cancellationToken)
+        public string GetNextResultId() => Interlocked.Increment(ref _nextResultId).ToString();
+
+        /// <summary>
+        /// Computes the mapping between a LSP token type and its respective index recognized by LSP.
+        /// </summary>
+        private static Dictionary<string, int> ComputeTokenTypesToIndex()
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            var tokenTypeToIndex = new Dictionary<string, int>();
+            for (var i = 0; i < LSP.SemanticTokenTypes.AllTypes.Count; i++)
             {
-                NextResultId.TryGetValue(uri, out var resultId);
-                NextResultId[uri] = resultId + 1;
-                return resultId.ToString();
+                tokenTypeToIndex.Add(LSP.SemanticTokenTypes.AllTypes[i], i);
             }
+
+            return tokenTypeToIndex;
         }
     }
 }

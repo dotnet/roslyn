@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument);
-            var requestId = await _tokensCache.GetNextResultIdAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            var requestId = _tokensCache.GetNextResultId();
 
             // The results from the range handler should not be involved in caching since we don't
             // want to cache partial token results. In addition, a range request is only ever called
             // with a whole document request, so caching range results is unnecessary since the whole
             // document handler will cache the results anyway.
             return await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                request.TextDocument, resultId: requestId, clientName, SolutionProvider, request.Range,
-                cancellationToken).ConfigureAwait(false);
+                request.TextDocument, resultId: requestId, clientName, SolutionProvider,
+                _tokensCache.TokenTypesToIndex, request.Range, cancellationToken).ConfigureAwait(false);
         }
     }
 }

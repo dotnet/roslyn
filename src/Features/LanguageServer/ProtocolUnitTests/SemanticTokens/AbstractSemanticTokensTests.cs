@@ -6,8 +6,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
@@ -51,5 +54,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 PreviousResultId = previousResultId
             };
+
+        private protected static SemanticTokensCache GetSemanticTokensCache(Workspace workspace)
+        {
+            var exportProvider = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<SemanticTokensCache>();
+            return Assert.IsType<SemanticTokensCache>(exportProvider);
+        }
     }
 }

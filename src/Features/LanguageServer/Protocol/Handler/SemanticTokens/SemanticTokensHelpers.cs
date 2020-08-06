@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,16 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
-        /// <summary>
-        /// Maps an enum modifier type to the matching LSP modifier type.
-        /// Used for ordering purposes in InitializeHandler.
-        /// </summary>
-        private static readonly Dictionary<TokenModifiers, string> s_tokenModifierToSemanticTokenModifierMap =
-            new Dictionary<TokenModifiers, string>
-            {
-                [TokenModifiers.Static] = LSP.SemanticTokenModifiers.Static
-            };
-
         // TO-DO: Change this mapping once support for custom token types is added:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
         private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
@@ -99,12 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 [ClassificationTypeNames.XmlLiteralText] = LSP.SemanticTokenTypes.Comment, // TO-DO: Potentially change to custom type
             };
 
-        private static readonly Dictionary<string, TokenModifiers> s_classificationTypeToSemanticTokenModifierMap =
-            new Dictionary<string, TokenModifiers>
-            {
-                [ClassificationTypeNames.StaticSymbol] = TokenModifiers.Static
-            };
-
         /// <summary>
         /// Returns the semantic tokens for a given document with an optional range.
         /// </summary>
@@ -113,6 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             string resultId,
             string? clientName,
             ILspSolutionProvider solutionProvider,
+            Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
             CancellationToken cancellationToken)
         {
@@ -140,14 +126,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should implement support for streaming once this LSP bug is fixed:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1132601
-            var tokens = ComputeTokens(text.Lines, groupedSpans);
+            var tokens = ComputeTokens(text.Lines, groupedSpans, tokenTypesToIndex);
 
             return new LSP.SemanticTokens { ResultId = resultId, Data = tokens };
         }
 
         private static int[] ComputeTokens(
             TextLineCollection lines,
-            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans)
+            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans,
+            Dictionary<string, int> tokenTypesToIndex)
         {
             using var _ = ArrayBuilder<int>.GetInstance(out var data);
 
@@ -156,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             foreach (var span in groupedSpans)
             {
-                ComputeNextToken(lines, ref lastLineNumber, ref lastStartCharacter, span,
+                ComputeNextToken(lines, ref lastLineNumber, ref lastStartCharacter, span, tokenTypesToIndex,
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
                     out var tokenType, out var tokenModifiers);
 
@@ -171,6 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ref int lastLineNumber,
             ref int lastStartCharacter,
             IGrouping<TextSpan, ClassifiedSpan> textSpanToClassifiedSpans,
+            Dictionary<string, int> tokenTypesToIndex,
             // Out params
             out int deltaLineOut,
             out int startCharacterDeltaOut,
@@ -216,24 +204,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
             // from integer to LSP token types).
-            if (!s_classificationTypeToSemanticTokenTypeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenTypeStr))
-            {
-                throw new NotSupportedException($"Classification type {tokenTypeClassifiedSpan.ClassificationType} is unsupported.");
-            }
-
-            var tokenTypeIndex = GetTokenTypeIndex(tokenTypeStr);
+            var tokenTypeIndex = GetTokenTypeIndex(tokenTypeClassifiedSpan, tokenTypesToIndex);
 
             // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-            var modifierBits = TokenModifiers.None;
-            foreach (var currentModifier in modifiers)
-            {
-                if (!s_classificationTypeToSemanticTokenModifierMap.TryGetValue(currentModifier.ClassificationType, out var modifier))
-                {
-                    throw new NotSupportedException($"Classification type {currentModifier.ClassificationType} is unsupported.");
-                }
-
-                modifierBits |= modifier;
-            }
+            var modifierBits = GetTokenTypeModifierBits(modifiers);
 
             lastLineNumber = lineNumber;
             lastStartCharacter = startCharacter;
@@ -245,49 +219,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             tokenModifiersOut = (int)modifierBits;
         }
 
-        // Note: Method is internal since it is used by tests
-        internal static int GetTokenTypeIndex(string? tokenTypeStr)
+        private static int GetTokenTypeIndex(ClassifiedSpan tokenTypeClassifiedSpan, Dictionary<string, int> tokenTypesToIndex)
         {
-            var tokenTypeIndex = 0;
-            foreach (var tokenType in LSP.SemanticTokenTypes.AllTypes)
-            {
-                if (tokenType == tokenTypeStr)
-                {
-                    break;
-                }
+            s_classificationTypeToSemanticTokenTypeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenTypeStr);
+            Debug.Assert(tokenTypeStr != null);
 
-                tokenTypeIndex += 1;
-            }
-
-            return tokenTypeIndex;
+            return tokenTypesToIndex[tokenTypeStr];
         }
 
-        /// <summary>
-        /// Returns the set of ordered semantic token modifiers. Used by LSP to decipher any modifier values
-        /// we later pass back to them.
-        /// </summary>
-        internal static string[] GetOrderedSemanticTokenModifiers()
+        private static TokenModifiers GetTokenTypeModifierBits(IEnumerable<ClassifiedSpan> modifiers)
         {
-            using var _ = ArrayBuilder<string>.GetInstance(out var orderedModifiers);
-            foreach (TokenModifiers? modifier in Enum.GetValues(typeof(TokenModifiers)))
+            // Roslyn currently only has one modifier, but this logic should be updated if more are added
+            // in the future.
+            if (modifiers.IsEmpty())
             {
-                Contract.ThrowIfFalse(modifier.HasValue);
-
-                // Skip the none modifier
-                if (modifier.Value == TokenModifiers.None)
-                {
-                    continue;
-                }
-
-                if (!s_tokenModifierToSemanticTokenModifierMap.TryGetValue(modifier.Value, out var semanticTokenModifier))
-                {
-                    throw new ArgumentException($"Modifier is invalid.");
-                }
-
-                orderedModifiers.Add(semanticTokenModifier);
+                return TokenModifiers.None;
             }
 
-            return orderedModifiers.ToArray();
+            Debug.Assert(modifiers.Single().ClassificationType == ClassificationTypeNames.StaticSymbol);
+            return TokenModifiers.Static;
         }
     }
 }
