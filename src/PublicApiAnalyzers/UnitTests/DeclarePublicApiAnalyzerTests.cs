@@ -3,6 +3,7 @@
 #nullable enable
 #pragma warning disable CA1305
 
+using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -64,15 +65,19 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, params DiagnosticResult[] expected)
+        private Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, params DiagnosticResult[] expected)
+            => VerifyCSharpAsync(source, shippedApiText, unshippedApiText, editorConfigText: null, expected);
+
+        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, string? editorConfigText, params DiagnosticResult[] expected)
         {
-            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>
+            var test = new CSharpCodeFixVerifier<DeclarePublicApiAnalyzer, DeclarePublicApiFix>.Test
             {
                 TestState =
                 {
                     Sources = { source },
                     AdditionalFiles = { },
                 },
+                AnalyzerConfigDocument = editorConfigText,
             };
 
             if (shippedApiText != null)
@@ -178,9 +183,13 @@ public class C
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("dotnet_public_api_analyzer.require_api_files = false")]
+        [InlineData("dotnet_public_api_analyzer.require_api_files = true")]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Both()
+        public async Task AnalyzerFileMissing_Both(string? editorconfigText)
         {
             var source = @"
 public class C
@@ -192,7 +201,14 @@ public class C
             string? shippedText = null;
             string? unshippedText = null;
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
+            var expectedDiagnostics = Array.Empty<DiagnosticResult>();
+            if (editorconfigText == null ||
+                !editorconfigText.EndsWith("true", StringComparison.OrdinalIgnoreCase))
+            {
+                expectedDiagnostics = new[] { GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C") };
+            }
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText, editorconfigText, expectedDiagnostics);
         }
 
         [Fact]
