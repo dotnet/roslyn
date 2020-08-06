@@ -228,15 +228,15 @@ using System.Runtime.CompilerServices;
   .method public static void F0(native int x, native uint y)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0]
     .param [2]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0]
     ret
   }
   .method public static void F1(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0]
     ret
   }
 }";
@@ -302,21 +302,21 @@ using System.Runtime.CompilerServices;
   .method public static void F0(native int x, native uint y)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
     .param [2]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
     ret
   }
   .method public static void F1(class A<int32, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
     ret
   }
   .method public static void F2(class A<native int, uint32> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
     ret
   }
 }";
@@ -374,21 +374,21 @@ using System.Runtime.CompilerServices;
   .method public static void F0(native int x, native uint y)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
     .param [2]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
     ret
   }
   .method public static void F1(class A<int32, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
     ret
   }
   .method public static void F2(class A<native int, uint32> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 )
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
     ret
   }
 }";
@@ -452,21 +452,21 @@ using System.Runtime.CompilerServices;
   .method public static void F0(native int x, native uint y)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false } 
     .param [2]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false } 
     ret
   }
   .method public static void F1(class A<int32, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false } 
     ret
   }
   .method public static void F2(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 00 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 00 00 00 ) // new[] { false, false }
     ret
   }
 }";
@@ -529,25 +529,25 @@ using System.Runtime.CompilerServices;
   .method public static void F0(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // 0 elements, too few
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0], too few
     ret
   }
   .method public static void F1(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // 1 element, too few
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }, too few
     ret
   }
   .method public static void F2(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) // 2 elements, valid
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) // new[] { false, true }, valid
     ret
   }
   .method public static void F3(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 ) // 3 elements, too many
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 ) // new[] { false, true, true }, too many
     ret
   }
 }";
@@ -647,19 +647,19 @@ using System.Runtime.CompilerServices;
   .method public static void F2(object[] x)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) // new[] { false, true }
     ret
   }
   .method public static void F3(class A<class B> y)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) // new[] { false, true } 
     ret
   }
   .method public static void F4(native int[] z)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 01 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 01 01 00 00 ) // new[] { true, true }
     ret
   }
 }";

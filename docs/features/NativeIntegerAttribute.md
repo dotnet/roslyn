@@ -38,6 +38,7 @@ The type declaration is synthesized by the compiler if not already included in t
 
 Each type reference in metadata may have an associated `NativeIntegerAttribute` with a `bool[]` where each `bool`
 represents whether the associated type is a native integer (`nint` or `nuint` in C#) or the underlying type (`System.IntPtr` or `System.UIntPtr`).
+Custom modifiers associated with the type reference are ignored.
 
 A type reference may have at most one `NativeIntegerAttribute`.
 The attribute is not inherited.
