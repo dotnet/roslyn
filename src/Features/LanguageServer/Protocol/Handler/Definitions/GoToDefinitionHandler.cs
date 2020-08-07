@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
-            => GetDefinitionAsync(request, typeOnly: false, clientName, cancellationToken: cancellationToken);
+        public override Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+            => GetDefinitionAsync(request, typeOnly: false, context, cancellationToken);
     }
 }
