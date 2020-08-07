@@ -12958,6 +12958,11 @@ tryAgain:
             {
                 s1 = SyntaxFactory.Token(s1.GetLeadingTrivia(), kind, s2.GetTrailingTrivia());
             }
+            else
+            {
+                s2 = this.AddError(s2, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
+                AddTrailingSkippedSyntax(this.CreateMissingIdentifierName(), s2);
+            }
 
             return s1;
         }
