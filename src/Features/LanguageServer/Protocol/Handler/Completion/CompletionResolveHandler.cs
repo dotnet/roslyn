@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Kind = completionItem.Kind,
                 Label = completionItem.Label,
                 SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit
+                TextEdit = completionItem.TextEdit,
+                Preselect = completionItem.Preselect
             };
         }
     }
