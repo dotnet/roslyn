@@ -4414,9 +4414,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // https://github.com/dotnet/roslyn/issues/29863 Record in the node whether type
         // arguments were implicit, to allow for cases where the syntax is not an
         // invocation (such as a synthesized call from a query interpretation).
-        private static bool HasImplicitTypeArguments(BoundExpression node)
+        private static bool HasImplicitTypeArguments(BoundNode node)
         {
             if (node is BoundCollectionElementInitializer { AddMethod: { TypeArgumentsWithAnnotations: { IsEmpty: false } } })
+            {
+                return true;
+            }
+
+            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorMethod: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } })
             {
                 return true;
             }
@@ -4475,7 +4480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
         private (MethodSymbol? method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull) VisitArguments(
-            BoundExpression node,
+            BoundNode node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<ParameterSymbol> parametersOpt,
@@ -4498,14 +4503,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (HasImplicitTypeArguments(node))
                 {
-                    var binder = (node as BoundCall)?.BinderOpt ?? (node as BoundCollectionElementInitializer)?.BinderOpt ?? throw ExceptionUtilities.UnexpectedValue(node);
+                    var binder = node switch
+                    {
+                        BoundCall { BinderOpt: { } b } => b,
+                        BoundCollectionElementInitializer { BinderOpt: { } b } => b,
+                        BoundForEachStatement { EnumeratorInfoOpt: { Binder: { } b } } => b,
+                        _ => throw ExceptionUtilities.UnexpectedValue(node)
+                    };
                     method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
                     parametersOpt = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
                 {
                     var syntax = node.Syntax;
-                    CheckMethodConstraints((syntax as InvocationExpressionSyntax)?.Expression ?? syntax, method);
+                    CheckMethodConstraints(
+                        syntax switch
+                        {
+                            InvocationExpressionSyntax { Expression: var expression } => expression,
+                            ForEachStatementSyntax { Expression: var expression } => expression,
+                            _ => syntax
+                        },
+                        method);
                 }
             }
 
@@ -7911,7 +7929,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    6. The target framework's System.String doesn't implement IEnumerable. This is a compat case: System.String normally
             //       does implement IEnumerable, but there are certain target frameworks where this isn't the case. The compiler will
             //       still emit code for foreach in these scenarios.
-            //    7. Some binding error occurred, and some other error has already been reported. Usually this doesn't have any kind
+            //    7. The collection type implements the GetEnumerator pattern via an extension GetEnumerator. For this, there will be 
+            //       conversion to the parameter of the extension method.
+            //    8. Some binding error occurred, and some other error has already been reported. Usually this doesn't have any kind
             //       of conversion on top, but if there was an explicit conversion in code then we could get past the initial check
             //       for a BoundConversion node.
 
@@ -7922,7 +7942,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetAnalyzedNullability(expr, _visitResult);
             TypeWithAnnotations targetTypeWithAnnotations;
 
-            if (conversion.IsIdentity ||
+            MethodSymbol? reinferredGetEnumeratorMethod = null;
+
+            if (node.EnumeratorInfoOpt?.GetEnumeratorMethod is { IsExtensionMethod: true, Parameters: var parameters } enumeratorMethod)
+            {
+                // this is case 7
+                var (method, results, _) = VisitArguments(
+                    node,
+                    ImmutableArray.Create(node.Expression),
+                    refKindsOpt: default,
+                    parameters,
+                    argsToParamsOpt: default,
+                    expanded: false,
+                    invokedAsExtensionMethod: true,
+                    enumeratorMethod);
+
+                targetTypeWithAnnotations = results[0].LValueType;
+                reinferredGetEnumeratorMethod = method;
+            }
+            else if (conversion.IsIdentity ||
                 (conversion.Kind == ConversionKind.ExplicitReference && resultType.SpecialType == SpecialType.System_String))
             {
                 // This is case 3 or 6.
@@ -7947,14 +7985,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // This is case 7. There was not a successful binding, as a successful binding will _always_ generate one of the
+                    // This is case 8. There was not a successful binding, as a successful binding will _always_ generate one of the
                     // above conversions. Just return, as we want to suppress further errors.
                     return;
                 }
             }
             else
             {
-                // This is also case 7.
+                // This is also case 8.
                 return;
             }
 
@@ -7969,73 +8007,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = CheckPossibleNullReceiver(expr);
+            bool reportedDiagnostic = node.EnumeratorInfoOpt?.GetEnumeratorMethod is { IsExtensionMethod: true }
+                ? false
+                : CheckPossibleNullReceiver(expr);
 
-            SetResultType(node.Expression, convertedResult);
+            SetAnalyzedNullability(node.Expression, new VisitResult(convertedResult, convertedResult.ToTypeWithAnnotations(compilation)));
 
-            if (resultType.IsArray() ||
-                (conversion.Kind == ConversionKind.ExplicitReference &&
-                 resultType.SpecialType == SpecialType.System_String))
+            TypeWithState currentPropertyGetterTypeWithState;
+
+            if (node.EnumeratorInfoOpt is null)
             {
-                // If we're iterating over an array type, VisitForEachIterationVariables will need the array type to calculate
-                // the reinferred element type of the foreach, even though we use the IEnumerator pattern for arrays.
-                // If we're iterating over a string that was explicitly converted, then it doesn't implement IEnumerable and
-                // VisitForEachIterationVariables will need to explicitly set the type of the iteration variables to char.
-                SetResultType(expression: null, resultTypeWithState);
+                currentPropertyGetterTypeWithState = default;
+            }
+            else if (resultType is ArrayTypeSymbol arrayType)
+            {
+                // Even though arrays use the IEnumerator pattern, we use the array element type as the foreach target type, so
+                // directly get our source type from there instead of doing method reinference.
+                currentPropertyGetterTypeWithState = arrayType.ElementTypeWithAnnotations.ToTypeWithState();
+            }
+            else if (resultType.SpecialType == SpecialType.System_String)
+            {
+                // There are frameworks where System.String does not implement IEnumerable, but we still lower it to a for loop
+                // using the indexer over the individual characters anyway. So the type must be not annotated char.
+                currentPropertyGetterTypeWithState =
+                    TypeWithAnnotations.Create(node.EnumeratorInfoOpt.ElementType, NullableAnnotation.NotAnnotated).ToTypeWithState();
+            }
+            else
+            {
+                // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
+                // the collection changed nested generic types we pick up those changes.
+                reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorMethod);
+                var enumeratorReturnType = GetReturnTypeWithState(reinferredGetEnumeratorMethod);
+
+                if (enumeratorReturnType.State != NullableFlowState.NotNull)
+                {
+                    if (!reportedDiagnostic && !(node.Expression is BoundConversion { Operand: { IsSuppressed: true } }))
+                    {
+                        ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, expr.Syntax.GetLocation());
+                    }
+                }
+
+                var currentPropertyGetter = (MethodSymbol)AsMemberOfType(enumeratorReturnType.Type, node.EnumeratorInfoOpt.CurrentPropertyGetter);
+
+                currentPropertyGetterTypeWithState = ApplyUnconditionalAnnotations(
+                    currentPropertyGetter.ReturnTypeWithAnnotations.ToTypeWithState(),
+                    currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations);
             }
 
-            if (reportedDiagnostic || node.EnumeratorInfoOpt == null || node.Expression is BoundConversion { Operand: { IsSuppressed: true } })
-            {
-                return;
-            }
-
-            var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorMethod);
-            var enumeratorReturnType = getEnumeratorMethod.ReturnTypeWithAnnotations.ToTypeWithState();
-            if (enumeratorReturnType.State != NullableFlowState.NotNull)
-            {
-                ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, expr.Syntax.GetLocation());
-            }
+            SetResultType(expression: null, currentPropertyGetterTypeWithState);
         }
 
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
-            TypeWithAnnotations sourceType;
-            FlowAnalysisAnnotations sourceAnnotations = FlowAnalysisAnnotations.None;
-            if (node.EnumeratorInfoOpt == null)
-            {
-                sourceType = default;
-            }
-            else
-            {
-                var inferredCollectionType = ResultType.Type;
-                Debug.Assert(inferredCollectionType is object);
-
-                if (inferredCollectionType is ArrayTypeSymbol arrayType)
-                {
-                    // Even though arrays use the IEnumerator pattern, we use the array element type as the foreach target type, so
-                    // directly get our source type from there instead of doing method reinference.
-                    sourceType = arrayType.ElementTypeWithAnnotations;
-                }
-                else if (inferredCollectionType.SpecialType == SpecialType.System_String)
-                {
-                    // There are frameworks where System.String does not implement IEnumerable, but we still lower it to a for loop
-                    // using the indexer over the individual characters anyway. So the type must be not annotated char.
-                    sourceType = TypeWithAnnotations.Create(node.EnumeratorInfoOpt.ElementType, NullableAnnotation.NotAnnotated);
-                }
-                else
-                {
-                    // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
-                    // the collection changed nested generic types we pick up those changes. ResultType should have been
-                    // set by VisitForEachExpression, called just before this.
-                    Debug.Assert(inferredCollectionType.Equals(node.EnumeratorInfoOpt.CollectionType, TypeCompareKind.AllNullableIgnoreOptions));
-                    var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(inferredCollectionType, node.EnumeratorInfoOpt.GetEnumeratorMethod);
-                    var currentPropertyGetter = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
-                    sourceType = currentPropertyGetter.ReturnTypeWithAnnotations;
-                    sourceAnnotations = currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations;
-                }
-            }
-
-            TypeWithState sourceState = ApplyUnconditionalAnnotations(sourceType.ToTypeWithState(), sourceAnnotations);
+            // ResultType should have been set by VisitForEachExpression, called just before this.
+            var sourceState = node.EnumeratorInfoOpt == null ? default : ResultType;
+            TypeWithAnnotations sourceType = sourceState.ToTypeWithAnnotations(compilation);
 
 #pragma warning disable IDE0055 // Fix formatting
             var variableLocation = node.Syntax switch
