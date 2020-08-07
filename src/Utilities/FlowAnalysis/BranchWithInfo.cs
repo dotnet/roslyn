@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             EnteringRegions = enteringRegions;
             LeavingRegions = leavingRegions;
             FinallyRegions = finallyRegions;
-            BranchValueOpt = branchValue;
+            BranchValue = branchValue;
             ControlFlowConditionKind = controlFlowConditionKind;
             LeavingRegionLocals = leavingRegionLocals;
             LeavingRegionFlowCaptures = leavingRegionFlowCaptures;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public ImmutableArray<ControlFlowRegion> EnteringRegions { get; }
         public ImmutableArray<ControlFlowRegion> FinallyRegions { get; }
         public ImmutableArray<ControlFlowRegion> LeavingRegions { get; }
-        public IOperation? BranchValueOpt { get; }
+        public IOperation? BranchValue { get; }
 
 #pragma warning disable CA1721 // Property names should not match get methods - https://github.com/dotnet/roslyn-analyzers/issues/2085
         public ControlFlowConditionKind ControlFlowConditionKind { get; }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 leavingRegions: ImmutableArray<ControlFlowRegion>.Empty,
                 finallyRegions: ImmutableArray<ControlFlowRegion>.Empty,
                 kind: Kind,
-                branchValue: BranchValueOpt,
+                branchValue: BranchValue,
                 controlFlowConditionKind: ControlFlowConditionKind,
                 leavingRegionLocals: ImmutableHashSet<ILocalSymbol>.Empty,
                 leavingRegionFlowCaptures: ImmutableHashSet<CaptureId>.Empty);
