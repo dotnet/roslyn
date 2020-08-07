@@ -211,13 +211,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(() => GetService().GetBaseActiveStatementSpansAsync(documentIds, cancellationToken), cancellationToken);
         }
 
-        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>?> GetDocumentActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
-                return await GetService().GetDocumentActiveStatementSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                var result = await GetService().GetDocumentActiveStatementSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                return result.IsDefault ? (ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>?)null : result;
             }, cancellationToken);
         }
 

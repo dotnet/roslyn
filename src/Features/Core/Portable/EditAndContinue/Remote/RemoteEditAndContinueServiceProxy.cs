@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return default;
             }
 
-            var result = await client.RunRemoteAsync<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>(
+            var result = await client.RunRemoteAsync<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>?>(
                 WellKnownServiceHubService.RemoteEditAndContinueService,
                 nameof(IRemoteEditAndContinueService.GetDocumentActiveStatementSpansAsync),
                 document.Project.Solution,
@@ -289,7 +289,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
 
-            return result;
+            // JSON-RPC does not support serialization of default ImmutableArray
+            return result ?? default;
         }
     }
 }

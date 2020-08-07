@@ -364,6 +364,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             var documentActiveSpans = await proxy.GetDocumentActiveStatementSpansAsync(document1, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal((span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted), documentActiveSpans.Single());
+
+            // GetDocumentActiveStatementSpans (default array)
+
+            mockEncService.GetDocumentActiveStatementSpansAsyncImpl = (document) => default;
+
+            documentActiveSpans = await proxy.GetDocumentActiveStatementSpansAsync(document1, CancellationToken.None).ConfigureAwait(false);
+            Assert.True(documentActiveSpans.IsDefault);
         }
     }
 }

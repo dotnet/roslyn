@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         Task<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken);
 
         Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
-        Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+        Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>?> GetDocumentActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
 
         Task<bool?> IsActiveStatementInExceptionRegionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken);
         Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(PinnedSolutionInfo solutionInfo, Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken);
