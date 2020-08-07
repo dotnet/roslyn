@@ -12393,11 +12393,7 @@ tryAgain:
             SyntaxToken exclamationExclamation = null;
             if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
             {
-                exclamationExclamation = this.EatToken();
-                if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-                {
-                    exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
-                }
+                exclamationExclamation = MergeTokens(this.EatToken(SyntaxKind.ExclamationToken), this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
             }
             exclamationExclamation = (exclamationExclamation is null || exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
                         ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
@@ -12961,7 +12957,7 @@ tryAgain:
             else
             {
                 s2 = this.AddError(s2, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
-                AddTrailingSkippedSyntax(this.CreateMissingIdentifierName(), s2);
+                AddTrailingSkippedSyntax(s1, s2);
             }
 
             return s1;
