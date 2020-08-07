@@ -40,7 +40,7 @@ record Base(int Alice, int Bob)
     }
 }
                               </Document>,
-                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
 
                 state.SendTypeChars("{ ")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=False)
@@ -69,7 +69,7 @@ record Base(int Alice, int Bob)
     }
 }
                               </Document>,
-                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
 
                 state.SendTypeChars(", ")
                 Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=False)
@@ -1765,7 +1765,7 @@ public class C
     {
         C c = new($$
     }
-}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+}]]></Document>, languageVersion:=LanguageVersion.CSharp9, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
@@ -1789,7 +1789,7 @@ public class C
     {
         C c = new$$
     }
-}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+}]]></Document>, languageVersion:=LanguageVersion.CSharp9, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
