@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
 #nullable enable
@@ -17,15 +18,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class GeneratorDriverRunResult
     {
-        private Lazy<ImmutableArray<Diagnostic>> _lazyDiagnostics;
+        private ImmutableArray<Diagnostic> _lazyDiagnostics;
 
-        private Lazy<ImmutableArray<SyntaxTree>> _lazyGeneratedTrees;
+        private ImmutableArray<SyntaxTree> _lazyGeneratedTrees;
 
         internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results)
         {
             this.Results = results;
-            _lazyDiagnostics = new Lazy<ImmutableArray<Diagnostic>>(() => results.SelectMany(r => r.Diagnostics).ToImmutableArray());
-            _lazyGeneratedTrees = new Lazy<ImmutableArray<SyntaxTree>>(() => results.SelectMany(r => r.GeneratedSources.Select(g => g.SyntaxTree)).ToImmutableArray());
         }
 
         /// <summary>
@@ -39,7 +38,17 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This is equivalent to the union of all <see cref="GeneratorRunResult.Diagnostics"/> in <see cref="Results"/>.
         /// </remarks>
-        public ImmutableArray<Diagnostic> Diagnostics => _lazyDiagnostics.Value;
+        public ImmutableArray<Diagnostic> Diagnostics
+        {
+            get
+            {
+                if (_lazyDiagnostics.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDiagnostics, Results.SelectMany(r => r.Diagnostics).ToImmutableArray());
+                }
+                return _lazyDiagnostics;
+            }
+        }
 
         /// <summary>
         /// The <see cref="SyntaxTree"/>s produced during this generation pass by parsing each <see cref="SourceText"/> added by each generator.
@@ -47,7 +56,17 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This is equivalent to the union of all <see cref="GeneratedSourceResult.SyntaxTree"/>s in each <see cref="GeneratorRunResult.GeneratedSources"/> in each <see cref="Results"/>
         /// </remarks>
-        public ImmutableArray<SyntaxTree> GeneratedTrees => _lazyGeneratedTrees.Value;
+        public ImmutableArray<SyntaxTree> GeneratedTrees
+        {
+            get
+            {
+                if (_lazyGeneratedTrees.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyGeneratedTrees, Results.SelectMany(r => r.GeneratedSources.Select(g => g.SyntaxTree)).ToImmutableArray());
+                }
+                return _lazyGeneratedTrees;
+            }
+        }
     }
 
     /// <summary>
