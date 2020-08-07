@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
-        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign</source>
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
         <target state="needs-review-translation">La descrizione della diagnostica deve essere costituita da una o più frasi che terminano con un segno di punteggiatura.</target>
         <note />
       </trans-unit>
@@ -78,7 +78,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
-        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
         <target state="needs-review-translation">Il messaggio della diagnostica non deve contenere caratteri di ritorno a capo e deve essere costituito da una singola frase senza punto finale oppure da più frasi con un punto finale.</target>
         <note />
       </trans-unit>
@@ -88,8 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
-        <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="translated">Il titolo della diagnostica non deve contenere un punto o un carattere di ritorno a capo</target>
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="needs-review-translation">Il titolo della diagnostica non deve contenere un punto o un carattere di ritorno a capo</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
