@@ -938,6 +938,9 @@ No editorconfig based code style option
 
 # IDE1008
 No editorconfig based code style option
+
+# IDE0083
+No editorconfig based code style option
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
