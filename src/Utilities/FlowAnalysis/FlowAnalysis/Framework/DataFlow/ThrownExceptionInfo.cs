@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             bool isDefaultExceptionForExceptionsPathAnalysis)
         {
             BasicBlockOrdinal = block.Ordinal;
-            HandlingCatchRegion = GetHandlerRegion(block, exceptionType);
-            ContainingFinallyRegion = block.GetContainingRegionOfKind(ControlFlowRegionKind.Finally);
+            HandlingCatchRegionOpt = GetHandlerRegion(block, exceptionType);
+            ContainingFinallyRegionOpt = block.GetContainingRegionOfKind(ControlFlowRegionKind.Finally);
             ExceptionType = exceptionType ?? throw new ArgumentNullException(nameof(exceptionType));
             InterproceduralCallStack = interproceduralCallStack ?? ImmutableStack<IOperation>.Empty;
             IsDefaultExceptionForExceptionsPathAnalysis = isDefaultExceptionForExceptionsPathAnalysis;
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Optional catch handler that handles this exception.
         /// </summary>
-        internal ControlFlowRegion? HandlingCatchRegion { get; }
+        internal ControlFlowRegion? HandlingCatchRegionOpt { get; }
 
         /// <summary>
         /// If the exception happens within a finally region, this points to that finally.
         /// </summary>
-        internal ControlFlowRegion? ContainingFinallyRegion { get; }
+        internal ControlFlowRegion? ContainingFinallyRegionOpt { get; }
 
         internal INamedTypeSymbol ExceptionType { get; }
         internal ImmutableStack<IOperation> InterproceduralCallStack { get; }
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             return other != null &&
                 BasicBlockOrdinal == other.BasicBlockOrdinal &&
-                HandlingCatchRegion == other.HandlingCatchRegion &&
-                ContainingFinallyRegion == other.ContainingFinallyRegion &&
+                HandlingCatchRegionOpt == other.HandlingCatchRegionOpt &&
+                ContainingFinallyRegionOpt == other.ContainingFinallyRegionOpt &&
                 Equals(ExceptionType, other.ExceptionType) &&
                 InterproceduralCallStack.SequenceEqual(other.InterproceduralCallStack) &&
                 IsDefaultExceptionForExceptionsPathAnalysis == other.IsDefaultExceptionForExceptionsPathAnalysis;
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public override int GetHashCode()
             => HashUtilities.Combine(InterproceduralCallStack,
                 HashUtilities.Combine(BasicBlockOrdinal.GetHashCodeOrDefault(),
-                HashUtilities.Combine(HandlingCatchRegion.GetHashCodeOrDefault(),
-                HashUtilities.Combine(ContainingFinallyRegion.GetHashCodeOrDefault(),
+                HashUtilities.Combine(HandlingCatchRegionOpt.GetHashCodeOrDefault(),
+                HashUtilities.Combine(ContainingFinallyRegionOpt.GetHashCodeOrDefault(),
                 HashUtilities.Combine(ExceptionType.GetHashCode(), IsDefaultExceptionForExceptionsPathAnalysis.GetHashCode())))));
     }
 }

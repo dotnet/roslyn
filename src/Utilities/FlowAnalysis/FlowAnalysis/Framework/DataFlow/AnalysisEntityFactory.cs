@@ -513,18 +513,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AnalysisEntity CreateWithNewInstanceRoot(AnalysisEntity analysisEntity, AnalysisEntity newRootInstance)
         {
             if (analysisEntity.InstanceLocation == newRootInstance.InstanceLocation &&
-                analysisEntity.Parent == newRootInstance.Parent)
+                analysisEntity.ParentOpt == newRootInstance.ParentOpt)
             {
                 return analysisEntity;
             }
 
-            if (analysisEntity.Parent == null)
+            if (analysisEntity.ParentOpt == null)
             {
                 return newRootInstance;
             }
 
-            AnalysisEntity parentOpt = CreateWithNewInstanceRoot(analysisEntity.Parent, newRootInstance);
-            return Create(analysisEntity.Symbol, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt);
+            AnalysisEntity parentOpt = CreateWithNewInstanceRoot(analysisEntity.ParentOpt, newRootInstance);
+            return Create(analysisEntity.SymbolOpt, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt);
         }
     }
 }

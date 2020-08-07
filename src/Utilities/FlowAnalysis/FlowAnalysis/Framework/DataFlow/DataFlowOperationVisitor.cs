@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Optional map from points to values of tasks to the underlying abstract value returned by the task.
         /// Awaiting the task produces the task wrapped value from this map.
         /// </summary>
-        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? TaskWrappedValuesMap { get; private set; }
+        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? TaskWrappedValuesMapOpt { get; private set; }
 
         protected TAnalysisContext DataFlowAnalysisContext { get; }
         public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain => DataFlowAnalysisContext.ValueDomain;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (!_exceptionPathsThrownExceptionInfoMap.TryGetValue(CurrentBasicBlock, out var info))
                 {
                     info = ThrownExceptionInfo.CreateDefaultInfoForExceptionsPathAnalysis(
-                        CurrentBasicBlock, WellKnownTypeProvider, DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack);
+                        CurrentBasicBlock, WellKnownTypeProvider, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
                 }
 
                 return info;
@@ -243,14 +243,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             _interproceduralCallStack = new Stack<IOperation>();
             _addressSharedEntitiesProvider = new AddressSharedEntitiesProvider<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>(analysisContext);
-            if (analysisContext.InterproceduralAnalysisData != null)
+            if (analysisContext.InterproceduralAnalysisDataOpt != null)
             {
-                foreach (var argumentInfo in analysisContext.InterproceduralAnalysisData.ArgumentValuesMap.Values)
+                foreach (var argumentInfo in analysisContext.InterproceduralAnalysisDataOpt.ArgumentValuesMap.Values)
                 {
                     CacheAbstractValue(argumentInfo.Operation, argumentInfo.Value);
                 }
 
-                foreach (var operation in analysisContext.InterproceduralAnalysisData.CallStack)
+                foreach (var operation in analysisContext.InterproceduralAnalysisDataOpt.CallStack)
                 {
                     _interproceduralCallStack.Push(operation);
                 }
@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             AnalysisEntity? interproceduralInvocationInstance;
-            if (analysisContext.InterproceduralAnalysisData?.InvocationInstance.HasValue == true)
+            if (analysisContext.InterproceduralAnalysisDataOpt?.InvocationInstanceOpt.HasValue == true)
             {
-                (interproceduralInvocationInstance, ThisOrMePointsToAbstractValue) = analysisContext.InterproceduralAnalysisData.InvocationInstance!.Value;
+                (interproceduralInvocationInstance, ThisOrMePointsToAbstractValue) = analysisContext.InterproceduralAnalysisDataOpt.InvocationInstanceOpt!.Value;
             }
             else
             {
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             var pointsToAnalysisKind = analysisContext is PointsToAnalysisContext pointsToAnalysisContext
                 ? pointsToAnalysisContext.PointsToAnalysisKind
-                : analysisContext.PointsToAnalysisResult?.PointsToAnalysisKind ?? PointsToAnalysisKind.None;
+                : analysisContext.PointsToAnalysisResultOpt?.PointsToAnalysisKind ?? PointsToAnalysisKind.None;
             HasPointsToAnalysisResult = pointsToAnalysisKind != PointsToAnalysisKind.None;
             HasCompletePointsToAnalysisResult = pointsToAnalysisKind == PointsToAnalysisKind.Complete;
 
@@ -289,10 +289,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 getIsLValueFlowCapture: IsLValueFlowCapture,
                 containingTypeSymbol: analysisContext.OwningSymbol.ContainingType,
                 interproceduralInvocationInstance: interproceduralInvocationInstance,
-                interproceduralThisOrMeInstanceForCaller: analysisContext.InterproceduralAnalysisData?.ThisOrMeInstanceForCaller?.Instance,
-                interproceduralCallStack: analysisContext.InterproceduralAnalysisData?.CallStack,
-                interproceduralCapturedVariablesMap: analysisContext.InterproceduralAnalysisData?.CapturedVariablesMap,
-                interproceduralGetAnalysisEntityForFlowCapture: analysisContext.InterproceduralAnalysisData?.GetAnalysisEntityForFlowCapture,
+                interproceduralThisOrMeInstanceForCaller: analysisContext.InterproceduralAnalysisDataOpt?.ThisOrMeInstanceForCallerOpt?.Instance,
+                interproceduralCallStack: analysisContext.InterproceduralAnalysisDataOpt?.CallStack,
+                interproceduralCapturedVariablesMap: analysisContext.InterproceduralAnalysisDataOpt?.CapturedVariablesMap,
+                interproceduralGetAnalysisEntityForFlowCapture: analysisContext.InterproceduralAnalysisDataOpt?.GetAnalysisEntityForFlowCapture,
                 getInterproceduralCallStackForOwningSymbol: GetInterproceduralCallStackForOwningSymbol);
 
             return;
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (!owningSymbol.IsStatic &&
                 !owningSymbol.ContainingType.HasValueCopySemantics())
             {
-                var thisOrMeLocation = AbstractLocation.CreateThisOrMeLocation(owningSymbol.ContainingType, analysisContext.InterproceduralAnalysisData?.CallStack);
+                var thisOrMeLocation = AbstractLocation.CreateThisOrMeLocation(owningSymbol.ContainingType, analysisContext.InterproceduralAnalysisDataOpt?.CallStack);
                 return PointsToAbstractValue.Create(thisOrMeLocation, mayBeNull: false);
             }
             else
@@ -439,8 +439,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     foreach (var (exceptionInfo, dataAtException) in AnalysisDataForUnhandledThrowOperations)
                     {
-                        if (exceptionInfo.ContainingFinallyRegion == null ||
-                            !finallyRegion.ContainsRegionOrSelf(exceptionInfo.ContainingFinallyRegion))
+                        if (exceptionInfo.ContainingFinallyRegionOpt == null ||
+                            !finallyRegion.ContainsRegionOrSelf(exceptionInfo.ContainingFinallyRegionOpt))
                         {
                             AssertValidAnalysisData(dataAtException);
                             UpdateValuesForAnalysisData(dataAtException);
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 !method.Parameters.IsEmpty)
             {
                 var builder = ImmutableDictionary.CreateBuilder<IParameterSymbol, AnalysisEntity>();
-                var argumentValuesMap = DataFlowAnalysisContext.InterproceduralAnalysisData?.ArgumentValuesMap ??
+                var argumentValuesMap = DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.ArgumentValuesMap ??
                     ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>>.Empty;
 
                 foreach (var parameter in method.Parameters)
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     AnalysisEntity analysisEntity = kvp.Value;
 
                     // Escape parameter values on exit, except for ref/out parameters in interprocedural analysis.
-                    if (parameter.RefKind == RefKind.None || DataFlowAnalysisContext.InterproceduralAnalysisData == null)
+                    if (parameter.RefKind == RefKind.None || DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
                     {
                         EscapeValueForParameterOnExit(parameter, analysisEntity);
                     }
@@ -572,16 +572,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             // For context-sensitive interprocedural analysis, we need to stop tracking data for the parameters
             // as they will no longer be in caller's analysis scope.
-            if (_lazyParameterEntities != null && DataFlowAnalysisContext.InterproceduralAnalysisData != null)
+            if (_lazyParameterEntities != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
             {
                 // Reset address shared entities to caller's address shared entities.
-                _addressSharedEntitiesProvider.SetAddressSharedEntities(DataFlowAnalysisContext.InterproceduralAnalysisData.AddressSharedEntities);
+                _addressSharedEntitiesProvider.SetAddressSharedEntities(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.AddressSharedEntities);
                 StopTrackingDataForParameters(_lazyParameterEntities);
             }
         }
 
         protected bool IsParameterEntityForCurrentMethod(AnalysisEntity analysisEntity)
-            => analysisEntity.Symbol is IParameterSymbol parameter &&
+            => analysisEntity.SymbolOpt is IParameterSymbol parameter &&
             _lazyParameterEntities != null &&
             _lazyParameterEntities.TryGetValue(parameter, out var parameterEntity) &&
             parameterEntity == analysisEntity;
@@ -599,19 +599,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CurrentBasicBlock = fromBlock;
             CurrentAnalysisData = input;
 
-            if (branch.BranchValue != null)
+            if (branch.BranchValueOpt != null)
             {
                 FlowBranchConditionKind = branch.ControlFlowConditionKind;
-                Visit(branch.BranchValue, null);
+                Visit(branch.BranchValueOpt, null);
 
                 if (branch.ControlFlowConditionKind != ControlFlowConditionKind.None)
                 {
                     // We visit the condition twice - once for the condition true branch, and once for the condition false branch.
                     // Below check ensures we execute AfterVisitRoot only once.
-                    if (!_visitedFlowBranchConditions.Add(branch.BranchValue))
+                    if (!_visitedFlowBranchConditions.Add(branch.BranchValueOpt))
                     {
-                        AfterVisitRoot(branch.BranchValue);
-                        _visitedFlowBranchConditions.Remove(branch.BranchValue);
+                        AfterVisitRoot(branch.BranchValueOpt);
+                        _visitedFlowBranchConditions.Remove(branch.BranchValueOpt);
                     }
 
                     if (isConditionalBranchNeverTaken())
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
                 else
                 {
-                    AfterVisitRoot(branch.BranchValue);
+                    AfterVisitRoot(branch.BranchValueOpt);
                 }
 
                 FlowBranchConditionKind = ControlFlowConditionKind.None;
@@ -631,22 +631,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             switch (branch.Kind)
             {
                 case ControlFlowBranchSemantics.Return:
-                    ProcessReturnValue(branch.BranchValue);
+                    ProcessReturnValue(branch.BranchValueOpt);
                     break;
 
                 case ControlFlowBranchSemantics.Throw:
                 case ControlFlowBranchSemantics.Rethrow:
                     // Update the tracked merged analysis data at throw branches.
-                    var thrownExceptionType = branch.BranchValue?.Type ?? CurrentBasicBlock.GetEnclosingRegionExceptionType();
+                    var thrownExceptionType = branch.BranchValueOpt?.Type ?? CurrentBasicBlock.GetEnclosingRegionExceptionType();
                     if (thrownExceptionType is INamedTypeSymbol exceptionType &&
                         exceptionType.DerivesFrom(ExceptionNamedType, baseTypesOnly: true))
                     {
                         AnalysisDataForUnhandledThrowOperations ??= new Dictionary<ThrownExceptionInfo, TAnalysisData>();
-                        var info = ThrownExceptionInfo.Create(CurrentBasicBlock, exceptionType, DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack);
+                        var info = ThrownExceptionInfo.Create(CurrentBasicBlock, exceptionType, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
                         AnalysisDataForUnhandledThrowOperations[info] = GetClonedCurrentAnalysisData();
                     }
 
-                    ProcessThrowValue(branch.BranchValue);
+                    ProcessThrowValue(branch.BranchValueOpt);
                     break;
             }
 
@@ -654,13 +654,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             bool isConditionalBranchNeverTaken()
             {
-                RoslynDebug.Assert(branch.BranchValue != null);
+                RoslynDebug.Assert(branch.BranchValueOpt != null);
                 Debug.Assert(branch.ControlFlowConditionKind != ControlFlowConditionKind.None);
 
-                if (branch.BranchValue.Type?.SpecialType == SpecialType.System_Boolean &&
-                    branch.BranchValue.ConstantValue.HasValue)
+                if (branch.BranchValueOpt.Type?.SpecialType == SpecialType.System_Boolean &&
+                    branch.BranchValueOpt.ConstantValue.HasValue)
                 {
-                    var alwaysTrue = (bool)branch.BranchValue.ConstantValue.Value;
+                    var alwaysTrue = (bool)branch.BranchValueOpt.ConstantValue.Value;
                     if (alwaysTrue && branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse ||
                         !alwaysTrue && branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenTrue)
                     {
@@ -669,26 +669,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 if (PredicateAnalysis &&
-                    _predicateValueKindCacheBuilder.TryGetValue(branch.BranchValue, out PredicateValueKind valueKind) &&
+                    _predicateValueKindCacheBuilder.TryGetValue(branch.BranchValueOpt, out PredicateValueKind valueKind) &&
                     isPredicateAlwaysFalseForBranch(valueKind))
                 {
                     return true;
                 }
 
-                if (DataFlowAnalysisContext.PointsToAnalysisResult != null &&
-                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.PointsToAnalysisResult.GetPredicateKind(branch.BranchValue)))
+                if (DataFlowAnalysisContext.PointsToAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.PointsToAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
                 {
                     return true;
                 }
 
-                if (DataFlowAnalysisContext.CopyAnalysisResult != null &&
-                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.CopyAnalysisResult.GetPredicateKind(branch.BranchValue)))
+                if (DataFlowAnalysisContext.CopyAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.CopyAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
                 {
                     return true;
                 }
 
-                if (DataFlowAnalysisContext.ValueContentAnalysisResult != null &&
-                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.ValueContentAnalysisResult.GetPredicateKind(branch.BranchValue)))
+                if (DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.ValueContentAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
                 {
                     return true;
                 }
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 method.ReturnType.OriginalDefinition.Equals(GenericTaskNamedType) &&
                 !method.ReturnType.Equals(returnValueOperation.Type))
             {
-                var location = AbstractLocation.CreateAllocationLocation(returnValueOperation, method.ReturnType, DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack);
+                var location = AbstractLocation.CreateAllocationLocation(returnValueOperation, method.ReturnType, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
                 implicitTaskPointsToValue = PointsToAbstractValue.Create(location, mayBeNull: false);
                 return GetAbstractValueForImplicitWrappingTaskCreation(returnValueOperation, returnValue, implicitTaskPointsToValue);
             }
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Bail out if we are not analyzing an interprocedural call and there is no
             // tracked analysis data.
             if (!HasAnyAbstractValue(CurrentAnalysisData) &&
-                DataFlowAnalysisContext.InterproceduralAnalysisData == null)
+                DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
             {
                 return;
             }
@@ -959,9 +959,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return state;
             }
 
-            if (DataFlowAnalysisContext.InterproceduralAnalysisData != null)
+            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
             {
-                return DataFlowAnalysisContext.InterproceduralAnalysisData.GetCachedAbstractValueFromCaller(operation);
+                return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.GetCachedAbstractValueFromCaller(operation);
             }
 
             // We were unable to find cached abstract value for requested operation.
@@ -995,78 +995,78 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual CopyAbstractValue GetCopyAbstractValue(IOperation operation)
         {
-            if (DataFlowAnalysisContext.CopyAnalysisResult == null)
+            if (DataFlowAnalysisContext.CopyAnalysisResultOpt == null)
             {
                 return CopyAbstractValue.Unknown;
             }
             else
             {
-                return DataFlowAnalysisContext.CopyAnalysisResult[operation];
+                return DataFlowAnalysisContext.CopyAnalysisResultOpt[operation];
             }
         }
 
         protected virtual PointsToAbstractValue GetPointsToAbstractValue(IOperation operation)
         {
-            if (DataFlowAnalysisContext.PointsToAnalysisResult == null)
+            if (DataFlowAnalysisContext.PointsToAnalysisResultOpt == null)
             {
                 return PointsToAbstractValue.Unknown;
             }
             else
             {
-                return DataFlowAnalysisContext.PointsToAnalysisResult[operation];
+                return DataFlowAnalysisContext.PointsToAnalysisResultOpt[operation];
             }
         }
 
         protected virtual ValueContentAbstractValue GetValueContentAbstractValue(IOperation operation)
         {
-            if (DataFlowAnalysisContext.ValueContentAnalysisResult == null)
+            if (DataFlowAnalysisContext.ValueContentAnalysisResultOpt == null)
             {
                 return ValueContentAbstractValue.MayBeContainsNonLiteralState;
             }
             else
             {
-                return DataFlowAnalysisContext.ValueContentAnalysisResult[operation];
+                return DataFlowAnalysisContext.ValueContentAnalysisResultOpt[operation];
             }
         }
 
         protected ImmutableHashSet<AbstractLocation> GetEscapedLocations(IOperation operation)
         {
-            if (operation == null || DataFlowAnalysisContext.PointsToAnalysisResult == null)
+            if (operation == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt == null)
             {
                 return ImmutableHashSet<AbstractLocation>.Empty;
             }
             else
             {
-                return DataFlowAnalysisContext.PointsToAnalysisResult.GetEscapedAbstractLocations(operation);
+                return DataFlowAnalysisContext.PointsToAnalysisResultOpt.GetEscapedAbstractLocations(operation);
             }
         }
 
         protected ImmutableHashSet<AbstractLocation> GetEscapedLocations(AnalysisEntity parameterEntity)
         {
-            Debug.Assert(parameterEntity.Symbol?.Kind == SymbolKind.Parameter);
-            if (parameterEntity == null || DataFlowAnalysisContext.PointsToAnalysisResult == null)
+            Debug.Assert(parameterEntity.SymbolOpt?.Kind == SymbolKind.Parameter);
+            if (parameterEntity == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt == null)
             {
                 return ImmutableHashSet<AbstractLocation>.Empty;
             }
             else
             {
-                return DataFlowAnalysisContext.PointsToAnalysisResult.GetEscapedAbstractLocations(parameterEntity);
+                return DataFlowAnalysisContext.PointsToAnalysisResultOpt.GetEscapedAbstractLocations(parameterEntity);
             }
         }
 
         protected bool TryGetPointsToAbstractValueAtEntryBlockEnd(AnalysisEntity analysisEntity, out PointsToAbstractValue pointsToAbstractValue)
         {
             Debug.Assert(CurrentBasicBlock.Kind == BasicBlockKind.Entry);
-            RoslynDebug.Assert(DataFlowAnalysisContext.PointsToAnalysisResult != null);
+            RoslynDebug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
 
-            var outputData = DataFlowAnalysisContext.PointsToAnalysisResult.EntryBlockOutput.Data;
+            var outputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt.EntryBlockOutput.Data;
             return outputData.TryGetValue(analysisEntity, out pointsToAbstractValue);
         }
 
         protected bool TryGetNullAbstractValueAtCurrentBlockEntry(AnalysisEntity analysisEntity, out NullAbstractValue nullAbstractValue)
         {
-            RoslynDebug.Assert(DataFlowAnalysisContext.PointsToAnalysisResult != null);
-            var inputData = DataFlowAnalysisContext.PointsToAnalysisResult[CurrentBasicBlock].Data;
+            RoslynDebug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].Data;
             if (inputData.TryGetValue(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 nullAbstractValue = pointsToAbstractValue.NullState;
@@ -1079,8 +1079,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected bool TryGetMergedNullAbstractValueAtUnhandledThrowOperationsInGraph(AnalysisEntity analysisEntity, out NullAbstractValue nullAbstractValue)
         {
-            RoslynDebug.Assert(DataFlowAnalysisContext.PointsToAnalysisResult != null);
-            var inputData = DataFlowAnalysisContext.PointsToAnalysisResult.MergedStateForUnhandledThrowOperations?.Data;
+            RoslynDebug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt.MergedStateForUnhandledThrowOperationsOpt?.Data;
             if (inputData == null || !inputData.TryGetValue(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 nullAbstractValue = NullAbstractValue.MaybeNull;
@@ -1098,19 +1098,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return;
             }
 
-            TaskWrappedValuesMap ??= new Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>();
-            TaskWrappedValuesMap[pointsToValueForTask] = wrappedValue;
+            TaskWrappedValuesMapOpt ??= new Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>();
+            TaskWrappedValuesMapOpt[pointsToValueForTask] = wrappedValue;
         }
 
         private protected bool TryGetTaskWrappedValue(PointsToAbstractValue pointsToAbstractValue, out TAbstractAnalysisValue wrappedValue)
         {
-            if (TaskWrappedValuesMap == null)
+            if (TaskWrappedValuesMapOpt == null)
             {
                 wrappedValue = ValueDomain.UnknownOrMayBeValue;
                 return false;
             }
 
-            return TaskWrappedValuesMap.TryGetValue(pointsToAbstractValue, out wrappedValue);
+            return TaskWrappedValuesMapOpt.TryGetValue(pointsToAbstractValue, out wrappedValue);
         }
 
         protected virtual TAbstractAnalysisValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TAbstractAnalysisValue defaultValue)
@@ -1211,9 +1211,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     !IsInterfaceOrTypeParameter(targetType) &&
                     pointsToValue.Locations.All(location => location.IsNull ||
                         (!location.IsNoLocation &&
-                         !IsInterfaceOrTypeParameter(location.LocationType) &&
-                         !targetType.DerivesFrom(location.LocationType) &&
-                         !location.LocationType.DerivesFrom(targetType))))
+                         !IsInterfaceOrTypeParameter(location.LocationTypeOpt) &&
+                         !targetType.DerivesFrom(location.LocationTypeOpt) &&
+                         !location.LocationTypeOpt.DerivesFrom(targetType))))
                 {
                     if (PredicateAnalysis)
                     {
@@ -1230,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     // Infer if a TryCast will always succeed.
                     if (isTryCast &&
-                        pointsToValue.Locations.All(location => location.IsNoLocation || !location.IsNull && location.LocationType.DerivesFrom(targetType)))
+                        pointsToValue.Locations.All(location => location.IsNoLocation || !location.IsNull && location.LocationTypeOpt.DerivesFrom(targetType)))
                     {
                         // TryCast which is guaranteed to succeed, and potentially can be changed to DirectCast.
                         if (PredicateAnalysis)
@@ -1270,9 +1270,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private bool GetBlockReachability(BasicBlock basicBlock)
         {
             return basicBlock.IsReachable &&
-                (DataFlowAnalysisContext.CopyAnalysisResult == null || DataFlowAnalysisContext.CopyAnalysisResult[basicBlock].IsReachable) &&
-                (DataFlowAnalysisContext.PointsToAnalysisResult == null || DataFlowAnalysisContext.PointsToAnalysisResult[basicBlock].IsReachable) &&
-                (DataFlowAnalysisContext.ValueContentAnalysisResult == null || DataFlowAnalysisContext.ValueContentAnalysisResult[basicBlock].IsReachable);
+                (DataFlowAnalysisContext.CopyAnalysisResultOpt == null || DataFlowAnalysisContext.CopyAnalysisResultOpt[basicBlock].IsReachable) &&
+                (DataFlowAnalysisContext.PointsToAnalysisResultOpt == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt[basicBlock].IsReachable) &&
+                (DataFlowAnalysisContext.ValueContentAnalysisResultOpt == null || DataFlowAnalysisContext.ValueContentAnalysisResultOpt[basicBlock].IsReachable);
         }
 
         protected bool IsCurrentBlockReachable()
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         var result = AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity? flowCaptureReferenceEntity);
                         Debug.Assert(result);
                         RoslynDebug.Assert(flowCaptureReferenceEntity != null);
-                        RoslynDebug.Assert(flowCaptureReferenceEntity.CaptureId != null);
+                        RoslynDebug.Assert(flowCaptureReferenceEntity.CaptureIdOpt != null);
                         Debug.Assert(HasPredicatedDataForEntity(flowCaptureReferenceEntity));
                         TransferPredicatedData(fromEntity: flowCaptureReferenceEntity, toEntity: predicatedFlowCaptureEntity);
                     }
@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             if (AnalysisEntityFactory.TryCreate(current, out var targetEntity) &&
                                 targetEntity.IsCandidatePredicateEntity())
                             {
-                                Debug.Assert(targetEntity.CaptureId != null);
+                                Debug.Assert(targetEntity.CaptureIdOpt != null);
                                 return targetEntity;
                             }
 
@@ -1533,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var result = AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity? flowCaptureReferenceEntity);
                     Debug.Assert(result);
                     RoslynDebug.Assert(flowCaptureReferenceEntity != null);
-                    RoslynDebug.Assert(flowCaptureReferenceEntity.CaptureId != null);
+                    RoslynDebug.Assert(flowCaptureReferenceEntity.CaptureIdOpt != null);
                     if (!HasPredicatedDataForEntity(targetAnalysisData, flowCaptureReferenceEntity))
                     {
                         return;
@@ -1937,7 +1937,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         protected virtual TAnalysisData GetInitialInterproceduralAnalysisData(
             IMethodSymbol invokedMethod,
-            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? invocationInstance,
+            (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstance,
             (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCaller,
             ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
             IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValues,
@@ -1967,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             foreach (var (exceptionInfo, analysisDataAtException) in interproceduralUnhandledThrowOperationsData)
             {
                 // Adjust the thrown exception info from the interprocedural context to current context.
-                var adjustedExceptionInfo = exceptionInfo.With(CurrentBasicBlock, DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack);
+                var adjustedExceptionInfo = exceptionInfo.With(CurrentBasicBlock, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
 
                 // Used cloned analysis data
                 var clonedAnalysisDataAtException = GetClonedAnalysisData(analysisDataAtException);
@@ -2024,7 +2024,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             // Bail out if configured not to execute interprocedural analysis.
             var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
-                DataFlowAnalysisContext.InterproceduralAnalysisPredicate?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true ||
+                DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true ||
                 invokedMethod.IsConfiguredToSkipAnalysis(OwningSymbol, DataFlowAnalysisContext.AnalyzerOptions, s_dummyDataflowAnalysisDescriptor, WellKnownTypeProvider.Compilation, CancellationToken.None);
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
@@ -2039,7 +2039,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Bail out if we are already analyzing the current context.
-            var currentMethodsBeingAnalyzed = DataFlowAnalysisContext.InterproceduralAnalysisData?.MethodsBeingAnalyzed ?? ImmutableHashSet<TAnalysisContext>.Empty;
+            var currentMethodsBeingAnalyzed = DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.MethodsBeingAnalyzed ?? ImmutableHashSet<TAnalysisContext>.Empty;
             var newMethodsBeingAnalyzed = currentMethodsBeingAnalyzed.Add(DataFlowAnalysisContext);
             if (currentMethodsBeingAnalyzed.Count == newMethodsBeingAnalyzed.Count)
             {
@@ -2057,9 +2057,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Compute the dependent interprocedural PointsTo and Copy analysis results, if any.
-            var pointsToAnalysisResult = (PointsToAnalysisResult?)DataFlowAnalysisContext.PointsToAnalysisResult?.TryGetInterproceduralResult(originalOperation);
-            var copyAnalysisResult = DataFlowAnalysisContext.CopyAnalysisResult?.TryGetInterproceduralResult(originalOperation);
-            var valueContentAnalysisResult = DataFlowAnalysisContext.ValueContentAnalysisResult?.TryGetInterproceduralResult(originalOperation);
+            var pointsToAnalysisResult = (PointsToAnalysisResult?)DataFlowAnalysisContext.PointsToAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
+            var copyAnalysisResult = DataFlowAnalysisContext.CopyAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
+            var valueContentAnalysisResult = DataFlowAnalysisContext.ValueContentAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
 
             // Compute the CFG for the invoked method.
             var cfg = pointsToAnalysisResult?.ControlFlowGraph ??
@@ -2093,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     invokedMethod, cfg, originalOperation, pointsToAnalysisResult, copyAnalysisResult, valueContentAnalysisResult, interproceduralAnalysisData);
 
                 // Check if the client configured skipping analysis for the given interprocedural analysis context.
-                if (DataFlowAnalysisContext.InterproceduralAnalysisPredicate?.SkipInterproceduralAnalysis(interproceduralDataFlowAnalysisContext) == true)
+                if (DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(interproceduralDataFlowAnalysisContext) == true)
                 {
                     return ResetAnalysisDataAndReturnDefaultValue();
                 }
@@ -2115,12 +2115,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (isContextSensitive)
                 {
                     // Apply any interprocedural analysis data for unhandled exceptions paths.
-                    if (analysisResult.AnalysisDataForUnhandledThrowOperations is Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsDataOpt)
+                    if (analysisResult.AnalysisDataForUnhandledThrowOperationsOpt is Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsDataOpt)
                     {
                         ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(interproceduralUnhandledThrowOperationsDataOpt);
                     }
 
-                    if (analysisResult.TaskWrappedValuesMap is Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> taskWrappedValuesMap)
+                    if (analysisResult.TaskWrappedValuesMapOpt is Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> taskWrappedValuesMap)
                     {
                         foreach (var (key, value) in taskWrappedValuesMap)
                         {
@@ -2152,20 +2152,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 interproceduralAnalysisData?.InitialAnalysisData?.Dispose();
             }
 
-            RoslynDebug.Assert(invokedMethod.ReturnsVoid == !analysisResult.ReturnValueAndPredicateKind.HasValue);
+            RoslynDebug.Assert(invokedMethod.ReturnsVoid == !analysisResult.ReturnValueAndPredicateKindOpt.HasValue);
             if (invokedMethod.ReturnsVoid)
             {
                 return defaultValue;
             }
 
-            RoslynDebug.Assert(analysisResult.ReturnValueAndPredicateKind != null);
+            RoslynDebug.Assert(analysisResult.ReturnValueAndPredicateKindOpt != null);
 
             if (PredicateAnalysis)
             {
-                SetPredicateValueKind(originalOperation, CurrentAnalysisData, analysisResult.ReturnValueAndPredicateKind.Value.PredicateValueKind);
+                SetPredicateValueKind(originalOperation, CurrentAnalysisData, analysisResult.ReturnValueAndPredicateKindOpt.Value.PredicateValueKind);
             }
 
-            return analysisResult.ReturnValueAndPredicateKind.Value.Value;
+            return analysisResult.ReturnValueAndPredicateKindOpt.Value.Value;
 
             // Local functions
             TAbstractAnalysisValue ResetAnalysisDataAndReturnDefaultValue()
@@ -2641,7 +2641,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var result = AnalysisEntityFactory.TryCreate(operation, out var flowCaptureReferenceEntity);
                 Debug.Assert(result);
                 RoslynDebug.Assert(flowCaptureReferenceEntity != null);
-                RoslynDebug.Assert(flowCaptureReferenceEntity.CaptureId != null);
+                RoslynDebug.Assert(flowCaptureReferenceEntity.CaptureIdOpt != null);
                 if (!HasPredicatedDataForEntity(flowCaptureReferenceEntity))
                 {
                     return;
@@ -2674,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (operation.Value.TryGetBoolConstantValue(out bool constantValue) &&
                     AnalysisEntityFactory.TryCreate(operation, out var flowCaptureEntity))
                 {
-                    Debug.Assert(flowCaptureEntity.CaptureId != null);
+                    Debug.Assert(flowCaptureEntity.CaptureIdOpt != null);
                     TAnalysisData predicatedData = GetEmptyAnalysisData();
                     TAnalysisData? truePredicatedData, falsePredicatedData;
                     if (constantValue)
@@ -2942,7 +2942,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         knownTargetInvocations = true;
                         foreach (var location in invocationTarget.Locations)
                         {
-                            if (!HandleCreationOpt(location.Creation))
+                            if (!HandleCreationOpt(location.CreationOpt))
                             {
                                 knownTargetInvocations = false;
                                 break;
@@ -3122,9 +3122,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private ControlFlowGraph? GetInterproceduralControlFlowGraph(IMethodSymbol method)
         {
-            if (DataFlowAnalysisContext.InterproceduralAnalysisData != null)
+            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
             {
-                return DataFlowAnalysisContext.InterproceduralAnalysisData.GetInterproceduralControlFlowGraph(method);
+                return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.GetInterproceduralControlFlowGraph(method);
             }
 
             RoslynDebug.Assert(_interproceduralMethodToCfgMap != null);
@@ -3143,10 +3143,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (OwningSymbol.Equals(forOwningSymbol))
             {
-                return DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack;
+                return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack;
             }
 
-            return DataFlowAnalysisContext.InterproceduralAnalysisData?.GetInterproceduralCallStackForOwningSymbol(forOwningSymbol);
+            return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.GetInterproceduralCallStackForOwningSymbol(forOwningSymbol);
         }
 
         public virtual TAbstractAnalysisValue VisitInvocation_LocalFunction(
@@ -3325,7 +3325,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             bool ShouldHandlePendingThrow(ThrownExceptionInfo pendingThrow)
             {
-                if (pendingThrow.HandlingCatchRegion == CurrentBasicBlock.EnclosingRegion)
+                if (pendingThrow.HandlingCatchRegionOpt == CurrentBasicBlock.EnclosingRegion)
                 {
                     // Catch region explicitly handling the thrown exception.
                     return true;

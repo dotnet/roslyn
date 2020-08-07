@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
             return new CopyAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, ExceptionPathsAnalysis, pointsToAnalysisResult, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
-                InterproceduralAnalysisPredicate);
+                InterproceduralAnalysisPredicateOpt);
         }
 
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)

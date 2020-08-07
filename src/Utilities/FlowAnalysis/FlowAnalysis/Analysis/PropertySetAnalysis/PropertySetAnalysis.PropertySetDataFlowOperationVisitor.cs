@@ -53,7 +53,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                Debug.Assert(analysisContext.PointsToAnalysisResult != null);
+                Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
                 this._hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>();
 
@@ -187,7 +187,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (constructorMapper.MapFromValueContentAbstractValue != null)
                     {
-                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResult != null);
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
                         ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
                         ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
                         try
@@ -319,7 +319,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (propertyMapper.MapFromValueContentAbstractValue != null)
                     {
-                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResult != null);
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
                         propertySetAbstractValueKind = propertyMapper.MapFromValueContentAbstractValue(
                             this.GetValueContentAbstractValue(operation.Value));
                     }
@@ -379,7 +379,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     foreach (KeyValuePair<AnalysisEntity, TrackedAssignmentData> kvp
                         in this.TrackedFieldPropertyAssignments)
                     {
-                        if (!this.DataFlowAnalysisContext.PointsToAnalysisResult!.ExitBlockOutput.Data.TryGetValue(
+                        if (!this.DataFlowAnalysisContext.PointsToAnalysisResultOpt!.ExitBlockOutput.Data.TryGetValue(
                                 kvp.Key, out PointsToAbstractValue pointsToAbstractValue))
                         {
                             continue;

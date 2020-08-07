@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         private static ValueContentAnalysisResult? TryGetOrComputeResultForAnalysisContext(ValueContentAnalysisContext analysisContext)
         {
-            var analysisDomain = new ValueContentAnalysisDomain(analysisContext.PointsToAnalysisResult);
+            var analysisDomain = new ValueContentAnalysisDomain(analysisContext.PointsToAnalysisResultOpt);
             var operationVisitor = new ValueContentDataFlowOperationVisitor(analysisDomain, analysisContext);
             var nullAnalysis = new ValueContentAnalysis(analysisDomain, operationVisitor);
             return nullAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);

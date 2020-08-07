@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<ISymbol, ImmutableStack<IOperation>?> getInterproceduralCallStackForOwningSymbol)
         {
             InitialAnalysisData = initialAnalysisData;
-            InvocationInstance = invocationInstance;
-            ThisOrMeInstanceForCaller = thisOrMeInstanceForCaller;
+            InvocationInstanceOpt = invocationInstance;
+            ThisOrMeInstanceForCallerOpt = thisOrMeInstanceForCaller;
             ArgumentValuesMap = argumentValuesMap;
             CapturedVariablesMap = capturedVariablesMap;
             AddressSharedEntities = addressSharedEntities;
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public TAnalysisData InitialAnalysisData { get; }
-        public (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? InvocationInstance { get; }
-        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCaller { get; }
+        public (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? InvocationInstanceOpt { get; }
+        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCallerOpt { get; }
         public ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> ArgumentValuesMap { get; }
         public ImmutableDictionary<ISymbol, PointsToAbstractValue> CapturedVariablesMap { get; }
         public ImmutableDictionary<AnalysisEntity, CopyAbstractValue> AddressSharedEntities { get; }
@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override void ComputeHashCodeParts(Action<int> addPart)
         {
             addPart(InitialAnalysisData.GetHashCodeOrDefault());
-            AddHashCodeParts(InvocationInstance, addPart);
-            AddHashCodeParts(ThisOrMeInstanceForCaller, addPart);
+            AddHashCodeParts(InvocationInstanceOpt, addPart);
+            AddHashCodeParts(ThisOrMeInstanceForCallerOpt, addPart);
             addPart(HashUtilities.Combine(ArgumentValuesMap));
             addPart(HashUtilities.Combine(CapturedVariablesMap));
             addPart(HashUtilities.Combine(AddressSharedEntities));
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         private static void AddHashCodeParts(
-            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? instanceAndPointsToValue,
+            (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? instanceAndPointsToValue,
             Action<int> addPart)
         {
             if (instanceAndPointsToValue.HasValue)
             {
-                addPart(instanceAndPointsToValue.Value.Instance.GetHashCodeOrDefault());
+                addPart(instanceAndPointsToValue.Value.InstanceOpt.GetHashCodeOrDefault());
                 addPart(instanceAndPointsToValue.Value.PointsToValue.GetHashCode());
             }
             else

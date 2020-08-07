@@ -829,8 +829,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (argumentPointsToAbstractValues[1].Locations.Any(l =>
-                                l.LocationType != null
-                                && l.LocationType.MetadataName == "BitArray"))
+                                l.LocationTypeOpt != null
+                                && l.LocationTypeOpt.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }
@@ -849,8 +849,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (pointsToAbstractValue.Locations.Any(l =>
-                                l.LocationType != null
-                                && l.LocationType.MetadataName == "BitArray"))
+                                l.LocationTypeOpt != null
+                                && l.LocationTypeOpt.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }

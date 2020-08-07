@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             if (!_defaultPointsToValueMapBuilder.TryGetValue(analysisEntity, out PointsToAbstractValue value))
             {
-                if (analysisEntity.Symbol?.Kind == SymbolKind.Local ||
-                    analysisEntity.Symbol is IParameterSymbol parameter && parameter.RefKind == RefKind.Out ||
-                    analysisEntity.CaptureId != null)
+                if (analysisEntity.SymbolOpt?.Kind == SymbolKind.Local ||
+                    analysisEntity.SymbolOpt is IParameterSymbol parameter && parameter.RefKind == RefKind.Out ||
+                    analysisEntity.CaptureIdOpt != null)
                 {
                     return PointsToAbstractValue.Undefined;
                 }

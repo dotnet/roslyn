@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Debug.Assert(locations.All(location => !location.IsNull) || nullState != NullAbstractValue.NotNull);
             Debug.Assert(nullState != NullAbstractValue.Undefined);
             Debug.Assert(nullState != NullAbstractValue.Invalid);
-            Debug.Assert(!locations.Any(l => l.IsAnalysisEntityDefaultLocation && l.AnalysisEntity!.HasUnknownInstanceLocation));
+            Debug.Assert(!locations.Any(l => l.IsAnalysisEntityDefaultLocation && l.AnalysisEntityOpt!.HasUnknownInstanceLocation));
             Debug.Assert(locations.Count <= LocationThreshold);
 
             Locations = locations;

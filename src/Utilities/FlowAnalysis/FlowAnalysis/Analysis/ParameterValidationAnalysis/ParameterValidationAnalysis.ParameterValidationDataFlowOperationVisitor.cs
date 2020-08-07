@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 : base(analysisContext)
             {
                 Debug.Assert(analysisContext.OwningSymbol.Kind == SymbolKind.Method);
-                Debug.Assert(analysisContext.PointsToAnalysisResult != null);
+                Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
                 if (analysisContext.TrackHazardousParameterUsages)
                 {
@@ -57,19 +57,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             private bool IsTrackedLocation(AbstractLocation location)
             {
                 return CurrentAnalysisData.ContainsKey(location) ||
-                    location.Symbol is IParameterSymbol parameter &&
+                    location.SymbolOpt is IParameterSymbol parameter &&
                     parameter.Type.IsReferenceType &&
                     Equals(parameter.ContainingSymbol, GetBottomOfStackOwningSymbol());
 
                 ISymbol GetBottomOfStackOwningSymbol()
                 {
-                    if (DataFlowAnalysisContext.InterproceduralAnalysisData == null)
+                    if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
                     {
                         return OwningSymbol;
                     }
 
-                    return DataFlowAnalysisContext.InterproceduralAnalysisData.MethodsBeingAnalyzed
-                        .Single(m => m.InterproceduralAnalysisData == null)
+                    return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.MethodsBeingAnalyzed
+                        .Single(m => m.InterproceduralAnalysisDataOpt == null)
                         .OwningSymbol;
                 }
             }
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 {
                     Debug.Assert(IsNotOrMaybeValidatedLocation(location));
 
-                    var parameter = (IParameterSymbol)location.Symbol!;
+                    var parameter = (IParameterSymbol)location.SymbolOpt!;
                     if (!_hazardousParameterUsageBuilder.TryGetValue(parameter, out SyntaxNode currentSyntaxNode) ||
                         syntaxNode.SpanStart < currentSyntaxNode.SpanStart)
                     {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                             var notValidatedLocations = GetNotValidatedLocations(argument);
                             foreach (var location in notValidatedLocations)
                             {
-                                var parameter = (IParameterSymbol)location.Symbol!;
+                                var parameter = (IParameterSymbol)location.SymbolOpt!;
                                 if (hazardousParameterUsagesInInvokedMethod.ContainsKey(parameter))
                                 {
                                     HandlePotentiallyHazardousOperation(argument, notValidatedLocations);
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                             var syntaxNode = kvp.Value;
                             if (!_hazardousParameterUsageBuilder.ContainsKey(parameter))
                             {
-                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => Equals(l.Symbol, parameter)));
+                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => Equals(l.SymbolOpt, parameter)));
                             }
                         }
                     }

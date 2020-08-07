@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return false;
             }
 
-            if (analysisEntity.Parent != null &&
-                !CanSkipNewEntity(analysisEntity.Parent))
+            if (analysisEntity.ParentOpt != null &&
+                !CanSkipNewEntity(analysisEntity.ParentOpt))
             {
                 return false;
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                         else
                         {
-                            if (key1.Symbol == null || !Equals(key1.Symbol, key2.Symbol))
+                            if (key1.SymbolOpt == null || !Equals(key1.SymbolOpt, key2.SymbolOpt))
                             {
                                 // PERF: Do not add a new key-value pair to the resultMap for unrelated entities or non-symbol based entities.
                                 continue;
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return resultMap;
             static bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
-                => entity.Symbol?.Kind == SymbolKind.Field || entity.Symbol?.Kind == SymbolKind.Property;
+                => entity.SymbolOpt?.Kind == SymbolKind.Field || entity.SymbolOpt?.Kind == SymbolKind.Property;
 
             TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)
             {

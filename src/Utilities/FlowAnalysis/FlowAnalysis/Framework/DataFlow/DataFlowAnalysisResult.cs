@@ -44,22 +44,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _basicBlockStateMap = basicBlockStateMap;
             _operationStateMap = operationStateMap;
             _predicateValueKindMap = predicateValueKindMap;
-            ReturnValueAndPredicateKind = returnValueAndPredicateKind;
+            ReturnValueAndPredicateKindOpt = returnValueAndPredicateKind;
             _interproceduralResultsMap = interproceduralResultsMap;
             EntryBlockOutput = entryBlockOutput;
             ExitBlockOutput = exitBlockOutput;
-            ExceptionPathsExitBlockOutput = exceptionPathsExitBlockOutput;
-            MergedStateForUnhandledThrowOperations = mergedStateForUnhandledThrowOperations;
+            ExceptionPathsExitBlockOutputOpt = exceptionPathsExitBlockOutput;
+            MergedStateForUnhandledThrowOperationsOpt = mergedStateForUnhandledThrowOperations;
             _analysisDataForUnhandledThrowOperations = analysisDataForUnhandledThrowOperations;
-            TaskWrappedValuesMap = taskWrappedValuesMap;
+            TaskWrappedValuesMapOpt = taskWrappedValuesMap;
             ControlFlowGraph = cfg;
             _defaultUnknownValue = defaultUnknownValue;
         }
 
         protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
-            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKind,
-                   other._interproceduralResultsMap, other.EntryBlockOutput, other.ExitBlockOutput, other.ExceptionPathsExitBlockOutput,
-                   other.MergedStateForUnhandledThrowOperations, other._analysisDataForUnhandledThrowOperations, other.TaskWrappedValuesMap,
+            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKindOpt,
+                   other._interproceduralResultsMap, other.EntryBlockOutput, other.ExitBlockOutput, other.ExceptionPathsExitBlockOutputOpt,
+                   other.MergedStateForUnhandledThrowOperationsOpt, other._analysisDataForUnhandledThrowOperations, other.TaskWrappedValuesMapOpt,
                    other.ControlFlowGraph, other._defaultUnknownValue)
         {
         }
@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             object analysisDataForUnhandledThrowOperations)
         {
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
-                _basicBlockStateMap, _operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKind,
-                _interproceduralResultsMap, EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutput, mergedStateForUnhandledThrowOperationsOpt,
-                analysisDataForUnhandledThrowOperations, TaskWrappedValuesMap, ControlFlowGraph, _defaultUnknownValue);
+                _basicBlockStateMap, _operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKindOpt,
+                _interproceduralResultsMap, EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutputOpt, mergedStateForUnhandledThrowOperationsOpt,
+                analysisDataForUnhandledThrowOperations, TaskWrappedValuesMapOpt, ControlFlowGraph, _defaultUnknownValue);
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
@@ -136,19 +136,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public ControlFlowGraph ControlFlowGraph { get; }
-        public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKind { get; }
+        public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }
         public TBlockAnalysisResult EntryBlockOutput { get; }
         public TBlockAnalysisResult ExitBlockOutput { get; }
-        public TBlockAnalysisResult? ExceptionPathsExitBlockOutput { get; }
+        public TBlockAnalysisResult? ExceptionPathsExitBlockOutputOpt { get; }
 
-        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperations
+        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperationsOpt
             => _analysisDataForUnhandledThrowOperations;
 
-        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.TaskWrappedValuesMap
-            => TaskWrappedValuesMap;
+        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.TaskWrappedValuesMapOpt
+            => TaskWrappedValuesMapOpt;
 
-        public TBlockAnalysisResult? MergedStateForUnhandledThrowOperations { get; }
+        public TBlockAnalysisResult? MergedStateForUnhandledThrowOperationsOpt { get; }
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
-        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? TaskWrappedValuesMap { get; }
+        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? TaskWrappedValuesMapOpt { get; }
     }
 }

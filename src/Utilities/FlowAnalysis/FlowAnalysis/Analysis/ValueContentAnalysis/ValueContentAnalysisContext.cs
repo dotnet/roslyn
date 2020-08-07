@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
-                InterproceduralAnalysisPredicate);
+                InterproceduralAnalysisPredicateOpt);
         }
 
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)

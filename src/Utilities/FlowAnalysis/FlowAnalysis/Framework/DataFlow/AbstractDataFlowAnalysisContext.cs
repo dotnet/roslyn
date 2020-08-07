@@ -55,19 +55,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ValueDomain = valueDomain;
             WellKnownTypeProvider = wellKnownTypeProvider;
             ControlFlowGraph = controlFlowGraph;
-            ParentControlFlowGraph = parentControlFlowGraph;
+            ParentControlFlowGraphOpt = parentControlFlowGraph;
             OwningSymbol = owningSymbol;
             AnalyzerOptions = analyzerOptions;
             InterproceduralAnalysisConfiguration = interproceduralAnalysisConfig;
             PessimisticAnalysis = pessimisticAnalysis;
             PredicateAnalysis = predicateAnalysis;
             ExceptionPathsAnalysis = exceptionPathsAnalysis;
-            CopyAnalysisResult = copyAnalysisResult;
-            PointsToAnalysisResult = pointsToAnalysisResult;
-            ValueContentAnalysisResult = valueContentAnalysisResult;
+            CopyAnalysisResultOpt = copyAnalysisResult;
+            PointsToAnalysisResultOpt = pointsToAnalysisResult;
+            ValueContentAnalysisResultOpt = valueContentAnalysisResult;
             TryGetOrComputeAnalysisResult = tryGetOrComputeAnalysisResult;
-            InterproceduralAnalysisData = interproceduralAnalysisData;
-            InterproceduralAnalysisPredicate = interproceduralAnalysisPredicate;
+            InterproceduralAnalysisDataOpt = interproceduralAnalysisData;
+            InterproceduralAnalysisPredicateOpt = interproceduralAnalysisPredicate;
         }
 
         public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain { get; }
@@ -79,16 +79,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool PessimisticAnalysis { get; }
         public bool PredicateAnalysis { get; }
         public bool ExceptionPathsAnalysis { get; }
-        public CopyAnalysisResult? CopyAnalysisResult { get; }
-        public PointsToAnalysisResult? PointsToAnalysisResult { get; }
-        public ValueContentAnalysisResult? ValueContentAnalysisResult { get; }
+        public CopyAnalysisResult? CopyAnalysisResultOpt { get; }
+        public PointsToAnalysisResult? PointsToAnalysisResultOpt { get; }
+        public ValueContentAnalysisResult? ValueContentAnalysisResultOpt { get; }
 
         public Func<TAnalysisContext, TAnalysisResult?> TryGetOrComputeAnalysisResult { get; }
-        protected ControlFlowGraph? ParentControlFlowGraph { get; }
+        protected ControlFlowGraph? ParentControlFlowGraphOpt { get; }
 
         // Optional data for context sensitive analysis.
-        public InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>? InterproceduralAnalysisData { get; }
-        public InterproceduralAnalysisPredicate? InterproceduralAnalysisPredicate { get; }
+        public InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>? InterproceduralAnalysisDataOpt { get; }
+        public InterproceduralAnalysisPredicate? InterproceduralAnalysisPredicateOpt { get; }
 
         public abstract TAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunction);
             }
 
-            if (ParentControlFlowGraph != null && InterproceduralAnalysisData != null)
+            if (ParentControlFlowGraphOpt != null && InterproceduralAnalysisDataOpt != null)
             {
-                var parentAnalysisContext = InterproceduralAnalysisData.MethodsBeingAnalyzed.FirstOrDefault(context => context.ControlFlowGraph == ParentControlFlowGraph);
+                var parentAnalysisContext = InterproceduralAnalysisDataOpt.MethodsBeingAnalyzed.FirstOrDefault(context => context.ControlFlowGraph == ParentControlFlowGraphOpt);
                 return parentAnalysisContext?.GetLocalFunctionControlFlowGraph(localFunction);
             }
 
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
             catch (ArgumentOutOfRangeException)
             {
-                if (ParentControlFlowGraph != null && InterproceduralAnalysisData != null)
+                if (ParentControlFlowGraphOpt != null && InterproceduralAnalysisDataOpt != null)
                 {
-                    var parentAnalysisContext = InterproceduralAnalysisData.MethodsBeingAnalyzed.FirstOrDefault(context => context.ControlFlowGraph == ParentControlFlowGraph);
+                    var parentAnalysisContext = InterproceduralAnalysisDataOpt.MethodsBeingAnalyzed.FirstOrDefault(context => context.ControlFlowGraph == ParentControlFlowGraphOpt);
                     return parentAnalysisContext?.GetAnonymousFunctionControlFlowGraph(lambda);
                 }
 
@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             addPart(PessimisticAnalysis.GetHashCode());
             addPart(PredicateAnalysis.GetHashCode());
             addPart(ExceptionPathsAnalysis.GetHashCode());
-            addPart(CopyAnalysisResult.GetHashCodeOrDefault());
-            addPart(PointsToAnalysisResult.GetHashCodeOrDefault());
-            addPart(ValueContentAnalysisResult.GetHashCodeOrDefault());
-            addPart(InterproceduralAnalysisData.GetHashCodeOrDefault());
-            addPart(InterproceduralAnalysisPredicate.GetHashCodeOrDefault());
+            addPart(CopyAnalysisResultOpt.GetHashCodeOrDefault());
+            addPart(PointsToAnalysisResultOpt.GetHashCodeOrDefault());
+            addPart(ValueContentAnalysisResultOpt.GetHashCodeOrDefault());
+            addPart(InterproceduralAnalysisDataOpt.GetHashCodeOrDefault());
+            addPart(InterproceduralAnalysisPredicateOpt.GetHashCodeOrDefault());
             ComputeHashCodePartsSpecific(addPart);
         }
     }
