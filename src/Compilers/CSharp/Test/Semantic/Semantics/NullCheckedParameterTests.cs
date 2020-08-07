@@ -123,6 +123,52 @@ partial class C
         }
 
         [Fact]
+        public void NullCheckedBadSyntax()
+        {
+            var source = @"
+partial class C
+{
+    void M0(string name !!=null) { }
+    void M1(string name! !=null) { }
+    void M2(string name!!= null) { }
+    void M3(string name ! !=null) { }
+    void M4(string name ! !=null) { }
+    void M5(string name! ! =null) { }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (4,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    //     void M0(string name !!=null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(4, 20),
+                    // (5,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    //     void M1(string name! !=null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 20),
+                    // (5,26): error CS1525: Invalid expression term 'null'
+                    //     void M1(string name! !=null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(5, 26),
+                    // (6,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    //     void M2(string name!!= null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(6, 20),
+                    // (7,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    //     void M3(string name ! !=null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(7, 20),
+                    // (7,27): error CS1525: Invalid expression term 'null'
+                    //     void M3(string name ! !=null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(7, 27),
+                    // (8,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    //     void M4(string name ! !=null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(8, 20),
+                    // (8,27): error CS1525: Invalid expression term 'null'
+                    //     void M4(string name ! !=null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(8, 27),
+                    // (9,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    //     void M5(string name! ! =null) { }
+                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(9, 20),
+                    // (9,26): error CS1525: Invalid expression term '='
+                    //     void M5(string name! ! =null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(9, 26));
+        }
+
+        [Fact]
         public void NullCheckedInterfaceProperty()
         {
             var source = @"
@@ -412,6 +458,82 @@ class C
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedLambdaBadSyntax()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string> func0 = x!=> x;
+        Func<string, string> func1 = x !=> x;
+        Func<string, string> func2 = x! => x;
+        Func<string, string> func3 = x ! => x;
+        Func<string, string> func4 = x !!=> x;
+        Func<string, string> func5 = x !! => x;
+        Func<string, string> func6 = x! !=> x;
+        Func<string, string> func7 = x! ! => x;
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,39): error CS1003: Syntax error, '=>' expected
+                //         Func<string, string> func0 = x!=> x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(7, 39),
+                // (7,39): error CS1525: Invalid expression term '!='
+                //         Func<string, string> func0 = x!=> x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 39),
+                // (7,41): error CS1525: Invalid expression term '>'
+                //         Func<string, string> func0 = x!=> x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 41),
+                // (8,40): error CS1003: Syntax error, '=>' expected
+                //         Func<string, string> func1 = x !=> x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(8, 40),
+                // (8,40): error CS1525: Invalid expression term '!='
+                //         Func<string, string> func1 = x !=> x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(8, 40),
+                // (8,42): error CS1525: Invalid expression term '>'
+                //         Func<string, string> func1 = x !=> x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(8, 42),
+                // (9,38): error CS0103: The name 'x' does not exist in the current context
+                //         Func<string, string> func2 = x! => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 38),
+                // (9,41): error CS1003: Syntax error, ',' expected
+                //         Func<string, string> func2 = x! => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(9, 41),
+                // (9,44): error CS1002: ; expected
+                //         Func<string, string> func2 = x! => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(9, 44),
+                // (9,44): error CS0103: The name 'x' does not exist in the current context
+                //         Func<string, string> func2 = x! => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 44),
+                // (9,44): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         Func<string, string> func2 = x! => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(9, 44),
+                // (10,38): error CS0103: The name 'x' does not exist in the current context
+                //         Func<string, string> func3 = x ! => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 38),
+                // (10,42): error CS1003: Syntax error, ',' expected
+                //         Func<string, string> func3 = x ! => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(10, 42),
+                // (10,45): error CS1002: ; expected
+                //         Func<string, string> func3 = x ! => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(10, 45),
+                // (10,45): error CS0103: The name 'x' does not exist in the current context
+                //         Func<string, string> func3 = x ! => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 45),
+                // (10,45): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         Func<string, string> func3 = x ! => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(10, 45),
+                // (13,41): error CS1525: Invalid expression term '>'
+                //         Func<string, string> func6 = x! !=> x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments(">").WithLocation(13, 41),
+                // (14,41): error CS1525: Invalid expression term '=>'
+                //         Func<string, string> func7 = x! ! => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=>").WithLocation(14, 41));
         }
 
         [Fact]

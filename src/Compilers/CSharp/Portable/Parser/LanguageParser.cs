@@ -4157,8 +4157,12 @@ tryAgain:
                 {
                     equals = this.EatToken(SyntaxKind.EqualsToken);
                 }
-                exclamationExclamation = (exclamationExclamation is null || exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
-                        ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+                if (exclamationExclamation != null)
+                {
+                    exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                        ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
+                        : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+                }
                 EqualsValueClauseSyntax def = null;
                 if (!(equals is null))
                 {
@@ -12257,8 +12261,12 @@ tryAgain:
                         arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                         exclamationExclamation = null;
                     }
-                    exclamationExclamation = (exclamationExclamation is null || exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
-                        ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+                    if (exclamationExclamation != null)
+                    {
+                        exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                            ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
+                            : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+                    }
                     var parameter = _syntaxFactory.Parameter(
                         attributeLists: default, modifiers: default,
                         type: null, identifier: name, exclamationExclamationToken: exclamationExclamation, @default: null);
@@ -12387,8 +12395,12 @@ tryAgain:
             {
                 exclamationExclamation = MergeTokens(this.EatToken(SyntaxKind.ExclamationToken), this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
             }
-            exclamationExclamation = (exclamationExclamation is null || exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
-                        ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+            if (exclamationExclamation != null)
+            {
+                exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                    ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
+                    : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+            }
             var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamationExclamation, null);
             _pool.Free(modifiers);
             return parameter;
@@ -12949,7 +12961,7 @@ tryAgain:
             else
             {
                 s2 = this.AddError(s2, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
-                AddTrailingSkippedSyntax(s1, s2);
+                s1 = AddTrailingSkippedSyntax(s1, s2);
             }
 
             return s1;
