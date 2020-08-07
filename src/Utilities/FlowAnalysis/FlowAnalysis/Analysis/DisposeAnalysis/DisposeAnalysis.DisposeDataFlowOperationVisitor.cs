@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 Debug.Assert(IDisposableNamedType != null);
                 Debug.Assert(CollectionNamedTypes.All(ct => ct.TypeKind == TypeKind.Interface));
                 Debug.Assert(analysisContext.DisposeOwnershipTransferLikelyTypes != null);
-                Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
+                Debug.Assert(analysisContext.PointsToAnalysisResult != null);
 
                 if (analysisContext.TrackInstanceFields)
                 {
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             protected override void SetAbstractValue(AbstractLocation location, DisposeAbstractValue value)
             {
                 if (!location.IsNull &&
-                    location.LocationTypeOpt != null &&
-                    (!location.LocationTypeOpt.IsValueType || location.LocationTypeOpt.IsRefLikeType) &&
-                    IsDisposable(location.LocationTypeOpt))
+                    location.LocationType != null &&
+                    (!location.LocationType.IsValueType || location.LocationType.IsRefLikeType) &&
+                    IsDisposable(location.LocationType))
                 {
                     CurrentAnalysisData[location] = value;
                 }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 Debug.Assert(!escapedLocations.IsEmpty);
                 Debug.Assert(parameter.RefKind != RefKind.None);
                 var escapedDisposableLocations =
-                    escapedLocations.Where(l => IsDisposable(l.LocationTypeOpt));
+                    escapedLocations.Where(l => IsDisposable(l.LocationType));
                 SetAbstractValue(escapedDisposableLocations, ValueDomain.UnknownOrMayBeValue);
             }
 

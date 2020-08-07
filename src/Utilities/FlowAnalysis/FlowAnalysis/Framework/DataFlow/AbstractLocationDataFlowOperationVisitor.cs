@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected AbstractLocationDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
         {
-            Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
+            Debug.Assert(analysisContext.PointsToAnalysisResult != null);
         }
 
         protected abstract TAbstractAnalysisValue GetAbstractValue(AbstractLocation location);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void StopTrackingAbstractValue(AbstractLocation location);
         protected override void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null);
+            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisData != null);
             if (parameter.RefKind == RefKind.None)
             {
                 foreach (var location in analysisEntity.InstanceLocation.Locations)
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Only set the value for non-interprocedural case.
             // For interprocedural case, we have already initialized values for the underlying locations
             // of arguments from the input analysis data.
-            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
-            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null &&
+            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
+            if (DataFlowAnalysisContext.InterproceduralAnalysisData == null &&
                 TryGetPointsToAbstractValueAtEntryBlockEnd(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 SetValueForParameterPointsToLocationOnEntry(parameter, pointsToAbstractValue);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
+            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
             var escapedLocationsForParameter = GetEscapedLocations(analysisEntity);
             if (!escapedLocationsForParameter.IsEmpty)
             {
