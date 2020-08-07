@@ -5,11 +5,16 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
@@ -17,42 +22,79 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     [Export(typeof(CodeActionsCache)), Shared]
     internal class CodeActionsCache
     {
-        public Document? Document { get; private set; }
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        public LSP.Range? Range { get; private set; }
+        private readonly int _maxCacheSize = 3;
 
-        public ImmutableArray<UnifiedSuggestedActionSet> CachedSuggestedActionSets { get; private set; }
+        private readonly List<CodeActionsCacheItem> _cachedItems;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsCache()
         {
+            _cachedItems = new List<CodeActionsCacheItem>();
         }
 
-        public void UpdateCache(
+        public async Task UpdateCacheAsync(
             Document document,
             LSP.Range range,
-            ImmutableArray<UnifiedSuggestedActionSet> cachedSuggestedActionSets)
+            ImmutableArray<UnifiedSuggestedActionSet> cachedSuggestedActionSets,
+            CancellationToken cancellationToken)
         {
-            Document = document;
-            Range = range;
-            CachedSuggestedActionSets = cachedSuggestedActionSets;
-        }
-
-        public bool TryGetCache(
-            Document document,
-            LSP.Range range,
-            [NotNullWhen(true)] out ImmutableArray<UnifiedSuggestedActionSet>? cachedSuggestedActionSets)
-        {
-            if (document != Document || document.Project.Solution != Document.Project.Solution ||
-                range.Start != Range?.Start || range.End != Range?.End)
+            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                cachedSuggestedActionSets = null;
-                return false;
-            }
+                // If there's a value in the cache with the same document and range we're searching for,
+                // remove it and replace with our updated values.
+                var previousCacheItem = _cachedItems.Where(c => c.Document == document && c.Range == range);
+                if (previousCacheItem.Any())
+                {
+                    _cachedItems.Remove(previousCacheItem.First());
+                }
+                // If the cache is full, remove the oldest cached value.
+                else if (_cachedItems.Count >= _maxCacheSize)
+                {
+                    _cachedItems.RemoveAt(0);
+                }
 
-            cachedSuggestedActionSets = CachedSuggestedActionSets;
-            return true;
+                _cachedItems.Add(new CodeActionsCacheItem(document, range, cachedSuggestedActionSets));
+            }
+        }
+
+        public async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetCacheAsync(
+            Document document,
+            LSP.Range range,
+            CancellationToken cancellationToken)
+        {
+            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                foreach (var cachedItem in _cachedItems)
+                {
+                    if (document == cachedItem.Document && document.Project.Solution == cachedItem.Document.Project.Solution &&
+                        range.Start != cachedItem.Range?.Start && range.End != cachedItem.Range?.End)
+                    {
+                        return cachedItem.CachedSuggestedActionSets;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        private readonly struct CodeActionsCacheItem
+        {
+            public readonly Document Document;
+            public readonly LSP.Range Range;
+            public readonly ImmutableArray<UnifiedSuggestedActionSet> CachedSuggestedActionSets;
+
+            public CodeActionsCacheItem(
+                Document document,
+                LSP.Range range,
+                ImmutableArray<UnifiedSuggestedActionSet> cachedSuggestedActionSets)
+            {
+                Document = document;
+                Range = range;
+                CachedSuggestedActionSets = cachedSuggestedActionSets;
+            }
         }
     }
 }

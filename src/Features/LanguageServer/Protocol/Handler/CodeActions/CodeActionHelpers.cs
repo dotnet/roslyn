@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 return Array.Empty<VSCodeAction>();
             }
 
-            codeActionsCache.UpdateCache(document, request.Range, actionSets.Value);
+            await codeActionsCache.UpdateCacheAsync(document, request.Range, actionSets.Value, cancellationToken).ConfigureAwait(false);
 
             var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var codeActions);
             foreach (var set in actionSets)
@@ -115,7 +115,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             IThreadingContext threadingContext,
             CancellationToken cancellationToken)
         {
-            if (!codeActionsCache.TryGetCache(document, selection, out var actionSets))
+            var actionSets = await codeActionsCache.GetCacheAsync(document, selection, cancellationToken).ConfigureAwait(false);
+            if (actionSets == null)
             {
                 actionSets = await GetActionSetsAsync(
                     document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                codeActionsCache.UpdateCache(document, selection, actionSets.Value);
+                await codeActionsCache.UpdateCacheAsync(document, selection, actionSets.Value, cancellationToken).ConfigureAwait(false);
             }
 
             var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
