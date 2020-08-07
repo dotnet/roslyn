@@ -415,6 +415,9 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
+
+# IDE0083
+dotnet_diagnostic.IDE0083.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -564,9 +567,6 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
-
-# IDE0083
-dotnet_diagnostic.IDE0083.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
