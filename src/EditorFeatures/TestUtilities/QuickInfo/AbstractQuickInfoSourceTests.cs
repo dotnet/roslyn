@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         protected abstract Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
-            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null);
