@@ -12233,12 +12233,7 @@ tryAgain:
                     if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                     {
                         exclamationExclamation = this.EatToken();
-                        if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-                        {
-                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
-                            arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                        if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
                         {
                             var exclamationEquals = this.EatToken();
                             var exclamation2 = SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, null);
@@ -12250,6 +12245,7 @@ tryAgain:
                         }
                         else
                         {
+                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
                             arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                         }
                         arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
