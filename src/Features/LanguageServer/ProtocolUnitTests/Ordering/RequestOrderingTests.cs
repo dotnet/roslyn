@@ -92,15 +92,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.True(responses[0].StartTime < responses[1].EndTime);
             Assert.True(responses[1].StartTime < responses[0].EndTime);
 
-            // The last two tasks should have waited for the middle
+            // The mutating task should have kicked off without waiting for those to finish
+            Assert.True(responses[2].StartTime < responses[1].EndTime);
+            Assert.True(responses[2].StartTime < responses[0].EndTime);
+
+            // The last two tasks should have waited for the mutating task
             Assert.True(responses[3].StartTime >= responses[2].EndTime);
             Assert.True(responses[4].StartTime >= responses[2].EndTime);
 
-            // The last two should have operated on different solutions than the first two
+            // The last two should have operated on different solutions than the first three
+            Assert.NotEqual(responses[3].Solution.WorkspaceVersion, responses[0].Solution.WorkspaceVersion);
             Assert.NotEqual(responses[3].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
-            Assert.NotEqual(responses[4].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
+            Assert.NotEqual(responses[3].Solution.WorkspaceVersion, responses[2].Solution.WorkspaceVersion);
+            Assert.Equal(responses[3].Solution.WorkspaceVersion, responses[3].Solution.WorkspaceVersion);
         }
-
 
         private async Task<OrderedLspResponse[]> TestAsync(OrderedLspRequest[] requests)
         {

@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             // Mutate the solution
             var solution = context.Solution;
-            solution = solution.WithNewWorkspace(solution.Workspace, solution.WorkspaceVersion + 1);
 
-            // TODO: Update the solution in the context somehow
+            context.UpdateSolution(solution.WithNewWorkspace(solution.Workspace, solution.WorkspaceVersion + 1));
 
             await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 
