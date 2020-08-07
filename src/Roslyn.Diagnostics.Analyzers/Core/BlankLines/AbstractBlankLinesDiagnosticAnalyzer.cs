@@ -13,17 +13,18 @@ namespace Roslyn.Diagnostics.Analyzers.BlankLines
 {
     public abstract class AbstractBlankLinesDiagnosticAnalyzer : DiagnosticAnalyzer
     {
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(
+            nameof(RoslynDiagnosticsAnalyzersResources.BlankLinesTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(
             nameof(RoslynDiagnosticsAnalyzersResources.BlankLinesMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.BlankLinesRuleId,
-            s_localizableMessage,
+            s_localizableTitle,
             s_localizableMessage,
             DiagnosticCategory.RoslynDiagnosticsMaintainability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableMessage,
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
