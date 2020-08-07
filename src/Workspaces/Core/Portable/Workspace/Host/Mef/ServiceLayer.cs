@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     public static class ServiceLayer
     {
         /// <summary>
-        /// Service layer that overrides any other layers.
-        /// </summary>
-        internal const string TestLayer = nameof(TestLayer);
-
-        /// <summary>
         /// Service layer that overrides <see cref="Editor"/>, <see cref="Desktop"/> and <see cref="Default"/>.
         /// </summary>
         internal const string Test = nameof(Test);

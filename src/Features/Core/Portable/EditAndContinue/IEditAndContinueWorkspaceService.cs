@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
         Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken);
-        Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken);
+
+        Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> Diagnostics)>
+            EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken);
 
         void CommitSolutionUpdate();
         void DiscardSolutionUpdate();
@@ -25,13 +27,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void OnSourceFileUpdated(DocumentId documentId);
 
         void StartDebuggingSession(Solution solution);
-        void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider);
-        void EndEditSession();
-        void EndDebuggingSession();
+        void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze);
+        void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
+        void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze);
 
         Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken);
         Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken);
-
-        void ReportApplyChangesException(Solution solution, string message);
     }
 }

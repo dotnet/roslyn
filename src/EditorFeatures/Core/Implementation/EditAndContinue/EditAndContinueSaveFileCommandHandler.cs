@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             if (Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
+                // TODO:
                 var encService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
                 if (encService != null)
                 {

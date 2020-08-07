@@ -6,9 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -17,6 +15,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics = EditAndContinueDiagnosticDescriptors.GetDescriptors();
+
+        private volatile RemoteEditAndContinueServiceProxy _lazyProxy;
 
         // Return known descriptors. This will not include module diagnostics reported on behalf of the debugger.
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -34,20 +34,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
-            var encService = services.GetService<IEditAndContinueWorkspaceService>();
-            if (encService is null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-            }
-
-            var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(async cancellationToken =>
-            {
-                var trackingService = services.GetRequiredService<IActiveStatementTrackingService>();
-                return await trackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
-            });
-
-            return encService.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken);
+            _lazyProxy ??= new RemoteEditAndContinueServiceProxy(document.Project.Solution.Workspace);
+            return _lazyProxy.GetDocumentDiagnosticsAsync(document, cancellationToken);
         }
     }
 }

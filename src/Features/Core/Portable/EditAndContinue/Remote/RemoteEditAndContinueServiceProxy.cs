@@ -8,7 +8,10 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<RemoteServiceConnection?> StartEditSessionAsync(IRemoteEditAndContinueService.IStartEditSessionCallback callback, CancellationToken cancellationToken)
+        public async Task<RemoteServiceConnection?> StartEditSessionAsync(IDiagnosticAnalyzerService diagnosticService, IRemoteEditAndContinueService.IStartEditSessionCallback callback, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -53,20 +56,87 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 callbackTarget: callback,
                 cancellationToken).ConfigureAwait(false);
 
-            await connection.RunRemoteAsync(
+            var documentsToReanalyze = await connection.RunRemoteAsync<ImmutableArray<DocumentId>>(
                 nameof(IRemoteEditAndContinueService.StartEditSessionAsync),
                 solution: null,
                 Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
 
+            // clear all reported run mode diagnostics:
+            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+
             return connection;
         }
 
-        public Task EndEditSessionAsync(CancellationToken cancellationToken)
-            => NotifyRemoteServiceAsync(nameof(IRemoteEditAndContinueService.EndEditSessionAsync), cancellationToken);
+        public async Task EndEditSessionAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return;
+            }
 
-        public Task EndDebuggingSessionAsync(CancellationToken cancellationToken)
-            => NotifyRemoteServiceAsync(nameof(IRemoteEditAndContinueService.EndDebuggingSessionAsync), cancellationToken);
+            var documentsToReanalyze = await client.RunRemoteAsync<ImmutableArray<DocumentId>>(
+                WellKnownServiceHubService.RemoteEditAndContinueService,
+                nameof(IRemoteEditAndContinueService.EndEditSessionAsync),
+                solution: null,
+                Array.Empty<object>(),
+                callbackTarget: null,
+                cancellationToken).ConfigureAwait(false);
+
+            // clear all reported rude edits:
+            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+        }
+
+        public async Task EndDebuggingSessionAsync(EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return;
+            }
+
+            var documentsToReanalyze = await client.RunRemoteAsync<ImmutableArray<DocumentId>>(
+                WellKnownServiceHubService.RemoteEditAndContinueService,
+                nameof(IRemoteEditAndContinueService.EndDebuggingSessionAsync),
+                solution: null,
+                Array.Empty<object>(),
+                callbackTarget: null,
+                cancellationToken).ConfigureAwait(false);
+
+            // clear emit/apply diagnostics reported previously:
+            diagnosticUpdateSource.ClearDiagnostics();
+
+            // clear diagnostics reported during run mode:
+            diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
+        }
+
+        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var solution = document.Project.Solution;
+
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            var diagnosticData = await client.RunRemoteAsync<ImmutableArray<DiagnosticData>>(
+                WellKnownServiceHubService.RemoteEditAndContinueService,
+                nameof(IRemoteEditAndContinueService.GetDocumentDiagnosticsAsync),
+                solution,
+                new object[] { document.Id },
+                callbackTarget: null,
+                cancellationToken).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
+            foreach (var data in diagnosticData)
+            {
+                result.Add(await data.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false));
+            }
+
+            return result.ToImmutable();
+        }
 
         public async Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
@@ -89,7 +159,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result;
         }
 
-        public async Task<(SolutionUpdateStatus, ImmutableArray<Deltas>)> EmitSolutionUpdateAsync(CancellationToken cancellationToken)
+        public async Task<(SolutionUpdateStatus, ImmutableArray<Deltas>)> EmitSolutionUpdateAsync(EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
 
@@ -99,13 +169,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (SolutionUpdateStatus.Blocked, ImmutableArray<Deltas>.Empty);
             }
 
-            var (status, deltas) = await client.RunRemoteAsync<(SolutionUpdateStatus, ImmutableArray<Deltas.Data>)>(
+            var (status, deltas, diagnosticsByProject) = await client.RunRemoteAsync<(SolutionUpdateStatus, ImmutableArray<Deltas.Data>, ImmutableArray<DiagnosticData>)>(
                 WellKnownServiceHubService.RemoteEditAndContinueService,
                 nameof(IRemoteEditAndContinueService.EmitSolutionUpdateAsync),
                 solution,
                 Array.Empty<object>(),
                 callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
+
+            // clear emit/apply diagnostics reported previously:
+            diagnosticUpdateSource.ClearDiagnostics();
+
+            // report emit/apply diagnostics:
+            diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticsByProject);
 
             return (status, deltas.SelectAsArray(d => d.Deserialize()));
         }
@@ -138,23 +214,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             await client.RunRemoteAsync(
                 WellKnownServiceHubService.RemoteEditAndContinueService,
                 nameof(IRemoteEditAndContinueService.DiscardUpdatesAsync),
-                solution: null,
-                Array.Empty<object>(),
-                callbackTarget: null,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task NotifyRemoteServiceAsync(string targetName, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return;
-            }
-
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteEditAndContinueService,
-                targetName,
                 solution: null,
                 Array.Empty<object>(),
                 callbackTarget: null,

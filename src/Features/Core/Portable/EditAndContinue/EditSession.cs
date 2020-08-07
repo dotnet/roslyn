@@ -835,7 +835,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Querying diagnostics of the entire compilation or just the updated files migth be slow.
                     // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
                     // method bodies to have errors.
-                    diagnostics.Add((project.Id, emitResult.Diagnostics));
+                    if (!emitResult.Diagnostics.IsEmpty)
+                    {
+                        diagnostics.Add((project.Id, emitResult.Diagnostics));
+                    }
+
                     Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics);
                 }
 

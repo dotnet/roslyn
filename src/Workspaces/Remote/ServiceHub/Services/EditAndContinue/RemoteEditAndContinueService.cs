@@ -9,7 +9,9 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -42,9 +44,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task StartEditSessionAsync(CancellationToken cancellationToken)
+        public Task<ImmutableArray<DocumentId>> StartEditSessionAsync(CancellationToken cancellationToken)
         {
-            RunService(() =>
+            return RunService(() =>
             {
                 GetService().StartEditSession(
                     activeStatementsProvider: async cancellationToken =>
@@ -56,10 +58,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         return result.SelectAsArray(item => item.Deserialize());
                     },
-                    debuggeeModuleMetadataProvider: this);
-            }, cancellationToken);
+                    debuggeeModuleMetadataProvider: this,
+                    out var documentsToReanalyze);
 
-            return Task.CompletedTask;
+                return Task.FromResult(documentsToReanalyze);
+            }, cancellationToken);
         }
 
         Task<(int errorCode, string? errorMessage)?> IDebuggeeModuleMetadataProvider.GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
@@ -82,19 +85,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task EndEditSessionAsync(CancellationToken cancellationToken)
+        public Task<ImmutableArray<DocumentId>> EndEditSessionAsync(CancellationToken cancellationToken)
         {
-            RunService(() => GetService().EndEditSession(), cancellationToken);
-            return Task.CompletedTask;
+            return RunService(() =>
+            {
+                GetService().EndEditSession(out var documentsToReanalyze);
+                return Task.FromResult(documentsToReanalyze);
+            }, cancellationToken);
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task EndDebuggingSessionAsync(CancellationToken cancellationToken)
+        public Task<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken)
         {
-            RunService(() => GetService().EndDebuggingSession(), cancellationToken);
-            return Task.CompletedTask;
+            return RunService(() =>
+            {
+                GetService().EndDebuggingSession(out var documentsToReanalyze);
+                return Task.FromResult(documentsToReanalyze);
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public Task<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return RunService(async () =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+                var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -112,7 +135,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas.Data> Deltas)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas.Data> Deltas, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -122,14 +145,47 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     var result = await service.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
-                    return (result.Summary, result.Deltas.SelectAsArray(d => d.Serialize()));
+
+                    return (result.Summary, result.Deltas.SelectAsArray(d => d.Serialize()), ToDiagnosticData(solution, result.Diagnostics));
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e, cancellationToken))
                 {
-                    service.ReportApplyChangesException(solution, e.Message);
-                    return (SolutionUpdateStatus.Blocked, ImmutableArray<Deltas.Data>.Empty);
+                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+                    var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
+                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
+
+                    return (SolutionUpdateStatus.Blocked, ImmutableArray<Deltas.Data>.Empty, diagnostics);
                 }
             }, cancellationToken);
+        }
+
+        private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
+        {
+            var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
+
+            foreach (var (projectId, diagnostics) in diagnosticsByProject)
+            {
+                var project = solution.GetProject(projectId);
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
+                    if (document != null)
+                    {
+                        result.Add(DiagnosticData.Create(diagnostic, document));
+                    }
+                    else if (project != null)
+                    {
+                        result.Add(DiagnosticData.Create(diagnostic, project));
+                    }
+                    else
+                    {
+                        result.Add(DiagnosticData.Create(diagnostic, solution.Options));
+                    }
+                }
+            }
+
+            return result.ToImmutable();
         }
 
         /// <summary>

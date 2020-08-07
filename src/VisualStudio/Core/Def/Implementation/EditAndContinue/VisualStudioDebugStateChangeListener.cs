@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -31,6 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly RemoteEditAndContinueServiceProxy _proxy;
         private readonly IDebuggingWorkspaceService _debuggingService;
         private readonly IActiveStatementTrackingService _activeStatementTrackingService;
+        private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly Dbg.IManagedModuleInfoProvider _managedModuleInfoProvider;
 
         private RemoteServiceConnection? _editSessionConnection;
@@ -39,12 +42,18 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioDebugStateChangeListener(VisualStudioWorkspace workspace, Dbg.IManagedModuleInfoProvider managedModuleInfoProvider)
+        public VisualStudioDebugStateChangeListener(
+            VisualStudioWorkspace workspace,
+            Dbg.IManagedModuleInfoProvider managedModuleInfoProvider,
+            IDiagnosticAnalyzerService diagnosticService,
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
             _proxy = new RemoteEditAndContinueServiceProxy(workspace);
             _debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
             _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
             _managedModuleInfoProvider = managedModuleInfoProvider;
+            _diagnosticService = diagnosticService;
+            _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
 #pragma warning disable VSTHRD102 // TODO: Implement internal logic asynchronously
@@ -96,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 _editSessionConnection = await _proxy.StartEditSessionAsync(
+                    _diagnosticService,
                     new StartEditSessionCallback(activeStatementProvider, _managedModuleInfoProvider),
                     cancellationToken).ConfigureAwait(false);
             }
@@ -124,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                await _proxy.EndEditSessionAsync(cancellationToken).ConfigureAwait(false);
+                await _proxy.EndEditSessionAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -143,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                await _proxy.EndDebuggingSessionAsync(cancellationToken).ConfigureAwait(false);
+                await _proxy.EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

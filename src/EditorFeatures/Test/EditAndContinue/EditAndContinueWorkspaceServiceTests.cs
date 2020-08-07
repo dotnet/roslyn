@@ -8,11 +8,11 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -40,12 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
 
-        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
-        private readonly Mock<IDiagnosticAnalyzerService> _mockDiagnosticService;
-
         private Func<Project, CompilationOutputs> _mockCompilationOutputsProvider;
-        private readonly List<DiagnosticsUpdatedArgs> _emitDiagnosticsUpdated;
-        private int _emitDiagnosticsClearedCount;
         private readonly List<string> _telemetryLog;
         private int _telemetryId;
 
@@ -62,14 +57,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public EditAndContinueWorkspaceServiceTests()
         {
-            _mockDiagnosticService = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
-            _mockDiagnosticService.Setup(s => s.Reanalyze(It.IsAny<Workspace>(), It.IsAny<IEnumerable<ProjectId>>(), It.IsAny<IEnumerable<DocumentId>>(), It.IsAny<bool>()));
-
-            _diagnosticUpdateSource = new EditAndContinueDiagnosticUpdateSource();
-            _emitDiagnosticsUpdated = new List<DiagnosticsUpdatedArgs>();
-            _diagnosticUpdateSource.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs args) => _emitDiagnosticsUpdated.Add(args);
-            _diagnosticUpdateSource.DiagnosticsCleared += (object sender, EventArgs args) => _emitDiagnosticsClearedCount++;
-
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
             _telemetryLog = new List<string>();
 
@@ -107,13 +94,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             return new EditAndContinueWorkspaceService(
                 workspace,
-                _mockDiagnosticService.Object,
-                _diagnosticUpdateSource,
                 _mockCompilationOutputsProvider,
                 testReportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
         }
 
-        private static EditSession StartEditSession(EditAndContinueWorkspaceService service, ActiveStatementProvider activeStatements = null, IDebuggeeModuleMetadataProvider loadedModules = null)
+        private static EditSession StartEditSession(EditAndContinueWorkspaceService service, ActiveStatementProvider activeStatements = null, IDebuggeeModuleMetadataProvider loadedModules = null, ImmutableArray<DocumentId> documentsWithRunModeDiagnostics = default)
         {
             service.StartEditSession(
                 activeStatements ?? s_noActiveStatements,
@@ -121,9 +106,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     // all modules are considered loaded by default:
                     IsEditAndContinueAvailable = _ => (0, null)
-                });
+                },
+                out var documentsToReanalyze);
+
+            AssertEx.Equal(documentsWithRunModeDiagnostics.NullToEmpty(), documentsToReanalyze);
 
             return service.Test_GetEditSession();
+        }
+
+        private static void EndEditSession(EditAndContinueWorkspaceService service, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
+        {
+            service.EndEditSession(out var documentsToReanalyze);
+            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
         private static DebuggingSession StartDebuggingSession(EditAndContinueWorkspaceService service, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
@@ -140,6 +134,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return session;
         }
 
+        private static void EndDebuggingSession(EditAndContinueWorkspaceService service, ImmutableArray<DocumentId> documentsWithRunModeDiagnostics = default)
+        {
+            service.EndDebuggingSession(out var documentsToReanalyze);
+            AssertEx.Equal(documentsWithRunModeDiagnostics.NullToEmpty(), documentsToReanalyze);
+        }
+
         internal static void SetDocumentsState(DebuggingSession session, Solution solution, CommittedSolution.DocumentState state)
         {
             foreach (var project in solution.Projects)
@@ -151,8 +151,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        private void VerifyReanalyzeInvocation(params object[] expectedArgs)
-            => _mockDiagnosticService.Invocations.VerifyAndClear((nameof(IDiagnosticAnalyzerService.Reanalyze), expectedArgs));
+        private static IEnumerable<string> InspectDiagnostics(ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> actual)
+            => actual.Select(d => $"{d.ProjectId} {InspectDiagnostics(d.Diagnostics)}");
+
+        private static string InspectDiagnostics(IEnumerable<Diagnostic> diagnostics)
+            => string.Join(",", diagnostics.Select(InspectDiagnostic));
+
+        private static string InspectDiagnostic(Diagnostic diagnostic)
+            => $"{diagnostic.Severity} {diagnostic.Id}: {diagnostic.GetMessage()}";
 
         internal static Guid ReadModuleVersionId(Stream stream)
         {
@@ -309,8 +315,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // validate solution update status and emit - changes made in design-time-only documents are ignored:
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            service.EndDebuggingSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -377,9 +382,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 // validate solution update status and emit - changes made during run mode are ignored:
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
                 Assert.Empty(deltas);
+                Assert.Empty(emitDiagnostics);
             }
         }
 
@@ -419,7 +425,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             AssertEx.Equal(new[] { "ENC1003" }, diagnostics.Select(d => d.Id));
 
-            service.EndDebuggingSession();
+            EndDebuggingSession(service, documentsWithRunModeDiagnostics: ImmutableArray.Create(document1.Id));
 
             AssertEx.Equal(new[]
             {
@@ -458,8 +464,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            service.EndDebuggingSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray.Create(document2.Id), false);
+            EndDebuggingSession(service, documentsWithRunModeDiagnostics: ImmutableArray.Create(document2.Id));
 
             AssertEx.Equal(new[]
             {
@@ -499,15 +504,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 // validate solution update status and emit - changes made during run mode are ignored:
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
                 Assert.Empty(deltas);
+                Assert.Empty(emitDiagnostics);
 
                 diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
                 AssertEx.Equal(new[] { "ENC1003" }, diagnostics.Select(d => d.Id));
 
-                service.EndDebuggingSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray.Create(document2.Id), false);
+                EndDebuggingSession(service, documentsWithRunModeDiagnostics: ImmutableArray.Create(document2.Id));
 
                 AssertEx.Equal(new[]
                 {
@@ -546,7 +551,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // validate solution update status and emit - changes made during run mode are ignored:
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            service.EndDebuggingSession();
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -577,9 +582,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 // validate solution update status and emit:
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
                 Assert.Empty(deltas);
+                Assert.Empty(emitDiagnostics);
             }
         }
 
@@ -616,9 +622,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // validate solution update status and emit:
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(deltas);
+            Assert.Empty(emitDiagnostics);
         }
 
         [Theory]
@@ -676,9 +683,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // validate solution update status and emit:
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
-            Assert.Empty(_emitDiagnosticsUpdated);
+            Assert.Empty(emitDiagnostics);
 
             if (delayLoad)
             {
@@ -687,13 +694,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 // validate solution update status and emit:
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
-                Assert.Empty(_emitDiagnosticsUpdated);
+                Assert.Empty(emitDiagnostics);
             }
 
-            service.EndEditSession();
-            service.EndDebuggingSession();
+            EndEditSession(service);
+            EndDebuggingSession(service);
         }
 
         [Fact]
@@ -701,6 +708,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             // module file is empty, which will cause a read error:
             var moduleFile = Temp.CreateFile();
+
+            string expectedErrorMessage = null;
+            try
+            {
+                using var stream = File.OpenRead(moduleFile.Path);
+                using var peReader = new PEReader(stream);
+                _ = peReader.GetMetadataReader();
+            }
+            catch (Exception e)
+            {
+                expectedErrorMessage = e.Message;
+            }
 
             using (var workspace = CreateWorkspace())
             {
@@ -724,28 +743,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                Assert.Empty(_emitDiagnosticsUpdated);
-                Assert.Equal(0, _emitDiagnosticsClearedCount);
-
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
                 Assert.Empty(deltas);
+                AssertEx.Equal(new[] { $"{project.Id} Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}" }, InspectDiagnostics(emitDiagnostics));
 
-                Assert.Equal(1, _emitDiagnosticsClearedCount);
-                var eventArgs = _emitDiagnosticsUpdated.Single();
-                Assert.Null(eventArgs.DocumentId);
-                Assert.Equal(project.Id, eventArgs.ProjectId);
-                AssertEx.Equal(new[] { "ENC1001" }, eventArgs.Diagnostics.Select(d => d.Id));
-                _emitDiagnosticsUpdated.Clear();
-                _emitDiagnosticsClearedCount = 0;
-
-                service.EndEditSession();
-                Assert.Empty(_emitDiagnosticsUpdated);
-                Assert.Equal(0, _emitDiagnosticsClearedCount);
-
-                service.EndDebuggingSession();
-                Assert.Empty(_emitDiagnosticsUpdated);
-                Assert.Equal(1, _emitDiagnosticsClearedCount);
+                EndEditSession(service);
+                EndDebuggingSession(service);
 
                 AssertEx.Equal(new[]
                 {
@@ -799,30 +803,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(0, _emitDiagnosticsClearedCount);
-
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(deltas);
+            AssertEx.Equal(new[] { $"{project.Id} Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
 
-            Assert.Equal(1, _emitDiagnosticsClearedCount);
-            var eventArgs = _emitDiagnosticsUpdated.Single();
-            Assert.Null(eventArgs.DocumentId);
-            Assert.Equal(project.Id, eventArgs.ProjectId);
-            AssertEx.Equal(new[] { "Warning ENC1006: " + string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path) },
-                eventArgs.Diagnostics.Select(d => $"{d.Severity} {d.Id}: {d.Message}"));
-
-            _emitDiagnosticsUpdated.Clear();
-            _emitDiagnosticsClearedCount = 0;
-
-            service.EndEditSession();
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(0, _emitDiagnosticsClearedCount);
-
-            service.EndDebuggingSession();
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(1, _emitDiagnosticsClearedCount);
+            EndEditSession(service);
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -867,42 +854,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(0, _emitDiagnosticsClearedCount);
-
             // try apply changes:
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(deltas);
-
-            Assert.Equal(1, _emitDiagnosticsClearedCount);
-            var eventArgs = _emitDiagnosticsUpdated.Single();
-            Assert.Null(eventArgs.DocumentId);
-            Assert.Equal(project.Id, eventArgs.ProjectId);
-            AssertEx.Equal(new[] { "Warning ENC1006: " + string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path) },
-                eventArgs.Diagnostics.Select(d => $"{d.Severity} {d.Id}: {d.Message}"));
-
-            _emitDiagnosticsUpdated.Clear();
-            _emitDiagnosticsClearedCount = 0;
+            AssertEx.Equal(new[] { $"{project.Id} Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
 
             fileLock.Dispose();
 
             // try apply changes again:
-            (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
             Assert.NotEmpty(deltas);
+            Assert.Empty(emitDiagnostics);
 
-            Assert.Equal(1, _emitDiagnosticsClearedCount);
-            Assert.Empty(_emitDiagnosticsUpdated);
-            _emitDiagnosticsClearedCount = 0;
-
-            service.EndEditSession();
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(0, _emitDiagnosticsClearedCount);
-
-            service.EndDebuggingSession();
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(1, _emitDiagnosticsClearedCount);
+            EndEditSession(service);
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -943,16 +910,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
+            AssertEx.Equal(new[] { $"{project.Id} Error ENC2123: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, project.Name, "*message*")}" }, InspectDiagnostics(emitDiagnostics));
 
-            AssertEx.Equal(
-                new[] { "ENC2123: " + string.Format(FeaturesResources.EditAndContinueDisallowedByProject, project.Name, "*message*") },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
-
-            service.EndEditSession();
-            service.EndDebuggingSession();
+            EndEditSession(service, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -1001,7 +965,6 @@ class C1
                 var debuggingSession = StartDebuggingSession(service);
 
                 StartEditSession(service, loadedModules: _loadedModulesProvider);
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
                 // change the source:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1016,18 +979,13 @@ class C1
                 // validate solution update status and emit:
                 Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
                 Assert.Empty(deltas);
+                AssertEx.Equal(new[] { $"{project.Id} Error ENC2123: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, project.Name, "*message*")}" }, InspectDiagnostics(emitDiagnostics));
 
-                AssertEx.Equal(new[] { "ENC2123: " + string.Format(FeaturesResources.EditAndContinueDisallowedByProject, project.Name, "*message*") },
-                    _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
-
-                service.EndEditSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
-
-                service.EndDebuggingSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+                EndEditSession(service);
+                EndDebuggingSession(service);
 
                 AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
@@ -1077,8 +1035,8 @@ class C1
             // EnC service queries for a document, which triggers read of the source file from disk.
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            service.EndEditSession();
-            service.EndDebuggingSession();
+            EndEditSession(service);
+            EndDebuggingSession(service);
         }
 
         [Fact]
@@ -1096,7 +1054,6 @@ class C1
                 var debuggingSession = StartDebuggingSession(service);
 
                 StartEditSession(service);
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
                 // change the source (rude edit):
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1110,15 +1067,13 @@ class C1
                 // validate solution update status and emit:
                 Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
                 Assert.Empty(deltas);
+                Assert.Empty(emitDiagnostics);
 
-                service.EndEditSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray.Create(document2.Id), false);
-
-                service.EndDebuggingSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+                EndEditSession(service, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(service);
 
                 AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
@@ -1162,7 +1117,6 @@ class C1
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // change the source (rude edit):
             workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void RenamedMethod() { System.Console.WriteLine(1); } }"));
@@ -1175,16 +1129,10 @@ class C1
             // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(deltas);
-
-            AssertEx.Equal(
-                new[] { "ENC1005: " + string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path) },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
-
-            _emitDiagnosticsUpdated.Clear();
-            _emitDiagnosticsClearedCount = 0;
+            AssertEx.Equal(new[] { $"{project.Id} Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
 
             // update the file to match the build:
             sourceFile.WriteAllText(source0);
@@ -1200,16 +1148,13 @@ class C1
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             AssertEx.Equal(new[] { "ENC0020" }, diagnostics.Select(d => d.Id));
 
-            (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
-            Assert.Empty(_emitDiagnosticsUpdated);
+            Assert.Empty(emitDiagnostics);
 
-            service.EndEditSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray.Create(document2.Id), false);
-
-            service.EndDebuggingSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+            EndEditSession(service, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(service);
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
@@ -1261,12 +1206,13 @@ class C1
             // validate solution update status and emit:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
+            Assert.Empty(emitDiagnostics);
 
-            service.EndEditSession();
-            service.EndDebuggingSession();
+            EndEditSession(service, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(service);
         }
 
         [Fact]
@@ -1308,9 +1254,10 @@ class C1
 
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
+            Assert.Empty(emitDiagnostics);
 
             // load library to the debuggee:
             LoadLibraryToDebuggee(moduleId);
@@ -1323,12 +1270,13 @@ class C1
 
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
+            Assert.Empty(emitDiagnostics);
 
-            service.EndEditSession();
-            service.EndDebuggingSession();
+            EndEditSession(service, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(service);
         }
 
         [Fact]
@@ -1346,7 +1294,6 @@ class C1
                 var debuggingSession = StartDebuggingSession(service);
 
                 StartEditSession(service);
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
                 // change the source (compilation error):
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1360,15 +1307,13 @@ class C1
                 // validate solution update status and emit:
                 Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
                 Assert.Empty(deltas);
+                Assert.Empty(emitDiagnostics);
 
-                service.EndEditSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
-
-                service.EndDebuggingSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+                EndEditSession(service);
+                EndDebuggingSession(service);
 
                 AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
@@ -1395,7 +1340,6 @@ class C1
             var debuggingSession = StartDebuggingSession(service);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // change the source (compilation error):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1410,22 +1354,16 @@ class C1
             // Blocking update on semantic errors would be possible, but the status check is only an optimization to avoid emitting.
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
 
             // TODO: https://github.com/dotnet/roslyn/issues/36061
             // Semantic errors should not be reported in emit diagnostics.
-            AssertEx.Equal(new[] { "CS0266" }, _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => d.Id));
-            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
-            _emitDiagnosticsUpdated.Clear();
-            _emitDiagnosticsClearedCount = 0;
+            AssertEx.Equal(new[] { $"{project.Id} Error CS0266: {string.Format(CSharpResources.ERR_NoImplicitConvCast, "long", "int")}" }, InspectDiagnostics(emitDiagnostics));
 
-            service.EndEditSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
-
-            service.EndDebuggingSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+            EndEditSession(service);
+            EndDebuggingSession(service);
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
@@ -1471,8 +1409,8 @@ class C1
                 // All projects must have no errors.
                 Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                service.EndEditSession();
-                service.EndDebuggingSession();
+                EndEditSession(service);
+                EndDebuggingSession(service);
             }
         }
 
@@ -1491,7 +1429,6 @@ class C1
             StartDebuggingSession(service);
 
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // change the source (valid edit but passing no encoding to emulate emit error):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1504,14 +1441,9 @@ class C1
             // validate solution update status and emit:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
-
-            AssertEx.Equal(
-                new[] { "CS8055: " + string.Format(CSharpResources.ERR_EncodinglessSyntaxTree) },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
-
-            _emitDiagnosticsUpdated.Clear();
-            _emitDiagnosticsClearedCount = 0;
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal(new[] { $"{project.Id} Error CS8055: {string.Format(CSharpResources.ERR_EncodinglessSyntaxTree)}" }, InspectDiagnostics(emitDiagnostics));
+            Assert.Empty(emitDiagnostics);
 
             // no emitted delta:
             Assert.Empty(deltas);
@@ -1531,15 +1463,8 @@ class C1
             // solution update status after discarding an update (still has update ready):
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            service.EndEditSession();
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(0, _emitDiagnosticsClearedCount);
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
-
-            service.EndDebuggingSession();
-            Assert.Empty(_emitDiagnosticsUpdated);
-            Assert.Equal(1, _emitDiagnosticsClearedCount);
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+            EndEditSession(service);
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -1606,12 +1531,13 @@ class C1
 
             // EnC service queries for a document, which triggers read of the source file from disk.
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(emitDiagnostics);
 
             Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
             service.CommitSolutionUpdate();
 
-            service.EndEditSession();
+            EndEditSession(service);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1620,7 +1546,8 @@ class C1
             var document3 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
             var hasChanges = await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
-            (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(emitDiagnostics);
 
             if (saveDocument)
             {
@@ -1633,8 +1560,8 @@ class C1
                 Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
             }
 
-            service.EndEditSession();
-            service.EndDebuggingSession();
+            EndEditSession(service);
+            EndDebuggingSession(service);
         }
 
         [Fact]
@@ -1685,15 +1612,9 @@ class C1
             // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
-
-            AssertEx.Equal(
-                new[] { "ENC1005: " + string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path) },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
-
-            _emitDiagnosticsUpdated.Clear();
-            _emitDiagnosticsClearedCount = 0;
+            AssertEx.Equal(new[] { $"{project.Id} Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}" }, InspectDiagnostics(emitDiagnostics));
 
             // undo:
             workspace.ChangeDocument(documentId, SourceText.From(source1, Encoding.UTF8));
@@ -1706,13 +1627,14 @@ class C1
             sourceFile.WriteAllText(source1);
 
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
-            (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(emitDiagnostics);
 
             // the content actually hasn't changed:
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
 
-            service.EndEditSession();
-            service.EndDebuggingSession();
+            EndEditSession(service);
+            EndDebuggingSession(service);
         }
 
         [Theory]
@@ -1748,19 +1670,14 @@ class C1
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             StartEditSession(service);
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // no changes have been made to the project
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(deltas);
-
-            Assert.Empty(_emitDiagnosticsUpdated);
-
-            _emitDiagnosticsUpdated.Clear();
-            _emitDiagnosticsClearedCount = 0;
+            Assert.Empty(emitDiagnostics);
 
             // a file watcher observed a change and updated the document, so it now reflects the content on disk (the code that we compiled):
             workspace.ChangeDocument(document1.Id, SourceText.From(sourceOnDisk, Encoding.UTF8));
@@ -1772,18 +1689,12 @@ class C1
             // the content of the file is now exactly the same as the compiled document, so there is no change to be applied:
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            (solutionStatusEmit, _) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            (solutionStatusEmit, _, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
+            Assert.Empty(emitDiagnostics);
 
-            service.EndEditSession();
-
-            // no diagnostics reported via a document analyzer
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
-
-            service.EndDebuggingSession();
-
-            // no diagnostics reported via a document analyzer
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+            EndEditSession(service);
+            EndDebuggingSession(service);
 
             Assert.Empty(debuggingSession.Test_GetModulesPreparedForUpdate());
         }
@@ -1800,16 +1711,9 @@ class C1
 
             var (debuggeeModuleInfo, moduleId) = EmitAndLoadLibraryToDebuggee(sourceV1);
 
-            var diagnosticUpdateSource = new EditAndContinueDiagnosticUpdateSource();
-            var emitDiagnosticsUpdated = new List<DiagnosticsUpdatedArgs>();
-            diagnosticUpdateSource.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs args) => emitDiagnosticsUpdated.Add(args);
-
             var service = CreateEditAndContinueService(workspace);
-
             var debuggingSession = StartDebuggingSession(service);
-
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // change the source (valid edit):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1822,8 +1726,8 @@ class C1
             // validate solution update status and emit:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
-            AssertEx.Empty(emitDiagnosticsUpdated);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(emitDiagnostics);
             Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
 
             // check emitted delta:
@@ -1883,11 +1787,8 @@ class C1
                 Assert.True(discardedUpdateSolutionStatus);
             }
 
-            service.EndEditSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
-
-            service.EndDebuggingSession();
-            VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
+            EndEditSession(service);
+            EndDebuggingSession(service);
 
             // open module readers should be disposed when the debugging session ends:
             VerifyReadersDisposed(readers);
@@ -1954,8 +1855,9 @@ class C1
             // validate solution update status and emit:
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
+            Assert.Empty(emitDiagnostics);
 
             // delta to apply:
             var delta = deltas.Single();
@@ -2000,7 +1902,7 @@ class C1
                 // solution update status after committing an update:
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                service.EndEditSession();
+                EndEditSession(service);
 
                 // make another update:
                 StartEditSession(service);
@@ -2011,11 +1913,12 @@ class C1
                 var document3 = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 workspace.ChangeDocument(document3.Id, SourceText.From("class C1 { void M1() { int a = 3; System.Console.WriteLine(a); } void M2() { System.Console.WriteLine(2); } }", Encoding.UTF8));
 
-                (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
+                Assert.Empty(emitDiagnostics);
 
-                service.EndEditSession();
-                service.EndDebuggingSession();
+                EndEditSession(service);
+                EndDebuggingSession(service);
 
                 // open module readers should be disposed when the debugging session ends:
                 VerifyReadersDisposed(readers);
@@ -2030,8 +1933,8 @@ class C1
 
                 VerifyReadersDisposed(readers);
 
-                service.EndEditSession();
-                service.EndDebuggingSession();
+                EndEditSession(service);
+                EndDebuggingSession(service);
             }
         }
 
@@ -2093,8 +1996,9 @@ class C1
                 // validate solution update status and emit:
                 Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
+                Assert.Empty(emitDiagnostics);
 
                 var deltaA = deltas.Single(d => d.Mvid == moduleIdA);
                 var deltaB = deltas.Single(d => d.Mvid == moduleIdB);
@@ -2132,7 +2036,7 @@ class C1
                 // solution update status after committing an update:
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                service.EndEditSession();
+                EndEditSession(service);
                 editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
                 //
@@ -2145,8 +2049,9 @@ class C1
                 // validate solution update status and emit:
                 Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(SolutionUpdateStatus.Ready, solutionStatusEmit);
+                Assert.Empty(emitDiagnostics);
 
                 deltaA = deltas.Single(d => d.Mvid == moduleIdA);
                 deltaB = deltas.Single(d => d.Mvid == moduleIdB);
@@ -2184,9 +2089,9 @@ class C1
                 // solution update status after committing an update:
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                service.EndEditSession();
+                EndEditSession(service);
 
-                service.EndDebuggingSession();
+                EndDebuggingSession(service);
 
                 // open deferred module readers should be dispose when the debugging session ends:
                 VerifyReadersDisposed(readers);
@@ -2279,8 +2184,8 @@ class C1
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
-                AssertEx.Equal(new[] { "ENC1001" }, _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => d.Id));
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                AssertEx.Equal(new[] { $"{project.Id} Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-pdb", new FileNotFoundException().Message)}" }, InspectDiagnostics(emitDiagnostics));
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             }
         }
@@ -2302,7 +2207,7 @@ class C1
                 _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid())
                 {
                     OpenPdbStreamImpl = () => pdbStream,
-                    OpenAssemblyStreamImpl = () => throw new IOException(),
+                    OpenAssemblyStreamImpl = () => throw new IOException("*message*"),
                 };
 
                 var service = CreateEditAndContinueService(workspace);
@@ -2316,12 +2221,12 @@ class C1
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
 
-                var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
-                AssertEx.Equal(new[] { "ENC1001" }, _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => d.Id));
+                var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                AssertEx.Equal(new[] { $"{project.Id} Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-assembly", "*message*")}" }, InspectDiagnostics(emitDiagnostics));
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
 
-                service.EndEditSession();
-                service.EndDebuggingSession();
+                EndEditSession(service);
+                EndDebuggingSession(service);
 
                 AssertEx.Equal(new[]
                 {

@@ -10,6 +10,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,11 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
         private readonly RemoteEditAndContinueServiceProxy _proxy;
+        private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
-            => _proxy = new RemoteEditAndContinueServiceProxy(workspace);
+        public VisualStudioManagedModuleUpdateProvider(
+            VisualStudioWorkspace workspace,
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
+        {
+            _proxy = new RemoteEditAndContinueServiceProxy(workspace);
+            _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
+        }
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
@@ -51,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
-                var (summary, deltas) = await _proxy.EmitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+                var (summary, deltas) = await _proxy.EmitSolutionUpdateAsync(_emitDiagnosticsUpdateSource, cancellationToken).ConfigureAwait(false);
                 return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))

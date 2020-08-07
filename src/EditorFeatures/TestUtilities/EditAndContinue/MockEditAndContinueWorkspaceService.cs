@@ -12,15 +12,20 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
+    internal delegate void StartEditSession(ActiveStatementProvider activeStatementProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze);
+    internal delegate void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze);
+
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
         public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansAsyncImpl;
         public Func<Solution, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionAsyncImpl;
         public Func<Document, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetDocumentActiveStatementSpansAsyncImpl;
         public Action<Solution>? StartDebuggingSessionImpl;
-        public Action<ActiveStatementProvider, IDebuggeeModuleMetadataProvider>? StartEditSessionImpl;
+        public StartEditSession? StartEditSessionImpl;
+        public EndSession? EndDebuggingSessionImpl;
+        public EndSession? EndEditSessionImpl;
         public Func<Solution, string?, bool>? HasChangesAsyncImpl;
-        public Func<Solution, (SolutionUpdateStatus, ImmutableArray<Deltas>)>? EmitSolutionUpdateAsyncImpl;
+        public Func<Solution, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)>)>? EmitSolutionUpdateAsyncImpl;
         public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionAsyncImpl;
 
         public bool IsDebuggingSessionInProgress => throw new NotImplementedException();
@@ -29,12 +34,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public void DiscardSolutionUpdate() { }
 
-        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> Diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
             => Task.FromResult((EmitSolutionUpdateAsyncImpl ?? throw new NotImplementedException()).Invoke(solution));
 
-        public void EndDebuggingSession() { }
+        public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            EndDebuggingSessionImpl?.Invoke(out documentsToReanalyze);
+        }
 
-        public void EndEditSession() { }
+        public void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            EndEditSessionImpl?.Invoke(out documentsToReanalyze);
+        }
 
         public Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
             => Task.FromResult((GetBaseActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(documentIds));
@@ -55,12 +68,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public void OnSourceFileUpdated(DocumentId documentId) { }
 
-        public void ReportApplyChangesException(Solution solution, string message) { }
-
         public void StartDebuggingSession(Solution solution)
             => StartDebuggingSessionImpl?.Invoke(solution);
 
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider)
-            => StartEditSessionImpl?.Invoke(activeStatementsProvider, debuggeeModuleMetadataProvider);
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            StartEditSessionImpl?.Invoke(activeStatementsProvider, debuggeeModuleMetadataProvider, out documentsToReanalyze);
+        }
     }
 }

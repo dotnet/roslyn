@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,15 +23,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken);
         }
 
+        Task<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
         Task<bool> HasChangesAsync(PinnedSolutionInfo solutionInfo, string? sourceFilePath, CancellationToken cancellationToken);
-        Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas.Data> Deltas)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
+
+        Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas.Data> Deltas, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
+
         Task CommitUpdateAsync(CancellationToken cancellationToken);
         Task DiscardUpdatesAsync(CancellationToken cancellationToken);
 
         Task StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
-        Task StartEditSessionAsync(CancellationToken cancellationToken);
-        Task EndEditSessionAsync(CancellationToken cancellationToken);
-        Task EndDebuggingSessionAsync(CancellationToken cancellationToken);
+        Task<ImmutableArray<DocumentId>> StartEditSessionAsync(CancellationToken cancellationToken);
+        Task<ImmutableArray<DocumentId>> EndEditSessionAsync(CancellationToken cancellationToken);
+        Task<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken);
 
         Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
         Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);

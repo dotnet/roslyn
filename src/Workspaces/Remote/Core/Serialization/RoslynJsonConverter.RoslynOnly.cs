@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Add(builder, new AddImportFixDataJsonConverter());
 
             Add(builder, new AnalyzerPerformanceInfoConverter());
+            Add(builder, new DiagnosticDataLocationJsonConverter());
+            Add(builder, new DiagnosticDataJsonConverter());
         }
 
         private class TodoCommentDescriptorJsonConverter : BaseJsonConverter<TodoCommentDescriptor>
@@ -413,6 +415,208 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName(nameof(AnalyzerPerformanceInfo.TimeSpan));
                 serializer.Serialize(writer, info.TimeSpan);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private sealed class DiagnosticDataLocationJsonConverter : BaseJsonConverter<DiagnosticDataLocation>
+        {
+            protected override DiagnosticDataLocation ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                var documentId = ReadProperty<DocumentId>(reader, serializer);
+                var sourceSpan = ReadProperty<TextSpan>(reader, serializer);
+                var mappedFilePath = ReadProperty<string>(reader);
+                var mappedStartLine = (int)ReadProperty<long>(reader);
+                var mappedStartColumn = (int)ReadProperty<long>(reader);
+                var mappedEndLine = (int)ReadProperty<long>(reader);
+                var mappedEndColumn = (int)ReadProperty<long>(reader);
+                var originalFilePath = ReadProperty<string>(reader);
+                var originalStartLine = (int)ReadProperty<long>(reader);
+                var originalStartColumn = (int)ReadProperty<long>(reader);
+                var originalEndLine = (int)ReadProperty<long>(reader);
+                var originalEndColumn = (int)ReadProperty<long>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new DiagnosticDataLocation(
+                    documentId,
+                    sourceSpan,
+                    originalFilePath,
+                    originalStartLine,
+                    originalStartColumn,
+                    originalEndLine,
+                    originalEndColumn,
+                    mappedFilePath,
+                    mappedStartLine,
+                    mappedStartColumn,
+                    mappedEndLine,
+                    mappedEndColumn);
+            }
+
+            protected override void WriteValue(JsonWriter writer, DiagnosticDataLocation location, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.DocumentId));
+                serializer.Serialize(writer, location.DocumentId);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.SourceSpan));
+                serializer.Serialize(writer, location.SourceSpan);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.MappedFilePath));
+                writer.WriteValue(location.MappedFilePath);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.MappedStartLine));
+                writer.WriteValue(location.MappedStartLine);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.MappedStartColumn));
+                writer.WriteValue(location.MappedStartColumn);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.MappedEndLine));
+                writer.WriteValue(location.MappedEndLine);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.MappedEndColumn));
+                writer.WriteValue(location.MappedEndColumn);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.OriginalFilePath));
+                writer.WriteValue(location.OriginalFilePath);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.OriginalStartLine));
+                writer.WriteValue(location.OriginalStartLine);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.OriginalStartColumn));
+                writer.WriteValue(location.OriginalStartColumn);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.OriginalEndLine));
+                writer.WriteValue(location.OriginalEndLine);
+
+                writer.WritePropertyName(nameof(DiagnosticDataLocation.OriginalEndColumn));
+                writer.WriteValue(location.OriginalEndColumn);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private sealed class DiagnosticDataJsonConverter : BaseJsonConverter<DiagnosticData>
+        {
+            protected override DiagnosticData ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                {
+                    return null;
+                }
+
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                var id = ReadProperty<string>(reader);
+                var category = ReadProperty<string>(reader);
+                var message = ReadProperty<string>(reader);
+                var enuMessageForBingSearch = ReadProperty<string?>(reader);
+                var severity = ReadProperty<DiagnosticSeverity>(reader, serializer);
+                var defaultSeverity = ReadProperty<DiagnosticSeverity>(reader, serializer);
+                var isEnabledByDefault = ReadProperty<bool>(reader);
+                var warningLevel = (int)ReadProperty<long>(reader);
+                var customTags = ReadProperty<IReadOnlyList<string>>(reader, serializer);
+                var properties = ReadProperty<ImmutableDictionary<string, string>>(reader, serializer);
+                var projectId = ReadProperty<ProjectId>(reader, serializer);
+                var location = ReadProperty<DiagnosticDataLocation?>(reader, serializer);
+                var additionalLocations = ReadProperty<IReadOnlyCollection<DiagnosticDataLocation>>(reader, serializer);
+                var language = ReadProperty<string>(reader);
+                var title = ReadProperty<string>(reader);
+                var description = ReadProperty<string>(reader);
+                var helpLink = ReadProperty<string>(reader);
+                var isSuppressed = ReadProperty<bool>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new DiagnosticData(
+                    id,
+                    category,
+                    message,
+                    enuMessageForBingSearch,
+                    severity,
+                    defaultSeverity,
+                    isEnabledByDefault,
+                    warningLevel,
+                    customTags,
+                    properties,
+                    projectId,
+                    location,
+                    additionalLocations,
+                    language,
+                    title,
+                    description,
+                    helpLink,
+                    isSuppressed);
+            }
+
+            protected override void WriteValue(JsonWriter writer, DiagnosticData data, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(DiagnosticData.Id));
+                writer.WriteValue(data.Id);
+
+                writer.WritePropertyName(nameof(DiagnosticData.Category));
+                writer.WriteValue(data.Category);
+
+                writer.WritePropertyName(nameof(DiagnosticData.Message));
+                writer.WriteValue(data.Message);
+
+                writer.WritePropertyName(nameof(DiagnosticData.ENUMessageForBingSearch));
+                writer.WriteValue(data.ENUMessageForBingSearch);
+
+                writer.WritePropertyName(nameof(DiagnosticData.Severity));
+                writer.WriteValue((int)data.Severity);
+
+                writer.WritePropertyName(nameof(DiagnosticData.DefaultSeverity));
+                writer.WriteValue((int)data.DefaultSeverity);
+
+                writer.WritePropertyName(nameof(DiagnosticData.IsEnabledByDefault));
+                writer.WriteValue(data.IsEnabledByDefault);
+
+                writer.WritePropertyName(nameof(DiagnosticData.WarningLevel));
+                writer.WriteValue(data.WarningLevel);
+
+                writer.WritePropertyName(nameof(DiagnosticData.CustomTags));
+                serializer.Serialize(writer, data.CustomTags);
+
+                writer.WritePropertyName(nameof(DiagnosticData.Properties));
+                serializer.Serialize(writer, data.Properties);
+
+                writer.WritePropertyName(nameof(DiagnosticData.ProjectId));
+                serializer.Serialize(writer, data.ProjectId);
+
+                writer.WritePropertyName(nameof(DiagnosticData.DataLocation));
+                serializer.Serialize(writer, data.DataLocation);
+
+                writer.WritePropertyName(nameof(DiagnosticData.AdditionalLocations));
+                serializer.Serialize(writer, data.AdditionalLocations);
+
+                writer.WritePropertyName(nameof(DiagnosticData.Language));
+                writer.WriteValue(data.Language);
+
+                writer.WritePropertyName(nameof(DiagnosticData.Title));
+                writer.WriteValue(data.Title);
+
+                writer.WritePropertyName(nameof(DiagnosticData.Description));
+                writer.WriteValue(data.Description);
+
+                writer.WritePropertyName(nameof(DiagnosticData.HelpLink));
+                writer.WriteValue(data.HelpLink);
+
+                writer.WritePropertyName(nameof(DiagnosticData.IsSuppressed));
+                writer.WriteValue(data.IsSuppressed);
 
                 writer.WriteEndObject();
             }
