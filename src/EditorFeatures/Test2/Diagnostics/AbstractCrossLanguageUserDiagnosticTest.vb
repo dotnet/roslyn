@@ -2,11 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
-' Licensed to the .NET Foundation under one or more agreements.
-' The .NET Foundation licenses this file to you under the MIT license.
-' See the LICENSE file in the project root for more information.
-
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Threading
@@ -61,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 onAfterWorkspaceCreated?.Invoke(workspace)
 
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
-                Dim codeActions = diagnosticAndFix.Item2.Fixes.Select(Function(f) f.Action).ToList()
+                Dim codeActions As IList(Of CodeAction) = diagnosticAndFix.Item2.Fixes.Select(Function(f) f.Action).ToList()
                 codeActions = MassageActions(codeActions)
                 Dim codeAction = codeActions(codeActionIndex)
 
