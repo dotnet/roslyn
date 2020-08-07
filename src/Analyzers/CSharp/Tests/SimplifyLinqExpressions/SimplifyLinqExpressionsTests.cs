@@ -587,7 +587,6 @@ namespace demo
             await TestMissingInRegularAndScriptAsync(source);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
         public async Task TestArgumentsInSecondCall()
 
