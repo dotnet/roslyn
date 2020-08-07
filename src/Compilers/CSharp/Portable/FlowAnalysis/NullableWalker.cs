@@ -8632,18 +8632,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             VisitRvalue(node.Argument);
             // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.
-            if (node.Argument.ConstantValue?.IsNull != true)
+            if (node.Argument.ConstantValue?.IsNull != true
+                && MakeMemberSlot(receiverOpt, @event) is not -1 and var memberSlot)
             {
                 if (node.IsAddition)
                 {
-                    if (ResultType.IsNotNull)
-                    {
-                        LearnFromNonNullTest(MakeMemberSlot(receiverOpt, @event), ref State);
-                    }
+                    this.State[memberSlot] = this.State[memberSlot].Meet(ResultType.State);
                 }
                 else
                 {
-                    LearnFromNullTest(MakeMemberSlot(receiverOpt, @event), ResultType.Type, ref State, markDependentSlotsNotNull: false);
+                    this.State[memberSlot] = NullableFlowState.MaybeNull;
                 }
             }
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29969 Review whether this is the correct result
