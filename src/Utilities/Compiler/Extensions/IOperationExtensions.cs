@@ -219,10 +219,10 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Gets the first ancestor of this operation with:
         ///  1. Specified OperationKind
-        ///  2. If <paramref name="predicateOpt"/> is non-null, it succeeds for the ancestor.
+        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
         /// Returns null if there is no such ancestor.
         /// </summary>
-        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicateOpt = null)
+        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicate = null)
             where TOperation : class, IOperation
         {
             if (root == null)
@@ -238,9 +238,9 @@ namespace Analyzer.Utilities.Extensions
 
             if (ancestor != null)
             {
-                if (predicateOpt != null && !predicateOpt((TOperation)ancestor))
+                if (predicate != null && !predicate((TOperation)ancestor))
                 {
-                    return GetAncestor(ancestor, ancestorKind, predicateOpt);
+                    return GetAncestor(ancestor, ancestorKind, predicate);
                 }
                 return (TOperation)ancestor;
             }
@@ -763,6 +763,24 @@ namespace Analyzer.Utilities.Extensions
                 IAssignmentOperation { Target: var target } when target == potentialLeftSide => true,
                 _ => false,
             };
+        }
+
+        public static IArgumentOperation GetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex)
+        {
+            Debug.Assert(parameterIndex >= 0);
+            Debug.Assert(parameterIndex < arguments.Length);
+
+            foreach (var argument in arguments)
+            {
+                if (argument.Parameter.Ordinal == parameterIndex)
+                {
+                    return argument;
+                }
+            }
+
+            throw new InvalidOperationException();
         }
     }
 }

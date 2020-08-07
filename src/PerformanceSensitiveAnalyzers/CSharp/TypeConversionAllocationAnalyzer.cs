@@ -261,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             }
         }
 
-
         private static void ArrowExpressionCheck(ArrowExpressionClauseSyntax syntax, SemanticModel semanticModel, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             var typeInfo = semanticModel.GetTypeInfo(syntax.Expression, cancellationToken);

@@ -977,7 +977,6 @@ class MyAnalyzer : DiagnosticAnalyzer
                     AdditionalFiles = { },
                 },
                 ReferenceAssemblies = AdditionalMetadataReferences.Default,
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             if (shippedText != null)
@@ -1014,7 +1013,6 @@ class MyAnalyzer : DiagnosticAnalyzer
                 : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix, XUnitVerifier>();
 
             test.ReferenceAssemblies = AdditionalMetadataReferences.Default;
-            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
             test.SolutionTransforms.Add(DisableNonReleaseTrackingWarnings);
 
             test.TestState.Sources.Add(source);

@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static async Task<Document> FixCommentsAsync(Document document, LiteralExpressionSyntax stringLiteral, CancellationToken c)
         {
-            var newValueText = FixComments(stringLiteral.Token.ValueText, prefixOpt: null);
+            var newValueText = FixComments(stringLiteral.Token.ValueText, prefix: null);
             var oldText = stringLiteral.Token.Text;
             var newText = FixComments(oldText, getPrefix(oldText));
             var newStringLiteral = stringLiteral.Update(SyntaxFactory.Literal(text: newText, value: newValueText)).WithTriviaFrom(stringLiteral);
@@ -182,23 +182,23 @@ namespace Roslyn.Diagnostics.Analyzers
             return text.Length;
         }
 
-        private static string FixComments(string text, string? prefixOpt)
+        private static string FixComments(string text, string? prefix)
         {
             var builder = new StringBuilder();
             int nextNumber = 1;
             int cursor = 0;
 
-            if (prefixOpt != null)
+            if (prefix != null)
             {
-                builder.Append(prefixOpt);
-                cursor += prefixOpt.Length;
+                builder.Append(prefix);
+                cursor += prefix.Length;
             }
 
-            int length = GetStringLengthIgnoringQuote(text, prefixOpt != null);
+            int length = GetStringLengthIgnoringQuote(text, prefix != null);
 
             do
             {
-                var (eolOrEofIndex, newLine) = FindNewLineOrEndOfFile(cursor, text, prefixOpt != null);
+                var (eolOrEofIndex, newLine) = FindNewLineOrEndOfFile(cursor, text, prefix != null);
                 // find the last comment between cursor and newLineIndex
                 (int commentStartIndex, int commaCount) = FindNumberComment(cursor, eolOrEofIndex, text);
                 if (commentStartIndex > 0)
@@ -215,7 +215,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
             while (cursor < length);
 
-            if (prefixOpt != null)
+            if (prefix != null)
             {
                 builder.Append('"');
             }

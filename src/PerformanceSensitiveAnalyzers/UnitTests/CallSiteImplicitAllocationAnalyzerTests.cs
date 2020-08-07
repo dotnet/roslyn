@@ -53,7 +53,6 @@ public class MyClass
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(16, 20));
         }
 
-
         [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
         public async Task EmptyParamsWithNetFramework45()
         {
@@ -87,7 +86,6 @@ public class MyClass
                         VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(10, 9),
                     },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             }.RunAsync();
         }
 
@@ -119,7 +117,6 @@ public struct OverrideToHashCode
         return -1;
     }
 }";
-
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(10,22): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
