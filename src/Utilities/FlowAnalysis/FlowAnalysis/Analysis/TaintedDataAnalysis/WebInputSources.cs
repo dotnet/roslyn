@@ -16,7 +16,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public static ImmutableHashSet<SourceInfo> SourceInfos { get; }
 
-        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>> s_sourceArgumentCacheByCompilation = new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
+        /// <summary>
+        /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
+        /// </summary>
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>> s_classIsControllerByCompilation =
+            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
+
+        /// <summary>
+        /// Cached information if the specified symbol is a Asp.Net Core Action: (compilation) -> ((method symbol) -> (is Action))
+        /// </summary>
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>> s_methodIsActionByCompilation =
+            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
 
         /// <summary>
         /// Statically constructs.
@@ -26,44 +36,51 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfo(
+                // checking all System.Object derived types is expensive, so it first checks if MicrosoftAspNetCoreMvcControllerBase is resolvable
                 WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
-                WellKnownTypeNames.SystemObject, // checking all System.Object derived types is expensive, so it first check if MicrosoftAspNetCoreMvcControllerBase is resolvable
+                WellKnownTypeNames.SystemObject,
                  new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
                         // it can be expensive to do all the machinery on every parameter reference access
-                        // since it ultimately boils down to if the method is an Action, we cache the containing symbol
-                        var cache = s_sourceArgumentCacheByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<ISymbol, bool>());
-                        if (cache.TryGetValue(parameter.ContainingSymbol, out bool ret))
-                            return ret;
+                        var methodCache = s_methodIsActionByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<ISymbol, bool>());
+                        if (methodCache.TryGetValue(parameter.ContainingSymbol, out bool isAction))
+                            return isAction;
 
-                        if (!(parameter.ContainingSymbol is IMethodSymbol containingSymbol)
-                            || !(containingSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
+                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol))
                         {
-                            cache.TryAdd(parameter.ContainingSymbol, false);
+                            methodCache.TryAdd(parameter.ContainingSymbol, false);
                             return false;
                         }
 
-                        if (!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
-                            && (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute, out var controllerAttributeTypeSymbol)
-                                || !typeSymbol.HasDerivedTypeAttribute(controllerAttributeTypeSymbol)))
+                        var classCache = s_classIsControllerByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<ISymbol, bool>());
+                        if (!classCache.TryGetValue(methodSymbol.ContainingSymbol, out bool isController))
                         {
-                            cache.TryAdd(parameter.ContainingSymbol, false);
-                            return false;
+                            if (!(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol)
+                                || (!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
+                                    && (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute, out var controllerAttributeTypeSymbol)
+                                        || !typeSymbol.HasDerivedTypeAttribute(controllerAttributeTypeSymbol)))
+                                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute, out var nonControllerAttributeTypeSymbol)
+                                || typeSymbol.HasDerivedTypeAttribute(nonControllerAttributeTypeSymbol))
+                            {
+                                classCache.TryAdd(methodSymbol.ContainingSymbol, false);
+                                methodCache.TryAdd(parameter.ContainingSymbol, false);
+                                return false;
+                            }
                         }
 
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public
-                            || containingSymbol.IsConstructor()
-                            || containingSymbol.IsStatic
+                        classCache.TryAdd(methodSymbol.ContainingSymbol, true);
+
+                        if (methodSymbol.DeclaredAccessibility != Accessibility.Public
+                            || methodSymbol.IsConstructor()
+                            || methodSymbol.IsStatic
                             || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute, out var nonActionAttributeTypeSymbol)
-                            || containingSymbol.HasDerivedMethodAttribute(nonActionAttributeTypeSymbol)
-                            || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute, out var nonControllerAttributeTypeSymbol)
-                            || typeSymbol.HasDerivedTypeAttribute(nonControllerAttributeTypeSymbol))
+                            || methodSymbol.HasDerivedMethodAttribute(nonActionAttributeTypeSymbol))
                         {
-                            cache.TryAdd(parameter.ContainingSymbol, false);
+                            methodCache.TryAdd(parameter.ContainingSymbol, false);
                             return false;
                         }
 
-                        cache.TryAdd(parameter.ContainingSymbol, true);
+                        methodCache.TryAdd(parameter.ContainingSymbol, true);
                         return true;
                     }
                  });
