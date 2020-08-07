@@ -366,6 +366,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if the method is a constructor and has a this() constructor initializer.
+        /// </summary>
+        internal static bool HasThisConstructorInitializer(this MethodSymbol method)
+        {
+            if ((object)method != null && method.MethodKind == MethodKind.Constructor)
+            {
+                SourceMemberMethodSymbol sourceMethod = method as SourceMemberMethodSymbol;
+                if ((object)sourceMethod != null)
+                {
+                    ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
+                    if (constructorSyntax != null)
+                    {
+                        ConstructorInitializerSyntax initializerSyntax = constructorSyntax.Initializer;
+                        if (initializerSyntax != null)
+                        {
+                            return initializerSyntax.Kind() == SyntaxKind.ThisConstructorInitializer;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// NOTE: every struct has a public parameterless constructor either used-defined or default one
         /// </summary>
         internal static bool IsParameterlessConstructor(this MethodSymbol method)

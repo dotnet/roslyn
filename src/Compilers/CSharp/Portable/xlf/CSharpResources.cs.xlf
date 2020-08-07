@@ -2662,13 +2662,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Není inicializovaný prvek {0} ({1}) bez možnosti zadání hodnoty null. Zvažte možnost deklarovat prvek {0} jako umožňující hodnotu null.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Není inicializované pole, které nemůže mít hodnotu null. Zvažte možnost deklarovat ho jako typ s možnou hodnotou null.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Není inicializované pole, které nemůže mít hodnotu null. Zvažte možnost deklarovat ho jako typ s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

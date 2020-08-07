@@ -298,7 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+            // TODO: do we need to somehow thread the initial state into here?
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
 #if DEBUG

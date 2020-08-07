@@ -494,6 +494,126 @@ class C
         }
 
         [Fact]
+        public void FieldInitializer_Simple_01()
+        {
+            var source = @"
+class C
+{
+    string field = ""hello"";
+    public C()
+    {
+        field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FieldInitializer_Simple_02()
+        {
+            var source = @"
+class C
+{
+    string Prop { get; set; } = ""hello"";
+    public C()
+    {
+        Prop.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyInitializer_AllowNullT_01()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T Prop { get; set; }
+    public C()
+    {
+        Prop = default;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyInitializer_AllowNullT_02()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T Prop { get; set; }
+    public C()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FieldInitializer_AllowNullT_01()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T field;
+    public C()
+    {
+        field = default;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,7): warning CS0414: The field 'C<T>.field' is assigned but its value is never used
+                //     T field;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C<T>.field").WithLocation(7, 7)
+                );
+        }
+
+        [Fact]
+        public void FieldInitializer_AllowNullT_02()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T field;
+    public C()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,7): warning CS0169: The field 'C<T>.field' is never used
+                //     T field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(7, 7)
+                );
+        }
+
+        [Fact]
         [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
         [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
         public void StaticFields_GenericTypes()
@@ -1470,11 +1590,15 @@ class C
         L(new object());
     }
 }";
+            // Null state does not flow out of local functions https://github.com/dotnet/roslyn/issues/45770
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,5): warning CS8618: Non-nullable field 'G' is uninitialized. Consider declaring the field as nullable.
+                // (6,5): warning CS8618: Non-nullable field 'G' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5),
+                // (6,5): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(6, 5));
         }
 
         [Fact]

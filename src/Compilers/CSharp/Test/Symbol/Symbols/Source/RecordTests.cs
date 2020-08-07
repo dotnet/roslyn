@@ -847,7 +847,11 @@ public record C(int x, int y)
     public int Z;
     public int W = 123;
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
+                );
 
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var clone = c.GetMethod(WellKnownMemberNames.CloneMethodName);
@@ -859,7 +863,12 @@ public record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
+                );
+
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -981,7 +990,11 @@ record C
 }", expectedOutput: @"False
 False
 True
-True").VerifyDiagnostics();
+True").VerifyDiagnostics(
+                // (5,17): warning CS0414: The field 'C.X' is assigned but its value is never used
+                //     private int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(5, 17)
+                );
 
             verifier.VerifyIL("C.Equals(object)", @"
 {
@@ -1040,7 +1053,12 @@ record C(int X, string Y)
 {
     public event Action E;
 }
-").VerifyDiagnostics();
+").VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
+                );
+
             var v2 = CompileAndVerify(@"
 using System;
 record C
@@ -1048,7 +1066,11 @@ record C
     public int X { get; }
     public string Y { get; }
     public event Action E;
-}").VerifyDiagnostics();
+}").VerifyDiagnostics(
+                // (7,25): warning CS0067: The event 'C.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(7, 25)
+                );
 
             Assert.Equal(v1.VisualizeIL("C.Equals(C)"), v2.VisualizeIL("C.Equals(C)"));
             Assert.Equal(v1.VisualizeIL("C.Equals(object)"), v2.VisualizeIL("C.Equals(object)"));

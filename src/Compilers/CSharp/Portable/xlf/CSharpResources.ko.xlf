@@ -2662,13 +2662,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">null을 허용하지 않는 {0} '{1}'이(가) 초기화되지 않았습니다. {0}을(를) nullable로 선언하는 것이 좋습니다.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">null을 허용하지 않는 필드가 초기화되지 않았습니다. nullable로 선언하는 것이 좋습니다.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">null을 허용하지 않는 필드가 초기화되지 않았습니다. nullable로 선언하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

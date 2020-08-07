@@ -2662,13 +2662,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">不可為 null 的 {0} '{1}' 未初始化。請考慮將 {0} 宣告為可為 null。</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">不可為 null 的欄位未初始化。請考慮宣告為可為 null。</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">不可為 null 的欄位未初始化。請考慮宣告為可為 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

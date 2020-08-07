@@ -2662,13 +2662,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Initialisation annulée pour le/la {0} '{1}' non-nullable. Déclarez le/la {0} comme étant nullable.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Le champ non-nullable n'est pas initialisé. Déclarez-le comme étant nullable.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Le champ non-nullable n'est pas initialisé. Déclarez-le comme étant nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

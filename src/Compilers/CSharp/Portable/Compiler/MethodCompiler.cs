@@ -598,22 +598,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // shouldn't be any initializers but for robustness, we check both.)
             if (!hasStaticConstructor &&
                 processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty &&
-                _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+                _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                containingType is { IsImplicitlyDeclared: false, TypeKind: TypeKind.Class or TypeKind.Struct })
             {
-                switch (containingType.TypeKind)
-                {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                        UnassignedFieldsWalker.ReportUninitializedNonNullableReferenceTypeFields(
-                            walkerOpt: null,
-                            thisSlot: -1,
-                            isStatic: true,
-                            members,
-                            getIsAssigned: (walker, slot, member) => false,
-                            getSymbolForLocation: (walker, member) => member,
-                            _diagnostics);
-                        break;
-                }
+                NullableWalker.AnalyzeIfNeeded(
+                    this._compilation,
+                    new SynthesizedStaticConstructor(containingType),
+                    BoundBlock.SynthesizedNoLocals(containingType.GetNonNullSyntaxNode()),
+                    _diagnostics,
+                    useConstructorExitWarnings: true,
+                    initialNullableState: null,
+                    out processedStaticInitializers.AfterInitializersState);
             }
 
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
@@ -967,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
 
-                    NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, initializerStatements, diagsForCurrentMethod);
+                    NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, initializerStatements, diagsForCurrentMethod, useConstructorExitWarnings: false, initialNullableState: null, out processedInitializers.AfterInitializersState);
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
                     DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
@@ -978,19 +973,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Do not emit initializers if we are invoking another constructor of this class.
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
-                                                !HasThisConstructorInitializer(methodSymbol) &&
+                                                !methodSymbol.HasThisConstructorInitializer() &&
                                                 !(methodSymbol is SynthesizedRecordCopyCtor) &&
                                                 !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
 
-                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested, out forSemanticModel);
+                    if (includeInitializersInBody && processedInitializers.LoweredInitializers == null)
+                    {
+                        analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
+                        processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
+                    }
+
+                    if (methodSymbol.IsConstructor() && processedInitializers.AfterInitializersState is null)
+                    {
+                        // TODO: should there be a state which indicates that we don't have an after initializers state and also don't want one?
+                        NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, analyzedInitializers ?? BoundBlock.SynthesizedNoLocals(methodSymbol.GetNonNullSyntaxNode()), diagsForCurrentMethod, useConstructorExitWarnings: false, initialNullableState: null, out processedInitializers.AfterInitializersState);
+                    }
+                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, processedInitializers.AfterInitializersState, out importChain, out originalBodyNested, out forSemanticModel);
                     if (diagsForCurrentMethod.HasAnyErrors() && body != null)
                     {
                         body = (BoundBlock)body.WithHasErrors();
-                    }
-
-                    if (body != null && methodSymbol.IsConstructor())
-                    {
-                        UnassignedFieldsWalker.Analyze(_compilation, methodSymbol, body, diagsForCurrentMethod);
                     }
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors
@@ -999,9 +1000,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // appended to its body.
                     if (includeInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
-                        analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
-                        processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
-
                         if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || methodSymbol is SynthesizedRecordConstructor || _emitTestCoverageData))
                         {
                             if (_emitTestCoverageData && methodSymbol.IsImplicitConstructor)
@@ -1021,7 +1019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // These analyses check for diagnostics in lambdas.
                             // Control flow analysis and implicit return insertion are unnecessary.
-                            NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod);
                             DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                         }
@@ -1629,11 +1626,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: can return null if the method has no body.
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            return BindMethodBody(method, compilationState, diagnostics, out _, out _, out _);
+            return BindMethodBody(method, compilationState, diagnostics, nullableInitialState: null, out _, out _, out _);
         }
 
         // NOTE: can return null if the method has no body.
         private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics,
+                                                 NullableWalker.VariableState nullableInitialState,
                                                  out ImportChain importChain, out bool originalBodyNested,
                                                  out MethodBodySemanticModel.InitialState forSemanticModel)
         {
@@ -1682,6 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             method,
                             methodBody,
                             bodyBinder,
+                            nullableInitialState,
                             // if language version is insufficient, we do not want to surface nullability diagnostics,
                             // but we should still provide nullability information through the semantic model.
                             isSufficientLangVersion ? diagnostics : new DiagnosticBag(),
@@ -1691,7 +1690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics);
+                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics, useConstructorExitWarnings: true, nullableInitialState, out _);
                     }
 
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
@@ -1761,6 +1760,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // synthesized methods should return their bound bodies
                 body = null;
+            }
+
+            if (method.IsConstructor() && method.IsImplicitlyDeclared && nullableInitialState is object)
+            {
+                NullableWalker.AnalyzeIfNeeded(compilationState.Compilation, method, body ?? BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode()), diagnostics, useConstructorExitWarnings: true, nullableInitialState, out _);
             }
 
             if (method.MethodKind == MethodKind.Destructor && body != null)
@@ -2045,31 +2049,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: baseConstructor.ReturnType,
                 hasErrors: false)
             { WasCompilerGenerated = true };
-        }
-
-        /// <summary>
-        /// Returns true if the method is a constructor and has a this() constructor initializer.
-        /// </summary>
-        private static bool HasThisConstructorInitializer(MethodSymbol method)
-        {
-            if ((object)method != null && method.MethodKind == MethodKind.Constructor)
-            {
-                SourceMemberMethodSymbol sourceMethod = method as SourceMemberMethodSymbol;
-                if ((object)sourceMethod != null)
-                {
-                    ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
-                    if (constructorSyntax != null)
-                    {
-                        ConstructorInitializerSyntax initializerSyntax = constructorSyntax.Initializer;
-                        if (initializerSyntax != null)
-                        {
-                            return initializerSyntax.Kind() == SyntaxKind.ThisConstructorInitializer;
-                        }
-                    }
-                }
-            }
-
-            return false;
         }
 
         private static Cci.DebugSourceDocument CreateDebugDocumentForFile(string normalizedPath)

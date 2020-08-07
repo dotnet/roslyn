@@ -425,7 +425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol switch
             {
                 MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
-                PropertySymbol property => property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
+                PropertySymbol property =>
+                    (property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None)
+                    | (property.GetOwnOrInheritedSetMethod()?.Parameters.Last().FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None),
                 ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
                 FieldSymbol field => field.FlowAnalysisAnnotations,
                 _ => FlowAnalysisAnnotations.None
