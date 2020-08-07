@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly IDelayService _delayService;
         private readonly IIOService _ioService;
         private readonly ISymbolSearchLogService _logService;
-        private readonly ISymbolSearchProgressService _progressService;
         private readonly IRemoteControlService _remoteControlService;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
@@ -230,37 +229,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             private async Task<TimeSpan> DownloadFullDatabaseAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
             {
-                try
-                {
-                    var title = string.Format(EditorFeaturesResources.Downloading_IntelliSense_index_for_0, _source);
-                    await _service._progressService.OnDownloadFullDatabaseStartedAsync(title).ConfigureAwait(false);
-
-                    var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
-                    if (succeeded)
-                    {
-                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync().ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await _service._progressService.OnDownloadFullDatabaseFailedAsync(
-                            EditorFeaturesResources.Downloading_index_failed).ConfigureAwait(false);
-                    }
-
-                    return delay;
-                }
-                catch (OperationCanceledException)
-                {
-                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync().ConfigureAwait(false);
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    var message = string.Format(
-                        EditorFeaturesResources.Downloading_index_failed_0,
-                        "\r\n" + e.ToString());
-                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
-                    throw;
-                }
+                var (_, delay) = await DownloadFullDatabaseWorkerAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
+                return delay;
             }
 
             private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
