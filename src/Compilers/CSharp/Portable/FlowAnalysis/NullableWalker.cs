@@ -8721,6 +8721,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             VisitRvalue(node.Argument);
             // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.
+            if (node.Argument.ConstantValue?.IsNull != true
+                && MakeMemberSlot(receiverOpt, @event) is > 0 and var memberSlot)
+            {
+                this.State[memberSlot] = node.IsAddition
+                    ? this.State[memberSlot].Meet(ResultType.State)
+                    : NullableFlowState.MaybeNull;
+            }
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29969 Review whether this is the correct result
             return null;
         }
