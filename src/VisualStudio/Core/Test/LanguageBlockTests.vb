@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -241,7 +242,12 @@ System.Console$$.WriteLine(message)
                               </Document>
                           </Project>
                       </Workspace>
-            Using workspace = TestWorkspace.Create(xml)
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService))
+
+            Using workspace = TestWorkspace.Create(xml, composition:=composition)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Assert.Null(VsLanguageBlock.GetCurrentBlock(

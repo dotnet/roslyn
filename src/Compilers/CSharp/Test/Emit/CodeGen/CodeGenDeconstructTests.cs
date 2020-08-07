@@ -2461,6 +2461,69 @@ static class D
         }
 
         [Fact]
+        public void DeconstructRefExtensionMethod()
+        {
+            // https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
+            string source = @"
+struct C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        
+        var c = new C();
+        (x, y) = c;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+static class D
+{
+    public static void Deconstruct(this ref C value, out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,9): error CS1510: A ref or out value must be an assignable variable
+                //         (x, y) = c;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x, y) = c").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        public void DeconstructInExtensionMethod()
+        {
+            string source = @"
+struct C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        
+        (x, y) = new C();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+static class D
+{
+    public static void Deconstruct(this in C value, out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnderspecifiedDeconstructGenericExtensionMethod()
         {
             string source = @"
@@ -4900,7 +4963,7 @@ class C
                 // (4,16): error CS1002: ; expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(4, 16),
-                // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                // (4,16): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
                 // (4,19): error CS1031: Type expected
@@ -4912,7 +4975,7 @@ class C
                 // (4,19): error CS1026: ) expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
-                // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
+                // (4,19): error CS1519: Invalid token '1' in class, record, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
                 // (4,5): error CS1520: Method must have a return type
@@ -7565,7 +7628,7 @@ Handler");
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_03()
         {
@@ -7612,7 +7675,7 @@ Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataRe
             Assert.True(comp2.Compilation.GetMember<IEventSymbol>("C.E").IsWindowsRuntimeEvent);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.WinRTNeedsWindowsDesktop)]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_04()
         {

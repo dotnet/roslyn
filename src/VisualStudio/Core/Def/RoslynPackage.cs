@@ -309,11 +309,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             //
             // this should give all resources to BulkFileOperation. we do same for things like build, 
             // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
-            IGlobalOperationNotificationService globalNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+            var globalNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
-            object gate = new object();
+            var gate = new object();
             GlobalOperationRegistration? localRegistration = null;
 
             BulkFileOperation.End += (s, a) =>
@@ -328,6 +328,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             void StartBulkFileOperationNotification()
             {
+                RoslynDebug.Assert(gate != null);
+                RoslynDebug.Assert(globalNotificationService != null);
+
                 lock (gate)
                 {
                     // this shouldn't happen, but we are using external component
@@ -344,6 +347,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             void StopBulkFileOperationNotification()
             {
+                RoslynDebug.Assert(gate != null);
+
                 lock (gate)
                 {
                     // this can happen if BulkFileOperation was already in the middle

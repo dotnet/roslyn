@@ -111,19 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // initialize things on UI thread
             await InitializeOnUIAsync().ConfigureAwait(false);
 
-            // wait until remote host is available before let platform know that they can activate our LSP
-            var client = await RemoteHostClient.TryGetClientAsync(_services, CancellationToken.None).ConfigureAwait(false);
-            if (client == null)
-            {
-                // There is no OOP. either user turned it off, or process got killed.
-                // We should have already gotten a gold bar + nfw already if the OOP is missing.
-                // so just log telemetry here so we can connect the two with session explorer.
-                Logger.Log(FunctionId.LanguageServer_OnLoadedFailed, KeyValueLogMessage.NoProperty);
-                // don't ask platform to start LSP.
-                // we shouldn't throw as the LSP client does not expect exceptions here.
-                return;
-            }
-
             // let platform know that they can start us
             await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
 

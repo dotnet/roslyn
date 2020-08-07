@@ -83,19 +83,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             public readonly TestWorkspace Workspace;
             public readonly EditSession EditSession;
 
+            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(DummyLanguageService),
+                typeof(TestActiveStatementSpanTrackerFactory));
+
             public Validator(
                 string[] markedSource,
                 ImmutableArray<ActiveStatementDebugInfo> activeStatements,
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
                 Func<Solution, Solution> adjustSolution = null,
-                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
+                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
+                bool openDocuments = false)
             {
-                var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer.Factory)).WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
-
-                var exportProvider = exportProviderFactory.CreateExportProvider();
-
-                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider, openDocuments: true);
+                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), composition: s_composition, openDocuments: openDocuments);
 
                 if (adjustSolution != null)
                 {
@@ -877,7 +877,8 @@ class Test2
                 return solution;
             });
 
-            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution);
+            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution, openDocuments: true);
+
             var baseActiveStatementsMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 

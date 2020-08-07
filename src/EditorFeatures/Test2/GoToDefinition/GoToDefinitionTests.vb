@@ -19,8 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 workspaceDefinition As XElement,
                 expectedResult As Boolean,
                 executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean))
-            Using workspace = TestWorkspace.Create(
-                    workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value

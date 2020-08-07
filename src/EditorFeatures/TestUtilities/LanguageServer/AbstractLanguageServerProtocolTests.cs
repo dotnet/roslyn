@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -38,6 +39,10 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract class AbstractLanguageServerProtocolTests
     {
+        // TODO: remove WPF dependency (IEditorInlineRenameService)
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
+            .AddParts(typeof(TestLspSolutionProvider));
+
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
         internal class TestLspSolutionProvider : ILspSolutionProvider
         {
@@ -65,6 +70,12 @@ namespace Roslyn.Test.Utilities
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution.GetDocuments(documentUri);
+            }
+
+            public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
+            {
+                Contract.ThrowIfNull(_currentSolution);
+                return _currentSolution.GetTextDocuments(documentUri);
             }
         }
 
@@ -99,20 +110,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        protected virtual ExportProvider GetExportProvider()
-        {
-            var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
-            var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(LanguageServerProtocol))
-                .WithParts(requestHelperTypes)
-                .WithParts(executeCommandHandlerTypes)
-                .WithPart(typeof(TestLspSolutionProvider)));
-            return exportProviderFactory.CreateExportProvider();
-        }
+        protected virtual TestComposition Composition => s_composition;
 
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
@@ -186,7 +184,7 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
-            var documentIdentifier = new LSP.VSTextDocumentIdentifier() { Uri = uri };
+            var documentIdentifier = new LSP.VSTextDocumentIdentifier { Uri = uri };
 
             if (projectContext != null)
             {
@@ -222,7 +220,7 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        protected static LSP.VSCompletionItem CreateCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters)
+        protected static LSP.VSCompletionItem CreateCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters, bool preselect = false)
             => new LSP.VSCompletionItem()
             {
                 FilterText = text,
@@ -237,20 +235,12 @@ namespace Roslyn.Test.Utilities
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position
                 },
-                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
+                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
+                Preselect = preselect
             };
 
-        private protected static RunCodeActionParams CreateRunCodeActionParams(string codeActionTitle, LSP.Location location)
-            => new RunCodeActionParams()
-            {
-                CodeActionParams = new LSP.CodeActionParams()
-                {
-                    TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                    Range = location.Range,
-                    Context = new LSP.CodeActionContext()
-                },
-                Title = codeActionTitle
-            };
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
+            => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
         /// Creates a solution with a document.
@@ -267,7 +257,7 @@ namespace Roslyn.Test.Utilities
         /// </returns>
         protected Workspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
         {
-            var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: GetExportProvider());
+            var workspace = TestWorkspace.CreateCSharp(markups, composition: Composition);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -285,7 +275,7 @@ namespace Roslyn.Test.Utilities
 
         protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
-            var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
+            var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
             UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             return workspace;

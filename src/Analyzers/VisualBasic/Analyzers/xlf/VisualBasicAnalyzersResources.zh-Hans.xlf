@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VisualBasicAnalyzersResources.resx">
     <body>
+      <trans-unit id="GetType_can_be_converted_to_NameOf">
+        <source>'GetType' can be converted to 'NameOf'</source>
+        <target state="new">'GetType' can be converted to 'NameOf'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
         <target state="translated">可简化“If”语句</target>

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -4714,11 +4715,6 @@ class A
 }");
         }
 
-        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
-        {
-            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
-        }
-
         [Theory]
         [InlineData("")]
         [InlineData("unchecked")]
@@ -5018,6 +5014,8 @@ class Program
         [Fact]
         public void ConstantConversions_03()
         {
+            using var _ = new EnsureInvariantCulture();
+
             constantConversions("sbyte", "nint", "-1", null, "-1", "-1", null, "-1", "-1");
             constantConversions("sbyte", "nint", "sbyte.MinValue", null, "-128", "-128", null, "-128", "-128");
             constantConversions("sbyte", "nint", "sbyte.MaxValue", null, "127", "127", null, "127", "127");
