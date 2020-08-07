@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 #nullable enable
 namespace Microsoft.CodeAnalysis
@@ -124,20 +123,16 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriverRunResult GetRunResult()
         {
-            var results = ArrayBuilder<GeneratorRunResult>.GetInstance(_state.Generators.Length);
-            for (int i = 0; i < _state.Generators.Length; i++)
-            {
-                var generator = _state.Generators[i];
-                var generatorState = _state.GeneratorStates[i];
-
-                var sourceResults = generatorState.SourceTexts.ZipAsArray(
-                                        generatorState.Trees,
-                                        (sourceText, tree) => new GeneratedSourceResult(tree, sourceText.Text, sourceText.HintName));
-
-                results.Add(new GeneratorRunResult(generator, sourceResults, generatorState.Diagnostics, generatorState.Exception));
-            }
-
-            return new GeneratorDriverRunResult(results.ToImmutableAndFree());
+            var results = _state.Generators.ZipAsArray(
+                            _state.GeneratorStates,
+                            (generator, generatorState)
+                                => new GeneratorRunResult(generator,
+                                                          diagnostics: generatorState.Diagnostics,
+                                                          exception: generatorState.Exception,
+                                                          generatedSources: generatorState.SourceTexts.ZipAsArray(
+                                                                                generatorState.Trees,
+                                                                                (sourceText, tree) => new GeneratedSourceResult(tree, sourceText.Text, sourceText.HintName))));
+            return new GeneratorDriverRunResult(results);
         }
 
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
@@ -183,7 +178,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var rx = generatorState.Info.SyntaxReceiverCreator();
-                        walkerBuilder.Insert(i, new GeneratorSyntaxWalker(rx));
+                        walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
                         generatorState = generatorState.WithReceiver(rx);
                         receiverCount++;
                     }
