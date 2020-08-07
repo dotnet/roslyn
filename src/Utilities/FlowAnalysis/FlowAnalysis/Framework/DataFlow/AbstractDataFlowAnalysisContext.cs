@@ -32,42 +32,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             bool pessimisticAnalysis,
             bool predicateAnalysis,
             bool exceptionPathsAnalysis,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResult,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<TAnalysisContext, TAnalysisResult?> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph? parentControlFlowGraphOpt,
-            InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>? interproceduralAnalysisDataOpt,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
+            ControlFlowGraph? parentControlFlowGraph,
+            InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>? interproceduralAnalysisData,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
         {
             Debug.Assert(owningSymbol.Kind == SymbolKind.Method ||
                 owningSymbol.Kind == SymbolKind.Field ||
                 owningSymbol.Kind == SymbolKind.Property ||
                 owningSymbol.Kind == SymbolKind.Event);
             Debug.Assert(Equals(owningSymbol.OriginalDefinition, owningSymbol));
-            Debug.Assert(pointsToAnalysisResultOpt == null ||
-                pointsToAnalysisResultOpt.ControlFlowGraph == controlFlowGraph);
-            Debug.Assert(copyAnalysisResultOpt == null ||
-                copyAnalysisResultOpt.ControlFlowGraph == controlFlowGraph);
-            Debug.Assert(valueContentAnalysisResultOpt == null ||
-                valueContentAnalysisResultOpt.ControlFlowGraph == controlFlowGraph);
+            Debug.Assert(pointsToAnalysisResult == null ||
+                pointsToAnalysisResult.ControlFlowGraph == controlFlowGraph);
+            Debug.Assert(copyAnalysisResult == null ||
+                copyAnalysisResult.ControlFlowGraph == controlFlowGraph);
+            Debug.Assert(valueContentAnalysisResult == null ||
+                valueContentAnalysisResult.ControlFlowGraph == controlFlowGraph);
 
             ValueDomain = valueDomain;
             WellKnownTypeProvider = wellKnownTypeProvider;
             ControlFlowGraph = controlFlowGraph;
-            ParentControlFlowGraphOpt = parentControlFlowGraphOpt;
+            ParentControlFlowGraphOpt = parentControlFlowGraph;
             OwningSymbol = owningSymbol;
             AnalyzerOptions = analyzerOptions;
             InterproceduralAnalysisConfiguration = interproceduralAnalysisConfig;
             PessimisticAnalysis = pessimisticAnalysis;
             PredicateAnalysis = predicateAnalysis;
             ExceptionPathsAnalysis = exceptionPathsAnalysis;
-            CopyAnalysisResultOpt = copyAnalysisResultOpt;
-            PointsToAnalysisResultOpt = pointsToAnalysisResultOpt;
-            ValueContentAnalysisResultOpt = valueContentAnalysisResultOpt;
+            CopyAnalysisResultOpt = copyAnalysisResult;
+            PointsToAnalysisResultOpt = pointsToAnalysisResult;
+            ValueContentAnalysisResultOpt = valueContentAnalysisResult;
             TryGetOrComputeAnalysisResult = tryGetOrComputeAnalysisResult;
-            InterproceduralAnalysisDataOpt = interproceduralAnalysisDataOpt;
-            InterproceduralAnalysisPredicateOpt = interproceduralAnalysisPredicateOpt;
+            InterproceduralAnalysisDataOpt = interproceduralAnalysisData;
+            InterproceduralAnalysisPredicateOpt = interproceduralAnalysisPredicate;
         }
 
         public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain { get; }
@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
             IOperation operation,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            CopyAnalysisResult? copyAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>? interproceduralAnalysisData);
 
         public ControlFlowGraph? GetLocalFunctionControlFlowGraph(IMethodSymbol localFunction)

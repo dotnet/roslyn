@@ -62,7 +62,6 @@ namespace Roslyn.Utilities
                         ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
                     },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             test.ExpectedDiagnostics.AddRange(expected);
@@ -88,7 +87,6 @@ namespace Roslyn.Utilities
                     },
                 },
                 FixedCode = fixedSource,
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             test.ExpectedDiagnostics.AddRange(expected);
