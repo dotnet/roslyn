@@ -259,6 +259,63 @@ class TestClass {{
             Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}The code action equivalence key and index must be consistent when both are specified.", exception.Message);
         }
 
+        [Fact]
+        public async Task TestAdditionalVerificationSuccess()
+        {
+            var testCode = @"
+class TestClass {
+  int field = [|0|];
+}
+";
+            var fixedCode = $@"
+class TestClass {{
+  int field = 2;
+}}
+";
+
+            // A single CodeFixProvider provides three actions
+            var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
+            await new CSharpTest(codeFixes)
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = "ReplaceZeroFix_2",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal("ThisToBase", codeAction.Title),
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestAdditionalVerificationFailure()
+        {
+            var testCode = @"
+class TestClass {
+  int field = [|0|];
+}
+";
+            var fixedCode = $@"
+class TestClass {{
+  int field = 2;
+}}
+";
+
+            // A single CodeFixProvider provides three actions
+            var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpTest(codeFixes)
+                {
+                    TestCode = testCode,
+                    FixedCode = fixedCode,
+                    CodeActionIndex = 1,
+                    CodeActionEquivalenceKey = "ReplaceZeroFix_2",
+                    CodeActionVerifier = (codeAction, verifier) => verifier.Equal("Expected title", codeAction.Title),
+                }.RunAsync();
+            });
+
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'Expected title' actual:'ThisToBase'", exception.Message);
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class LiteralZeroAnalyzer : DiagnosticAnalyzer
         {

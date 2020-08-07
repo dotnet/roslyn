@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Testing
             SolutionState oldState,
             SolutionState newState,
             int numberOfIterations,
-            Func<DiagnosticResult, ImmutableArray<CodeRefactoringProvider>, int?, string?, Project, int, IVerifier, CancellationToken, Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)>> getFixedProject,
+            Func<DiagnosticResult, ImmutableArray<CodeRefactoringProvider>, int?, string?, Action<CodeAction, IVerifier>?, Project, int, IVerifier, CancellationToken, Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)>> getFixedProject,
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Testing
             _ = await GetCompilerDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
 
             ExceptionDispatchInfo? iterationCountFailure;
-            (project, iterationCountFailure) = await getFixedProject(triggerSpan, codeRefactoringProviders, CodeActionIndex, CodeActionEquivalenceKey, project, numberOfIterations, verifier, cancellationToken).ConfigureAwait(false);
+            (project, iterationCountFailure) = await getFixedProject(triggerSpan, codeRefactoringProviders, CodeActionIndex, CodeActionEquivalenceKey, CodeActionVerifier, project, numberOfIterations, verifier, cancellationToken).ConfigureAwait(false);
 
             // After applying the refactoring, compare the resulting string to the inputted one
             var updatedDocuments = project.Documents.ToArray();
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Testing
             iterationCountFailure?.Throw();
         }
 
-        private async Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> ApplyRefactoringAsync(DiagnosticResult triggerSpan, ImmutableArray<CodeRefactoringProvider> codeRefactoringProviders, int? codeActionIndex, string? codeActionEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> ApplyRefactoringAsync(DiagnosticResult triggerSpan, ImmutableArray<CodeRefactoringProvider> codeRefactoringProviders, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
         {
             var expectedNumberOfIterations = numberOfIterations;
             if (numberOfIterations < 0)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var filteredActions = FilterCodeActions(actions.ToImmutable());
-                var actionToApply = TryGetCodeActionToApply(filteredActions, codeActionIndex, codeActionEquivalenceKey, verifier);
+                var actionToApply = TryGetCodeActionToApply(filteredActions, codeActionIndex, codeActionEquivalenceKey, codeActionVerifier, verifier);
                 if (actionToApply != null)
                 {
                     anyActions = true;

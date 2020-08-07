@@ -39,6 +39,16 @@ namespace Microsoft.CodeAnalysis.Testing
         public string? CodeActionEquivalenceKey { get; set; }
 
         /// <summary>
+        /// Gets or sets an additional verifier for a <see cref="CodeAction"/>. After the code action is selected, it is
+        /// passed to this verification method to test any other properties of the code action.
+        /// </summary>
+        /// <remarks>
+        /// <para>For a successful test, the verification action is expected to complete without throwing an
+        /// exception.</para>
+        /// </remarks>
+        public Action<CodeAction, IVerifier>? CodeActionVerifier { get; set; }
+
+        /// <summary>
         /// Gets or sets the validation mode for code actions. The default is
         /// <see cref="CodeActionValidationMode.SemanticStructure"/>.
         /// </summary>
@@ -64,8 +74,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance);
         }
 
-        protected static CodeAction? TryGetCodeActionToApply(ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, IVerifier verifier)
+        protected static CodeAction? TryGetCodeActionToApply(ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, IVerifier verifier)
         {
+            CodeAction? result;
             if (codeActionIndex.HasValue && codeActionEquivalenceKey != null)
             {
                 if (actions.Length <= codeActionIndex)
@@ -78,20 +89,27 @@ namespace Microsoft.CodeAnalysis.Testing
                     actions[codeActionIndex.Value].EquivalenceKey,
                     "The code action equivalence key and index must be consistent when both are specified.");
 
-                return actions[codeActionIndex.Value];
+                result = actions[codeActionIndex.Value];
             }
             else if (codeActionEquivalenceKey != null)
             {
-                return actions.FirstOrDefault(x => x.EquivalenceKey == codeActionEquivalenceKey);
+                result = actions.FirstOrDefault(x => x.EquivalenceKey == codeActionEquivalenceKey);
             }
             else if (actions.Length > (codeActionIndex ?? 0))
             {
-                return actions[codeActionIndex ?? 0];
+                result = actions[codeActionIndex ?? 0];
             }
             else
             {
                 return null;
             }
+
+            if (result is object)
+            {
+                codeActionVerifier?.Invoke(result, verifier);
+            }
+
+            return result;
         }
 
         protected virtual ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
